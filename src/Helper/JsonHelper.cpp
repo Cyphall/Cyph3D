@@ -1,0 +1,25 @@
+#include "JsonHelper.h"
+#include <fstream>
+#include <filesystem>
+
+nlohmann::json loadJsonFromFile(const std::string& path)
+{
+	nlohmann::json root;
+	
+	std::ifstream jsonFile(path);
+	jsonFile >> root;
+	jsonFile.close();
+	
+	return root;
+}
+
+void saveJsonToFile(const nlohmann::json& json, const std::string& path)
+{
+	std::ofstream jsonFile(path);
+	if (std::filesystem::path(path).extension() == ".json")
+	{
+		jsonFile << std::setw(4);
+	}
+	jsonFile << json;
+	jsonFile.close();
+}

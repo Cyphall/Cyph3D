@@ -1,0 +1,47 @@
+#include "Cubemap.h"
+
+Cubemap::Cubemap(const CubemapCreateInfo& settings):
+_size(settings.size)
+{
+	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &_handle);
+	
+	GLenum minFiltering = GL_LINEAR;
+	GLenum magFiltering = settings.textureFiltering;
+	
+	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, minFiltering);
+	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, magFiltering);
+	
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	
+	glTextureStorage2D(_handle, 1, settings.internalFormat, _size.x, _size.y);
+	
+	_bindlessHandle = glGetTextureHandleARB(_handle);
+	glMakeTextureHandleResidentARB(_bindlessHandle);
+}
+
+Cubemap::~Cubemap()
+{
+	glDeleteTextures(1, &_handle);
+}
+
+GLuint64 Cubemap::getBindlessHandle() const
+{
+	return _bindlessHandle;
+}
+
+void Cubemap::setData(void* data, int face, GLenum format, GLenum type)
+{
+	glTextureSubImage3D(_handle, 0, 0, 0, face, _size.x, _size.y, 1, format, type, data);
+}
+
+void Cubemap::bind(GLuint unit)
+{
+	glBindTextureUnit(unit, _handle);
+}
+
+glm::ivec2 Cubemap::getSize() const
+{
+	return _size;
+}

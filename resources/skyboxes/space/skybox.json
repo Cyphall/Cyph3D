@@ -1,0 +1,8 @@
+{
+	"left": "space_left.png",
+	"front": "space_front.png",
+	"right": "space_right.png",
+	"back": "space_back.png",
+	"up": "space_up.png",
+	"down": "space_down.png"
+}
