@@ -13,10 +13,10 @@ nlohmann::json loadJsonFromFile(const std::string& path)
 	return root;
 }
 
-void saveJsonToFile(const nlohmann::json& json, const std::string& path)
+void saveJsonToFile(const nlohmann::json& json, const std::string& path, bool beautify)
 {
 	std::ofstream jsonFile(path);
-	if (std::filesystem::path(path).extension() == ".json")
+	if (beautify)
 	{
 		jsonFile << std::setw(4);
 	}
