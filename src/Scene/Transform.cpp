@@ -117,7 +117,7 @@ const glm::mat4& Transform::getMatrix()
 	if (_matrixChanged)
 	{
 		_cachedMatrix = glm::translate(_position) *
-				  glm::transpose(glm::toMat4(_rotation)) *
+				  glm::toMat4(_rotation) *
 				  glm::scale(_scale);
 		_matrixChanged = false;
 	}
