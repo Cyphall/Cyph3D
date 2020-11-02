@@ -12,7 +12,7 @@ struct SkyboxLoadingData
 	glm::ivec2 size;
 	GLenum internalFormat;
 	GLenum pixelFormat;
-	std::array<uint8_t*, 6> data;
+	std::array<std::unique_ptr<uint8_t[]>, 6> data;
 	std::optional<std::array<GLint, 4>> swizzle;
 };
 

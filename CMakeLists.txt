@@ -24,6 +24,8 @@ find_package(nlohmann_json CONFIG REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE
         "vendor/glad/include"
 		"vendor/imgui-1.79/include"
+		"vendor/thread_pool/include"
+		"vendor/concurrentqueue/include"
 		${STB_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

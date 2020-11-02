@@ -12,7 +12,7 @@
 #include "../UI/Window/UIInspector.h"
 
 Scene::Scene(Camera camera, std::string name):
-_camera(camera), _root(Transform::createSceneRoot()), _name(std::move(name))
+_camera(camera), _root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::thread::hardware_concurrency() - 1)
 {
 
 }

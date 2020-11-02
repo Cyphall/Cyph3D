@@ -16,7 +16,7 @@ void Image::finishLoading(const ImageLoadingData& data)
 	createInfo.swizzle = data.swizzle;
 	
 	_resource = std::make_unique<Texture>(createInfo);
-	_resource->setData(data.data, data.pixelFormat);
+	_resource->setData(data.data.get(), data.pixelFormat);
 }
 
 ImageLoadingData Image::loadFromFile(const std::string& name, bool sRGB, bool compressed)
@@ -27,7 +27,7 @@ ImageLoadingData Image::loadFromFile(const std::string& name, bool sRGB, bool co
 	
 	int comp;
 	
-	imageData.data = stbi_load(path.c_str(), &imageData.size.x, &imageData.size.y, &comp, 0);
+	imageData.data.reset(stbi_load(path.c_str(), &imageData.size.x, &imageData.size.y, &comp, 0));
 	
 	if (imageData.data == nullptr)
 	{

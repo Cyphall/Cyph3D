@@ -16,7 +16,7 @@ void Skybox::finishLoading(const SkyboxLoadingData& data)
 	
 	for (int i = 0; i < data.data.size(); ++i)
 	{
-		_resource->setData(data.data[i], i, data.pixelFormat);
+		_resource->setData(data.data[i].get(), i, data.pixelFormat);
 	}
 }
 
@@ -46,7 +46,7 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 		glm::ivec2 faceSize;
 		int faceComp;
 		
-		skyboxData.data[i] = stbi_load(facePaths[i].c_str(), &faceSize.x, &faceSize.y, &faceComp, 0);
+		skyboxData.data[i].reset(stbi_load(facePaths[i].c_str(), &faceSize.x, &faceSize.y, &faceComp, 0));
 		
 		if (skyboxData.data[i] == nullptr)
 		{

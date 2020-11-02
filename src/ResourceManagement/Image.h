@@ -8,7 +8,7 @@ struct ImageLoadingData
 	glm::ivec2 size;
 	GLenum internalFormat;
 	GLenum pixelFormat;
-	uint8_t* data;
+	std::unique_ptr<uint8_t[]> data;
 	std::optional<std::array<GLint, 4>> swizzle;
 };
 

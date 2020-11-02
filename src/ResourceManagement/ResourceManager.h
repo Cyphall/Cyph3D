@@ -1,6 +1,5 @@
 #pragma once
 
-#include <concurrent_queue.h>
 #include <map>
 #include <unordered_map>
 #include "Model.h"
@@ -10,6 +9,8 @@
 #include "../GLObject/ShaderProgram.h"
 #include "../GLObject/MaterialShaderProgram.h"
 #include "../GLObject/Material.h"
+#include <thread_pool.hpp>
+#include <concurrentqueue.h>
 
 namespace std
 {
@@ -38,7 +39,7 @@ namespace std
 class ResourceManager
 {
 public:
-	~ResourceManager();
+	explicit ResourceManager(int threadCount);
 	
 	void update();
 	
@@ -51,17 +52,17 @@ public:
 	
 private:
 	std::map<std::string, std::unique_ptr<Model>> _models;
-	concurrency::concurrent_queue<std::tuple<Model*, ModelLoadingData>> _modelLoadingQueue;
+	moodycamel::ConcurrentQueue<std::pair<Model*, ModelLoadingData>> _modelLoadingQueue;
 	void loadModel(Model* model, const std::string& name);
 	void finishModelLoading();
 	
 	std::map<std::string, std::unique_ptr<Image>> _images;
-	concurrency::concurrent_queue<std::tuple<Image*, ImageLoadingData>> _imageLoadingQueue;
+	moodycamel::ConcurrentQueue<std::pair<Image*, ImageLoadingData>> _imageLoadingQueue;
 	void loadImage(Image* image, const std::string& name, bool sRGB, bool compressed);
 	void finishImageLoading();
 	
 	std::map<std::string, std::unique_ptr<Skybox>> _skyboxes;
-	concurrency::concurrent_queue<std::tuple<Skybox*, SkyboxLoadingData>> _skyboxLoadingQueue;
+	moodycamel::ConcurrentQueue<std::pair<Skybox*, SkyboxLoadingData>> _skyboxLoadingQueue;
 	void loadSkybox(Skybox* skybox, const std::string& name);
 	void finishSkyboxLoading();
 	
@@ -70,4 +71,6 @@ private:
 	std::map<std::string, std::unique_ptr<MaterialShaderProgram>> _materialShaderPrograms;
 	
 	std::map<std::string, std::unique_ptr<Material>> _materials;
+	
+	thread_pool _threadPool;
 };

@@ -1,28 +1,11 @@
 #include "ResourceManager.h"
 #include "../Logger.h"
-#include <stb_image.h>
 #include <fmt/core.h>
 
-ResourceManager::~ResourceManager()
+ResourceManager::ResourceManager(int threadCount):
+_threadPool(threadCount)
 {
-	{
-		std::tuple<Image*, ImageLoadingData> data;
-		while (_imageLoadingQueue.try_pop(data))
-		{
-			stbi_image_free(std::get<1>(data).data);
-		}
-	}
-	{
-		std::tuple<Skybox*, SkyboxLoadingData> data;
-		while (_skyboxLoadingQueue.try_pop(data))
-		{
-			SkyboxLoadingData& loadingData = std::get<1>(data);
-			for (uint8_t* ptr : loadingData.data)
-			{
-				stbi_image_free(ptr);
-			}
-		}
-	}
+
 }
 
 void ResourceManager::update()
@@ -47,19 +30,19 @@ void ResourceManager::loadModel(Model* model, const std::string& name)
 {
 	Logger::Info(fmt::format("Loading model \"{}\"", name));
 	
-	// threaded
-	ModelLoadingData modelData = Model::loadFromFile(name);
-	_modelLoadingQueue.push(std::make_tuple(model, modelData));
-	// end threaded
+	_threadPool.enqueue_work([&, model, name]{
+		ModelLoadingData modelData = Model::loadFromFile(name);
+		_modelLoadingQueue.enqueue(std::make_pair(model, std::move(modelData)));
+	});
 }
 
 void ResourceManager::finishModelLoading()
 {
-	std::tuple<Model*, ModelLoadingData> data;
-	while (_modelLoadingQueue.try_pop(data))
+	std::pair<Model*, ModelLoadingData> data;
+	while (_modelLoadingQueue.try_dequeue(data))
 	{
-		Model* model = std::get<0>(data);
-		ModelLoadingData& modelData = std::get<1>(data);
+		auto& [model, modelData] = data;
+		
 		model->finishLoading(modelData);
 		Logger::Info(fmt::format("Model \"{}\" loaded", model->getName()));
 	}
@@ -80,22 +63,21 @@ void ResourceManager::loadImage(Image* image, const std::string& name, bool sRGB
 {
 	Logger::Info(fmt::format("Loading image \"{}\"", name));
 	
-	// threaded
-	ImageLoadingData imageData = Image::loadFromFile(name, sRGB, compressed);
-	_imageLoadingQueue.push(std::make_tuple(image, imageData));
-	// end threaded
+	_threadPool.enqueue_work([&, image, name, sRGB, compressed]
+	{
+		ImageLoadingData imageData = Image::loadFromFile(name, sRGB, compressed);
+		_imageLoadingQueue.enqueue(std::make_pair(image, std::move(imageData)));
+	});
 }
 
 void ResourceManager::finishImageLoading()
 {
-	std::tuple<Image*, ImageLoadingData> data;
-	while (_imageLoadingQueue.try_pop(data))
+	std::pair<Image*, ImageLoadingData> data;
+	while (_imageLoadingQueue.try_dequeue(data))
 	{
-		Image* image = std::get<0>(data);
-		ImageLoadingData& imageData = std::get<1>(data);
+		auto& [image, imageData] = data;
 		
 		image->finishLoading(imageData);
-		stbi_image_free(imageData.data);
 		
 		Logger::Info(fmt::format("Image \"{}\" loaded", image->getName()));
 	}
@@ -116,25 +98,21 @@ void ResourceManager::loadSkybox(Skybox* skybox, const std::string& name)
 {
 	Logger::Info(fmt::format("Loading skybox \"{}\"", name));
 	
-	// threaded
-	SkyboxLoadingData skyboxData = Skybox::loadFromFile(name);
-	_skyboxLoadingQueue.push(std::make_tuple(skybox, skyboxData));
-	// end threaded
+	_threadPool.enqueue_work([&, skybox, name]
+	{
+		SkyboxLoadingData skyboxData = Skybox::loadFromFile(name);
+		_skyboxLoadingQueue.enqueue(std::make_pair(skybox, std::move(skyboxData)));
+	});
 }
 
 void ResourceManager::finishSkyboxLoading()
 {
-	std::tuple<Skybox*, SkyboxLoadingData> data;
-	while (_skyboxLoadingQueue.try_pop(data))
+	std::pair<Skybox*, SkyboxLoadingData> data;
+	while (_skyboxLoadingQueue.try_dequeue(data))
 	{
-		Skybox* skybox = std::get<0>(data);
-		SkyboxLoadingData& skyboxData = std::get<1>(data);
+		auto& [skybox, skyboxData] = data;
 		
 		skybox->finishLoading(skyboxData);
-		for (uint8_t* ptr : skyboxData.data)
-		{
-			stbi_image_free(ptr);
-		}
 		
 		Logger::Info(fmt::format("Skybox \"{}\" loaded", skybox->getName()));
 	}

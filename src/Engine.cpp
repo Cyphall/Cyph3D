@@ -13,6 +13,7 @@
 #include "Rendering/Renderer.h"
 #include "Helper/RenderHelper.h"
 #include <fmt/core.h>
+#include <thread_pool.hpp>
 
 std::unique_ptr<Window> Engine::_window;
 std::unique_ptr<ResourceManager> Engine::_globalResourceManager;
@@ -49,7 +50,7 @@ void Engine::init()
 	
 //	_window = std::make_unique<Window>(glm::ivec2(1600, 900));
 	_window = std::make_unique<Window>();
-	_globalResourceManager = std::make_unique<ResourceManager>();
+	_globalResourceManager = std::make_unique<ResourceManager>(1);
 	
 	Logger::Info(fmt::format("GLFW Version: {}", glfwGetVersionString()), "GLFW");
 	Logger::Info(fmt::format("OpenGL Version: {}", glGetString(GL_VERSION)), "OPGL");
