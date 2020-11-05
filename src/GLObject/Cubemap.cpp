@@ -15,6 +15,9 @@ _size(settings.size)
 	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(_handle, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	
+	glTextureParameteriv(_handle, GL_TEXTURE_SWIZZLE_RGBA, settings.swizzle.data());
+	
+	
 	glTextureStorage2D(_handle, 1, settings.internalFormat, _size.x, _size.y);
 	
 	_bindlessHandle = glGetTextureHandleARB(_handle);

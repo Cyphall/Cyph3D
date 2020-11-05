@@ -12,5 +12,5 @@ struct TextureCreateInfo
 	GLenum textureFiltering = GL_NEAREST;
 	bool useMipmaps = false;
 	bool isShadowMap = false;
-	std::optional<std::array<GLint, 4>> swizzle;
+	std::array<GLint, 4> swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA};
 };

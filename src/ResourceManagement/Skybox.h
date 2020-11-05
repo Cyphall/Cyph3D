@@ -13,7 +13,7 @@ struct SkyboxLoadingData
 	GLenum internalFormat;
 	GLenum pixelFormat;
 	std::array<std::unique_ptr<uint8_t[]>, 6> data;
-	std::optional<std::array<GLint, 4>> swizzle;
+	std::array<GLint, 4> swizzle;
 };
 
 class Skybox : public Resource<Cubemap, SkyboxLoadingData>

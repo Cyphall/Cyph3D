@@ -24,6 +24,7 @@ TextureInfo getTextureInfo(int componentCount, bool compressed, bool sRGB)
 			break;
 		case 3:
 			info.pixelFormat = GL_RGB;
+			info.swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ONE};
 			if (compressed)
 				info.internalFormat = sRGB ? GL_COMPRESSED_SRGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 			else
@@ -31,6 +32,7 @@ TextureInfo getTextureInfo(int componentCount, bool compressed, bool sRGB)
 			break;
 		case 4:
 			info.pixelFormat = GL_RGBA;
+			info.swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA};
 			if (compressed)
 				info.internalFormat = sRGB ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 			else

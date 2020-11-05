@@ -9,7 +9,7 @@ struct ImageLoadingData
 	GLenum internalFormat;
 	GLenum pixelFormat;
 	std::unique_ptr<uint8_t[]> data;
-	std::optional<std::array<GLint, 4>> swizzle;
+	std::array<GLint, 4> swizzle;
 };
 
 class Image : public Resource<Texture, ImageLoadingData>

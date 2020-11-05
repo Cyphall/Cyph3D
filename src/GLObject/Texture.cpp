@@ -27,10 +27,7 @@ _size(settings.size), _useMipmaps(settings.useMipmaps)
 		glTextureParameterfv(_handle, GL_TEXTURE_BORDER_COLOR, borderColor);
 	}
 	
-	if (settings.swizzle.has_value())
-	{
-		glTextureParameteriv(_handle, GL_TEXTURE_SWIZZLE_RGBA, settings.swizzle.value().data());
-	}
+	glTextureParameteriv(_handle, GL_TEXTURE_SWIZZLE_RGBA, settings.swizzle.data());
 	
 	glTextureStorage2D(_handle, _useMipmaps ? calculateMipmapCount(_size) : 1, settings.internalFormat, _size.x, _size.y);
 	
