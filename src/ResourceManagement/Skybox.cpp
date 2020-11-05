@@ -7,7 +7,7 @@
 void Skybox::finishLoading(const SkyboxLoadingData& data)
 {
 	CubemapCreateInfo createInfo;
-	createInfo.size = data.size;
+	createInfo.size = data.data[0].getSize();
 	createInfo.internalFormat = data.internalFormat;
 	createInfo.textureFiltering = GL_LINEAR;
 	createInfo.swizzle = data.swizzle;
@@ -16,7 +16,7 @@ void Skybox::finishLoading(const SkyboxLoadingData& data)
 	
 	for (int i = 0; i < data.data.size(); ++i)
 	{
-		_resource->setData(data.data[i].get(), i, data.pixelFormat);
+		_resource->setData(data.data[i].getPtr(), i, data.pixelFormat, data.data[i].getBitPerChannel() == 16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE);
 	}
 }
 
@@ -38,35 +38,33 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 	
 	SkyboxLoadingData skyboxData{};
 	
-	int comp;
+	int skyboxComp;
+	glm::ivec2 skyboxSize;
 	
 	bool firstIteration = true;
 	for (int i = 0; i < 6; ++i)
 	{
-		glm::ivec2 faceSize;
-		int faceComp;
+		skyboxData.data[i] = StbImage(facePaths[i].c_str());
 		
-		skyboxData.data[i].reset(stbi_load(facePaths[i].c_str(), &faceSize.x, &faceSize.y, &faceComp, 0));
-		
-		if (skyboxData.data[i] == nullptr)
+		if (!skyboxData.data[i].isValid())
 		{
 			throw std::runtime_error(fmt::format("Unable to load image {} from disk", path));
 		}
 		
 		if (firstIteration)
 		{
-			skyboxData.size = faceSize;
-			comp = faceComp;
+			skyboxComp = skyboxData.data[i].getChannels();
+			skyboxSize = skyboxData.data[i].getSize();
 			firstIteration = false;
 		}
 		
-		if (faceSize != skyboxData.size || faceComp != comp)
+		if (skyboxData.data[i].getChannels() != skyboxComp || skyboxData.data[i].getSize() != skyboxSize)
 		{
 			throw std::runtime_error(fmt::format("Skybox {} have images with different formats", name));
 		}
 	}
 	
-	TextureInfo info = getTextureInfo(comp, true, true);
+	TextureInfo info = getTextureInfo(skyboxComp, true, true);
 	
 	skyboxData.pixelFormat = info.pixelFormat;
 	skyboxData.internalFormat = info.internalFormat;

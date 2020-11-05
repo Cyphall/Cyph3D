@@ -1,0 +1,59 @@
+#include "StbImage.h"
+#include "stb_image.h"
+
+StbImage::StbImage()
+{
+
+}
+
+StbImage::StbImage(const std::string& path, int desiredChannels)
+{
+	_bitPerChannel = stbi_is_16_bit(path.c_str()) ? 16 : 8;
+	
+	if (_bitPerChannel == 16)
+	{
+		_data16bit.reset(stbi_load_16(path.c_str(), &_size.x, &_size.y, &_channels, desiredChannels));
+	}
+	else
+	{
+		_data8bit.reset(stbi_load(path.c_str(), &_size.x, &_size.y, &_channels, desiredChannels));
+	}
+}
+
+void* StbImage::getPtr() const
+{
+	switch (_bitPerChannel)
+	{
+		case 8:
+			return _data8bit.get();
+		case 16:
+			return _data16bit.get();
+	}
+	
+	return nullptr;
+}
+
+int StbImage::getBitPerChannel() const
+{
+	return _bitPerChannel;
+}
+
+int StbImage::getBitPerPixel() const
+{
+	return _bitPerChannel * _channels;
+}
+
+int StbImage::getChannels() const
+{
+	return _channels;
+}
+
+glm::ivec2 StbImage::getSize() const
+{
+	return _size;
+}
+
+bool StbImage::isValid() const
+{
+	return _data8bit.get() != nullptr || _data16bit.get() != nullptr;
+}

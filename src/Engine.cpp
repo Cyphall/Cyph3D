@@ -1,7 +1,6 @@
 #include "Engine.h"
 #include "Helper/GlfwHelper.h"
 #include <stdexcept>
-#include <stb_image.h>
 #include <windows.h>
 #include "UI/UIHelper.h"
 #include "GLObject/Framebuffer.h"
@@ -13,7 +12,9 @@
 #include "Rendering/Renderer.h"
 #include "Helper/RenderHelper.h"
 #include <fmt/core.h>
-#include <thread_pool.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 std::unique_ptr<Window> Engine::_window;
 std::unique_ptr<ResourceManager> Engine::_globalResourceManager;

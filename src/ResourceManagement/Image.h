@@ -2,13 +2,13 @@
 
 #include "Resource.h"
 #include "../GLObject/Texture.h"
+#include "StbImage.h"
 
 struct ImageLoadingData
 {
-	glm::ivec2 size;
 	GLenum internalFormat;
 	GLenum pixelFormat;
-	std::unique_ptr<uint8_t[]> data;
+	StbImage data;
 	std::array<GLint, 4> swizzle;
 };
 

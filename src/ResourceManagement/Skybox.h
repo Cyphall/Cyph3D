@@ -2,6 +2,7 @@
 
 #include "Resource.h"
 #include "../GLObject/Cubemap.h"
+#include "StbImage.h"
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <optional>
@@ -9,10 +10,9 @@
 
 struct SkyboxLoadingData
 {
-	glm::ivec2 size;
 	GLenum internalFormat;
 	GLenum pixelFormat;
-	std::array<std::unique_ptr<uint8_t[]>, 6> data;
+	std::array<StbImage, 6> data;
 	std::array<GLint, 4> swizzle;
 };
 
