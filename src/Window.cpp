@@ -18,8 +18,7 @@ void KeyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, uint
 	}
 }
 
-Window::Window(std::optional<glm::ivec2> size):
-_guiOpen(false)
+Window::Window(std::optional<glm::ivec2> size)
 {
 	glfwInit();
 	
@@ -63,6 +62,8 @@ _guiOpen(false)
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
 	
 	setCallbacks();
+	
+	setGuiOpen(true);
 }
 
 void Window::setCallbacks()

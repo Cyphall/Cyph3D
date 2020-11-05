@@ -32,5 +32,5 @@ public:
 
 private:
 	GLFWwindow* _glfwWindow;
-	bool _guiOpen;
+	bool _guiOpen = false;
 };
