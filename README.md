@@ -1,6 +1,7 @@
 # Cyph3D
 
-This is a simple 3D engine which aims to implement modern photorealistic features.
+This is a simple 3D engine which aims to implement modern photorealistic features.<br/>
+This project is a full C++ rewrite of my [original C# rendering engine](https://github.com/Cyphall/Cyph3D-legacy)
 
 ## Controls
 
