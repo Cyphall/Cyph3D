@@ -72,7 +72,7 @@ ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 		
 		if (values[1] > 1)
 		{
-			remove(name, "[0]");
+			StringHelper::remove(name, "[0]");
 			_uniforms[name] = glGetUniformLocation(_handle, name.c_str());
 			
 			for (int j = 0; j < values[1]; j++)
@@ -110,11 +110,11 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 	
 	std::string source;
 	
-	std::string extension = shaderTypeToExtension(type);
+	std::string extension = ShaderHelper::shaderTypeToExtension(type);
 	
 	try
 	{
-		source = readAllText(fmt::format("resources/shaders/internal/shaderHeader.{}", extension));
+		source = FileHelper::readAllText(fmt::format("resources/shaders/internal/shaderHeader.{}", extension));
 	}
 	catch (const std::ios_base::failure& e)
 	{
@@ -126,7 +126,7 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 	{
 		try
 		{
-			source += readAllText(fmt::format("resources/shaders/{}.{}", file, extension));
+			source += FileHelper::readAllText(fmt::format("resources/shaders/{}.{}", file, extension));
 		}
 		catch (const std::ios_base::failure& e)
 		{

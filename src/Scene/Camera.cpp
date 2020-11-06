@@ -86,7 +86,7 @@ _position(position), _sphericalCoords(sphericalCoords), _previousMousePos(Engine
 {
 	glm::ivec2 windowSize = Engine::getWindow().getSize();
 	float aspect = (float)windowSize.x / windowSize.y;
-	_projection = glm::perspective(fovXtoY(_fov, aspect), aspect, 0.02f, 1000.0f);
+	_projection = glm::perspective(MathHelper::fovXtoY(_fov, aspect), aspect, 0.02f, 1000.0f);
 }
 
 void Camera::update(double deltaTime)

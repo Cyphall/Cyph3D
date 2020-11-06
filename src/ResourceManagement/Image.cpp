@@ -29,7 +29,7 @@ ImageLoadingData Image::loadFromFile(const std::string& name, bool sRGB, bool co
 		throw std::runtime_error(fmt::format("Unable to load image {} from disk", path));
 	}
 	
-	TextureInfo info = getTextureInfo(imageData.data.getChannels(), compressed, sRGB);
+	TextureInfo info = TextureHelper::getTextureInfo(imageData.data.getChannels(), compressed, sRGB);
 	
 	imageData.internalFormat = info.internalFormat;
 	imageData.pixelFormat = info.pixelFormat;

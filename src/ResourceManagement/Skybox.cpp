@@ -24,7 +24,7 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 {
 	std::string path = fmt::format("resources/skyboxes/{}", name);
 	
-	nlohmann::json root = loadJsonFromFile(fmt::format("{}/skybox.json", path));
+	nlohmann::json root = JsonHelper::loadJsonFromFile(fmt::format("{}/skybox.json", path));
 	
 	std::string facePaths[6] =
 	{
@@ -64,7 +64,7 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 		}
 	}
 	
-	TextureInfo info = getTextureInfo(skyboxComp, true, true);
+	TextureInfo info = TextureHelper::getTextureInfo(skyboxComp, true, true);
 	
 	skyboxData.pixelFormat = info.pixelFormat;
 	skyboxData.internalFormat = info.internalFormat;

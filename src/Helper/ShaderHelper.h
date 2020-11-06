@@ -2,5 +2,8 @@
 
 #include <string>
 
-std::string shaderTypeToExtension(unsigned int type);
-
+class ShaderHelper
+{
+public:
+	static std::string shaderTypeToExtension(unsigned int type);
+};

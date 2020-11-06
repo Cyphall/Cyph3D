@@ -12,6 +12,9 @@ struct TextureInfo
 	std::array<GLint, 4> swizzle;
 };
 
-TextureInfo getTextureInfo(int componentCount, bool compressed, bool sRGB);
 
-
+class TextureHelper
+{
+public:
+	static TextureInfo getTextureInfo(int componentCount, bool compressed, bool sRGB);
+};

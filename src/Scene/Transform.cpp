@@ -16,7 +16,7 @@ void Transform::setParent(Transform* parent)
 	if (parent == nullptr) throw std::runtime_error("Cannot remove Transform's parent, only changing it is allowed");
 	
 	if (_parent != nullptr)
-		removeAll(_parent->_children, this);
+		VectorHelper::removeAll(_parent->_children, this);
 	_parent = parent;
 	_parent->_children.push_back(this);
 	
@@ -144,7 +144,7 @@ _owner(nullptr), _parent(nullptr), _position(0), _rotation(glm::vec3(0)), _scale
 Transform::~Transform()
 {
 	if (_parent != nullptr)
-		removeAll(_parent->_children, this);
+		VectorHelper::removeAll(_parent->_children, this);
 	
 	for (Transform* child : _children)
 	{

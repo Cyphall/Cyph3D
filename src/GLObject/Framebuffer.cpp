@@ -81,7 +81,7 @@ void Framebuffer::checkState()
 
 bool Framebuffer::isDrawBuffer(GLenum attachment)
 {
-	return between(attachment, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT31);
+	return MathHelper::between(attachment, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT31);
 }
 
 #pragma region Attachment setters
@@ -127,7 +127,7 @@ void Framebuffer::attach(GLenum attachment, const Cubemap& cubemap, int face)
 		throw std::runtime_error("The cubemap size does not match the framebuffer size");
 	}
 	
-	if (!between(face, 0, 6))
+	if (!MathHelper::between(face, 0, 6))
 	{
 		throw std::runtime_error("The cubemap size does not match the framebuffer size");
 	}

@@ -3,7 +3,7 @@
 #include <ios>
 #include <fmt/core.h>
 
-std::string readAllText(const std::string &path)
+std::string FileHelper::readAllText(const std::string &path)
 {
 	std::ifstream in(path, std::ios::in | std::ios::binary);
 	if (in)

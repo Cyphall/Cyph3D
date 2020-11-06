@@ -3,7 +3,7 @@
 #include <sstream>
 #include <glad/glad.h>
 
-std::string shaderTypeToExtension(GLenum type)
+std::string ShaderHelper::shaderTypeToExtension(GLenum type)
 {
 	switch (type)
 	{

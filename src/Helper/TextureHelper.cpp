@@ -1,6 +1,6 @@
 #include "TextureHelper.h"
 
-TextureInfo getTextureInfo(int componentCount, bool compressed, bool sRGB)
+TextureInfo TextureHelper::getTextureInfo(int componentCount, bool compressed, bool sRGB)
 {
 	TextureInfo info;
 	

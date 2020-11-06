@@ -126,7 +126,7 @@ void UIResourceExplorer::findMeshes(const std::string& path)
 		if (entry.is_directory()) continue;
 		
 		std::string name = std::filesystem::path(entry.path()).replace_extension().generic_string();
-		remove(name, path.c_str());
+		StringHelper::remove(name, path.c_str());
 		_meshes.push_back(name);
 	}
 }
@@ -140,7 +140,7 @@ void UIResourceExplorer::findMaterial(const std::string& path)
 		if (entry.path().filename() == "material.json")
 		{
 			std::string name = entry.path().parent_path().generic_string();
-			remove(name, path.c_str());
+			StringHelper::remove(name, path.c_str());
 			_materials.push_back(name);
 		}
 	}
@@ -155,7 +155,7 @@ void UIResourceExplorer::findSkyboxes(const std::string& path)
 		if (entry.path().filename() == "skybox.json")
 		{
 			std::string name = entry.path().parent_path().generic_string();
-			remove(name, path.c_str());
+			StringHelper::remove(name, path.c_str());
 			_skyboxes.push_back(name);
 		}
 	}

@@ -12,7 +12,7 @@ std::unique_ptr<Material> Material::_default;
 Material::Material(std::string name, ResourceManager* resourceManager):
 _name(std::move(name))
 {
-	nlohmann::json jsonRoot = loadJsonFromFile(fmt::format("resources/materials/{}/material.json", _name));
+	nlohmann::json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/materials/{}/material.json", _name));
 	
 	if (!jsonRoot.contains("shader"))
 	{
@@ -23,7 +23,7 @@ _name(std::move(name))
 	
 	for (const auto& [mapName, mapDefinition] : _shaderProgram->getMapDefinitions())
 	{
-		TextureInfo textureInfo = getTextureInfo(mapDefinition.defaultData.size(), mapDefinition.compressed, mapDefinition.sRGB);
+		TextureInfo textureInfo = TextureHelper::getTextureInfo(mapDefinition.defaultData.size(), mapDefinition.compressed, mapDefinition.sRGB);
 		
 		TextureCreateInfo createInfo;
 		createInfo.size = glm::ivec2(1);
@@ -51,7 +51,7 @@ _name(std::move(name))
 Material::Material():
 _shaderProgram(Engine::getGlobalRM().requestMaterialShaderProgram("unlit")), _name("Default Material"), _loaded(true)
 {
-	TextureInfo textureInfo = getTextureInfo(3, true, true);
+	TextureInfo textureInfo = TextureHelper::getTextureInfo(3, true, true);
 	
 	TextureCreateInfo createInfo;
 	createInfo.size = glm::ivec2(1);

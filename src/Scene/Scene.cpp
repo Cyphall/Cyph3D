@@ -53,7 +53,7 @@ void Scene::remove(SceneObject* object)
 	
 	if (removeIndex == -1) throw std::runtime_error("Object passed to Scene.remove is not part of that scene");
 	
-	removeAt(_objects, removeIndex);
+	VectorHelper::removeAt(_objects, removeIndex);
 }
 
 std::vector<std::unique_ptr<SceneObject>>& Scene::getObjects()
@@ -83,7 +83,7 @@ ResourceManager& Scene::getRM()
 
 void Scene::load(const std::string& name)
 {
-	nlohmann::json jsonRoot = loadJsonFromFile(fmt::format("resources/scenes/{}.json", name));
+	nlohmann::json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/scenes/{}.json", name));
 	
 	int version = jsonRoot["version"];
 	
@@ -244,7 +244,7 @@ void Scene::save()
 	
 	jsonRoot["objects"] = objects;
 	
-	saveJsonToFile(jsonRoot, fmt::format("resources/scenes/{}.json", _name));
+	JsonHelper::saveJsonToFile(jsonRoot, fmt::format("resources/scenes/{}.json", _name));
 }
 
 nlohmann::json Scene::serializeSceneObject(Transform* transform)

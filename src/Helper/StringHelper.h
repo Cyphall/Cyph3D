@@ -2,6 +2,8 @@
 
 #include <string>
 
-void remove(std::string& string, const char* stringToRemove);
-
-
+class StringHelper
+{
+public:
+	static void remove(std::string& string, const char* stringToRemove);
+};
