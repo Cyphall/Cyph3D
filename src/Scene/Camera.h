@@ -56,7 +56,7 @@ private:
 	glm::vec2 _previousMousePos;
 	
 	float _speed = 2;
-	float _exposure = 4;
+	float _exposure = 1;
 	float _fov = 100;
 	
 	void recalculateOrientation();
