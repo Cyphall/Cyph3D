@@ -62,7 +62,7 @@ void Engine::init()
 //	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 	glDebugMessageCallback(messageCallback, nullptr);
 	
-	Material::initializeDefault();
+	Material::initialize();
 	Framebuffer::initDrawToDefault();
 	RenderHelper::initDrawScreenQuad();
 	

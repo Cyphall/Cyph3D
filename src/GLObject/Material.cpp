@@ -67,7 +67,7 @@ _shaderProgram(Engine::getGlobalRM().requestMaterialShaderProgram("unlit")), _na
 	_textures["colorMap"] = std::make_tuple(std::move(defaultColor), nullptr);
 }
 
-void Material::initializeDefault()
+void Material::initialize()
 {
 	_default = std::unique_ptr<Material>(new Material());
 }

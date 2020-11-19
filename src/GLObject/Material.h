@@ -15,7 +15,7 @@ public:
 	const std::string& getName() const;
 	void setName(std::string name);
 	
-	static void initializeDefault();
+	static void initialize();
 	static Material* getDefault();
 
 private:
