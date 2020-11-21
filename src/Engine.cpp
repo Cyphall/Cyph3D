@@ -11,6 +11,7 @@
 #include "Scene/Scene.h"
 #include "Rendering/Renderer.h"
 #include "Helper/RenderHelper.h"
+#include "GLStateManager.h"
 #include <fmt/core.h>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -52,6 +53,8 @@ void Engine::init()
 //	_window = std::make_unique<Window>(glm::ivec2(1600, 900));
 	_window = std::make_unique<Window>();
 	_globalResourceManager = std::make_unique<ResourceManager>(1);
+	
+	GLStateManager::initialize();
 	
 	Logger::Info(fmt::format("GLFW Version: {}", glfwGetVersionString()), "GLFW");
 	Logger::Info(fmt::format("OpenGL Version: {}", glGetString(GL_VERSION)), "OPGL");

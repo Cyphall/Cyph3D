@@ -5,6 +5,11 @@
 #include "../Scene/Scene.h"
 
 glm::mat4 DirectionalLight::_projection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -50.0f, 50.0f);
+GLPipelineState DirectionalLight::_pipelineState
+{
+	.depthTest = true,
+	.viewport = std::array<int, 4>{0, 0, _RESOLUTION, _RESOLUTION}
+};
 
 DirectionalLight::DirectionalLight(Transform* parent, const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 srgbColor, float intensity, bool castShadows):
 		Light(parent, name, position, rotation, scale, srgbColor, intensity)
@@ -38,7 +43,7 @@ void DirectionalLight::setCastShadows(bool value)
 	
 	if (value)
 	{
-		_shadowMapFb = std::make_unique<Framebuffer>(glm::ivec2(RESOLUTION));
+		_shadowMapFb = std::make_unique<Framebuffer>(glm::ivec2(_RESOLUTION));
 		
 		TextureCreateInfo createInfo
 		{
@@ -84,8 +89,7 @@ void DirectionalLight::updateShadowMap()
 {
 	if (!_castShadows) return;
 	
-	GLStateManager::push();
-	GLStateManager::setViewport(0, 0, RESOLUTION, RESOLUTION);
+	GLStateManager::use(_pipelineState);
 	
 	glm::vec3 worldPos = _transform.getWorldPosition();
 	
@@ -115,6 +119,4 @@ void DirectionalLight::updateShadowMap()
 			}
 		}
 	}
-	
-	GLStateManager::pop();
 }

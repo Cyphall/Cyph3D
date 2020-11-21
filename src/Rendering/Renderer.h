@@ -28,12 +28,14 @@ private:
 	Texture _geometryNormalTexture;
 	Texture _depthTexture;
 	
+	GLPipelineState _firstPassPipelineState;
 	bool _debug = false;
 	
 	// Skybox
 	VertexArray _skyboxVAO;
 	std::unique_ptr<VertexBuffer<float>> _skyboxVBO;
 	ShaderProgram* _skyboxShader;
+	GLPipelineState _skyboxPassPipelineState;
 	
 	// Lighting pass
 	ShaderProgram* _lightingPassShader;

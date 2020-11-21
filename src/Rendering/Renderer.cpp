@@ -65,6 +65,12 @@ _resultTexture(TextureCreateInfo
 	
 	_resultFramebuffer.attach(GL_COLOR_ATTACHMENT0, _resultTexture);
 	
+	// First pass setup
+	
+	_firstPassPipelineState.depthTest = true;
+	_firstPassPipelineState.cullFace = true;
+	_firstPassPipelineState.frontFace = GL_CCW;
+	
 	// Skybox pass setup
 	
 	std::vector<float> skyboxVBOData = {
@@ -120,6 +126,10 @@ _resultTexture(TextureCreateInfo
 	skyboxShaderProgramCreateInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/skybox/skybox");
 	skyboxShaderProgramCreateInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/skybox/skybox");
 	_skyboxShader = Engine::getGlobalRM().requestShaderProgram(skyboxShaderProgramCreateInfo);
+	
+	_skyboxPassPipelineState.depthTest = true;
+	_skyboxPassPipelineState.depthFunc = GL_LEQUAL;
+	_skyboxPassPipelineState.depthMask = false;
 	
 	// Post processing passes setup
 	
@@ -191,11 +201,6 @@ void Renderer::render()
 
 void Renderer::shadowMapPass(std::vector<DirectionalLight*> directionalLights, std::vector<PointLight*> pointLights)
 {
-	GLStateManager::push();
-	
-	GLStateManager::setDepthTest(true);
-	GLStateManager::setDepthFunc(GL_LEQUAL);
-	
 	for (DirectionalLight* light : directionalLights)
 	{
 		light->updateShadowMap();
@@ -204,8 +209,6 @@ void Renderer::shadowMapPass(std::vector<DirectionalLight*> directionalLights, s
 	{
 		light->updateShadowMap();
 	}
-	
-	GLStateManager::pop();
 }
 
 void Renderer::updateLightBuffers(std::vector<DirectionalLight*> directionalLights, std::vector<PointLight*> pointLights)
@@ -229,31 +232,19 @@ void Renderer::updateLightBuffers(std::vector<DirectionalLight*> directionalLigh
 
 void Renderer::firstPass(glm::mat4 view, glm::mat4 projection, glm::vec3 viewPos, std::vector<MeshObject*> meshObjects)
 {
-	GLStateManager::push();
-	
-	GLStateManager::setDepthTest(true);
-	GLStateManager::setDepthFunc(GL_LEQUAL);
-	
-	GLStateManager::setCullFace(true);
-	GLStateManager::setFrontFace(GL_CCW);
-	
+	GLStateManager::use(_firstPassPipelineState);
+
 	_gbuffer.bind();
 	
 	for (MeshObject* meshObject : meshObjects)
 	{
 		meshObject->render(view, projection, viewPos);
 	}
-	
-	GLStateManager::pop();
 }
 
 void Renderer::skyboxPass(glm::mat4 view, glm::mat4 projection)
 {
-	GLStateManager::push();
-	
-	GLStateManager::setDepthTest(true);
-	GLStateManager::setDepthFunc(GL_LEQUAL);
-	GLStateManager::setDepthMask(false);
+	GLStateManager::use(_skyboxPassPipelineState);
 	
 	_gbuffer.bind();
 	
@@ -270,8 +261,6 @@ void Renderer::skyboxPass(glm::mat4 view, glm::mat4 projection)
 	_skyboxVAO.bind();
 	
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-	
-	GLStateManager::pop();
 }
 
 void Renderer::lightingPass(glm::vec3 viewPos, glm::mat4 view, glm::mat4 projection)

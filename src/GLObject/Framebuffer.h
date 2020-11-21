@@ -6,6 +6,7 @@
 #include "Texture.h"
 #include "Cubemap.h"
 #include "ShaderProgram.h"
+#include "../GLPipelineState.h"
 #include <glm/glm.hpp>
 #include <set>
 
@@ -43,4 +44,5 @@ private:
 	static bool isDrawBuffer(GLenum attachment);
 
 	static ShaderProgram* _drawToDefaultShaderProgram;
+	static GLPipelineState _drawToDefaultPipelineState;
 };

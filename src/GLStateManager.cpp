@@ -1,178 +1,121 @@
 #include "GLStateManager.h"
 
-std::stack<std::stack<std::function<void()>>> GLStateManager::_restoreStateActions;
+GLboolean GLStateManager::_defaultDepthTest;
+GLboolean GLStateManager::_defaultCullFace;
+GLboolean GLStateManager::_defaultBlend;
+GLboolean GLStateManager::_defaultDepthMask;
 
-void GLStateManager::push()
-{
-	_restoreStateActions.emplace();
-}
+GLenum GLStateManager::_defaultDepthFunc;
+GLenum GLStateManager::_defaultFrontFace;
+GLenum GLStateManager::_defaultBlendFunc[2];
+GLenum GLStateManager::_defaultBlendEquation[2];
 
-void GLStateManager::pop()
-{
-	auto actions = _restoreStateActions.top();
-	while (!actions.empty())
-	{
-		actions.top()();
-		actions.pop();
-	}
-	_restoreStateActions.pop();
-}
+GLint GLStateManager::_defaultViewport[4];
+GLfloat GLStateManager::_defaultClearColor[4];
 
-void GLStateManager::setDepthTest(bool value)
+void GLStateManager::initialize()
 {
-	bool oldValue = glIsEnabled(GL_DEPTH_TEST);
+	_defaultDepthTest = glIsEnabled(GL_DEPTH_TEST);
+	_defaultCullFace = glIsEnabled(GL_CULL_FACE);
+	_defaultBlend = glIsEnabled(GL_BLEND);
 	
-	if (value)
+	glGetBooleanv(GL_COLOR_WRITEMASK, _defaultColorMask);
+	glGetBooleanv(GL_DEPTH_WRITEMASK, &_defaultDepthMask);
+	glGetIntegerv(GL_STENCIL_WRITEMASK, &_defaultStencilMask);
+	
+	GLint defaultDepthFunc;
+	glGetIntegerv(GL_DEPTH_FUNC, &defaultDepthFunc);
+	_defaultDepthFunc = defaultDepthFunc;
+	
+	GLint defaultFrontFace;
+	glGetIntegerv(GL_FRONT_FACE, &defaultFrontFace);
+	_defaultFrontFace = defaultFrontFace;
+	
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, _defaultClearColor);
+	
+	GLint defaultBlendFunc[2];
+	glGetIntegerv(GL_BLEND_SRC, &defaultBlendFunc[0]);
+	glGetIntegerv(GL_BLEND_DST, &defaultBlendFunc[1]);
+	_defaultBlendFunc[0] = defaultBlendFunc[0];
+	_defaultBlendFunc[1] = defaultBlendFunc[1];
+	
+	GLint defaultBlendEquation[2];
+	glGetIntegerv(GL_BLEND_EQUATION_RGB, &defaultBlendEquation[0]);
+	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &defaultBlendEquation[1]);
+	_defaultBlendEquation[0] = defaultBlendEquation[0];
+	_defaultBlendEquation[1] = defaultBlendEquation[1];
+	
+	glGetIntegerv(GL_VIEWPORT, _defaultViewport);
+}
+
+void GLStateManager::use(const GLPipelineState& state)
+{
+	if (state.depthTest ? state.depthTest.value() : _defaultDepthTest)
 		glEnable(GL_DEPTH_TEST);
 	else
 		glDisable(GL_DEPTH_TEST);
 	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				if (oldValue)
-					glEnable(GL_DEPTH_TEST);
-				else
-					glDisable(GL_DEPTH_TEST);
-			});
-}
-
-void GLStateManager::setCullFace(bool value)
-{
-	bool oldValue = glIsEnabled(GL_CULL_FACE);
-	
-	if (value)
+	if (state.cullFace ? state.cullFace.value() : _defaultCullFace)
 		glEnable(GL_CULL_FACE);
 	else
 		glDisable(GL_CULL_FACE);
 	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				if (oldValue)
-					glEnable(GL_CULL_FACE);
-				else
-					glDisable(GL_CULL_FACE);
-			});
-}
-
-void GLStateManager::setBlend(bool value)
-{
-	bool oldValue = glIsEnabled(GL_CULL_FACE);
-	
-	if (value)
-		glEnable(GL_CULL_FACE);
+	if (state.blend ? state.blend.value() : _defaultBlend)
+		glEnable(GL_BLEND);
 	else
-		glDisable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
 	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				if (oldValue)
-					glEnable(GL_CULL_FACE);
-				else
-					glDisable(GL_CULL_FACE);
-			});
-}
-
-void GLStateManager::setDepthMask(bool value)
-{
-	GLboolean oldValue;
-	glGetBooleanv(GL_DEPTH_WRITEMASK, &oldValue);
+	if (state.colorMask)
+	{
+		glColorMask(state.colorMask.value()[0], state.colorMask.value()[1], state.colorMask.value()[2], state.colorMask.value()[3]);
+	}
+	else
+	{
+		glColorMask(_defaultColorMask[0], _defaultColorMask[1], _defaultColorMask[2], _defaultColorMask[3]);
+	}
 	
-	glDepthMask(value);
+	glDepthMask(state.depthMask ? state.depthMask.value() : _defaultDepthMask);
 	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				glDepthMask(oldValue);
-			});
-}
-
-void GLStateManager::setDepthFunc(GLenum value)
-{
-	GLint oldValue;
-	glGetIntegerv(GL_DEPTH_FUNC, &oldValue);
+	glStencilMask(state.stencilMask ? state.stencilMask.value() : _defaultStencilMask);
 	
-	glDepthFunc(value);
+	glDepthFunc(state.depthFunc ? state.depthFunc.value() : _defaultDepthFunc);
 	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				glDepthFunc(oldValue);
-			});
-}
-
-void GLStateManager::setFrontFace(GLenum value)
-{
-	GLint oldValue;
-	glGetIntegerv(GL_FRONT_FACE, &oldValue);
+	glFrontFace(state.frontFace ? state.frontFace.value() : _defaultFrontFace);
 	
-	glFrontFace(value);
+	if (state.clearColor)
+	{
+		glClearColor(state.clearColor.value()[0], state.clearColor.value()[1], state.clearColor.value()[2], state.clearColor.value()[3]);
+	}
+	else
+	{
+		glClearColor(_defaultClearColor[0], _defaultClearColor[1], _defaultClearColor[2], _defaultClearColor[3]);
+	}
 	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				glFrontFace(oldValue);
-			});
-}
-
-void GLStateManager::setBlendFunc(GLenum sFactor, GLenum dFactor)
-{
-	GLint oldValue1;
-	GLint oldValue2;
-	glGetIntegerv(GL_BLEND_SRC, &oldValue1);
-	glGetIntegerv(GL_BLEND_DST, &oldValue2);
+	if (state.blendFunc)
+	{
+		glBlendFunc(state.blendFunc.value()[0], state.blendFunc.value()[1]);
+	}
+	else
+	{
+		glBlendFunc(_defaultBlendFunc[0], _defaultBlendFunc[1]);
+	}
 	
-	glBlendFunc(sFactor, dFactor);
+	if (state.blendEquation)
+	{
+		glBlendEquation(state.blendEquation.value());
+	}
+	else
+	{
+		glBlendEquationSeparate(_defaultBlendEquation[0], _defaultBlendEquation[1]);
+	}
 	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				glBlendFunc(oldValue1, oldValue2);
-			});
-}
-
-void GLStateManager::setBlendEquation(GLenum value)
-{
-	GLint oldValue1;
-	GLint oldValue2;
-	glGetIntegerv(GL_BLEND_EQUATION_RGB, &oldValue1);
-	glGetIntegerv(GL_BLEND_EQUATION_RGB, &oldValue2);
+	if (state.viewport)
+	{
+		glViewport(state.viewport.value()[0], state.viewport.value()[1], state.viewport.value()[2], state.viewport.value()[3]);
+	}
+	else
+	{
+		glViewport(_defaultViewport[0], _defaultViewport[1], _defaultViewport[2], _defaultViewport[3]);
+	}
 	
-	glBlendEquation(value);
-	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				glBlendEquationSeparate(oldValue1, oldValue2);
-			});
-}
-
-void GLStateManager::setViewport(GLint x, GLint y, GLsizei width, GLsizei height)
-{
-	GLint oldValue[4];
-	glGetIntegerv(GL_VIEWPORT, oldValue);
-	
-	glViewport(x, y, width, height);
-	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				glViewport(oldValue[0], oldValue[1], oldValue[2], oldValue[3]);
-			});
-}
-
-void GLStateManager::setClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
-{
-	GLint oldValue[4];
-	glGetIntegerv(GL_COLOR_CLEAR_VALUE, oldValue);
-	
-	glClearColor(r, g, b, a);
-	
-	_restoreStateActions.top().push(
-			[=]
-			{
-				glClearColor(oldValue[0], oldValue[1], oldValue[2], oldValue[3]);
-			});
 }

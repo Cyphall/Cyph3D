@@ -157,6 +157,7 @@ void Framebuffer::detach(GLenum attachment)
 #pragma region DrawToDefault
 
 ShaderProgram* Framebuffer::_drawToDefaultShaderProgram = nullptr;
+GLPipelineState Framebuffer::_drawToDefaultPipelineState;
 
 void Framebuffer::initDrawToDefault()
 {
@@ -165,12 +166,14 @@ void Framebuffer::initDrawToDefault()
 	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/framebuffer/drawToDefault");
 	
 	_drawToDefaultShaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
+	
+	_drawToDefaultPipelineState.blend = true;
+	_drawToDefaultPipelineState.blendEquation = GL_FUNC_ADD;
+	_drawToDefaultPipelineState.blendFunc = std::array<GLenum, 2>{GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
 }
 
 void Framebuffer::drawToDefault(ShaderProgram* shader, bool clearFramebuffer)
 {
-	GLStateManager::push();
-	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	if (clearFramebuffer)
@@ -178,15 +181,11 @@ void Framebuffer::drawToDefault(ShaderProgram* shader, bool clearFramebuffer)
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	
-	GLStateManager::setBlend(true);
-	GLStateManager::setBlendEquation(GL_FUNC_ADD);
-	GLStateManager::setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	GLStateManager::use(_drawToDefaultPipelineState);
 	
 	shader->bind();
 	
 	RenderHelper::drawScreenQuad();
-	
-	GLStateManager::pop();
 }
 
 void Framebuffer::drawToDefault(const Texture& texture, bool clearFramebuffer)

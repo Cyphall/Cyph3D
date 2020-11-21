@@ -3,28 +3,31 @@
 #include <stack>
 #include <glad/glad.h>
 #include <functional>
+#include "GLPipelineState.h"
 
 class GLStateManager
 {
 public:
-	static void push();
-	static void pop();
+	static void initialize();
 	
-	static void setDepthTest(bool value);
-	static void setCullFace(bool value);
-	static void setBlend(bool value);
-	static void setDepthMask(bool value);
-	
-	static void setDepthFunc(GLenum value);
-	static void setFrontFace(GLenum value);
-	static void setBlendFunc(GLenum sFactor, GLenum dFactor);
-	static void setBlendEquation(GLenum value);
-	
-	static void setViewport(GLint x, GLint y, GLsizei width, GLsizei height);
-	static void setClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
+	static void use(const GLPipelineState& state);
 	
 private:
-	static std::stack<std::stack<std::function<void()>>> _restoreStateActions;
+	static GLboolean _defaultDepthTest;
+	static GLboolean _defaultCullFace;
+	static GLboolean _defaultBlend;
+	
+	static GLboolean _defaultColorMask[4];
+	static GLboolean _defaultDepthMask;
+	static GLint _defaultStencilMask;
+	
+	static GLenum _defaultDepthFunc;
+	static GLenum _defaultFrontFace;
+	static GLenum _defaultBlendFunc[2];
+	static GLenum _defaultBlendEquation[2];
+	
+	static GLint _defaultViewport[4];
+	static GLfloat _defaultClearColor[4];
 };
 
 

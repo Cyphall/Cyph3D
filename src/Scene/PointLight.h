@@ -5,6 +5,7 @@
 #include "../GLObject/ShaderProgram.h"
 #include "../stdfloat.h"
 #include "Light.h"
+#include "../GLPipelineState.h"
 
 class PointLight : public Light
 {
@@ -40,6 +41,7 @@ private:
 	
 	glm::mat4 _viewProjections[6];
 	static glm::mat4 _projection;
+	static GLPipelineState _pipelineState;
 	
 	bool _castShadows = false;
 };

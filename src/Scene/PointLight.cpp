@@ -5,6 +5,11 @@
 #include "../Scene/Scene.h"
 
 glm::mat4 PointLight::_projection = glm::perspective(glm::radians(90.0f), 1.0f, _NEAR, _FAR);
+GLPipelineState PointLight::_pipelineState
+{
+		.depthTest = true,
+		.viewport = std::array<int, 4>{0, 0, _RESOLUTION, _RESOLUTION}
+};
 
 PointLight::PointLight(Transform* parent, const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 srgbColor, float intensity, bool castShadows):
 		Light(parent, name, position, rotation, scale, srgbColor, intensity)
@@ -80,9 +85,8 @@ void PointLight::updateShadowMap()
 {
 	if (!_castShadows) return;
 	
-	GLStateManager::push();
-	GLStateManager::setViewport(0, 0, _RESOLUTION, _RESOLUTION);
-	
+	GLStateManager::use(_pipelineState);
+
 	glm::vec3 worldPos = _transform.getWorldPosition();
 	
 	_viewProjections[0] = _projection *
@@ -120,6 +124,4 @@ void PointLight::updateShadowMap()
 			}
 		}
 	}
-	
-	GLStateManager::pop();
 }
