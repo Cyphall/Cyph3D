@@ -179,8 +179,6 @@ void Renderer::render()
 	
 	updateLightBuffers(directionalLights, pointLights);
 	
-	_gbuffer.clearAll();
-	
 	firstPass(camera.getView(), camera.getProjection(), camera.getPosition(), meshObjects);
 	if (scene.getSkybox() != nullptr && scene.getSkybox()->isResourceReady())
 		skyboxPass(camera.getView(), camera.getProjection());
@@ -233,6 +231,8 @@ void Renderer::updateLightBuffers(std::vector<DirectionalLight*> directionalLigh
 void Renderer::firstPass(glm::mat4 view, glm::mat4 projection, glm::vec3 viewPos, std::vector<MeshObject*> meshObjects)
 {
 	GLStateManager::use(_firstPassPipelineState);
+	
+	_gbuffer.clearAll();
 
 	_gbuffer.bind();
 	

@@ -3,7 +3,10 @@
 GLboolean GLStateManager::_defaultDepthTest;
 GLboolean GLStateManager::_defaultCullFace;
 GLboolean GLStateManager::_defaultBlend;
+
+GLboolean GLStateManager::_defaultColorMask[4];
 GLboolean GLStateManager::_defaultDepthMask;
+GLuint GLStateManager::_defaultStencilMask;
 
 GLenum GLStateManager::_defaultDepthFunc;
 GLenum GLStateManager::_defaultFrontFace;
@@ -21,7 +24,10 @@ void GLStateManager::initialize()
 	
 	glGetBooleanv(GL_COLOR_WRITEMASK, _defaultColorMask);
 	glGetBooleanv(GL_DEPTH_WRITEMASK, &_defaultDepthMask);
-	glGetIntegerv(GL_STENCIL_WRITEMASK, &_defaultStencilMask);
+	
+	GLint defaultStencilMask;
+	glGetIntegerv(GL_STENCIL_WRITEMASK, &defaultStencilMask);
+	_defaultStencilMask = defaultStencilMask;
 	
 	GLint defaultDepthFunc;
 	glGetIntegerv(GL_DEPTH_FUNC, &defaultDepthFunc);

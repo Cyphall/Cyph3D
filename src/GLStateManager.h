@@ -19,7 +19,7 @@ private:
 	
 	static GLboolean _defaultColorMask[4];
 	static GLboolean _defaultDepthMask;
-	static GLint _defaultStencilMask;
+	static GLuint _defaultStencilMask;
 	
 	static GLenum _defaultDepthFunc;
 	static GLenum _defaultFrontFace;

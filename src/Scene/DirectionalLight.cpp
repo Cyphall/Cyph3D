@@ -8,6 +8,7 @@ glm::mat4 DirectionalLight::_projection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0
 GLPipelineState DirectionalLight::_pipelineState
 {
 	.depthTest = true,
+	.colorMask = std::array<bool, 4>{false, false, false, false},
 	.viewport = std::array<int, 4>{0, 0, _RESOLUTION, _RESOLUTION}
 };
 

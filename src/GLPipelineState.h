@@ -11,7 +11,7 @@ struct GLPipelineState
 	
 	std::optional<std::array<bool, 4>> colorMask;
 	std::optional<bool> depthMask;
-	std::optional<int> stencilMask;
+	std::optional<uint32_t> stencilMask;
 	
 	std::optional<bool> cullFace;
 	std::optional<GLenum> frontFace;
