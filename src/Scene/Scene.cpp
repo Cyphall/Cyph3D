@@ -179,6 +179,12 @@ void Scene::parseSceneObject(nlohmann::json& jsonObject, Transform* parent, int 
 		bool castShadows = jsonData[version >= 7 ? "cast_shadows" : "castShadows"];
 		
 		sceneObject = std::make_unique<PointLight>(parent, name, position, rotation, scale, srgbColor, intensity, castShadows);
+		
+		if (version >= 8)
+		{
+			int shadowResolution = jsonData["shadow_resolution"];
+			static_cast<PointLight*>(sceneObject.get())->setResolution(shadowResolution);
+		}
 	}
 	else if (type == "directional_light")
 	{
@@ -190,6 +196,12 @@ void Scene::parseSceneObject(nlohmann::json& jsonObject, Transform* parent, int 
 		bool castShadows = jsonData[version >= 7 ? "cast_shadows" : "castShadows"];
 		
 		sceneObject = std::make_unique<DirectionalLight>(parent, name, position, rotation, scale, srgbColor, intensity, castShadows);
+		
+		if (version >= 8)
+		{
+			int shadowResolution = jsonData["shadow_resolution"];
+			static_cast<DirectionalLight*>(sceneObject.get())->setResolution(shadowResolution);
+		}
 	}
 	else
 	{
@@ -213,7 +225,7 @@ void Scene::save()
 {
 	nlohmann::json jsonRoot;
 	
-	jsonRoot["version"] = 7;
+	jsonRoot["version"] = 8;
 	
 	
 	nlohmann::json jsonCamera;
@@ -302,6 +314,7 @@ nlohmann::json Scene::serializeSceneObject(Transform* transform)
 		jsonObject["type"] = "point_light";
 		
 		jsonData["cast_shadows"] = pointLight->getCastShadows();
+		jsonData["shadow_resolution"] = pointLight->getResolution();
 	}
 	
 	DirectionalLight* directionalLight = dynamic_cast<DirectionalLight*>(transform->getOwner());
@@ -310,6 +323,7 @@ nlohmann::json Scene::serializeSceneObject(Transform* transform)
 		jsonObject["type"] = "directional_light";
 		
 		jsonData["cast_shadows"] = directionalLight->getCastShadows();
+		jsonData["shadow_resolution"] = directionalLight->getResolution();
 	}
 	
 	jsonObject["data"] = jsonData;

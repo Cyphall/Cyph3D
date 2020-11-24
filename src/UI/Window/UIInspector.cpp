@@ -193,6 +193,28 @@ void UIInspector::showDirectionalLight(DirectionalLight* light)
 	{
 		light->setCastShadows(castShadows);
 	}
+	
+	const char* resolutions[] = {"256", "512", "1024", "2048", "4096"};
+	int currIndex = glm::log2(light->getResolution() / 256);
+	if (ImGui::BeginCombo("Shadow Resolution", resolutions[currIndex]))
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			bool selected = i == currIndex;
+			if (ImGui::Selectable(resolutions[i], selected))
+			{
+				currIndex = i;
+				light->setResolution(256 * glm::pow(2, i));
+			}
+			
+			if (selected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		
+		ImGui::EndCombo();
+	}
 }
 
 void UIInspector::showPointLight(PointLight* light)
@@ -201,6 +223,28 @@ void UIInspector::showPointLight(PointLight* light)
 	if (ImGui::Checkbox("Cast Shadows", &castShadows))
 	{
 		light->setCastShadows(castShadows);
+	}
+	
+	const char* resolutions[] = {"256", "512", "1024", "2048", "4096"};
+	int currIndex = glm::log2(light->getResolution() / 256);
+	if (ImGui::BeginCombo("Shadow Resolution", resolutions[currIndex]))
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			bool selected = i == currIndex;
+			if (ImGui::Selectable(resolutions[i], selected))
+			{
+				currIndex = i;
+				light->setResolution(256 * glm::pow(2, i));
+			}
+			
+			if (selected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		
+		ImGui::EndCombo();
 	}
 }
 
