@@ -5,7 +5,6 @@
 #include "../Engine.h"
 #include "../ResourceManagement/ResourceManager.h"
 #include <fmt/core.h>
-#include "../GLStateManager.h"
 #include "../Helper/RenderHelper.h"
 
 Framebuffer::Framebuffer(glm::ivec2 size):
@@ -157,7 +156,6 @@ void Framebuffer::detach(GLenum attachment)
 #pragma region DrawToDefault
 
 ShaderProgram* Framebuffer::_drawToDefaultShaderProgram = nullptr;
-GLPipelineState Framebuffer::_drawToDefaultPipelineState;
 
 void Framebuffer::initDrawToDefault()
 {
@@ -166,14 +164,18 @@ void Framebuffer::initDrawToDefault()
 	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/framebuffer/drawToDefault");
 	
 	_drawToDefaultShaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
-	
-	_drawToDefaultPipelineState.blend = true;
-	_drawToDefaultPipelineState.blendEquation = GL_FUNC_ADD;
-	_drawToDefaultPipelineState.blendFunc = std::array<GLenum, 2>{GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
 }
 
 void Framebuffer::drawToDefault(ShaderProgram* shader, bool clearFramebuffer)
 {
+	int previousBlend; glGetIntegerv(GL_BLEND, &previousBlend);
+	int previousBlendSrcRgb; glGetIntegerv(GL_BLEND_SRC_RGB, &previousBlendSrcRgb);
+	int previousBlendSrcAlpha; glGetIntegerv(GL_BLEND_SRC_ALPHA, &previousBlendSrcAlpha);
+	int previousBlendDstRgb; glGetIntegerv(GL_BLEND_DST_RGB, &previousBlendDstRgb);
+	int previousBlendDstAlpha; glGetIntegerv(GL_BLEND_DST_ALPHA, &previousBlendDstAlpha);
+	int previousBlendEquationRgb; glGetIntegerv(GL_BLEND_EQUATION_RGB, &previousBlendEquationRgb);
+	int previousBlendEquationAlpha; glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &previousBlendEquationAlpha);
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	if (clearFramebuffer)
@@ -181,11 +183,20 @@ void Framebuffer::drawToDefault(ShaderProgram* shader, bool clearFramebuffer)
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	
-	GLStateManager::use(_drawToDefaultPipelineState);
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	shader->bind();
 	
 	RenderHelper::drawScreenQuad();
+	
+	if (previousBlend)
+		glEnable(GL_BLEND);
+	else
+		glDisable(GL_BLEND);
+	glBlendFuncSeparate(previousBlendSrcRgb, previousBlendDstRgb, previousBlendSrcAlpha, previousBlendDstAlpha);
+	glBlendEquationSeparate(previousBlendEquationRgb, previousBlendEquationAlpha);
 }
 
 void Framebuffer::drawToDefault(const Texture& texture, bool clearFramebuffer)

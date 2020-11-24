@@ -7,7 +7,8 @@ class ToneMappingPostProcess : public IPostProcessEffect
 {
 public:
 	ToneMappingPostProcess();
-	Texture* render(Texture* currentRenderResult, Texture& renderRaw, Texture& depth) override;
+	
+	Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
 
 private:
 	Framebuffer _framebuffer;

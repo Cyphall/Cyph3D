@@ -1,16 +1,9 @@
 #include "PointLight.h"
-#include "../GLStateManager.h"
 #include "../Engine.h"
 #include "../Scene/MeshObject.h"
 #include "../Scene/Scene.h"
 
 glm::mat4 PointLight::_projection = glm::perspective(glm::radians(90.0f), 1.0f, _NEAR, _FAR);
-GLPipelineState PointLight::_pipelineState
-{
-	.depthTest = true,
-	.colorMask = std::array<bool, 4>{false, false, false, false},
-	.viewport = std::array<int, 4>{0, 0, _RESOLUTION, _RESOLUTION}
-};
 
 PointLight::PointLight(Transform* parent, const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 srgbColor, float intensity, bool castShadows):
 		Light(parent, name, position, rotation, scale, srgbColor, intensity)
@@ -46,7 +39,7 @@ void PointLight::setCastShadows(bool value)
 	
 	if (value)
 	{
-		_shadowMapFb = std::make_unique<Framebuffer>(glm::ivec2(_RESOLUTION));
+		_shadowMapFb = std::make_unique<Framebuffer>(glm::ivec2(_resolution));
 		
 		CubemapCreateInfo createInfo
 		{
@@ -86,7 +79,7 @@ void PointLight::updateShadowMap()
 {
 	if (!_castShadows) return;
 	
-	GLStateManager::use(_pipelineState);
+	glViewport(0, 0, _resolution, _resolution);
 
 	glm::vec3 worldPos = _transform.getWorldPosition();
 	
@@ -125,4 +118,22 @@ void PointLight::updateShadowMap()
 			}
 		}
 	}
+}
+
+void PointLight::setResolution(int value)
+{
+	bool castShadows = getCastShadows();
+	
+	if (castShadows)
+		setCastShadows(false);
+	
+	_resolution = value;
+	
+	if (castShadows)
+		setCastShadows(true);
+}
+
+int PointLight::getResolution() const
+{
+	return _resolution;
 }

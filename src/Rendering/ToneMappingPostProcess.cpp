@@ -1,7 +1,6 @@
 #include "ToneMappingPostProcess.h"
 #include "../Window.h"
 #include "../Scene/Scene.h"
-#include "../ResourceManagement/ResourceManager.h"
 #include "../Engine.h"
 #include "../Helper/RenderHelper.h"
 
@@ -21,9 +20,9 @@ _outputTexture(TextureCreateInfo
 	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
 
-Texture* ToneMappingPostProcess::render(Texture* currentRenderResult, Texture& renderRaw, Texture& depth)
+Texture* ToneMappingPostProcess::render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
 {
-	_shaderProgram->setUniform("colorTexture", currentRenderResult);
+	_shaderProgram->setUniform("colorTexture", currentRenderTexture);
 	float exposure = Engine::getScene().getCamera().exposure;
 	_shaderProgram->setUniform("exposure", &exposure);
 	

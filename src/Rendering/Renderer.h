@@ -8,6 +8,11 @@
 #include "../Scene/DirectionalLight.h"
 #include "../Scene/MeshObject.h"
 #include "IPostProcessEffect.h"
+#include "Pass/GeometryPass.h"
+#include "Pass/SkyboxPass.h"
+#include "Pass/LightingPass.h"
+#include "Pass/ShadowMapPass.h"
+#include "Pass/PostProcessingPass.h"
 
 class Renderer
 {
@@ -21,36 +26,15 @@ public:
 
 private:
 	// GBuffer
-	Framebuffer _gbuffer;
-	Texture _normalTexture;
-	Texture _colorTexture;
-	Texture _materialTexture;
-	Texture _geometryNormalTexture;
-	Texture _depthTexture;
-	
-	GLPipelineState _firstPassPipelineState;
 	bool _debug = false;
 	
-	// Skybox
-	VertexArray _skyboxVAO;
-	std::unique_ptr<VertexBuffer<float>> _skyboxVBO;
-	ShaderProgram* _skyboxShader;
-	GLPipelineState _skyboxPassPipelineState;
+	std::unordered_map<std::string, Texture*> _textures;
 	
-	// Lighting pass
-	ShaderProgram* _lightingPassShader;
-	ShaderStorageBuffer<PointLight::LightData> _pointLightsBuffer;
-	ShaderStorageBuffer<DirectionalLight::LightData> _directionalLightsBuffer;
-	Framebuffer _resultFramebuffer;
+	ShadowMapPass _shadowMapPass;
+	GeometryPass _geometryPass;
+	SkyboxPass _skyboxPass;
+	LightingPass _lightingPass;
+	PostProcessingPass _postProcessingPass;
 	
-	// Post-processing
-	Texture _resultTexture;
-	std::vector<std::unique_ptr<IPostProcessEffect>> _postProcessEffects;
-	
-	void shadowMapPass(std::vector<DirectionalLight*> directionalLights, std::vector<PointLight*> pointLights);
-	void updateLightBuffers(std::vector<DirectionalLight*> directionalLights, std::vector<PointLight*> pointLights);
-	void firstPass(glm::mat4 view, glm::mat4 projection, glm::vec3 viewPos, std::vector<MeshObject*> meshObjects);
-	void skyboxPass(glm::mat4 view, glm::mat4 projection);
-	void lightingPass(glm::vec3 viewPos, glm::mat4 view, glm::mat4 projection);
-	Texture* postProcessingPass();
+	void render(IRenderPass& pass, SceneObjectRegistry& registry, Camera& camera);
 };

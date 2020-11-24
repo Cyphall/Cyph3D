@@ -2,7 +2,7 @@
 
 layout(bindless_sampler) uniform samplerCube skybox;
 
-layout(location = 1) out vec3 color;
+layout(location = 0) out vec3 color;
 
 void main()
 {

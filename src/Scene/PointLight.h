@@ -5,7 +5,6 @@
 #include "../GLObject/ShaderProgram.h"
 #include "../stdfloat.h"
 #include "Light.h"
-#include "../GLPipelineState.h"
 
 class PointLight : public Light
 {
@@ -30,8 +29,10 @@ public:
 	bool getCastShadows() const;
 	LightData getDataStruct();
 	
+	void setResolution(int value);
+	int getResolution() const;
+	
 private:
-	static constexpr int _RESOLUTION = 1024;
 	static constexpr float _NEAR = 0.01f;
 	static constexpr float _FAR = 100.0f;
 	
@@ -41,7 +42,7 @@ private:
 	
 	glm::mat4 _viewProjections[6];
 	static glm::mat4 _projection;
-	static GLPipelineState _pipelineState;
 	
 	bool _castShadows = false;
+	int _resolution = 1024;
 };

@@ -5,7 +5,6 @@
 #include "../GLObject/ShaderProgram.h"
 #include "../stdfloat.h"
 #include "Light.h"
-#include "../GLPipelineState.h"
 
 class DirectionalLight : public Light
 {
@@ -29,20 +28,20 @@ public:
 	void setCastShadows(bool value);
 	bool getCastShadows() const;
 	LightData getDataStruct();
+	
+	void setResolution(int value);
+	int getResolution() const;
 
 private:
-	static constexpr int _RESOLUTION = 4096;
-	
 	std::unique_ptr<Texture> _shadowMap;
 	std::unique_ptr<Framebuffer> _shadowMapFb;
 	ShaderProgram* _shadowMapProgram;
 	
 	glm::mat4 _viewProjection;
 	static glm::mat4 _projection;
-	static GLPipelineState _pipelineState;
 	
 	bool _castShadows = false;
-	
+	int _resolution = 4096;
 	glm::vec3 getLightDirection();
 };
 
