@@ -10,7 +10,6 @@ DirectionalLight::DirectionalLight(Transform* parent, const std::string& name, g
 {
 	ShaderProgramCreateInfo createInfo;
 	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/shadowMapping/directionalLight");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/shadowMapping/directionalLight");
 	
 	_shadowMapProgram = Engine::getScene().getRM().requestShaderProgram(createInfo);
 	
@@ -22,7 +21,6 @@ DirectionalLight::DirectionalLight(Transform* parent, const std::string& name, g
 {
 	ShaderProgramCreateInfo createInfo;
 	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/shadowMapping/directionalLight");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/shadowMapping/directionalLight");
 	
 	_shadowMapProgram = Engine::getScene().getRM().requestShaderProgram(createInfo);
 	
