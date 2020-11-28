@@ -1,21 +1,24 @@
 #include "StbImage.h"
 #include "stb_image.h"
 
-StbImage::StbImage()
+StbImage::StbImage(const std::string& path, int desiredChannels):
+_data8bit(nullptr, stbi_image_free),
+_data16bit(nullptr, stbi_image_free),
+_data32bit(nullptr, stbi_image_free)
 {
-
-}
-
-StbImage::StbImage(const std::string& path, int desiredChannels)
-{
-	_bitPerChannel = stbi_is_16_bit(path.c_str()) ? 16 : 8;
-	
-	if (_bitPerChannel == 16)
+	if (stbi_is_hdr(path.c_str()))
 	{
+		_bitPerChannel = 32;
+		_data32bit.reset(stbi_loadf(path.c_str(), &_size.x, &_size.y, &_channels, desiredChannels));
+	}
+	else if (stbi_is_16_bit(path.c_str()))
+	{
+		_bitPerChannel = 16;
 		_data16bit.reset(stbi_load_16(path.c_str(), &_size.x, &_size.y, &_channels, desiredChannels));
 	}
 	else
 	{
+		_bitPerChannel = 8;
 		_data8bit.reset(stbi_load(path.c_str(), &_size.x, &_size.y, &_channels, desiredChannels));
 	}
 }
@@ -28,6 +31,8 @@ void* StbImage::getPtr() const
 			return _data8bit.get();
 		case 16:
 			return _data16bit.get();
+		case 32:
+			return _data32bit.get();
 	}
 	
 	return nullptr;
@@ -55,5 +60,5 @@ glm::ivec2 StbImage::getSize() const
 
 bool StbImage::isValid() const
 {
-	return _data8bit.get() != nullptr || _data16bit.get() != nullptr;
+	return _data8bit.get() != nullptr || _data16bit.get() != nullptr || _data32bit.get() != nullptr;
 }
