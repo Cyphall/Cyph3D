@@ -69,7 +69,7 @@ void GlfwHelper::EnsureGpuIsCompatible()
 		
 		if (!glfwExtensionSupported(extension.c_str()))
 		{
-			errorMessage << "OpenGL extension " << requestedOpenGLVersion << " is not supported by this driver.\n";
+			errorMessage << "OpenGL extension " << extension << " is not supported by this driver.\n";
 			errorMessage << "Please make sure your GPU is compatible and your driver is up to date.\n\n";
 			errorMessage << "Driver: " << glGetString(GL_VERSION) << "\n";
 			errorMessage << "GPU: " << glGetString(GL_RENDERER) << "\n";
