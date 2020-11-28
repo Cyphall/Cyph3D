@@ -194,11 +194,11 @@ void UIInspector::showDirectionalLight(DirectionalLight* light)
 		light->setCastShadows(castShadows);
 	}
 	
-	const char* resolutions[] = {"256", "512", "1024", "2048", "4096"};
+	const char* resolutions[] = {"256", "512", "1024", "2048", "4096", "8192"};
 	int currIndex = glm::log2(light->getResolution() / 256);
 	if (ImGui::BeginCombo("Shadow Resolution", resolutions[currIndex]))
 	{
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 6; i++)
 		{
 			bool selected = i == currIndex;
 			if (ImGui::Selectable(resolutions[i], selected))
@@ -225,11 +225,11 @@ void UIInspector::showPointLight(PointLight* light)
 		light->setCastShadows(castShadows);
 	}
 	
-	const char* resolutions[] = {"256", "512", "1024", "2048", "4096"};
+	const char* resolutions[] = {"256", "512", "1024", "2048", "4096", "8192"};
 	int currIndex = glm::log2(light->getResolution() / 256);
 	if (ImGui::BeginCombo("Shadow Resolution", resolutions[currIndex]))
 	{
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 6; i++)
 		{
 			bool selected = i == currIndex;
 			if (ImGui::Selectable(resolutions[i], selected))
