@@ -15,7 +15,7 @@ public:
 	void* getPtr() const;
 	int getBitPerChannel() const;
 	int getBitPerPixel() const;
-	int getChannels() const;
+	int getChannelCount() const;
 	glm::ivec2 getSize() const;
 	bool isValid() const;
 	
@@ -25,6 +25,6 @@ private:
 	std::unique_ptr<float32_t[], std::function<void(void*)>> _data32bit;
 	
 	int _bitPerChannel = -1;
-	int _channels = -1;
+	int _channelCount = -1;
 	glm::ivec2 _size = glm::ivec2(-1);
 };

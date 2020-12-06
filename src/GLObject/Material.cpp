@@ -23,16 +23,18 @@ _name(std::move(name))
 	
 	for (const auto& [mapName, mapDefinition] : _shaderProgram->getMapDefinitions())
 	{
-		TextureInfo textureInfo = TextureHelper::getTextureInfo(mapDefinition.defaultData.size(), mapDefinition.compressed, mapDefinition.sRGB);
+		TextureProperties textureProperties = TextureHelper::getTextureProperties(mapDefinition.type);
 		
 		TextureCreateInfo createInfo;
 		createInfo.size = glm::ivec2(1);
-		createInfo.internalFormat = textureInfo.internalFormat;
+		createInfo.internalFormat = textureProperties.internalFormat;
 		createInfo.textureFiltering = GL_NEAREST;
-		createInfo.swizzle = textureInfo.swizzle;
+		createInfo.swizzle = textureProperties.swizzle;
 		
 		std::unique_ptr<Texture> defaultColor = std::make_unique<Texture>(createInfo);
-		defaultColor->setData(mapDefinition.defaultData.data(), textureInfo.pixelFormat);
+		
+		PixelProperties pixelProperties = TextureHelper::getPixelProperties(mapDefinition.defaultData.size(), 8);
+		defaultColor->setData(mapDefinition.defaultData.data(), pixelProperties.format, pixelProperties.type);
 		
 		Image* image = nullptr;
 		
@@ -40,8 +42,7 @@ _name(std::move(name))
 		{
 			image = resourceManager->requestImage(
 					_name + '/' + static_cast<std::string>(jsonRoot[mapName]),
-					mapDefinition.sRGB,
-					mapDefinition.compressed);
+					mapDefinition.type);
 		}
 		
 		_textures[mapName] = std::make_tuple(std::move(defaultColor), image);
@@ -51,18 +52,16 @@ _name(std::move(name))
 Material::Material():
 _shaderProgram(Engine::getGlobalRM().requestMaterialShaderProgram("unlit")), _name("Default Material"), _loaded(true)
 {
-	TextureInfo textureInfo = TextureHelper::getTextureInfo(3, true, true);
-	
 	TextureCreateInfo createInfo;
 	createInfo.size = glm::ivec2(1);
-	createInfo.internalFormat = textureInfo.internalFormat;
+	createInfo.internalFormat = GL_RGB8;
 	createInfo.textureFiltering = GL_NEAREST;
-	createInfo.swizzle = textureInfo.swizzle;
+	createInfo.swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ONE};
 	
 	std::unique_ptr<Texture> defaultColor = std::make_unique<Texture>(createInfo);
 	
 	uint8_t defaultData[] = {255, 0, 255};
-	defaultColor->setData(defaultData, textureInfo.pixelFormat);
+	defaultColor->setData(defaultData, GL_RGB, GL_UNSIGNED_SHORT);
 	
 	_textures["colorMap"] = std::make_tuple(std::move(defaultColor), nullptr);
 }

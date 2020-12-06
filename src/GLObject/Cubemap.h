@@ -15,7 +15,7 @@ public:
 	~Cubemap() override;
 	
 	GLuint64 getBindlessHandle() const;
-	void setData(void* data, int face, GLenum format = GL_RGB, GLenum type = GL_UNSIGNED_BYTE);
+	void setData(void* data, int face, GLenum format, GLenum type);
 	void bind(GLuint unit);
 	glm::ivec2 getSize() const;
 

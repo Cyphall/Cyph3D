@@ -44,7 +44,7 @@ public:
 	void update();
 	
 	Model* requestModel(const std::string& name);
-	Image* requestImage(const std::string& name, bool sRGB, bool compressed);
+	Image* requestImage(const std::string& name, ImageType type);
 	Skybox* requestSkybox(const std::string& name);
 	ShaderProgram* requestShaderProgram(const ShaderProgramCreateInfo& createInfo);
 	MaterialShaderProgram* requestMaterialShaderProgram(const std::string& layoutName);
@@ -58,7 +58,7 @@ private:
 	
 	std::map<std::string, std::unique_ptr<Image>> _images;
 	moodycamel::ConcurrentQueue<std::pair<Image*, ImageLoadingData>> _imageLoadingQueue;
-	void loadImage(Image* image, const std::string& name, bool sRGB, bool compressed);
+	void loadImage(Image* image, const std::string& name, ImageType type);
 	void finishImageLoading();
 	
 	std::map<std::string, std::unique_ptr<Skybox>> _skyboxes;

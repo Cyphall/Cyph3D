@@ -9,17 +9,17 @@ _data32bit(nullptr, stbi_image_free)
 	if (stbi_is_hdr(path.c_str()))
 	{
 		_bitPerChannel = 32;
-		_data32bit.reset(stbi_loadf(path.c_str(), &_size.x, &_size.y, &_channels, desiredChannels));
+		_data32bit.reset(stbi_loadf(path.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
 	}
 	else if (stbi_is_16_bit(path.c_str()))
 	{
 		_bitPerChannel = 16;
-		_data16bit.reset(stbi_load_16(path.c_str(), &_size.x, &_size.y, &_channels, desiredChannels));
+		_data16bit.reset(stbi_load_16(path.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
 	}
 	else
 	{
 		_bitPerChannel = 8;
-		_data8bit.reset(stbi_load(path.c_str(), &_size.x, &_size.y, &_channels, desiredChannels));
+		_data8bit.reset(stbi_load(path.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
 	}
 }
 
@@ -45,12 +45,12 @@ int StbImage::getBitPerChannel() const
 
 int StbImage::getBitPerPixel() const
 {
-	return _bitPerChannel * _channels;
+	return _bitPerChannel * _channelCount;
 }
 
-int StbImage::getChannels() const
+int StbImage::getChannelCount() const
 {
-	return _channels;
+	return _channelCount;
 }
 
 glm::ivec2 StbImage::getSize() const

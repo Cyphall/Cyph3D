@@ -1,8 +1,7 @@
 {
 	"colorMap":
 	{
-		"compressed": true,
-		"srgb": true,
+		"type": "color_srgb",
 		"default_data": [255, 0, 255]
 	}
 }

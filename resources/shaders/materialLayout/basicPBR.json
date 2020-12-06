@@ -1,38 +1,32 @@
 {
 	"colorMap":
 	{
-		"compressed": true,
-		"srgb": true,
+		"type": "color_srgb",
 		"default_data": [255, 0, 255]
 	},
 	"normalMap":
 	{
-		"compressed": false,
-		"srgb": false,
+		"type": "normal_map",
 		"default_data": [128, 128, 255]
 	},
 	"roughnessMap":
 	{
-		"compressed": true,
-		"srgb": false,
+		"type": "grayscale",
 		"default_data": [255]
 	},
 	"displacementMap":
 	{
-		"compressed": true,
-		"srgb": false,
+		"type": "grayscale",
 		"default_data": [255]
 	},
 	"metallicMap":
 	{
-		"compressed": true,
-		"srgb": false,
+		"type": "grayscale",
 		"default_data": [0]
 	},
 	"emissiveMap":
 	{
-		"compressed": true,
-		"srgb": false,
+		"type": "grayscale",
 		"default_data": [0]
 	}
 }

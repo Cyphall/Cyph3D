@@ -3,11 +3,11 @@
 #include "Resource.h"
 #include "../GLObject/Texture.h"
 #include "StbImage.h"
+#include "../Enums/ImageType.h"
 
 struct ImageLoadingData
 {
 	GLenum internalFormat;
-	GLenum pixelFormat;
 	StbImage data;
 	std::array<GLint, 4> swizzle;
 };
@@ -20,7 +20,7 @@ public:
 private:
 	void finishLoading(const ImageLoadingData& data) override;
 	
-	static ImageLoadingData loadFromFile(const std::string& name, bool sRGB, bool compressed);
+	static ImageLoadingData loadFromFile(const std::string& name, ImageType type);
 	
 	friend class ResourceManager;
 };

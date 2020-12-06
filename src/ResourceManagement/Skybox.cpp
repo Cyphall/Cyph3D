@@ -16,7 +16,9 @@ void Skybox::finishLoading(const SkyboxLoadingData& data)
 	
 	for (int i = 0; i < data.data.size(); ++i)
 	{
-		_resource->setData(data.data[i].getPtr(), i, data.pixelFormat, data.data[i].getBitPerChannel() == 16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE);
+		PixelProperties properties = TextureHelper::getPixelProperties(data.data[i].getChannelCount(), data.data[i].getBitPerChannel());
+		
+		_resource->setData(data.data[i].getPtr(), i, properties.format, properties.type);
 	}
 }
 
@@ -53,22 +55,21 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 		
 		if (firstIteration)
 		{
-			skyboxComp = skyboxData.data[i].getChannels();
+			skyboxComp = skyboxData.data[i].getChannelCount();
 			skyboxSize = skyboxData.data[i].getSize();
 			firstIteration = false;
 		}
 		
-		if (skyboxData.data[i].getChannels() != skyboxComp || skyboxData.data[i].getSize() != skyboxSize)
+		if (skyboxData.data[i].getChannelCount() != skyboxComp || skyboxData.data[i].getSize() != skyboxSize)
 		{
 			throw std::runtime_error(fmt::format("Skybox {} have images with different formats", name));
 		}
 	}
 	
-	TextureInfo info = TextureHelper::getTextureInfo(skyboxComp, true, true);
+	TextureProperties properties = TextureHelper::getTextureProperties(COLOR_SRGB);
 	
-	skyboxData.pixelFormat = info.pixelFormat;
-	skyboxData.internalFormat = info.internalFormat;
-	skyboxData.swizzle = info.swizzle;
+	skyboxData.internalFormat = properties.internalFormat;
+	skyboxData.swizzle = properties.swizzle;
 	
 	return skyboxData;
 }

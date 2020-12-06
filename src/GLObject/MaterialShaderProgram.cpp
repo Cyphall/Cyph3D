@@ -26,8 +26,18 @@ MaterialShaderProgram::MaterialShaderProgram(const std::string& layoutName, Reso
 		mapDefinition.defaultData.reserve(defaultDataJson.size());
 		mapDefinition.defaultData.insert(mapDefinition.defaultData.end(), defaultDataJson.begin(), defaultDataJson.end());
 		
-		mapDefinition.compressed = definition["compressed"];
-		mapDefinition.sRGB = definition["srgb"];
+		if (definition["type"] == "color_srgb")
+		{
+			mapDefinition.type = COLOR_SRGB;
+		}
+		else if (definition["type"] == "normal_map")
+		{
+			mapDefinition.type = NORMAL_MAP;
+		}
+		else if (definition["type"] == "grayscale")
+		{
+			mapDefinition.type = GRAYSCALE;
+		}
 		
 		_mapDefinitions[name] = std::move(mapDefinition);
 	}

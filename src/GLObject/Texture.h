@@ -15,7 +15,7 @@ public:
 	~Texture() override;
 	
 	GLuint64 getBindlessHandle() const;
-	void setData(const void* data, GLenum format = GL_RGB, GLenum type = GL_UNSIGNED_BYTE);
+	void setData(const void* data, GLenum format, GLenum type);
 	void bind(GLuint unit);
 	glm::ivec2 getSize() const;
 	

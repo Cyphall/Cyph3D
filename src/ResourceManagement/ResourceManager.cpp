@@ -48,24 +48,24 @@ void ResourceManager::finishModelLoading()
 	}
 }
 
-Image* ResourceManager::requestImage(const std::string& name, bool sRGB, bool compressed)
+Image* ResourceManager::requestImage(const std::string& name, ImageType type)
 {
 	if (!_images.contains(name))
 	{
 		_images[name] = std::make_unique<Image>(name);
-		loadImage(_images[name].get(), name, sRGB, compressed);
+		loadImage(_images[name].get(), name, type);
 	}
 	
 	return _images[name].get();
 }
 
-void ResourceManager::loadImage(Image* image, const std::string& name, bool sRGB, bool compressed)
+void ResourceManager::loadImage(Image* image, const std::string& name, ImageType type)
 {
 	Logger::Info(fmt::format("Loading image \"{}\"", name));
 	
-	_threadPool.enqueue_work([&, image, name, sRGB, compressed]
+	_threadPool.enqueue_work([&, image, name, type]
 	{
-		ImageLoadingData imageData = Image::loadFromFile(name, sRGB, compressed);
+		ImageLoadingData imageData = Image::loadFromFile(name, type);
 		_imageLoadingQueue.enqueue(std::make_pair(image, std::move(imageData)));
 	});
 }

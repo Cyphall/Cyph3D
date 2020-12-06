@@ -13,10 +13,12 @@ void Image::finishLoading(const ImageLoadingData& data)
 	createInfo.swizzle = data.swizzle;
 	
 	_resource = std::make_unique<Texture>(createInfo);
-	_resource->setData(data.data.getPtr(), data.pixelFormat, data.data.getBitPerChannel() == 16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE);
+	
+	PixelProperties properties = TextureHelper::getPixelProperties(data.data.getChannelCount(), data.data.getBitPerChannel());
+	_resource->setData(data.data.getPtr(), properties.format, properties.type);
 }
 
-ImageLoadingData Image::loadFromFile(const std::string& name, bool sRGB, bool compressed)
+ImageLoadingData Image::loadFromFile(const std::string& name, ImageType type)
 {
 	std::string path = fmt::format("resources/materials/{}", name);
 	
@@ -29,11 +31,10 @@ ImageLoadingData Image::loadFromFile(const std::string& name, bool sRGB, bool co
 		throw std::runtime_error(fmt::format("Unable to load image {} from disk", path));
 	}
 	
-	TextureInfo info = TextureHelper::getTextureInfo(imageData.data.getChannels(), compressed, sRGB);
+	TextureProperties properties = TextureHelper::getTextureProperties(type);
 	
-	imageData.internalFormat = info.internalFormat;
-	imageData.pixelFormat = info.pixelFormat;
-	imageData.swizzle = info.swizzle;
+	imageData.internalFormat = properties.internalFormat;
+	imageData.swizzle = properties.swizzle;
 	
 	return imageData;
 }

@@ -4,17 +4,23 @@
 #include <tuple>
 #include <optional>
 #include <array>
+#include "../Enums/ImageType.h"
 
-struct TextureInfo
+struct TextureProperties
 {
 	GLenum internalFormat;
-	GLenum pixelFormat;
 	std::array<GLint, 4> swizzle;
 };
 
+struct PixelProperties
+{
+	GLenum format;
+	GLenum type;
+};
 
 class TextureHelper
 {
 public:
-	static TextureInfo getTextureInfo(int componentCount, bool compressed, bool sRGB);
+	static TextureProperties getTextureProperties(ImageType type);
+	static PixelProperties getPixelProperties(int channelCount, int bitPerChannel);
 };
