@@ -27,9 +27,9 @@ void UIResourceExplorer::show()
 	if (!ImGui::Begin("Resources", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) return;
 	
 	ImGui::BeginChild("type", glm::vec2(100, 0));
-	for (ResourceType resourceType : magic_enum::enum_values<ResourceType>())
+	for (auto& [resourceType, resourceTypeName] : magic_enum::enum_entries<ResourceType>())
 	{
-		if (ImGui::Selectable(std::string(magic_enum::enum_name(resourceType)).c_str(), resourceType == _currentResourceType))
+		if (ImGui::Selectable(std::string(resourceTypeName).c_str(), resourceType == _currentResourceType))
 		{
 			_currentResourceType = resourceType;
 		}
