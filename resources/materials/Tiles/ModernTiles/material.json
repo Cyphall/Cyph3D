@@ -3,6 +3,5 @@
 	"colorMap": "col.png",
 	"normalMap": "nrm.png",
 	"roughnessMap": "rgh.png",
-	"displacementMap": "disp.png",
-	"metallicMap": "met.png"
+	"displacementMap": "disp.png"
 }
