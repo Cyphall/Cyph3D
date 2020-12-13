@@ -54,14 +54,14 @@ _shaderProgram(Engine::getGlobalRM().requestMaterialShaderProgram("unlit")), _na
 {
 	TextureCreateInfo createInfo;
 	createInfo.size = glm::ivec2(1);
-	createInfo.internalFormat = GL_RGB8;
+	createInfo.internalFormat = GL_SRGB8;
 	createInfo.textureFiltering = GL_NEAREST;
 	createInfo.swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ONE};
 	
 	std::unique_ptr<Texture> defaultColor = std::make_unique<Texture>(createInfo);
 	
 	uint8_t defaultData[] = {255, 0, 255};
-	defaultColor->setData(defaultData, GL_RGB, GL_UNSIGNED_SHORT);
+	defaultColor->setData(defaultData, GL_RGB, GL_UNSIGNED_BYTE);
 	
 	_textures["colorMap"] = std::make_tuple(std::move(defaultColor), nullptr);
 }
