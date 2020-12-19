@@ -22,8 +22,9 @@ glm::mat4 Camera::getView()
 	return _view;
 }
 
-glm::mat4 Camera::getProjection() const
+glm::mat4 Camera::getProjection()
 {
+	if (_projectionChanged) recalculateProjection();
 	return _projection;
 }
 
@@ -78,15 +79,13 @@ float Camera::getFov() const
 void Camera::setFov(float fov)
 {
 	_fov = fov;
-	_viewChanged = true;
+	_projectionChanged = true;
 }
 
 Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
 _position(position), _sphericalCoords(sphericalCoords), _previousMousePos(Engine::getWindow().getCursorPos())
 {
-	glm::ivec2 windowSize = Engine::getWindow().getSize();
-	float aspect = (float)windowSize.x / windowSize.y;
-	_projection = glm::perspective(MathHelper::fovXtoY(_fov, aspect), aspect, 0.02f, 1000.0f);
+	setFov(100);
 }
 
 void Camera::update(double deltaTime)
@@ -158,4 +157,14 @@ void Camera::recalculateView()
 	_view = glm::lookAt(getPosition(), getPosition() + getOrientation(), glm::vec3(0, 1, 0));
 	
 	_viewChanged = false;
+}
+
+
+void Camera::recalculateProjection()
+{
+	glm::ivec2 windowSize = Engine::getWindow().getSize();
+	float aspect = (float)windowSize.x / windowSize.y;
+	_projection = glm::perspective(MathHelper::fovXtoY(_fov, aspect), aspect, 0.02f, 1000.0f);
+	
+	_projectionChanged = false;
 }

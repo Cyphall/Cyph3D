@@ -15,7 +15,7 @@ public:
 	
 	glm::mat4 getView();
 	
-	glm::mat4 getProjection() const;
+	glm::mat4 getProjection();
 	
 	glm::vec3 getPosition() const;
 	void setPosition(glm::vec3 position);
@@ -45,6 +45,7 @@ private:
 	bool _viewChanged = true;
 	glm::mat4 _view = glm::mat4(0);
 	
+	bool _projectionChanged = true;
 	glm::mat4 _projection = glm::mat4(0);
 	
 	glm::vec3 _position;
@@ -57,8 +58,9 @@ private:
 	
 	float _speed = 2;
 	float _exposure = 1;
-	float _fov = 100;
+	float _fov;
 	
 	void recalculateOrientation();
 	void recalculateView();
+	void recalculateProjection();
 };
