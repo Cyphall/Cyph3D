@@ -37,4 +37,5 @@ target_link_libraries(Cyph3D PRIVATE
 		magic_enum::magic_enum
 		nlohmann_json nlohmann_json::nlohmann_json)
 
-file(COPY resources DESTINATION .)
+add_custom_command(TARGET Cyph3D PRE_BUILD
+		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /E /NS /NC /NFL /NDL /NP /NJH /NJS  || cmd /c "exit /b 0")
