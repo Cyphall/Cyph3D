@@ -9,7 +9,7 @@ SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures):
 		IRenderPass(textures),
 		_framebuffer(Engine::getWindow().getSize()),
 		_vao(),
-		_vbo(108, GL_DYNAMIC_STORAGE_BIT, 3)
+		_vbo(36, GL_DYNAMIC_STORAGE_BIT)
 {
 	_framebuffer.attach(GL_COLOR_ATTACHMENT0, *textures["gbuffer_color"]);
 	_framebuffer.attach(GL_DEPTH_ATTACHMENT, *textures["gbuffer_depth"]);
@@ -19,51 +19,54 @@ SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures):
 	skyboxShaderProgramCreateInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/skybox/skybox");
 	_shader = Engine::getGlobalRM().requestShaderProgram(skyboxShaderProgramCreateInfo);
 	
-	_vbo.setData({
-		-1.0f,  1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		
-		-1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-		
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		
-		-1.0f, -1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-		
-		-1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f, -1.0f,
-		
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f
-   });
+	std::vector<SkyboxPass::VertexData> data = {
+			{{-1.0f,  1.0f, -1.0f}},
+			{{-1.0f, -1.0f, -1.0f}},
+			{{ 1.0f, -1.0f, -1.0f}},
+			{{ 1.0f, -1.0f, -1.0f}},
+			{{ 1.0f,  1.0f, -1.0f}},
+			{{-1.0f,  1.0f, -1.0f}},
+			
+			{{-1.0f, -1.0f,  1.0f}},
+			{{-1.0f, -1.0f, -1.0f}},
+			{{-1.0f,  1.0f, -1.0f}},
+			{{-1.0f,  1.0f, -1.0f}},
+			{{-1.0f,  1.0f,  1.0f}},
+			{{-1.0f, -1.0f,  1.0f}},
+			
+			{{ 1.0f, -1.0f, -1.0f}},
+			{{ 1.0f, -1.0f,  1.0f}},
+			{{ 1.0f,  1.0f,  1.0f}},
+			{{ 1.0f,  1.0f,  1.0f}},
+			{{ 1.0f,  1.0f, -1.0f}},
+			{{ 1.0f, -1.0f, -1.0f}},
+			
+			{{-1.0f, -1.0f,  1.0f}},
+			{{-1.0f,  1.0f,  1.0f}},
+			{{ 1.0f,  1.0f,  1.0f}},
+			{{ 1.0f,  1.0f,  1.0f}},
+			{{ 1.0f, -1.0f,  1.0f}},
+			{{-1.0f, -1.0f,  1.0f}},
+			
+			{{-1.0f,  1.0f, -1.0f}},
+			{{ 1.0f,  1.0f, -1.0f}},
+			{{ 1.0f,  1.0f,  1.0f}},
+			{{ 1.0f,  1.0f,  1.0f}},
+			{{-1.0f,  1.0f,  1.0f}},
+			{{-1.0f,  1.0f, -1.0f}},
+			
+			{{-1.0f, -1.0f, -1.0f}},
+			{{-1.0f, -1.0f,  1.0f}},
+			{{ 1.0f, -1.0f, -1.0f}},
+			{{ 1.0f, -1.0f, -1.0f}},
+			{{-1.0f, -1.0f,  1.0f}},
+			{{ 1.0f, -1.0f,  1.0f}}
+	};
 	
-	_vao.registerAttrib(_vbo, 0, 3, GL_FLOAT, 0);
+	_vbo.setData(data);
+	
+	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(SkyboxPass::VertexData, position));
+	_vao.bindBufferToSlot(_vbo, 0);
 	
 }
 

@@ -41,11 +41,9 @@ Window::Window(std::optional<glm::ivec2> size)
 	if (size.has_value())
 	{
 		_glfwWindow = glfwCreateWindow(size->x, size->y, "Cyph3D", nullptr, nullptr);
-		const GLFWvidmode* vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-		if (vidmode != nullptr)
-		{
-			glfwSetWindowPos(_glfwWindow, (vidmode->width - size->x) / 2, (vidmode->height- size->y) / 2);
-		}
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		glfwSetWindowPos(_glfwWindow, (mode->width - size->x) / 2, (mode->height- size->y) / 2);
 	}
 	else
 	{

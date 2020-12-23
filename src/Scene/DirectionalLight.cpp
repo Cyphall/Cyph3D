@@ -77,7 +77,7 @@ glm::vec3 DirectionalLight::getLightDirection()
 	return glm::vec3(glm::mat4(glm::mat3(_transform.getWorldMatrix())) * glm::vec4(0, -1, 0, 1));
 }
 
-void DirectionalLight::updateShadowMap()
+void DirectionalLight::updateShadowMap(VertexArray& vao)
 {
 	if (!_castShadows) return;
 	
@@ -102,14 +102,19 @@ void DirectionalLight::updateShadowMap()
 		SceneObject* ptr = object.get();
 		
 		MeshObject* meshObject = dynamic_cast<MeshObject*>(ptr);
-		if (meshObject != nullptr && meshObject->getContributeShadows())
-		{
-			if (meshObject->getModel() != nullptr && meshObject->getModel()->isResourceReady())
-			{
-				_shadowMapProgram->setUniform("model", &meshObject->getTransform().getWorldMatrix());
-				meshObject->getModel()->render();
-			}
-		}
+		if (meshObject == nullptr || !meshObject->getContributeShadows()) continue;
+		
+		const Model* model = meshObject->getModel();
+		if (model == nullptr || !model->isResourceReady()) continue;
+		
+		const Buffer<Mesh::VertexData>& vbo = model->getResource().getVBO();
+		const Buffer<GLuint>& ibo = model->getResource().getIBO();
+		vao.bindBufferToSlot(vbo, 0);
+		vao.bindIndexBuffer(ibo);
+		
+		_shadowMapProgram->setUniform("model", &meshObject->getTransform().getWorldMatrix());
+		
+		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}
 }
 

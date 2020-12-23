@@ -19,7 +19,7 @@ public:
 		return (bool)_resource;
 	}
 	
-	TResource& getResource()
+	const TResource& getResource() const
 	{
 		return *_resource;
 	}

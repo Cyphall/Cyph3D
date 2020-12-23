@@ -18,16 +18,6 @@ MeshObject::MeshObject(Transform* parent, Material* material, Model* model, cons
 
 }
 
-void MeshObject::render(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos)
-{
-	if (_model == nullptr || !_model->isResourceReady()) return;
-	
-	Material* mat = _material != nullptr ? _material : Material::getDefault();
-	mat->bind(_transform.getWorldMatrix(), view, projection, cameraPos);
-	
-	_model->render();
-}
-
 void MeshObject::update(double deltaTime)
 {
 	_transform.setPosition(_transform.getPosition() + _velocity * (float)deltaTime);
@@ -89,4 +79,14 @@ glm::vec3 MeshObject::getAngularVelocity() const
 void MeshObject::setAngularVelocity(glm::vec3 angularVelicoty)
 {
 	_angularVelicoty = angularVelicoty;
+}
+
+const Model* MeshObject::getModel() const
+{
+	return _model;
+}
+
+const Material* MeshObject::getMaterial() const
+{
+	return _material != nullptr ? _material : Material::getDefault();;
 }

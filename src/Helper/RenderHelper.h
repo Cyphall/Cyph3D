@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <glm/glm.hpp>
 #include "../GLObject/VertexArray.h"
 
 class RenderHelper
@@ -10,6 +11,12 @@ public:
 	static void drawScreenQuad();
 	
 private:
+	struct VertexData
+	{
+		glm::vec2 position;
+		glm::vec2 uv;
+	};
+	
 	static std::unique_ptr<VertexArray> _quadVAO;
-	static std::unique_ptr<VertexBuffer<float>> _quadVBO;
+	static std::unique_ptr<Buffer<RenderHelper::VertexData>> _quadVBO;
 };

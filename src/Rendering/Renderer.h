@@ -2,7 +2,6 @@
 
 #include "../GLObject/Framebuffer.h"
 #include "../GLObject/VertexArray.h"
-#include "../GLObject/VertexBuffer.h"
 #include "../GLObject/ShaderStorageBuffer.h"
 #include "../Scene/PointLight.h"
 #include "../Scene/DirectionalLight.h"

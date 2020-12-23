@@ -41,7 +41,7 @@ void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLs
 	}
 }
 
-void Engine::init()
+void Engine::init(bool windowed)
 {
 	GlfwHelper::Init();
 	
@@ -49,8 +49,15 @@ void Engine::init()
 	
 //	Logger::SetLogLevel(Logger::LogLevel::Warning);
 	
-//	_window = std::make_unique<Window>(glm::ivec2(1600, 900));
-	_window = std::make_unique<Window>();
+	if (windowed)
+	{
+		_window = std::make_unique<Window>(glm::ivec2(1600, 900));
+	}
+	else
+	{
+		_window = std::make_unique<Window>();
+	}
+	
 	_globalResourceManager = std::make_unique<ResourceManager>(1);
 	
 	Logger::Info(fmt::format("GLFW Version: {}", glfwGetVersionString()), "GLFW");

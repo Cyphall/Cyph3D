@@ -10,7 +10,7 @@ class Renderer;
 class Engine
 {
 public:
-	static void init();
+	static void init(bool windowed);
 	static void run();
 	static void shutdown();
 	

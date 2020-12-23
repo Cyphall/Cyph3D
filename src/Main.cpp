@@ -3,12 +3,12 @@
 #include <windows.h>
 #include "Logger.h"
 
-int main()
+int main(int argc, char** argv)
 {
 	try
 	{
 		Logger::Init();
-		Engine::init();
+		Engine::init(argc == 2 && strcmp(argv[1], "--windowed") == 0 || IsDebuggerPresent());
 		Engine::run();
 		Engine::shutdown();
 	}

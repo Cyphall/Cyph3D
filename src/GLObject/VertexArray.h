@@ -2,43 +2,43 @@
 
 #include <map>
 #include "BufferBase.h"
-#include "VertexBuffer.h"
+#include "Buffer.h"
 
 class VertexArray : public BufferBase
 {
 public:
-	VertexArray();
-	~VertexArray() override;
-	
-	template<typename T>
-	int resolveBufferIndex(const VertexBuffer<T>& buffer)
+	VertexArray()
 	{
-		if (!_mappedBuffers.contains(&buffer))
-		{
-			int newIndex = _mappedBuffers.size();
-			_mappedBuffers[&buffer] = newIndex;
-			glVertexArrayVertexBuffer(_handle, newIndex, buffer.getHandle(), 0, sizeof(T) * buffer.getElementCountPerVertex());
-		}
-		
-		return _mappedBuffers[&buffer];
+		glCreateVertexArrays(1, &_handle);
+	}
+	
+	~VertexArray() override
+	{
+		glDeleteVertexArrays(1, &_handle);
+	}
+	
+	void defineFormat(int bufferSlot, int attribLocation, int elementCount, GLenum elementType, int offset)
+	{
+		glVertexArrayAttribBinding(_handle, attribLocation, bufferSlot); // sets which buffer slot will be used for this vertex attribute
+		glEnableVertexArrayAttrib(_handle, attribLocation); // enables this vertex attribute
+		glVertexArrayAttribFormat(_handle, attribLocation, elementCount, elementType, false, offset); // defines this vertex attribute
 	}
 	
 	template<typename T>
-	void registerAttrib(const VertexBuffer<T>& buffer, int location, int elementCount, GLenum elementType, int offset)
+	void bindBufferToSlot(const Buffer<T>& buffer, int bufferSlot)
 	{
-		int bindingIndex = resolveBufferIndex(buffer);
-		
-		glEnableVertexArrayAttrib(_handle, location);
-		glVertexArrayAttribFormat(_handle, location, elementCount, elementType, false, offset);
-		glVertexArrayAttribBinding(_handle, location, bindingIndex);
+		glVertexArrayVertexBuffer(_handle, bufferSlot, buffer.getHandle(), 0, sizeof(T));
 	}
 	
-	void registerIndexBuffer(const BufferBase& buffer);
+	void bindIndexBuffer(const Buffer<GLuint>& buffer)
+	{
+		glVertexArrayElementBuffer(_handle, buffer.getHandle());
+	}
 	
-	void bind();
-
-private:
-	std::map<const BufferBase*, int> _mappedBuffers;
+	void bind()
+	{
+		glBindVertexArray(_handle);
+	}
 };
 
 

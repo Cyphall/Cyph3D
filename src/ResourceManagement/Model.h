@@ -1,13 +1,12 @@
 #pragma once
 
-
 #include "Resource.h"
 #include "../GLObject/Mesh.h"
 
 struct ModelLoadingData
 {
-	std::vector<VertexData> vertexData;
-	std::vector<int> indices;
+	std::vector<Mesh::VertexData> vertexData;
+	std::vector<GLuint> indices;
 };
 
 class Model : public Resource<Mesh, ModelLoadingData>
@@ -15,7 +14,7 @@ class Model : public Resource<Mesh, ModelLoadingData>
 public:
 	using Resource::Resource;
 	Model(const Model& other) = delete;
-	void render();
+	
 private:
 	void finishLoading(const ModelLoadingData& data) override;
 	

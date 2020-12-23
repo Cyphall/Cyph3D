@@ -43,6 +43,11 @@ _depthTexture(TextureCreateInfo
 	textures["gbuffer_material"] = &_materialTexture;
 	textures["gbuffer_gemoetryNormal"] = &_geometryNormalTexture;
 	textures["gbuffer_depth"] = &_depthTexture;
+	
+	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
+	_vao.defineFormat(0, 1, 2, GL_FLOAT, offsetof(Mesh::VertexData, uv));
+	_vao.defineFormat(0, 2, 3, GL_FLOAT, offsetof(Mesh::VertexData, normal));
+	_vao.defineFormat(0, 3, 3, GL_FLOAT, offsetof(Mesh::VertexData, tangent));
 }
 
 void GeometryPass::preparePipeline()
@@ -56,6 +61,7 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_gbuffer.clearAll();
 	
 	_gbuffer.bind();
+	_vao.bind();
 	
 	glm::vec3 pos = camera.position;
 	glm::mat4 view = camera.getView();
@@ -63,7 +69,18 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	
 	for (MeshObject* meshObject : objects.meshObjects)
 	{
-		meshObject->render(view, projection, pos);
+		const Model* model = meshObject->getModel();
+		if (model == nullptr || !model->isResourceReady()) continue;
+		
+		const Buffer<Mesh::VertexData>& vbo = model->getResource().getVBO();
+		const Buffer<GLuint>& ibo = model->getResource().getIBO();
+		
+		_vao.bindBufferToSlot(vbo, 0);
+		_vao.bindIndexBuffer(ibo);
+		
+		meshObject->getMaterial()->bind(meshObject->getTransform().getWorldMatrix(), view, projection, pos);
+		
+		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}
 }
 

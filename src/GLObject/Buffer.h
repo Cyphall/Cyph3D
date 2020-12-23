@@ -46,7 +46,7 @@ public:
 		setData(data.data(), data.size());
 	}
 	
-	GLsizeiptr getCount()
+	GLsizeiptr getCount() const
 	{
 		return _count;
 	}

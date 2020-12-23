@@ -17,7 +17,6 @@ public:
 			glm::vec3 position, glm::quat rotation, glm::vec3 scale,
 			glm::vec3 velocity, glm::vec3 angularVelicoty);
 	
-	void render(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos);
 	void update(double deltaTime) override;
 	
 	Model* getModel();
@@ -33,6 +32,9 @@ public:
 	void setAngularVelocity(glm::vec3 angularVelicoty);
 	
 	bool getContributeShadows() const;
+	
+	const Model* getModel() const;
+	const Material* getMaterial() const;
 	
 	void setContributeShadows(bool contributeShadows);
 	

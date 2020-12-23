@@ -10,4 +10,7 @@ public:
 	void preparePipeline() override;
 	void render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera) override;
 	void restorePipeline() override;
+
+private:
+	VertexArray _vao;
 };

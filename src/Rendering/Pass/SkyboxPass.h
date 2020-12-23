@@ -12,9 +12,14 @@ public:
 	void restorePipeline() override;
 
 private:
+	struct VertexData
+	{
+		glm::vec3 position;
+	};
+	
 	Framebuffer _framebuffer;
 	ShaderProgram* _shader;
 	
 	VertexArray _vao;
-	VertexBuffer<float> _vbo;
+	Buffer<VertexData> _vbo;
 };

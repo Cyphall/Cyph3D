@@ -4,7 +4,9 @@
 
 ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, Texture*>& textures):
 IRenderPass(textures)
-{}
+{
+	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
+}
 
 void ShadowMapPass::preparePipeline()
 {
@@ -16,16 +18,18 @@ void ShadowMapPass::render(std::unordered_map<std::string, Texture*>& textures, 
 {
 	glDisable(GL_CULL_FACE);
 	
+	_vao.bind();
+	
 	for (DirectionalLight* light : objects.directionalLights)
 	{
-		light->updateShadowMap();
+		light->updateShadowMap(_vao);
 	}
 	
 	glEnable(GL_CULL_FACE);
 	
 	for (PointLight* light : objects.pointLights)
 	{
-		light->updateShadowMap();
+		light->updateShadowMap(_vao);
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "../GLObject/ShaderProgram.h"
 #include "../stdfloat.h"
 #include "Light.h"
+#include "../GLObject/VertexArray.h"
 
 class PointLight : public Light
 {
@@ -23,7 +24,7 @@ public:
 	PointLight(Transform* parent, const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 srgbColor = glm::vec3(1), float intensity = 1, bool castShadows = false);
 	PointLight(Transform* parent, const std::string& name, glm::vec3 position, glm::quat rotation, glm::vec3 scale, glm::vec3 srgbColor = glm::vec3(1), float intensity = 1, bool castShadows = false);
 	
-	void updateShadowMap();
+	void updateShadowMap(VertexArray& vao);
 	
 	void setCastShadows(bool value);
 	bool getCastShadows() const;

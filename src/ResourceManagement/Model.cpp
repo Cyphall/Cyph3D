@@ -18,7 +18,7 @@ ModelLoadingData Model::loadFromFile(const std::string& name)
 	const aiScene* scene = importer.ReadFile(path, aiProcess_CalcTangentSpace | aiProcess_Triangulate);
 	aiMesh* mesh = scene->mMeshes[0];
 	
-	std::vector<VertexData> vertexData;
+	std::vector<Mesh::VertexData> vertexData;
 	vertexData.reserve(mesh->mNumVertices);
 	
 	for (int i = 0; i < mesh->mNumVertices; ++i)
@@ -35,7 +35,7 @@ ModelLoadingData Model::loadFromFile(const std::string& name)
 				*reinterpret_cast<glm::vec3*>(&t));
 	}
 	
-	std::vector<int> indices;
+	std::vector<GLuint> indices;
 	indices.reserve(mesh->mNumFaces * 3);
 	
 	for (int i = 0; i < mesh->mNumFaces; ++i)
@@ -45,10 +45,5 @@ ModelLoadingData Model::loadFromFile(const std::string& name)
 		indices.push_back(mesh->mFaces[i].mIndices[2]);
 	}
 	
-	return ModelLoadingData{std::move(vertexData), std::move(indices)};
-}
-
-void Model::render()
-{
-	_resource->render();
+	return ModelLoadingData{vertexData, indices};
 }
