@@ -27,6 +27,11 @@ public:
 	void setUniform(const char* name, const glm::ivec3* data, size_t count = 1);
 	void setUniform(const char* name, const glm::ivec4* data, size_t count = 1);
 	
+	void setUniform(const char* name, const uint32_t* data, size_t count = 1);
+	void setUniform(const char* name, const glm::uvec2* data, size_t count = 1);
+	void setUniform(const char* name, const glm::uvec3* data, size_t count = 1);
+	void setUniform(const char* name, const glm::uvec4* data, size_t count = 1);
+	
 	void setUniform(const char* name, const bool* data, size_t count = 1);
 	void setUniform(const char* name, const glm::bvec2* data, size_t count = 1);
 	void setUniform(const char* name, const glm::bvec3* data, size_t count = 1);

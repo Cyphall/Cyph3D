@@ -36,6 +36,23 @@ void ShaderProgram::setUniform(const char* name, const glm::ivec4* data, size_t 
 	glProgramUniform4iv(_handle, getUniformLocation(name), count, glm::value_ptr(*data));
 }
 
+void ShaderProgram::setUniform(const char* name, const uint32_t* data, size_t count)
+{
+	glProgramUniform1uiv(_handle, getUniformLocation(name), count, data);
+}
+void ShaderProgram::setUniform(const char* name, const glm::uvec2* data, size_t count)
+{
+	glProgramUniform1uiv(_handle, getUniformLocation(name), count, glm::value_ptr(*data));
+}
+void ShaderProgram::setUniform(const char* name, const glm::uvec3* data, size_t count)
+{
+	glProgramUniform1uiv(_handle, getUniformLocation(name), count, glm::value_ptr(*data));
+}
+void ShaderProgram::setUniform(const char* name, const glm::uvec4* data, size_t count)
+{
+	glProgramUniform1uiv(_handle, getUniformLocation(name), count, glm::value_ptr(*data));
+}
+
 void ShaderProgram::setUniform(const char* name, const bool* data, size_t count)
 {
 	int value = *data;
