@@ -34,7 +34,6 @@ public:
 	bool getContributeShadows() const;
 	
 	const Model* getModel() const;
-	const Material* getMaterial() const;
 	
 	void setContributeShadows(bool contributeShadows);
 	

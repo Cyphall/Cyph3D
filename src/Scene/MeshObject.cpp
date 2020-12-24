@@ -33,7 +33,7 @@ void MeshObject::update(double deltaTime)
 
 Material* MeshObject::getMaterial()
 {
-	return _material;
+	return _material != nullptr ? _material : Material::getDefault();
 }
 
 void MeshObject::setMaterial(Material* material)
@@ -84,9 +84,4 @@ void MeshObject::setAngularVelocity(glm::vec3 angularVelicoty)
 const Model* MeshObject::getModel() const
 {
 	return _model;
-}
-
-const Material* MeshObject::getMaterial() const
-{
-	return _material != nullptr ? _material : Material::getDefault();;
 }
