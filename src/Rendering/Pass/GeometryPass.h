@@ -20,6 +20,7 @@ private:
 	Texture _materialTexture;
 	Texture _geometryNormalTexture;
 	Texture _depthTexture;
+	Texture _objectIndexTexture;
 	
 	VertexArray _vao;
 };

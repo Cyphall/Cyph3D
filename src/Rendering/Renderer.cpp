@@ -28,49 +28,59 @@ void Renderer::render()
 	Scene& scene = Engine::getScene();
 	Camera& camera = scene.getCamera();
 	
-	SceneObjectRegistry registry;
+	_registry = SceneObjectRegistry();
 	for (std::unique_ptr<SceneObject>& object : Engine::getScene().getObjects())
 	{
 		MeshObject* meshObject = dynamic_cast<MeshObject*>(object.get());
 		if (meshObject != nullptr)
 		{
-			registry.meshObjects.push_back(meshObject);
+			_registry.meshObjects.push_back(meshObject);
 		}
 		
 		DirectionalLight* directionalLight = dynamic_cast<DirectionalLight*>(object.get());
 		if (directionalLight != nullptr)
 		{
-			registry.directionalLights.push_back(directionalLight);
+			_registry.directionalLights.push_back(directionalLight);
 		}
 		
 		PointLight* pointLight = dynamic_cast<PointLight*>(object.get());
 		if (pointLight != nullptr)
 		{
-			registry.pointLights.push_back(pointLight);
+			_registry.pointLights.push_back(pointLight);
 		}
 	}
 	
-	render(_shadowMapPass, registry, camera);
+	render(_shadowMapPass, camera);
 	
-	render(_geometryPass, registry, camera);
+	render(_geometryPass, camera);
 	
 	if (scene.getSkybox() != nullptr && scene.getSkybox()->isResourceReady())
-		render(_skyboxPass, registry, camera);
+		render(_skyboxPass, camera);
 	
-	render(_lightingPass, registry, camera);
+	render(_lightingPass, camera);
 	
 	if (_debug)
 		Framebuffer::drawToDefault(*_textures["raw_render"], true);
 	
-	render(_postProcessingPass, registry, camera);
+	render(_postProcessingPass, camera);
 	
 	Framebuffer::drawToDefault(*_textures["final"], true);
 	
 }
 
-void Renderer::render(IRenderPass& pass, SceneObjectRegistry& registry, Camera& camera)
+void Renderer::render(IRenderPass& pass, Camera& camera)
 {
 	pass.preparePipeline();
-	pass.render(_textures, registry, camera);
+	pass.render(_textures, _registry, camera);
 	pass.restorePipeline();
+}
+
+std::unordered_map<std::string, Texture*>& Renderer::getTextures()
+{
+	return _textures;
+}
+
+SceneObjectRegistry& Renderer::getRegistry()
+{
+	return _registry;
 }

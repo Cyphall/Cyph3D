@@ -1,6 +1,7 @@
 #pragma once
 
 #include <any>
+#include <glm/glm.hpp>
 
 class SceneObject;
 class MeshObject;
@@ -23,6 +24,8 @@ public:
 private:
 	static std::any _selected;
 	static bool _showRawQuaternion;
+	static bool _currentlyClicking;
+	static glm::dvec2 _clickPos;
 	
 	static void showSceneObject(SceneObject* selected);
 	static void showMeshObject(MeshObject* meshObject);

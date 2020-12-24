@@ -22,12 +22,16 @@ public:
 	void setDebug(bool debug);
 	
 	void render();
+	
+	std::unordered_map<std::string, Texture*>& getTextures();
+	SceneObjectRegistry& getRegistry();
 
 private:
 	// GBuffer
 	bool _debug = false;
 	
 	std::unordered_map<std::string, Texture*> _textures;
+	SceneObjectRegistry _registry;
 	
 	ShadowMapPass _shadowMapPass;
 	GeometryPass _geometryPass;
@@ -35,5 +39,5 @@ private:
 	LightingPass _lightingPass;
 	PostProcessingPass _postProcessingPass;
 	
-	void render(IRenderPass& pass, SceneObjectRegistry& registry, Camera& camera);
+	void render(IRenderPass& pass, Camera& camera);
 };
