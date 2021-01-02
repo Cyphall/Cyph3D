@@ -48,3 +48,8 @@ glm::ivec2 Cubemap::getSize() const
 {
 	return _size;
 }
+
+void Cubemap::clear(GLenum format, GLenum type, void* clearData)
+{
+	glClearTexImage(_handle, 0, format, type, clearData);
+}

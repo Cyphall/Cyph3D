@@ -20,7 +20,8 @@ _rawRenderTexture(TextureCreateInfo
 	
 	_shader = Engine::getGlobalRM().requestShaderProgram(lightingShaderProgramCreateInfo);
 	
-	_framebuffer.attach(GL_COLOR_ATTACHMENT0, _rawRenderTexture);
+	_framebuffer.attachColor(_rawRenderTexture);
+	_framebuffer.addToDrawBuffers(_rawRenderTexture, 0);
 	
 	textures["raw_render"] = &_rawRenderTexture;
 }
@@ -65,9 +66,9 @@ void LightingPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_shader->setUniform("depthTexture", textures["gbuffer_depth"]);
 	
 	_shader->bind();
-	_framebuffer.bind();
+	_framebuffer.bindForDrawing();
 	
-	_framebuffer.clearAll();
+	_rawRenderTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	
 	RenderHelper::drawScreenQuad();
 }

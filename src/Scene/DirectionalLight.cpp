@@ -45,7 +45,7 @@ void DirectionalLight::setCastShadows(bool value)
 		};
 		_shadowMap = std::make_unique<Texture>(createInfo);
 		
-		_shadowMapFb->attach(GL_DEPTH_ATTACHMENT, *_shadowMap.get());
+		_shadowMapFb->attachDepth(*_shadowMap.get());
 	}
 	else
 	{
@@ -91,11 +91,12 @@ void DirectionalLight::updateShadowMap(VertexArray& vao)
 		                    Engine::getScene().getCamera().position + getLightDirection(),
 	                  		glm::vec3(0, 1, 0));
 	
-	_shadowMapFb->bind();
+	_shadowMapFb->bindForDrawing();
 	_shadowMapProgram->bind();
 	_shadowMapProgram->setUniform("viewProjection", &_viewProjection);
 	
-	_shadowMapFb->clearDepth();
+	float depthColor = 1;
+	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
 	
 	for (auto& object : Engine::getScene().getObjects())
 	{

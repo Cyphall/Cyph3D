@@ -48,7 +48,7 @@ void PointLight::setCastShadows(bool value)
 		};
 		_shadowMap = std::make_unique<Cubemap>(createInfo);
 		
-		_shadowMapFb->attach(GL_DEPTH_ATTACHMENT, *_shadowMap.get());
+		_shadowMapFb->attachDepth(*_shadowMap.get());
 	}
 	else
 	{
@@ -96,13 +96,14 @@ void PointLight::updateShadowMap(VertexArray& vao)
 	_viewProjections[5] = _projection *
 	                      glm::lookAt(worldPos, worldPos + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
 	
-	_shadowMapFb->bind();
+	_shadowMapFb->bindForDrawing();
 	_shadowMapProgram->bind();
 	_shadowMapProgram->setUniform("viewProjections", _viewProjections, 6);
 	_shadowMapProgram->setUniform("lightPos", &worldPos);
 	_shadowMapProgram->setUniform("far", &_FAR);
 	
-	_shadowMapFb->clearDepth();
+	float depthColor = 1;
+	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
 	
 	for (auto& object : Engine::getScene().getObjects())
 	{

@@ -11,8 +11,10 @@ SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures):
 		_vao(),
 		_vbo(36, GL_DYNAMIC_STORAGE_BIT)
 {
-	_framebuffer.attach(GL_COLOR_ATTACHMENT0, *textures["gbuffer_color"]);
-	_framebuffer.attach(GL_DEPTH_ATTACHMENT, *textures["gbuffer_depth"]);
+	_framebuffer.attachColor(*textures["gbuffer_color"]);
+	_framebuffer.attachDepth(*textures["gbuffer_depth"]);
+	
+	_framebuffer.addToDrawBuffers(*textures["gbuffer_color"], 0);
 	
 	ShaderProgramCreateInfo skyboxShaderProgramCreateInfo;
 	skyboxShaderProgramCreateInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/skybox/skybox");
@@ -80,7 +82,7 @@ void SkyboxPass::preparePipeline()
 
 void SkyboxPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
-	_framebuffer.bind();
+	_framebuffer.bindForDrawing();
 	
 	_shader->bind();
 	

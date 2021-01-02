@@ -23,6 +23,8 @@ public:
 	
 	void render();
 	
+	MeshObject* getClickedMeshObject(glm::dvec2 clickPos);
+	
 	std::unordered_map<std::string, Texture*>& getTextures();
 	SceneObjectRegistry& getRegistry();
 
@@ -38,6 +40,8 @@ private:
 	SkyboxPass _skyboxPass;
 	LightingPass _lightingPass;
 	PostProcessingPass _postProcessingPass;
+	
+	Framebuffer _objectIndexFramebuffer;
 	
 	void render(IRenderPass& pass, Camera& camera);
 };

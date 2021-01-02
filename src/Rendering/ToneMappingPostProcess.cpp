@@ -12,7 +12,8 @@ _outputTexture(TextureCreateInfo
 	.internalFormat = GL_RGB8
 })
 {
-	_framebuffer.attach(GL_COLOR_ATTACHMENT0, _outputTexture);
+	_framebuffer.attachColor(_outputTexture);
+	_framebuffer.addToDrawBuffers(_outputTexture, 0);
 	
 	ShaderProgramCreateInfo createInfo;
 	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("postProcessing/toneMapping");
@@ -26,7 +27,7 @@ Texture* ToneMappingPostProcess::render(Texture* currentRenderTexture, std::unor
 	float exposure = Engine::getScene().getCamera().exposure;
 	_shaderProgram->setUniform("exposure", &exposure);
 	
-	_framebuffer.bind();
+	_framebuffer.bindForDrawing();
 	_shaderProgram->bind();
 	
 	RenderHelper::drawScreenQuad();

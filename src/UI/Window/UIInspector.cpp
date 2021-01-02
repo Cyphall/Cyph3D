@@ -69,27 +69,10 @@ void UIInspector::show()
 		_currentlyClicking = false;
 		if (glm::distance(_clickPos, Engine::getWindow().getCursorPos()) < 5)
 		{
-			GLint previousFramebuffer;
-			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previousFramebuffer);
-			
-			GLuint framebuffer;
-			glCreateFramebuffers(1, &framebuffer);
-			glNamedFramebufferTexture(framebuffer, GL_COLOR_ATTACHMENT0, Engine::getRenderer().getTextures()["gbuffer_objectIndex"]->getHandle(), 0);
-			glNamedFramebufferReadBuffer(framebuffer, GL_COLOR_ATTACHMENT0);
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			
 			_clickPos.y = Engine::getWindow().getSize().y - _clickPos.y;
 			
-			int objectIndex;
-			glReadPixels(_clickPos.x, _clickPos.y, 1, 1, GL_RED_INTEGER, GL_INT, &objectIndex);
-			
-			glBindFramebuffer(GL_FRAMEBUFFER, previousFramebuffer);
-			glDeleteFramebuffers(1, &framebuffer);
-			
-			if (objectIndex != -1)
-			{
-				setSelected(&Engine::getRenderer().getRegistry().meshObjects[objectIndex]->getTransform());
-			}
+			MeshObject* mesh = Engine::getRenderer().getClickedMeshObject(_clickPos);
+			setSelected(mesh ? &mesh->getTransform() : std::any());
 		}
 	}
 }

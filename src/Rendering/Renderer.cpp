@@ -10,8 +10,12 @@ _shadowMapPass(_textures),
 _geometryPass(_textures),
 _skyboxPass(_textures),
 _lightingPass(_textures),
-_postProcessingPass(_textures)
-{}
+_postProcessingPass(_textures),
+_objectIndexFramebuffer(Engine::getWindow().getSize())
+{
+	_objectIndexFramebuffer.attachColor(*_textures["gbuffer_objectIndex"]);
+	_objectIndexFramebuffer.setReadBuffer(*_textures["gbuffer_objectIndex"]);
+}
 
 bool Renderer::getDebug() const
 {
@@ -83,4 +87,18 @@ std::unordered_map<std::string, Texture*>& Renderer::getTextures()
 SceneObjectRegistry& Renderer::getRegistry()
 {
 	return _registry;
+}
+
+MeshObject* Renderer::getClickedMeshObject(glm::dvec2 clickPos)
+{
+	int objectIndex;
+	_objectIndexFramebuffer.bindForReading();
+	glReadPixels(clickPos.x, clickPos.y, 1, 1, GL_RED_INTEGER, GL_INT, &objectIndex);
+	
+	if (objectIndex != -1)
+	{
+		return Engine::getRenderer().getRegistry().meshObjects[objectIndex];
+	}
+	
+	return nullptr;
 }

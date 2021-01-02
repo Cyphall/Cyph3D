@@ -18,6 +18,7 @@ public:
 	void setData(void* data, int face, GLenum format, GLenum type);
 	void bind(GLuint unit);
 	glm::ivec2 getSize() const;
+	void clear(GLenum format, GLenum type, void* clearData);
 
 private:
 	glm::ivec2 _size;

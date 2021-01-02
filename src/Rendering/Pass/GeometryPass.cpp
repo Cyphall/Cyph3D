@@ -37,12 +37,18 @@ _objectIndexTexture(TextureCreateInfo
   .internalFormat = GL_R32I
 })
 {
-	_gbuffer.attach(GL_COLOR_ATTACHMENT0, _normalTexture);
-	_gbuffer.attach(GL_COLOR_ATTACHMENT1, _colorTexture);
-	_gbuffer.attach(GL_COLOR_ATTACHMENT2, _materialTexture);
-	_gbuffer.attach(GL_COLOR_ATTACHMENT3, _geometryNormalTexture);
-	_gbuffer.attach(GL_COLOR_ATTACHMENT4, _objectIndexTexture);
-	_gbuffer.attach(GL_DEPTH_ATTACHMENT, _depthTexture);
+	_gbuffer.attachColor(_normalTexture);
+	_gbuffer.attachColor(_colorTexture);
+	_gbuffer.attachColor(_materialTexture);
+	_gbuffer.attachColor(_geometryNormalTexture);
+	_gbuffer.attachColor(_objectIndexTexture);
+	_gbuffer.attachDepth(_depthTexture);
+	
+	_gbuffer.addToDrawBuffers(_normalTexture, 0);
+	_gbuffer.addToDrawBuffers(_colorTexture, 1);
+	_gbuffer.addToDrawBuffers(_materialTexture, 2);
+	_gbuffer.addToDrawBuffers(_geometryNormalTexture, 3);
+	_gbuffer.addToDrawBuffers(_objectIndexTexture, 4);
 	
 	textures["gbuffer_normal"] = &_normalTexture;
 	textures["gbuffer_color"] = &_colorTexture;
@@ -65,12 +71,18 @@ void GeometryPass::preparePipeline()
 
 void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
-	_gbuffer.clearAll();
+	_normalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	_colorTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	_materialTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	_geometryNormalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	
-	int clearIndex[] = {-1, -1, -1, -1};
-	glClearNamedFramebufferiv(_gbuffer.getHandle(), GL_COLOR, 4, clearIndex);
+	float clearDepth = 1;
+	_depthTexture.clear(GL_DEPTH_COMPONENT, GL_FLOAT, &clearDepth);
 	
-	_gbuffer.bind();
+	int clearIndex = -1;
+	_objectIndexTexture.clear(GL_RED_INTEGER, GL_INT, &clearIndex);
+	
+	_gbuffer.bindForDrawing();
 	_vao.bind();
 	
 	glm::vec3 pos = camera.position;

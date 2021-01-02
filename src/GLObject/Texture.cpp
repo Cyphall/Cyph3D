@@ -66,3 +66,8 @@ glm::ivec2 Texture::getSize() const
 {
 	return _size;
 }
+
+void Texture::clear(GLenum format, GLenum type, void* clearData)
+{
+	glClearTexImage(_handle, 0, format, type, clearData);
+}
