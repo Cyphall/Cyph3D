@@ -8,8 +8,6 @@
 
 #define VERSION(major, minor, revision) (major * 100 + minor * 10 + revision)
 
-using namespace std;
-
 void GlfwHelper::Init()
 {
 	glfwInit();
@@ -45,7 +43,7 @@ void GlfwHelper::EnsureGpuIsCompatible()
 	int maxSupportedOpenGLVersion = VERSION(major, minor, revision);
 	int requestedOpenGLVersion = VERSION(4, 6, 0);
 	
-	stringstream errorMessage;
+	std::stringstream errorMessage;
 	bool error = false;
 	if (maxSupportedOpenGLVersion < requestedOpenGLVersion)
 	{
@@ -56,7 +54,7 @@ void GlfwHelper::EnsureGpuIsCompatible()
 		error = true;
 	}
 	
-	string requiredExtensions[] = {
+	std::string requiredExtensions[] = {
 			"GL_ARB_bindless_texture"
 	};
 	
