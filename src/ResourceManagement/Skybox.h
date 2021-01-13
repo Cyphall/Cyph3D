@@ -26,7 +26,7 @@ public:
 	void setRotation(float rotation);
 
 private:
-	float _rotation;
+	float _rotation = 0;
 	void finishLoading(const SkyboxLoadingData& data) override;
 	
 	static SkyboxLoadingData loadFromFile(const std::string& name);
