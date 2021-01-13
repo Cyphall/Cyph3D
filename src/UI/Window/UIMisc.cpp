@@ -110,7 +110,7 @@ void UIMisc::show()
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SkyboxDragDrop");
 		if (payload)
 		{
-			Engine::getScene().setSkybox(Engine::getScene().getRM().requestSkybox(*static_cast<const std::string*>(payload->Data)));
+			Engine::getScene().setSkybox(Engine::getScene().getRM().requestSkybox(*(*static_cast<const std::string**>(payload->Data))));
 		}
 		ImGui::EndDragDropTarget();
 	}
