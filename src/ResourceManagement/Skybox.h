@@ -11,7 +11,6 @@
 struct SkyboxLoadingData
 {
 	GLenum internalFormat;
-	GLenum pixelFormat;
 	std::array<StbImage, 6> data;
 	std::array<GLint, 4> swizzle;
 };
