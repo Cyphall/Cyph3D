@@ -112,16 +112,6 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 	
 	std::string extension = ShaderHelper::shaderTypeToExtension(type);
 	
-	try
-	{
-		source = FileHelper::readAllText(fmt::format("resources/shaders/internal/shaderHeader.{}", extension));
-	}
-	catch (const std::ios_base::failure& e)
-	{
-		Logger::Error(fmt::format("Unable to open shader file \"internal/shaderHeader.{}\"", extension));
-		throw e;
-	}
-	
 	for (const std::string& file : files)
 	{
 		try

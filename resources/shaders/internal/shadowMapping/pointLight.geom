@@ -1,9 +1,14 @@
+#version 460 core
+
 layout (triangles) in;
 layout (triangle_strip, max_vertices=18) out;
 
-uniform mat4 viewProjections[6];
+uniform mat4 u_viewProjections[6];
 
-out vec4 FragPos; // FragPos from GS (output per emitvertex)
+out V2F // not exactly v2f as we are in a geometry shader, but we keep the same convention as other shaders
+{
+    vec3 fragPos; // FragPos from GS (output per emitvertex)
+} v2f;
 
 void main()
 {
@@ -12,8 +17,10 @@ void main()
 		gl_Layer = face; // built-in variable that specifies to which face we render.
 		for(int i = 0; i < 3; ++i) // for each triangle vertex
 		{
-			FragPos = gl_in[i].gl_Position;
-			gl_Position = viewProjections[face] * FragPos;
+			vec4 fragPos = gl_in[i].gl_Position;
+			gl_Position = u_viewProjections[face] * fragPos;
+			v2f.fragPos = vec3(fragPos);
+
 			EmitVertex();
 		}
 		EndPrimitive();

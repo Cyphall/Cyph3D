@@ -88,11 +88,11 @@ void Material::bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3
 		
 		if (image != nullptr && image->isResourceReady())
 		{
-			_shaderProgram->getShaderProgram()->setUniform(name.c_str(), &image->getResource());
+			_shaderProgram->getShaderProgram()->setUniform(fmt::format("u_{}", name).c_str(), &image->getResource());
 		}
 		else
 		{
-			_shaderProgram->getShaderProgram()->setUniform(name.c_str(), texture.get());
+			_shaderProgram->getShaderProgram()->setUniform(fmt::format("u_{}", name).c_str(), texture.get());
 		}
 	}
 	
@@ -103,12 +103,12 @@ void Material::bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3
 	}
 	
 	glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(model));
-	_shaderProgram->getShaderProgram()->setUniform("normalMatrix", &normalMatrix);
-	_shaderProgram->getShaderProgram()->setUniform("model", &model);
+	_shaderProgram->getShaderProgram()->setUniform("u_normalMatrix", &normalMatrix);
+	_shaderProgram->getShaderProgram()->setUniform("u_model", &model);
 	glm::mat4 mvp = vp * model;
-	_shaderProgram->getShaderProgram()->setUniform("mvp", &mvp);
-	_shaderProgram->getShaderProgram()->setUniform("viewPos", &cameraPos);
-	_shaderProgram->getShaderProgram()->setUniform("objectIndex", &objectIndex);
+	_shaderProgram->getShaderProgram()->setUniform("u_mvp", &mvp);
+	_shaderProgram->getShaderProgram()->setUniform("u_viewPos", &cameraPos);
+	_shaderProgram->getShaderProgram()->setUniform("u_objectIndex", &objectIndex);
 	
 	_shaderProgram->getShaderProgram()->bind();
 }

@@ -1,11 +1,13 @@
+#version 460 core
+#extension GL_ARB_bindless_texture : enable
+
 /* ------ consts ------ */
 const float PI = 3.14159265359;
 
 /* ------ inputs from vertex shader ------ */
-in VERT2FRAG {
-	vec2  TexCoords;
-	vec3  ViewPos;
-} vert2frag;
+in V2F {
+	vec2  texCoords;
+} v2f;
 
 /* ------ data structures ------ */
 layout(bindless_sampler) struct PointLight
@@ -56,17 +58,18 @@ layout(std430, binding = 1) buffer UselessNameBecauseItIsNeverUsedAnywhere2
 	DirectionalLight directionalLights[];
 };
 
-layout(bindless_sampler) uniform sampler2D normalTexture;
-layout(bindless_sampler) uniform sampler2D colorTexture;
-layout(bindless_sampler) uniform sampler2D materialTexture;
-layout(bindless_sampler) uniform sampler2D geometryNormalTexture;
-layout(bindless_sampler) uniform sampler2D depthTexture;
+layout(bindless_sampler) uniform sampler2D u_normalTexture;
+layout(bindless_sampler) uniform sampler2D u_colorTexture;
+layout(bindless_sampler) uniform sampler2D u_materialTexture;
+layout(bindless_sampler) uniform sampler2D u_geometryNormalTexture;
+layout(bindless_sampler) uniform sampler2D u_depthTexture;
 
-uniform bool debug;
-uniform mat4 viewProjectionInv;
+uniform bool u_debug;
+uniform mat4 u_viewProjectionInv;
+uniform vec3 u_viewPos;
 
 /* ------ outputs ------ */
-out vec4 out_Color;
+out vec4 o_color;
 
 /* ------ function declarations ------ */
 vec4 debugView();
@@ -95,19 +98,19 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 void main()
 {
 	// Mandatory data
-	fragData.texCoords = vert2frag.TexCoords;
+	fragData.texCoords = v2f.texCoords;
 	
-	if (debug)
+	if (u_debug)
 	{
-		out_Color = debugView();
+		o_color = debugView();
 	}
 	else if (isLit() == 0)
 	{
-		out_Color = vec4(getColor(), 1);
+		o_color = vec4(getColor(), 1);
 	}
 	else
 	{
-		out_Color = lighting();
+		o_color = lighting();
 	}
 }
 
@@ -125,28 +128,28 @@ vec4 debugView()
 		fragData.texCoords.x = (fragData.texCoords.x - 1.0/3.0) * 3;
 		fragData.texCoords.y = (fragData.texCoords.y - 2.0/3.0) * 3;
 		fragData.depth = getDepth();
-		return fragData.depth < 1 ? texture(normalTexture, fragData.texCoords) : vec4(0);
+		return fragData.depth < 1 ? texture(u_normalTexture, fragData.texCoords) : vec4(0);
 	}
 	else if (fragData.texCoords.x <= 3.0/3.0 && fragData.texCoords.y >= 2.0/3.0)
 	{
 		fragData.texCoords.x = (fragData.texCoords.x - 2.0/3.0) * 3;
 		fragData.texCoords.y = (fragData.texCoords.y - 2.0/3.0) * 3;
 		fragData.depth = getDepth();
-		return fragData.depth < 1 ? texture(geometryNormalTexture, fragData.texCoords) : vec4(0);
+		return fragData.depth < 1 ? texture(u_geometryNormalTexture, fragData.texCoords) : vec4(0);
 	}
 	else if (fragData.texCoords.x <= 1.0/3.0 && fragData.texCoords.y >= 1.0/3.0)
 	{
 		fragData.texCoords.x = (fragData.texCoords.x - 0.0/3.0) * 3;
 		fragData.texCoords.y = (fragData.texCoords.y - 1.0/3.0) * 3;
 		fragData.depth = getDepth();
-		return fragData.depth < 1 ? texture(materialTexture, fragData.texCoords) : vec4(0);
+		return fragData.depth < 1 ? texture(u_materialTexture, fragData.texCoords) : vec4(0);
 	}
 	else if (fragData.texCoords.x <= 2.0/3.0 && fragData.texCoords.y >= 1.0/3.0)
 	{
 		fragData.texCoords.x = (fragData.texCoords.x - 1.0/3.0) * 3;
 		fragData.texCoords.y = (fragData.texCoords.y - 1.0/3.0) * 3;
 		fragData.depth = getDepth();
-		return fragData.depth < 1 ? texture(colorTexture, fragData.texCoords) : vec4(0);
+		return fragData.depth < 1 ? texture(u_colorTexture, fragData.texCoords) : vec4(0);
 	}
 	else if (fragData.texCoords.x <= 3.0/3.0 && fragData.texCoords.y >= 1.0/3.0)
 	{
@@ -165,7 +168,7 @@ vec4 lighting()
 	fragData.color             = getColor();
 	fragData.depth             = getDepth();
 	fragData.pos               = getPosition();
-	fragData.viewDir           = normalize(vert2frag.ViewPos - fragData.pos);
+	fragData.viewDir           = normalize(u_viewPos - fragData.pos);
 	fragData.normal            = getNormal();
 	fragData.geometryNormal    = getGeometryNormal();
 	fragData.roughness         = getRoughness();
@@ -281,48 +284,48 @@ vec3 calculateLighting(vec3 radiance, vec3 L, vec3 H)
 vec3 getPosition()
 {
 	vec4 clipSpacePosition = vec4(fragData.texCoords, fragData.depth, 1) * 2.0 - 1.0;
-	vec4 worldSpacePosition = viewProjectionInv * clipSpacePosition;
+	vec4 worldSpacePosition = u_viewProjectionInv * clipSpacePosition;
 	return worldSpacePosition.xyz / worldSpacePosition.w;
 }
 
 vec3 getColor()
 {
-	return texture(colorTexture, fragData.texCoords).rgb;
+	return texture(u_colorTexture, fragData.texCoords).rgb;
 }
 
 vec3 getNormal()
 {
-	return normalize(texture(normalTexture, fragData.texCoords).rgb * 2.0 - 1.0);
+	return normalize(texture(u_normalTexture, fragData.texCoords).rgb * 2.0 - 1.0);
 }
 
 vec3 getGeometryNormal()
 {
-	return normalize(texture(geometryNormalTexture, fragData.texCoords).rgb * 2.0 - 1.0);
+	return normalize(texture(u_geometryNormalTexture, fragData.texCoords).rgb * 2.0 - 1.0);
 }
 
 float getRoughness()
 {
-	return texture(materialTexture, fragData.texCoords).r;
+	return texture(u_materialTexture, fragData.texCoords).r;
 }
 
 float getMetallic()
 {
-	return texture(materialTexture, fragData.texCoords).g;
+	return texture(u_materialTexture, fragData.texCoords).g;
 }
 
 float getEmissive()
 {
-	return texture(materialTexture, fragData.texCoords).b;
+	return texture(u_materialTexture, fragData.texCoords).b;
 }
 
 float getDepth()
 {
-	return texture(depthTexture, fragData.texCoords).r;
+	return texture(u_depthTexture, fragData.texCoords).r;
 }
 
 int isLit()
 {
-	return int(texture(materialTexture, fragData.texCoords).a);
+	return int(texture(u_materialTexture, fragData.texCoords).a);
 }
 
 // Normal Distribution Function

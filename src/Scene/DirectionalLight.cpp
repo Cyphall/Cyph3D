@@ -114,7 +114,7 @@ void DirectionalLight::updateShadowMap(VertexArray& vao)
 		
 		glm::mat4 mvp = _viewProjection * meshObject->getTransform().getWorldMatrix();
 		
-		_shadowMapProgram->setUniform("mvp", &mvp);
+		_shadowMapProgram->setUniform("u_mvp", &mvp);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

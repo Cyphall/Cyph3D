@@ -1,24 +1,28 @@
-﻿vec3 toSRGB(vec3 linear);
+﻿#version 460 core
+#extension GL_ARB_bindless_texture : enable
 
+vec3 toSRGB(vec3 linear);
 vec3 ACESFilm(vec3 x);
 
-layout(bindless_sampler) uniform sampler2D colorTexture;
+layout(bindless_sampler) uniform sampler2D u_colorTexture;
+uniform float u_exposure;
 
-uniform float exposure;
+in V2F
+{
+	vec2 texCoords;
+} v2f;
 
-in vec2 TexCoords;
-
-out vec4 outColor;
+out vec4 o_color;
 
 void main()
 {
-	vec4 rawColor = texture(colorTexture, TexCoords);
+	vec4 rawColor = texture(u_colorTexture, v2f.texCoords);
 
 	vec3 color = rawColor.rgb;
 
-	color *= pow(2, exposure);
+	color *= pow(2, u_exposure);
 
-	outColor = vec4(toSRGB(ACESFilm(color)), rawColor.a);
+	o_color = vec4(toSRGB(ACESFilm(color)), rawColor.a);
 }
 
 vec3 toSRGB(vec3 linear)

@@ -1,8 +1,10 @@
-layout(location = 0) in vec3 in_Vertex;
+#version 460 core
 
-uniform mat4 model;
+layout(location = 0) in vec3 a_position;
+
+uniform mat4 u_model;
 
 void main()
 {
-	gl_Position = model * vec4(in_Vertex, 1.0);
+	gl_Position = u_model * vec4(a_position, 1.0);
 }

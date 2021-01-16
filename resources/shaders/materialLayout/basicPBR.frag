@@ -1,53 +1,56 @@
-in FRAG {
-	vec2 TexCoords;
-	mat3 TangentToWorld;
-	mat3 WorldToTangent;
-	vec3 FragPos;
-} frag;
+#version 460 core
+#extension GL_ARB_bindless_texture : enable
 
-uniform vec3 viewPos;
-uniform int objectIndex;
+in V2F
+{
+    vec3 fragPos;
+    vec2 texCoords;
+    mat3 tangentToWorld;
+    mat3 worldToTangent;
+} v2f;
 
-layout(bindless_sampler) uniform sampler2D colorMap;
-layout(bindless_sampler) uniform sampler2D normalMap;
-layout(bindless_sampler) uniform sampler2D roughnessMap;
-layout(bindless_sampler) uniform sampler2D displacementMap;
-layout(bindless_sampler) uniform sampler2D metallicMap;
-layout(bindless_sampler) uniform sampler2D emissiveMap;
+uniform vec3 u_viewPos;
+uniform int  u_objectIndex;
+layout(bindless_sampler) uniform sampler2D u_colorMap;
+layout(bindless_sampler) uniform sampler2D u_normalMap;
+layout(bindless_sampler) uniform sampler2D u_roughnessMap;
+layout(bindless_sampler) uniform sampler2D u_displacementMap;
+layout(bindless_sampler) uniform sampler2D u_metallicMap;
+layout(bindless_sampler) uniform sampler2D u_emissiveMap;
 
-layout(location = 0) out vec3 normal;
-layout(location = 1) out vec3 color;
-layout(location = 2) out vec4 material;
-layout(location = 3) out vec3 geometryNormal;
-layout(location = 4) out int o_objectIndex;
+layout(location = 0) out vec3 o_normal;
+layout(location = 1) out vec3 o_color;
+layout(location = 2) out vec4 o_material;
+layout(location = 3) out vec3 o_geometryNormal;
+layout(location = 4) out int  o_objectIndex;
 
 float getDepth(vec2 texCoords);
 vec2 POM(vec2 texCoords, vec3 viewDir);
 
 void main()
 {
-	vec2 texCoords = POM(frag.TexCoords, normalize(frag.WorldToTangent * (viewPos - frag.FragPos)));
+	vec2 texCoords = POM(v2f.texCoords, normalize(v2f.worldToTangent * (u_viewPos - v2f.fragPos)));
 
-	color = texture(colorMap, texCoords).rgb;
+    o_color = texture(u_colorMap, texCoords).rgb;
 
-	normal = normalize(texture(normalMap, texCoords).rgb * 2.0 - 1.0);
-	normal = frag.TangentToWorld * normal;
-	normal = (normal + 1) * 0.5;
+    o_normal = normalize(texture(u_normalMap, texCoords).rgb * 2.0 - 1.0);
+    o_normal = v2f.tangentToWorld * o_normal;
+    o_normal = (o_normal + 1) * 0.5;
 
-	material.r = texture(roughnessMap, texCoords).r;
-	material.g = texture(metallicMap, texCoords).r;
-	material.b = texture(emissiveMap, texCoords).r;
-	material.a = 1;
+    o_material.r = texture(u_roughnessMap, texCoords).r;
+    o_material.g = texture(u_metallicMap, texCoords).r;
+    o_material.b = texture(u_emissiveMap, texCoords).r;
+    o_material.a = 1;
 
-    o_objectIndex = objectIndex;
-	
-	geometryNormal = frag.TangentToWorld * vec3(0, 0, 1);
-	geometryNormal = (geometryNormal + 1) * 0.5;
+    o_objectIndex = u_objectIndex;
+
+    o_geometryNormal = v2f.tangentToWorld * vec3(0, 0, 1);
+    o_geometryNormal = (o_geometryNormal + 1) * 0.5;
 }
 
 float getDepth(vec2 texCoords)
 {
-	return 1 - texture(displacementMap, texCoords).r;
+	return 1 - texture(u_displacementMap, texCoords).r;
 }
 
 vec2 POM(vec2 texCoords, vec3 viewDir)

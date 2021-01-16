@@ -53,17 +53,17 @@ void LightingPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	
 	
 	glm::vec3 pos = camera.getPosition();
-	_shader->setUniform("viewPos", &pos);
+	_shader->setUniform("u_viewPos", &pos);
 	bool debug = Engine::getRenderer().getDebug();
-	_shader->setUniform("debug", &debug);
+	_shader->setUniform("u_debug", &debug);
 	glm::mat4 viewProjectionInv = glm::inverse(camera.getProjection() * camera.getView());
-	_shader->setUniform("viewProjectionInv", &viewProjectionInv);
+	_shader->setUniform("u_viewProjectionInv", &viewProjectionInv);
 	
-	_shader->setUniform("normalTexture", textures["gbuffer_normal"]);
-	_shader->setUniform("colorTexture", textures["gbuffer_color"]);
-	_shader->setUniform("materialTexture", textures["gbuffer_material"]);
-	_shader->setUniform("geometryNormalTexture", textures["gbuffer_gemoetryNormal"]);
-	_shader->setUniform("depthTexture", textures["z-prepass_depth"]);
+	_shader->setUniform("u_normalTexture", textures["gbuffer_normal"]);
+	_shader->setUniform("u_colorTexture", textures["gbuffer_color"]);
+	_shader->setUniform("u_materialTexture", textures["gbuffer_material"]);
+	_shader->setUniform("u_geometryNormalTexture", textures["gbuffer_gemoetryNormal"]);
+	_shader->setUniform("u_depthTexture", textures["z-prepass_depth"]);
 	
 	_shader->bind();
 	_framebuffer.bindForDrawing();

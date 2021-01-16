@@ -1,12 +1,17 @@
-﻿layout (location = 0) in vec3 in_Vertex;
+﻿#version 460 core
 
-out vec3 TexCoords;
+layout (location = 0) in vec3 a_position;
 
-uniform mat4 mvp;
+out V2F
+{
+    vec3 texCoords;
+} v2f;
+
+uniform mat4 u_mvp;
 
 void main()
 {
-	TexCoords = in_Vertex * vec3(-1, -1, 1);
-	vec4 pos = mvp * vec4(in_Vertex, 1.0);
+	v2f.texCoords = a_position * vec3(-1, -1, 1);
+	vec4 pos = u_mvp * vec4(a_position, 1.0);
 	gl_Position = pos.xyww;
 } 
