@@ -5,8 +5,16 @@ _size(settings.size), _useMipmaps(settings.useMipmaps)
 {
 	glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
 	
-	GLenum minFiltering = _useMipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
-	GLenum magFiltering = settings.textureFiltering;
+	GLenum minFiltering;
+	if (_useMipmaps)
+	{
+		minFiltering = settings.textureFiltering == NEAREST ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
+	}
+	else
+	{
+		minFiltering = settings.textureFiltering == NEAREST ? GL_NEAREST : GL_LINEAR;
+	}
+	GLenum magFiltering = settings.textureFiltering == NEAREST ? GL_NEAREST : GL_LINEAR;
 	
 	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, minFiltering);
 	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, magFiltering);

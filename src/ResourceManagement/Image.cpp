@@ -8,7 +8,7 @@ void Image::finishLoading(const ImageLoadingData& data)
 	TextureCreateInfo createInfo;
 	createInfo.size = data.data.getSize();
 	createInfo.internalFormat = data.internalFormat;
-	createInfo.textureFiltering = GL_LINEAR;
+	createInfo.textureFiltering = LINEAR;
 	createInfo.useMipmaps = true;
 	createInfo.swizzle = data.swizzle;
 	

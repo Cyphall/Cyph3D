@@ -28,7 +28,7 @@ _name(std::move(name))
 		TextureCreateInfo createInfo;
 		createInfo.size = glm::ivec2(1);
 		createInfo.internalFormat = textureProperties.internalFormat;
-		createInfo.textureFiltering = GL_NEAREST;
+		createInfo.textureFiltering = NEAREST;
 		createInfo.swizzle = textureProperties.swizzle;
 		
 		std::unique_ptr<Texture> defaultColor = std::make_unique<Texture>(createInfo);
@@ -55,7 +55,7 @@ _shaderProgram(Engine::getGlobalRM().requestMaterialShaderProgram("unlit")), _na
 	TextureCreateInfo createInfo;
 	createInfo.size = glm::ivec2(1);
 	createInfo.internalFormat = GL_SRGB8;
-	createInfo.textureFiltering = GL_NEAREST;
+	createInfo.textureFiltering = NEAREST;
 	createInfo.swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ONE};
 	
 	std::unique_ptr<Texture> defaultColor = std::make_unique<Texture>(createInfo);
