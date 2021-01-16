@@ -86,12 +86,12 @@ void SkyboxPass::render(std::unordered_map<std::string, Texture*>& textures, Sce
 	
 	_shader->bind();
 	
-	glm::mat4 model = glm::rotate(glm::radians(Engine::getScene().getSkybox()->getRotation()), glm::vec3(0, 1, 0));
-	_shader->setUniform("model", &model);
-	glm::mat4 modifiedView = glm::mat4(glm::mat3(camera.getView()));
-	_shader->setUniform("view", &modifiedView);
-	glm::mat4 projection = camera.getProjection();
-	_shader->setUniform("projection", &projection);
+	glm::mat4 mvp =
+			camera.getProjection() *
+			glm::mat4(glm::mat3(camera.getView())) *
+			glm::rotate(glm::radians(Engine::getScene().getSkybox()->getRotation()), glm::vec3(0, 1, 0));
+	
+	_shader->setUniform("mvp", &mvp);
 	
 	_shader->setUniform("skybox", &Engine::getScene().getSkybox()->getResource());
 	
