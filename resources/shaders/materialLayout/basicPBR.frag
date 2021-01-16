@@ -5,8 +5,8 @@ in V2F
 {
     vec3 fragPos;
     vec2 texCoords;
-    mat3 tangentToWorld;
-    mat3 worldToTangent;
+    vec3 T;
+    vec3 N;
 } v2f;
 
 uniform vec3 u_viewPos;
@@ -29,12 +29,19 @@ vec2 POM(vec2 texCoords, vec3 viewDir);
 
 void main()
 {
-	vec2 texCoords = POM(v2f.texCoords, normalize(v2f.worldToTangent * (u_viewPos - v2f.fragPos)));
+    vec3 T = normalize(v2f.T);
+    vec3 N = normalize(v2f.N);
+    vec3 B = normalize(cross(v2f.N, v2f.T));
+    mat3 tangentToWorld = mat3(T, B, N);
+    mat3 worldToTangent = transpose(tangentToWorld);
+
+    vec3 viewDir = normalize(u_viewPos - v2f.fragPos);
+	vec2 texCoords = POM(v2f.texCoords, normalize(worldToTangent * viewDir));
 
     o_color = texture(u_colorMap, texCoords).rgb;
 
     o_normal = normalize(texture(u_normalMap, texCoords).rgb * 2.0 - 1.0);
-    o_normal = v2f.tangentToWorld * o_normal;
+    o_normal = tangentToWorld * o_normal;
     o_normal = (o_normal + 1) * 0.5;
 
     o_material.r = texture(u_roughnessMap, texCoords).r;
@@ -44,7 +51,7 @@ void main()
 
     o_objectIndex = u_objectIndex;
 
-    o_geometryNormal = v2f.tangentToWorld * vec3(0, 0, 1);
+    o_geometryNormal = tangentToWorld * vec3(0, 0, 1);
     o_geometryNormal = (o_geometryNormal + 1) * 0.5;
 }
 

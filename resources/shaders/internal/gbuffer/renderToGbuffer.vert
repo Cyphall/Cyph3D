@@ -13,8 +13,8 @@ out V2F
 {
     vec3 fragPos;
 	vec2 texCoords;
-	mat3 tangentToWorld;
-	mat3 worldToTangent;
+	vec3 T;
+	vec3 N;
 } v2f;
 
 void main()
@@ -22,12 +22,12 @@ void main()
     v2f.texCoords = a_uv;
     v2f.fragPos = vec3(u_model * vec4(a_position, 1.0));
 
-	vec3 T = normalize(u_normalMatrix * a_tangent);
-	vec3 N = normalize(u_normalMatrix * a_normal);
-	vec3 B = cross(N, T);
+    v2f.T = normalize(u_normalMatrix * a_tangent);
+    v2f.N = normalize(u_normalMatrix * a_normal);
+//	vec3 B = cross(N, T);
 
-    v2f.tangentToWorld = mat3(T, B, N);
-    v2f.worldToTangent = transpose(v2f.tangentToWorld);
+//    v2f.tangentToWorld = mat3(T, B, N);
+//    v2f.worldToTangent = transpose(v2f.tangentToWorld);
 
 	gl_Position = u_mvp * vec4(a_position, 1.0);
 }
