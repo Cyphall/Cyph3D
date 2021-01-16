@@ -93,7 +93,6 @@ void DirectionalLight::updateShadowMap(VertexArray& vao)
 	
 	_shadowMapFb->bindForDrawing();
 	_shadowMapProgram->bind();
-	_shadowMapProgram->setUniform("viewProjection", &_viewProjection);
 	
 	float depthColor = 1;
 	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
@@ -113,7 +112,9 @@ void DirectionalLight::updateShadowMap(VertexArray& vao)
 		vao.bindBufferToSlot(vbo, 0);
 		vao.bindIndexBuffer(ibo);
 		
-		_shadowMapProgram->setUniform("model", &meshObject->getTransform().getWorldMatrix());
+		glm::mat4 mvp = _viewProjection * meshObject->getTransform().getWorldMatrix();
+		
+		_shadowMapProgram->setUniform("mvp", &mvp);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}
