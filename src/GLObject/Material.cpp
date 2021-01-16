@@ -71,7 +71,7 @@ void Material::initialize()
 	_default = std::unique_ptr<Material>(new Material());
 }
 
-void Material::bind(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, int objectIndex)
+void Material::bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3& cameraPos, int objectIndex)
 {
 	bool allImagesAreReady = true;
 	for (auto& [name, data] : _textures)
@@ -105,8 +105,8 @@ void Material::bind(const glm::mat4& model, const glm::mat4& view, const glm::ma
 	glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(model));
 	_shaderProgram->getShaderProgram()->setUniform("normalMatrix", &normalMatrix);
 	_shaderProgram->getShaderProgram()->setUniform("model", &model);
-	_shaderProgram->getShaderProgram()->setUniform("view", &view);
-	_shaderProgram->getShaderProgram()->setUniform("projection", &projection);
+	glm::mat4 mvp = vp * model;
+	_shaderProgram->getShaderProgram()->setUniform("mvp", &mvp);
 	_shaderProgram->getShaderProgram()->setUniform("viewPos", &cameraPos);
 	_shaderProgram->getShaderProgram()->setUniform("objectIndex", &objectIndex);
 	

@@ -10,7 +10,7 @@ class ResourceManager;
 class Material
 {
 public:
-	void bind(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, int objectIndex);
+	void bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3& cameraPos, int objectIndex);
 	
 	const std::string& getName() const;
 	void setName(std::string name);

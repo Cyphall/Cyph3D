@@ -5,8 +5,7 @@ layout(location = 3) in vec3 in_tangents;
 
 uniform mat3 normalMatrix;
 uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 mvp;
 
 out FRAG {
 	vec2 TexCoords;
@@ -27,5 +26,5 @@ void main()
 	frag.TangentToWorld = mat3(T, B, N);
 	frag.WorldToTangent = transpose(frag.TangentToWorld);
 
-	gl_Position = projection * view * model * vec4(in_Vertex, 1.0);
+	gl_Position = mvp * vec4(in_Vertex, 1.0);
 }

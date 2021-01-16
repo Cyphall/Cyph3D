@@ -26,11 +26,6 @@ _geometryNormalTexture(TextureCreateInfo
    .size = _gbuffer.getSize(),
    .internalFormat = GL_RGB16F
 }),
-_depthTexture(TextureCreateInfo
-{
-  .size = _gbuffer.getSize(),
-  .internalFormat = GL_DEPTH_COMPONENT24
-}),
 _objectIndexTexture(TextureCreateInfo
 {
   .size = _gbuffer.getSize(),
@@ -42,7 +37,7 @@ _objectIndexTexture(TextureCreateInfo
 	_gbuffer.attachColor(_materialTexture);
 	_gbuffer.attachColor(_geometryNormalTexture);
 	_gbuffer.attachColor(_objectIndexTexture);
-	_gbuffer.attachDepth(_depthTexture);
+	_gbuffer.attachDepth(*textures["z-prepass_depth"]);
 	
 	_gbuffer.addToDrawBuffers(_normalTexture, 0);
 	_gbuffer.addToDrawBuffers(_colorTexture, 1);
@@ -54,7 +49,6 @@ _objectIndexTexture(TextureCreateInfo
 	textures["gbuffer_color"] = &_colorTexture;
 	textures["gbuffer_material"] = &_materialTexture;
 	textures["gbuffer_gemoetryNormal"] = &_geometryNormalTexture;
-	textures["gbuffer_depth"] = &_depthTexture;
 	textures["gbuffer_objectIndex"] = &_objectIndexTexture;
 	
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
@@ -66,6 +60,8 @@ _objectIndexTexture(TextureCreateInfo
 void GeometryPass::preparePipeline()
 {
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_EQUAL);
 	glEnable(GL_CULL_FACE);
 }
 
@@ -76,9 +72,6 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_materialTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	_geometryNormalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	
-	float clearDepth = 1;
-	_depthTexture.clear(GL_DEPTH_COMPONENT, GL_FLOAT, &clearDepth);
-	
 	int clearIndex = -1;
 	_objectIndexTexture.clear(GL_RED_INTEGER, GL_INT, &clearIndex);
 	
@@ -86,8 +79,7 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_vao.bind();
 	
 	glm::vec3 pos = camera.position;
-	glm::mat4 view = camera.getView();
-	glm::mat4 projection = camera.getProjection();
+	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
 	for (int i = 0; i < objects.meshObjects.size(); i++)
 	{
@@ -102,7 +94,7 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		meshObject->getMaterial()->bind(meshObject->getTransform().getWorldMatrix(), view, projection, pos, i);
+		meshObject->getMaterial()->bind(meshObject->getTransform().getWorldMatrix(), vp, pos, i);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}
@@ -111,5 +103,7 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 void GeometryPass::restorePipeline()
 {
 	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS);
 	glDisable(GL_CULL_FACE);
 }

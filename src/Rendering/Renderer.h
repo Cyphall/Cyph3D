@@ -12,6 +12,7 @@
 #include "Pass/LightingPass.h"
 #include "Pass/ShadowMapPass.h"
 #include "Pass/PostProcessingPass.h"
+#include "Pass/ZPrePass.h"
 
 class Renderer
 {
@@ -35,6 +36,7 @@ private:
 	std::unordered_map<std::string, Texture*> _textures;
 	SceneObjectRegistry _registry;
 	
+	ZPrePass _zPrePass;
 	ShadowMapPass _shadowMapPass;
 	GeometryPass _geometryPass;
 	SkyboxPass _skyboxPass;

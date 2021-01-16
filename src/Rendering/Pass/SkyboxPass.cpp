@@ -12,7 +12,7 @@ SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures):
 		_vbo(36, GL_DYNAMIC_STORAGE_BIT)
 {
 	_framebuffer.attachColor(*textures["gbuffer_color"]);
-	_framebuffer.attachDepth(*textures["gbuffer_depth"]);
+	_framebuffer.attachDepth(*textures["z-prepass_depth"]);
 	
 	_framebuffer.addToDrawBuffers(*textures["gbuffer_color"], 0);
 	

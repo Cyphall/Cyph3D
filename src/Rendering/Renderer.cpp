@@ -6,6 +6,7 @@
 #include "../Engine.h"
 
 Renderer::Renderer():
+_zPrePass(_textures),
 _shadowMapPass(_textures),
 _geometryPass(_textures),
 _skyboxPass(_textures),
@@ -54,6 +55,7 @@ void Renderer::render()
 		}
 	}
 	
+	render(_zPrePass, camera);
 	render(_shadowMapPass, camera);
 	
 	render(_geometryPass, camera);
