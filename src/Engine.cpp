@@ -90,12 +90,13 @@ void Engine::run()
 		_scene->getRM().update();
 		
 		double currentTime = glfwGetTime();
-		_scene->update(currentTime - _previousTime);
+		double deltaTime = currentTime - _previousTime;
+		_scene->update(deltaTime);
 		_previousTime = currentTime;
 		
 		_renderer->render();
 		
-		UIHelper::update();
+		UIHelper::update(deltaTime);
 		UIHelper::render();
 		
 		_window->swapBuffers();
