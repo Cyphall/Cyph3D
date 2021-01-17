@@ -133,9 +133,17 @@ void UIResourceExplorer::findMeshes(const std::string& path)
 
 void UIResourceExplorer::findMaterial(const std::string& path)
 {
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
+	_materials.push_back("internal/Default Material");
+	
+	std::filesystem::recursive_directory_iterator it(path);
+	for (const auto& entry : it)
 	{
-		if (entry.is_directory()) continue;
+		if (entry.is_directory())
+		{
+			if (entry.path().filename() == "internal")
+				it.disable_recursion_pending();
+			continue;
+		}
 		
 		if (entry.path().filename() == "material.json")
 		{

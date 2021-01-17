@@ -112,7 +112,7 @@ void UIHierarchy::processHierarchyChanges()
 				Engine::getScene().add(std::make_unique<DirectionalLight>(Engine::getScene().getRoot(), "DirectionalLight", glm::vec3(0), glm::vec3(0), glm::vec3(1)));
 				break;
 			case MeshObjectType:
-				Engine::getScene().add(std::make_unique<MeshObject>(Engine::getScene().getRoot(), nullptr, nullptr, "MeshObject", glm::vec3(0), glm::vec3(0), glm::vec3(1), glm::vec3(0), glm::vec3(0)));
+				Engine::getScene().add(std::make_unique<MeshObject>(Engine::getScene().getRoot(), Material::getDefault(), nullptr, "MeshObject", glm::vec3(0), glm::vec3(0), glm::vec3(1), glm::vec3(0), glm::vec3(0)));
 				break;
 		}
 	}

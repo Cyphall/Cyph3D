@@ -16,16 +16,19 @@ public:
 	void setName(std::string name);
 	
 	static void initialize();
+	
 	static Material* getDefault();
+	static Material* getMissing();
 
 private:
 	MaterialShaderProgram* _shaderProgram = nullptr;
 	std::map<std::string, std::tuple<std::unique_ptr<Texture>, Image*>> _textures;
 	bool _loaded = false;
 	std::string _name;
-	static std::unique_ptr<Material> _default;
 	
-	Material();
+	static Material* _default;
+	static Material* _missing;
+	
 	explicit Material(std::string name, ResourceManager* resourceManager);
 	
 	friend class ResourceManager;

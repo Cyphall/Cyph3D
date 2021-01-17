@@ -25,6 +25,8 @@ public:
 	Material* getMaterial();
 	void setMaterial(Material* material);
 	
+	Material* getDrawingMaterial();
+	
 	glm::vec3 getVelocity() const;
 	void setVelocity(glm::vec3 velocity);
 	

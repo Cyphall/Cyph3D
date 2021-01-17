@@ -160,15 +160,23 @@ void UIInspector::showMeshObject(MeshObject* meshObject)
 		ImGui::EndDragDropTarget();
 	}
 	
-	Material* material = meshObject->getMaterial();
-	std::string materialName = material != nullptr ? material->getName() : "None";
+	Material* material = meshObject->getDrawingMaterial();
+	std::string materialName = material->getName();
 	ImGui::InputText("Material", &materialName, ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::BeginDragDropTarget())
 	{
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MaterialDragDrop");
 		if (payload)
 		{
-			meshObject->setMaterial(Engine::getScene().getRM().requestMaterial(*(*static_cast<const std::string**>(payload->Data))));
+			std::string newMaterialName = *(*static_cast<const std::string**>(payload->Data));
+			if (newMaterialName == "internal/Default Material")
+			{
+				meshObject->setMaterial(Material::getDefault());
+			}
+			else
+			{
+				meshObject->setMaterial(Engine::getScene().getRM().requestMaterial(newMaterialName));
+			}
 		}
 		ImGui::EndDragDropTarget();
 	}

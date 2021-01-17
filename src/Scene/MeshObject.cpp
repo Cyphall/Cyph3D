@@ -33,7 +33,12 @@ void MeshObject::update(double deltaTime)
 
 Material* MeshObject::getMaterial()
 {
-	return _material != nullptr ? _material : Material::getDefault();
+	return _material;
+}
+
+Material* MeshObject::getDrawingMaterial()
+{
+	return _material != nullptr ? _material : Material::getMissing();
 }
 
 void MeshObject::setMaterial(Material* material)

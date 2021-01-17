@@ -7,7 +7,8 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <fmt/core.h>
 
-std::unique_ptr<Material> Material::_default;
+Material* Material::_default;
+Material* Material::_missing;
 
 Material::Material(std::string name, ResourceManager* resourceManager):
 _name(std::move(name))
@@ -49,26 +50,10 @@ _name(std::move(name))
 	}
 }
 
-Material::Material():
-_shaderProgram(Engine::getGlobalRM().requestMaterialShaderProgram("unlit")), _name("Default Material"), _loaded(true)
-{
-	TextureCreateInfo createInfo;
-	createInfo.size = glm::ivec2(1);
-	createInfo.internalFormat = GL_SRGB8;
-	createInfo.textureFiltering = NEAREST;
-	createInfo.swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ONE};
-	
-	std::unique_ptr<Texture> defaultColor = std::make_unique<Texture>(createInfo);
-	
-	uint8_t defaultData[] = {255, 0, 255};
-	defaultColor->setData(defaultData, GL_RGB, GL_UNSIGNED_BYTE);
-	
-	_textures["colorMap"] = std::make_tuple(std::move(defaultColor), nullptr);
-}
-
 void Material::initialize()
 {
-	_default = std::unique_ptr<Material>(new Material());
+	_missing = Engine::getGlobalRM().requestMaterial("internal/Missing Material");
+	_default = Engine::getGlobalRM().requestMaterial("internal/Default Material");
 }
 
 void Material::bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3& cameraPos, int objectIndex)
@@ -125,5 +110,10 @@ void Material::setName(std::string name)
 
 Material* Material::getDefault()
 {
-	return _default.get();
+	return _default;
+}
+
+Material* Material::getMissing()
+{
+	return _missing;
 }
