@@ -16,8 +16,6 @@ void ShadowMapPass::preparePipeline()
 
 void ShadowMapPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
-	glDisable(GL_CULL_FACE);
-	
 	_vao.bind();
 	
 	for (DirectionalLight* light : objects.directionalLights)
