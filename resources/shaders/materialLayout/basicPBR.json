@@ -12,7 +12,7 @@
 	"roughnessMap":
 	{
 		"type": "grayscale",
-		"default_data": [255]
+		"default_data": [128]
 	},
 	"displacementMap":
 	{
