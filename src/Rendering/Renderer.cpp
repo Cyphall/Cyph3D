@@ -66,7 +66,10 @@ void Renderer::render()
 	render(_lightingPass, camera);
 	
 	if (_debug)
+	{
 		Framebuffer::drawToDefault(*_textures["raw_render"], true);
+		return;
+	}
 	
 	render(_postProcessingPass, camera);
 	
