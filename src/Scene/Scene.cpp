@@ -292,7 +292,7 @@ nlohmann::json Scene::serializeSceneObject(Transform* transform)
 		}
 		
 		Material* material = meshObject->getMaterial();
-		if (material != nullptr)
+		if (material != Material::getDefault())
 		{
 			jsonData["material"] = material->getName();
 		}
