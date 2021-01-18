@@ -68,7 +68,7 @@ void LightingPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_shader->bind();
 	_framebuffer.bindForDrawing();
 	
-	_rawRenderTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	_rawRenderTexture.clear(GL_RGB, GL_HALF_FLOAT, nullptr);
 	
 	RenderHelper::drawScreenQuad();
 }
