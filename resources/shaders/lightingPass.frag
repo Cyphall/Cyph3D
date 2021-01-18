@@ -65,7 +65,6 @@ layout(bindless_sampler) uniform sampler2D u_materialTexture;
 layout(bindless_sampler) uniform sampler2D u_geometryNormalTexture;
 layout(bindless_sampler) uniform sampler2D u_depthTexture;
 
-uniform bool u_debug;
 uniform mat4 u_viewProjectionInv;
 uniform vec3 u_viewPos;
 
@@ -73,7 +72,6 @@ uniform vec3 u_viewPos;
 out vec4 o_color;
 
 /* ------ function declarations ------ */
-vec4 debugView();
 vec4 lighting();
 
 vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi);
@@ -105,12 +103,8 @@ void main()
 {
 	// Mandatory data
 	fragData.texCoords = v2f.texCoords;
-	
-	if (u_debug)
-	{
-		o_color = debugView();
-	}
-	else if (isLit() == 0)
+
+	if (isLit() == 0)
 	{
 		o_color = vec4(getColor(), 1);
 	}
@@ -118,54 +112,6 @@ void main()
 	{
 		o_color = lighting();
 	}
-}
-
-vec4 debugView()
-{
-	if (fragData.texCoords.x <= 1.0/3.0 && fragData.texCoords.y >= 2.0/3.0)
-	{
-		fragData.texCoords.x = (fragData.texCoords.x - 0.0/3.0) * 3;
-		fragData.texCoords.y = (fragData.texCoords.y - 2.0/3.0) * 3;
-		fragData.depth = getDepth();
-		return fragData.depth < 1 ? vec4(getPosition(), 1) : vec4(0);
-	}
-	else if (fragData.texCoords.x <= 2.0/3.0 && fragData.texCoords.y >= 2.0/3.0)
-	{
-		fragData.texCoords.x = (fragData.texCoords.x - 1.0/3.0) * 3;
-		fragData.texCoords.y = (fragData.texCoords.y - 2.0/3.0) * 3;
-		fragData.depth = getDepth();
-		return fragData.depth < 1 ? texture(u_normalTexture, fragData.texCoords) : vec4(0);
-	}
-	else if (fragData.texCoords.x <= 3.0/3.0 && fragData.texCoords.y >= 2.0/3.0)
-	{
-		fragData.texCoords.x = (fragData.texCoords.x - 2.0/3.0) * 3;
-		fragData.texCoords.y = (fragData.texCoords.y - 2.0/3.0) * 3;
-		fragData.depth = getDepth();
-		return fragData.depth < 1 ? texture(u_geometryNormalTexture, fragData.texCoords) : vec4(0);
-	}
-	else if (fragData.texCoords.x <= 1.0/3.0 && fragData.texCoords.y >= 1.0/3.0)
-	{
-		fragData.texCoords.x = (fragData.texCoords.x - 0.0/3.0) * 3;
-		fragData.texCoords.y = (fragData.texCoords.y - 1.0/3.0) * 3;
-		fragData.depth = getDepth();
-		return fragData.depth < 1 ? texture(u_materialTexture, fragData.texCoords) : vec4(0);
-	}
-	else if (fragData.texCoords.x <= 2.0/3.0 && fragData.texCoords.y >= 1.0/3.0)
-	{
-		fragData.texCoords.x = (fragData.texCoords.x - 1.0/3.0) * 3;
-		fragData.texCoords.y = (fragData.texCoords.y - 1.0/3.0) * 3;
-		fragData.depth = getDepth();
-		return fragData.depth < 1 ? texture(u_colorTexture, fragData.texCoords) : vec4(0);
-	}
-	else if (fragData.texCoords.x <= 3.0/3.0 && fragData.texCoords.y >= 1.0/3.0)
-	{
-		fragData.texCoords.x = (fragData.texCoords.x - 2.0/3.0) * 3;
-		fragData.texCoords.y = (fragData.texCoords.y - 1.0/3.0) * 3;
-		fragData.depth = getDepth();
-		return vec4(1 - fragData.depth, 1 - fragData.depth, 1 - fragData.depth, 1);
-	}
-	
-	return vec4(0);
 }
 
 // Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)

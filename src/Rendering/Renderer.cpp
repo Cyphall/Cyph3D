@@ -9,6 +9,7 @@ Renderer::Renderer():
 _zPrePass(_textures),
 _shadowMapPass(_textures),
 _geometryPass(_textures),
+_gBufferDebugPass(_textures),
 _skyboxPass(_textures),
 _lightingPass(_textures),
 _postProcessingPass(_textures),
@@ -60,16 +61,17 @@ void Renderer::render()
 	
 	render(_geometryPass, camera);
 	
+	if (_debug)
+	{
+		render(_gBufferDebugPass, camera);
+		Framebuffer::drawToDefault(*_textures["gbuffer_debug"], true);
+		return;
+	}
+	
 	if (scene.getSkybox() != nullptr && scene.getSkybox()->isResourceReady())
 		render(_skyboxPass, camera);
 	
 	render(_lightingPass, camera);
-	
-	if (_debug)
-	{
-		Framebuffer::drawToDefault(*_textures["raw_render"], true);
-		return;
-	}
 	
 	render(_postProcessingPass, camera);
 	

@@ -8,6 +8,7 @@
 #include "../Scene/MeshObject.h"
 #include "IPostProcessEffect.h"
 #include "Pass/GeometryPass.h"
+#include "Pass/GBufferDebugPass.h"
 #include "Pass/SkyboxPass.h"
 #include "Pass/LightingPass.h"
 #include "Pass/ShadowMapPass.h"
@@ -39,6 +40,7 @@ private:
 	ZPrePass _zPrePass;
 	ShadowMapPass _shadowMapPass;
 	GeometryPass _geometryPass;
+	GBufferDebugPass _gBufferDebugPass;
 	SkyboxPass _skyboxPass;
 	LightingPass _lightingPass;
 	PostProcessingPass _postProcessingPass;

@@ -54,8 +54,6 @@ void LightingPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	
 	glm::vec3 pos = camera.getPosition();
 	_shader->setUniform("u_viewPos", &pos);
-	bool debug = Engine::getRenderer().getDebug();
-	_shader->setUniform("u_debug", &debug);
 	glm::mat4 viewProjectionInv = glm::inverse(camera.getProjection() * camera.getView());
 	_shader->setUniform("u_viewProjectionInv", &viewProjectionInv);
 	
