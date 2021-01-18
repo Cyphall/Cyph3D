@@ -41,6 +41,7 @@ void DirectionalLight::setCastShadows(bool value)
 		{
 			.size = _shadowMapFb->getSize(),
 			.internalFormat = GL_DEPTH_COMPONENT24,
+			.textureFiltering = LINEAR,
 			.isShadowMap = true
 		};
 		_shadowMap = std::make_unique<Texture>(createInfo);

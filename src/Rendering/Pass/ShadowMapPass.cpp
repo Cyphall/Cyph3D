@@ -10,6 +10,8 @@ IRenderPass(textures)
 
 void ShadowMapPass::preparePipeline()
 {
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 }
@@ -23,8 +25,6 @@ void ShadowMapPass::render(std::unordered_map<std::string, Texture*>& textures, 
 		light->updateShadowMap(_vao);
 	}
 	
-	glEnable(GL_CULL_FACE);
-	
 	for (PointLight* light : objects.pointLights)
 	{
 		light->updateShadowMap(_vao);
@@ -35,6 +35,7 @@ void ShadowMapPass::restorePipeline()
 {
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	
 	glm::ivec2 size = Engine::getWindow().getSize();

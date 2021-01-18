@@ -3,6 +3,7 @@
 
 /* ------ consts ------ */
 const float PI = 3.14159265359;
+const float TWO_PI = PI*2;
 
 /* ------ inputs from vertex shader ------ */
 in V2F {
@@ -74,6 +75,11 @@ out vec4 o_color;
 /* ------ function declarations ------ */
 vec4 debugView();
 vec4 lighting();
+
+vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi);
+float InterleavedGradientNoise(vec2 position_screen);
+float AvgBlockersDepthToPenumbra(float z_shadowMapView, float avgBlockersDepth);
+float Penumbra(float phi, vec2 fragUV_SMV, float fragDepth_SMV, float texelSize, int lightIndex);
 
 float isInDirectionalShadow(int lightIndex);
 float isInPointShadow(int lightIndex);
@@ -215,6 +221,62 @@ vec4 lighting()
 	return vec4(finalColor, 1);
 }
 
+// Based on the code at https://www.gamedev.net/tutorials/programming/graphics/contact-hardening-soft-shadows-made-fast-r4906/
+vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
+{
+	float GoldenAngle = 2.4f;
+
+	float r = sqrt(sampleIndex + 0.5f) / sqrt(samplesCount);
+	float theta = sampleIndex * GoldenAngle + phi;
+
+	float sine = sin(theta);
+	float cosine = cos(theta);
+
+	return vec2(r * cosine, r * sine);
+}
+
+float InterleavedGradientNoise(vec2 position_screen)
+{
+	vec3 magic = vec3(0.06711056f, 0.00583715f, 52.9829189f);
+	return fract(magic.z * fract(dot(position_screen, magic.xy)));
+}
+
+float AvgBlockersDepthToPenumbra(float fragDepth_SMV, float blockersDepth_SMV)
+{
+	return 200 * (fragDepth_SMV - blockersDepth_SMV) / blockersDepth_SMV;
+}
+
+float Penumbra(float phi, vec2 fragUV_SMV, float fragDepth_SMV, float texelSize, int lightIndex)
+{
+	float avgBlockersDepth = 0.0f;
+	int blockersCount = 0;
+
+	const float samplingRadiusNormalized = 30 * texelSize;
+	const int sampleCount = 16;
+
+	for(int i = 0; i < sampleCount; i ++)
+	{
+		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
+		float sampleDepth = texture(directionalLights[lightIndex].shadowMap, fragUV_SMV + uvOffset).r;
+
+		if(sampleDepth < fragDepth_SMV)
+		{
+			avgBlockersDepth += sampleDepth;
+			blockersCount++;
+		}
+	}
+
+	if(blockersCount > 0)
+	{
+		avgBlockersDepth /= float(blockersCount);
+		return AvgBlockersDepthToPenumbra(fragDepth_SMV, avgBlockersDepth);
+	}
+	else
+	{
+		return 0.0f;
+	}
+}
+
 // Based on the code at https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping by Joey de Vries (https://twitter.com/JoeyDeVriez)
 float isInDirectionalShadow(int lightIndex)
 {
@@ -224,21 +286,27 @@ float isInDirectionalShadow(int lightIndex)
 	
 	if (projCoords.z > 1) return 0.0;
 
-	float currentDepth = projCoords.z;
+	vec2  fragUV_SMV    = projCoords.xy;
+	float fragDepth_SMV = projCoords.z;
 	
-	float bias = max(0.01 * (1.0 - dot(fragData.geometryNormal, directionalLights[lightIndex].fragToLightDirection)), 0.005);
+	float texelSize = 1.0 / textureSize(directionalLights[lightIndex].shadowMap, 0).x;
 
+	float phi = InterleavedGradientNoise(fragData.texCoords * vec2(1600, 900)) * TWO_PI;
+	float samplingRadiusNormalized = Penumbra(phi, fragUV_SMV, fragDepth_SMV, texelSize, lightIndex) * texelSize;
+
+	const int sampleCount = 16;
 	float shadow = 0.0;
-	vec2 texelSize = 1.0 / textureSize(directionalLights[lightIndex].shadowMap, 0);
-	for(int x = -1; x <= 1; x++)
+	for (int i = 0; i < sampleCount; i++)
 	{
-		for(int y = -1; y <= 1; y++)
+		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
+		float sampleDepth = texture(directionalLights[lightIndex].shadowMap, fragUV_SMV + uvOffset).r;
+
+		if (fragDepth_SMV > sampleDepth)
 		{
-			float pcfDepth = texture(directionalLights[lightIndex].shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+			shadow++;
 		}
 	}
-	shadow /= 9.0;
+	shadow /= sampleCount;
 	
 	return shadow;
 }
