@@ -7,7 +7,7 @@
 MaterialShaderProgram::MaterialShaderProgram(const std::string& layoutName, ResourceManager* resourceManager)
 {
 	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/gbuffer/renderToGbuffer");
+	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
 	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back(fmt::format("materialLayout/{}", layoutName));
 	
 	_shaderProgram = resourceManager->requestShaderProgram(createInfo);

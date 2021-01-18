@@ -605,8 +605,8 @@ ShaderProgram* Framebuffer::_drawToDefaultShaderProgram = nullptr;
 void Framebuffer::initDrawToDefault()
 {
 	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/framebuffer/drawToDefault");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/framebuffer/drawToDefault");
+	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/framebuffer/draw to default");
+	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/framebuffer/draw to default");
 	
 	_drawToDefaultShaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }

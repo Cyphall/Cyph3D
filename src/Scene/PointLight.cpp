@@ -9,9 +9,9 @@ PointLight::PointLight(Transform* parent, const std::string& name, glm::vec3 pos
 		Light(parent, name, position, rotation, scale, srgbColor, intensity)
 {
 	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_GEOMETRY_SHADER].emplace_back("internal/shadowMapping/pointLight");
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/shadowMapping/pointLight");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/shadowMapping/pointLight");
+	createInfo.shadersFiles[GL_GEOMETRY_SHADER].emplace_back("internal/shadow mapping/point light");
+	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/shadow mapping/point light");
+	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/shadow mapping/point light");
 	
 	_shadowMapProgram = Engine::getScene().getRM().requestShaderProgram(createInfo);
 	
@@ -22,9 +22,9 @@ PointLight::PointLight(Transform* parent, const std::string& name, glm::vec3 pos
 		Light(parent, name, position, rotation, scale, srgbColor, intensity)
 {
 	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_GEOMETRY_SHADER].emplace_back("internal/shadowMapping/pointLight");
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/shadowMapping/pointLight");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/shadowMapping/pointLight");
+	createInfo.shadersFiles[GL_GEOMETRY_SHADER].emplace_back("internal/shadow mapping/point light");
+	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/shadow mapping/point light");
+	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/shadow mapping/point light");
 	
 	_shadowMapProgram = Engine::getScene().getRM().requestShaderProgram(createInfo);
 	

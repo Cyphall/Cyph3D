@@ -16,8 +16,8 @@ _outputTexture(TextureCreateInfo
 	_framebuffer.addToDrawBuffers(_outputTexture, 0);
 	
 	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("postProcessing/toneMapping");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("postProcessing/toneMapping");
+	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/post-processing/tone mapping");
+	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/tone mapping");
 	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
 

@@ -15,8 +15,8 @@ _rawRenderTexture(TextureCreateInfo
  })
 {
 	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
-	lightingShaderProgramCreateInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("lightingPass");
-	lightingShaderProgramCreateInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("lightingPass");
+	lightingShaderProgramCreateInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/lighting/lighting");
+	lightingShaderProgramCreateInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/lighting/lighting");
 	
 	_shader = Engine::getGlobalRM().requestShaderProgram(lightingShaderProgramCreateInfo);
 	

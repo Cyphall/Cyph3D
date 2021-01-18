@@ -14,8 +14,8 @@ _debugTexture(TextureCreateInfo
 })
 {
 	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/gbuffer/debug");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/gbuffer/debug");
+	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/g-buffer/debug");
+	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/g-buffer/debug");
 	
 	_shader = Engine::getGlobalRM().requestShaderProgram(createInfo);
 	
