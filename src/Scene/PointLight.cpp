@@ -44,7 +44,7 @@ void PointLight::setCastShadows(bool value)
 		CubemapCreateInfo createInfo
 		{
 			.size = _shadowMapFb->getSize(),
-			.internalFormat = GL_DEPTH_COMPONENT24
+			.internalFormat = GL_DEPTH_COMPONENT32
 		};
 		_shadowMap = std::make_unique<Cubemap>(createInfo);
 		

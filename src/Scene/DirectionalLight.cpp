@@ -40,7 +40,7 @@ void DirectionalLight::setCastShadows(bool value)
 		TextureCreateInfo createInfo
 		{
 			.size = _shadowMapFb->getSize(),
-			.internalFormat = GL_DEPTH_COMPONENT24,
+			.internalFormat = GL_DEPTH_COMPONENT32,
 			.textureFiltering = LINEAR,
 			.isShadowMap = true
 		};
