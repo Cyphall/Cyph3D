@@ -323,8 +323,7 @@ float isInPointShadow(int lightIndex)
 	// now get current linear depth as the length between the fragment and light position
 	float currentDepth = length(fragToLight);
 	// now test for shadows
-	float bias = max(0.1 * (1.0 - dot(fragData.geometryNormal, normalize(fragToLight))), 0.005);
-	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 
 	return shadow;
 }
