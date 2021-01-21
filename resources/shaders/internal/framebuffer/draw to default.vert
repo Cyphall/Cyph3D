@@ -1,6 +1,6 @@
 #version 460 core
 
-layout(location = 0) in vec2 a_vertex;
+layout(location = 0) in vec2 a_position;
 layout(location = 1) in vec2 a_uv;
 
 out V2F
@@ -10,7 +10,7 @@ out V2F
 
 void main()
 {
-	gl_Position = vec4(a_vertex, 0, 1);
+	gl_Position = vec4(a_position, 0, 1);
 
 	v2f.texCoords = a_uv;
 }
