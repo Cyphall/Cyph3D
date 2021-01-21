@@ -23,7 +23,11 @@ void UIMisc::show(double deltaTime)
 	ImGui::SetNextWindowSize(glm::vec2(400, 300));
 	ImGui::SetNextWindowPos(glm::vec2(Engine::getWindow().getSize().x - 400, 0));
 	
-	if (!ImGui::Begin("Misc", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) return;
+	if (!ImGui::Begin("Misc", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+	{
+		ImGui::End();
+		return;
+	}
 	
 	int fps = 1 / deltaTime;
 	ImGui::Text("FPS: %d", fps);

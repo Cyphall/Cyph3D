@@ -24,7 +24,11 @@ void UIResourceExplorer::show()
 	ImGui::SetNextWindowSize(glm::vec2(500, 300));
 	ImGui::SetNextWindowPos(glm::vec2(400, Engine::getWindow().getSize().y - 300));
 	
-	if (!ImGui::Begin("Resources", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) return;
+	if (!ImGui::Begin("Resources", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+	{
+		ImGui::End();
+		return;
+	}
 	
 	ImGui::BeginChild("type", glm::vec2(100, 0));
 	for (auto& [resourceType, resourceTypeName] : magic_enum::enum_entries<ResourceType>())

@@ -41,7 +41,11 @@ void UIInspector::show()
 	ImGui::SetNextWindowSize(glm::vec2(400, Engine::getWindow().getSize().y - Engine::getWindow().getSize().y / 2));
 	ImGui::SetNextWindowPos(glm::vec2(0, Engine::getWindow().getSize().y / 2));
 	
-	if (!ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) return;
+	if (!ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+	{
+		ImGui::End();
+		return;
+	}
 	
 	if (_selected.has_value())
 	{
