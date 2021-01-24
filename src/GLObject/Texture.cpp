@@ -65,11 +65,6 @@ void Texture::setData(const void* data, GLenum format, GLenum type)
 		glGenerateTextureMipmap(_handle);
 }
 
-void Texture::bind(GLuint unit)
-{
-	glBindTextureUnit(unit, _handle);
-}
-
 glm::ivec2 Texture::getSize() const
 {
 	return _size;
