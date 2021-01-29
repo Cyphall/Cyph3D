@@ -29,7 +29,6 @@ private:
 	static std::mutex _mtx;
 	static void* _consoleHandle;
 	static unsigned short _defaultConsoleAttributes;
-	static std::chrono::time_point<std::chrono::high_resolution_clock> _programStartTime;
 	static void Print(const char* message, const std::string& context, const std::string& prefix, unsigned short color);
 	
 	static void SetColor(unsigned short color);

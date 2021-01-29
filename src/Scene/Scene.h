@@ -12,7 +12,7 @@ public:
 	Scene(Camera camera = Camera(), std::string name = "Untitled Scene");
 	~Scene();
 	Transform* getRoot();
-	void update(double deltaTime);
+	void update();
 	
 	void add(std::unique_ptr<SceneObject> object);
 	void remove(SceneObject* object);

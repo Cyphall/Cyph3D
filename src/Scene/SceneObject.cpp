@@ -29,7 +29,7 @@ void SceneObject::setName(std::string name)
 	_name = std::move(name);
 }
 
-void SceneObject::update(double deltaTime)
+void SceneObject::update()
 {
 
 }

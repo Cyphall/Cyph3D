@@ -31,7 +31,7 @@ void UIHelper::render()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void UIHelper::update(double deltaTime)
+void UIHelper::update()
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -39,7 +39,7 @@ void UIHelper::update(double deltaTime)
 	
 	if (!Engine::getWindow().isGuiOpen()) return;
 	
-	UIMisc::show(deltaTime);
+	UIMisc::show();
 	UIHierarchy::show();
 	UIInspector::show();
 	UIResourceExplorer::show();

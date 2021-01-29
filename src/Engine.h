@@ -6,6 +6,7 @@ class Scene;
 class Renderer;
 
 #include <memory>
+#include "Timer.h"
 
 class Engine
 {
@@ -19,6 +20,7 @@ public:
 	static Scene& getScene();
 	static void setScene(std::unique_ptr<Scene>&& scene);
 	static Renderer& getRenderer();
+	static Timer& getTimer();
 	
 private:
 	static std::unique_ptr<Window> _window;
@@ -26,5 +28,5 @@ private:
 	static std::unique_ptr<Scene> _scene;
 	static std::unique_ptr<Renderer> _renderer;
 	
-	static double _previousTime;
+	static Timer _timer;
 };

@@ -17,7 +17,7 @@ public:
 			glm::vec3 position, glm::quat rotation, glm::vec3 scale,
 			glm::vec3 velocity, glm::vec3 angularVelicoty);
 	
-	void update(double deltaTime) override;
+	void update() override;
 	
 	Model* getModel();
 	void setModel(Model* model);

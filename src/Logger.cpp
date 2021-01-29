@@ -1,4 +1,5 @@
 #include "Logger.h"
+#include "Engine.h"
 #include <windows.h>
 #include <chrono>
 #include <iostream>
@@ -6,16 +7,14 @@
 
 Logger::LogLevel Logger::_logLevel = LogLevel::Full;
 std::mutex Logger::_mtx;
-std::chrono::time_point<std::chrono::high_resolution_clock> Logger::_programStartTime = std::chrono::high_resolution_clock::now();
 void* Logger::_consoleHandle;
 unsigned short Logger::_defaultConsoleAttributes;
 
 void Logger::Print(const char* message, const std::string& context, const std::string& prefix, unsigned short color)
 {
 	_mtx.lock();
-	auto diff = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - _programStartTime);
 	
-	std::cout << std::fixed << std::setprecision(4) << diff.count() << ' ';
+	std::cout << std::fixed << std::setprecision(4) << Engine::getTimer().time() << ' ';
 	
 	if (!context.empty())
 	{

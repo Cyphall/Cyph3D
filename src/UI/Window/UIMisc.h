@@ -7,7 +7,7 @@ class UIMisc
 {
 public:
 	static void init();
-	static void show(double deltaTime);
+	static void show();
 	static void rescanFiles();
 
 private:

@@ -18,7 +18,7 @@ void UIMisc::init()
 	rescanFiles();
 }
 
-void UIMisc::show(double deltaTime)
+void UIMisc::show()
 {
 	ImGui::SetNextWindowSize(glm::vec2(400, 300));
 	ImGui::SetNextWindowPos(glm::vec2(Engine::getWindow().getSize().x - 400, 0));
@@ -29,7 +29,7 @@ void UIMisc::show(double deltaTime)
 		return;
 	}
 	
-	int fps = 1 / deltaTime;
+	int fps = 1 / Engine::getTimer().deltaTime();
 	ImGui::Text("FPS: %d", fps);
 	
 	bool gbufferDebug = Engine::getRenderer().getDebug();

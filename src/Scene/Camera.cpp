@@ -88,7 +88,7 @@ _position(position), _sphericalCoords(sphericalCoords), _previousMousePos(Engine
 	setFov(100);
 }
 
-void Camera::update(double deltaTime)
+void Camera::update()
 {
 	if (Engine::getWindow().isGuiOpen())
 	{
@@ -96,7 +96,7 @@ void Camera::update(double deltaTime)
 		return;
 	}
 	
-	float ratio = (float)deltaTime * _speed;
+	float ratio = (float)Engine::getTimer().deltaTime() * _speed;
 	
 	if (Engine::getWindow().getKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 	{

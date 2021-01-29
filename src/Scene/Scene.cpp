@@ -22,12 +22,12 @@ Transform* Scene::getRoot()
 	return _root.get();
 }
 
-void Scene::update(double deltaTime)
+void Scene::update()
 {
-	_camera.update(deltaTime);
+	_camera.update();
 	for (std::unique_ptr<SceneObject>& object : _objects)
 	{
-		object->update(deltaTime);
+		object->update();
 	}
 }
 

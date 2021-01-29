@@ -7,7 +7,7 @@ class Camera
 public:
 	Camera(glm::vec3 position = glm::vec3(0), glm::vec2 sphericalCoords = glm::vec2(0));
 	
-	void update(double deltaTime);
+	void update();
 	
 	glm::vec3 getOrientation();
 	

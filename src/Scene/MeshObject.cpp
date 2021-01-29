@@ -1,4 +1,5 @@
 #include "MeshObject.h"
+#include "../Engine.h"
 
 MeshObject::MeshObject(Transform* parent, Material* material, Model* model, const std::string& name,
 					   glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
@@ -18,8 +19,10 @@ MeshObject::MeshObject(Transform* parent, Material* material, Model* model, cons
 
 }
 
-void MeshObject::update(double deltaTime)
+void MeshObject::update()
 {
+	double deltaTime = Engine::getTimer().deltaTime();
+	
 	_transform.setPosition(_transform.getPosition() + _velocity * (float)deltaTime);
 	
 	glm::vec3 rotationOffset = _angularVelicoty * (float)deltaTime;

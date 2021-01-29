@@ -7,7 +7,7 @@ class SceneObject
 {
 public:
 	SceneObject() = delete;
-	virtual void update(double deltaTime);
+	virtual void update();
 	
 	Transform& getTransform();
 	const std::string& getName() const;

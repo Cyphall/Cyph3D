@@ -7,7 +7,7 @@ class UIHelper
 public:
 	static void init();
 	static void render();
-	static void update(double deltaTime);
+	static void update();
 	static void shutdown();
 
 private:

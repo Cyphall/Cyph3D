@@ -21,7 +21,7 @@ std::unique_ptr<ResourceManager> Engine::_globalResourceManager;
 std::unique_ptr<Scene> Engine::_scene;
 std::unique_ptr<Renderer> Engine::_renderer;
 
-double Engine::_previousTime = 0;
+Timer Engine::_timer;
 
 void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
 {
@@ -84,19 +84,18 @@ void Engine::run()
 {
 	while (!_window->shouldClose())
 	{
+		_timer.newFrame();
+		
 		glfwPollEvents();
 		
 		_globalResourceManager->update();
 		_scene->getRM().update();
 		
-		double currentTime = glfwGetTime();
-		double deltaTime = currentTime - _previousTime;
-		_scene->update(deltaTime);
-		_previousTime = currentTime;
+		_scene->update();
 		
 		_renderer->render();
 		
-		UIHelper::update(deltaTime);
+		UIHelper::update();
 		UIHelper::render();
 		
 		_window->swapBuffers();
@@ -132,4 +131,9 @@ void Engine::setScene(std::unique_ptr<Scene>&& scene)
 Renderer& Engine::getRenderer()
 {
 	return *_renderer;
+}
+
+Timer& Engine::getTimer()
+{
+	return _timer;
 }
