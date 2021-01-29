@@ -84,8 +84,6 @@ void DirectionalLight::updateShadowMap(VertexArray& vao)
 	
 	glViewport(0, 0, _resolution, _resolution);
 	
-	glm::vec3 worldPos = _transform.getWorldPosition();
-	
 	_viewProjection = _projection *
 	                  glm::lookAt(
 	                  		Engine::getScene().getCamera().position,
