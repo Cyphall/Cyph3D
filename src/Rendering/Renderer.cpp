@@ -100,6 +100,9 @@ MeshObject* Renderer::getClickedMeshObject(glm::dvec2 clickPos)
 {
 	int objectIndex;
 	_objectIndexFramebuffer.bindForReading();
+	// shift origin from bottom left to top left
+	clickPos.y = _objectIndexFramebuffer.getSize().y - clickPos.y;
+	
 	glReadPixels(clickPos.x, clickPos.y, 1, 1, GL_RED_INTEGER, GL_INT, &objectIndex);
 	
 	if (objectIndex != -1)

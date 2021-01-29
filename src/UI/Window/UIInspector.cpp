@@ -73,8 +73,6 @@ void UIInspector::show()
 		_currentlyClicking = false;
 		if (glm::distance(_clickPos, Engine::getWindow().getCursorPos()) < 5)
 		{
-			_clickPos.y = Engine::getWindow().getSize().y - _clickPos.y;
-			
 			MeshObject* mesh = Engine::getRenderer().getClickedMeshObject(_clickPos);
 			setSelected(mesh ? &mesh->getTransform() : std::any());
 		}
