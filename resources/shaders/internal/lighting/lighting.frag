@@ -81,7 +81,8 @@ float Penumbra(float phi, vec2 fragUV_SMV, float fragDepth_SMV, float texelSize,
 
 float isInDirectionalShadow(int lightIndex);
 float isInPointShadow(int lightIndex);
-vec3 calculateLighting(vec3 radiance, vec3 L, vec3 H);
+vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 halfwayDir);
+vec3 calculateBRDF(vec3 lightDir, vec3 halfwayDir);
 
 vec3 getPosition();
 vec3 getColor();
@@ -274,24 +275,39 @@ float isInPointShadow(int lightIndex)
 	return shadow;
 }
 
-vec3 calculateLighting(vec3 radiance, vec3 L, vec3 H)
+vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 halfwayDir)
 {
-	// cook-torrance brdf
-	float NDF = DistributionGGX(fragData.normal, H, fragData.roughness);
-	float G   = GeometrySmith(fragData.normal, fragData.viewDir, L, fragData.roughness);
-	vec3 F    = fresnelSchlick(max(dot(H, fragData.viewDir), 0.0), fragData.F0);
+    vec3 brdf = calculateBRDF(lightDir, halfwayDir);
 
-	vec3 kS = F;
-	vec3 kD = vec3(1.0) - kS;
-	kD *= 1.0 - fragData.metalness;
+	return brdf * radiance * max(dot(fragData.normal, lightDir), 0.0);
+}
 
-	vec3  numerator    = NDF * G * F;
-	float denominator = 4.0 * max(dot(fragData.normal, fragData.viewDir), 0.0) * max(dot(fragData.normal, L), 0.0);
-	vec3  specular     = numerator / max(denominator, 0.001);
+// Cook-Torrance
+vec3 calculateBRDF(vec3 lightDir, vec3 halfwayDir)
+{
+    // ---------- Specular part ----------
 
-	// add to outgoing radiance Lo
-	float NdotL = max(dot(fragData.normal, L), 0.0);
-	return (kD * fragData.color / PI + specular) * radiance * NdotL;
+    float D = DistributionGGX(fragData.normal, halfwayDir, fragData.roughness);
+    vec3  F = fresnelSchlick(max(dot(halfwayDir, fragData.viewDir), 0.0), fragData.F0);
+    float G = GeometrySmith(fragData.normal, fragData.viewDir, lightDir, fragData.roughness);
+
+    vec3  numerator   = D * F * G;
+    float denominator = 4.0 * max(dot(fragData.normal, fragData.viewDir), 0.0) * max(dot(fragData.normal, lightDir), 0.0);
+    vec3  specular    = numerator / max(denominator, 0.001);
+
+    vec3 specularWeight = F;
+
+    // ---------- Diffuse part ----------
+
+    vec3 diffuse = fragData.color / PI;
+
+    vec3 diffuseWeight = vec3(1.0) - specularWeight;
+    diffuseWeight *= 1.0 - fragData.metalness; // Metals have no diffuse
+
+    // ---------- Final result ----------
+
+    // specularWeight already integrated to specular
+    return (diffuseWeight * diffuse) + (specular);
 }
 
 vec3 getPosition()
