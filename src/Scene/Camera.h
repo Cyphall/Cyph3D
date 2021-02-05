@@ -9,33 +9,24 @@ public:
 	
 	void update();
 	
-	glm::vec3 getOrientation();
-	
-	glm::vec3 getSideOrientation();
-	
 	glm::mat4 getView();
 	
 	glm::mat4 getProjection();
 	
 	glm::vec3 getPosition() const;
 	void setPosition(glm::vec3 position);
-	__declspec(property(get = getPosition, put = setPosition)) glm::vec3 position;
 	
 	glm::vec2 getSphericalCoords() const;
 	void setSphericalCoords(glm::vec2 sphericalCoords);
-	__declspec(property(get = getSphericalCoords, put = setSphericalCoords)) glm::vec2 sphericalCoords;
 	
 	float getSpeed() const;
 	void setSpeed(float speed);
-	__declspec(property(get = getSpeed, put = setSpeed)) float speed;
 	
 	float getExposure() const;
 	void setExposure(float exposure);
-	__declspec(property(get = getExposure, put = setExposure)) float exposure;
 	
 	float getFov() const;
 	void setFov(float fov);
-	__declspec(property(get = getFov, put = setFov)) float fov;
 
 private:
 	bool _orientationChanged = true;
@@ -59,6 +50,9 @@ private:
 	float _speed = 2;
 	float _exposure = 1;
 	float _fov;
+	
+	glm::vec3 getOrientation();
+	glm::vec3 getSideOrientation();
 	
 	void recalculateOrientation();
 	void recalculateView();

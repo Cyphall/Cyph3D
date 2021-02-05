@@ -24,7 +24,7 @@ _outputTexture(TextureCreateInfo
 Texture* ToneMappingPostProcess::render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
 {
 	_shaderProgram->setUniform("u_colorTexture", currentRenderTexture);
-	float exposure = Engine::getScene().getCamera().exposure;
+	float exposure = Engine::getScene().getCamera().getExposure();
 	_shaderProgram->setUniform("u_exposure", &exposure);
 	
 	_framebuffer.bindForDrawing();

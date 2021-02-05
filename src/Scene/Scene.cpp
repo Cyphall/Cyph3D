@@ -101,7 +101,7 @@ void Scene::load(const std::string& name)
 	Camera camera(glm::vec3(cameraPosArray[0], cameraPosArray[1], cameraPosArray[2]),
 			glm::vec2(cameraSphCoordsArray[0], cameraSphCoordsArray[1]));
 	
-	camera.exposure = jsonRoot["camera"]["exposure"];
+	camera.setExposure(jsonRoot["camera"]["exposure"]);
 	
 	Engine::setScene(std::make_unique<Scene>(camera, name));
 	Scene& scene = Engine::getScene();
@@ -229,11 +229,11 @@ void Scene::save()
 	
 	
 	nlohmann::json jsonCamera;
-	glm::vec3 cameraPosition = _camera.position;
+	glm::vec3 cameraPosition = _camera.getPosition();
 	jsonCamera["position"] = {cameraPosition.x, cameraPosition.y, cameraPosition.z};
-	glm::vec2 cameraRotation = _camera.sphericalCoords;
+	glm::vec2 cameraRotation = _camera.getSphericalCoords();
 	jsonCamera["spherical_coords"] = {cameraRotation.x, cameraRotation.y};
-	jsonCamera["exposure"] = _camera.exposure;
+	jsonCamera["exposure"] = _camera.getExposure();
 	
 	jsonRoot["camera"] = jsonCamera;
 	

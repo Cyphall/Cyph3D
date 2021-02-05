@@ -78,7 +78,7 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_gbuffer.bindForDrawing();
 	_vao.bind();
 	
-	glm::vec3 pos = camera.position;
+	glm::vec3 pos = camera.getPosition();
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
 	for (int i = 0; i < objects.meshObjects.size(); i++)

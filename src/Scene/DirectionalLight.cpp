@@ -86,8 +86,8 @@ void DirectionalLight::updateShadowMap(VertexArray& vao)
 	
 	_viewProjection = _projection *
 	                  glm::lookAt(
-	                  		Engine::getScene().getCamera().position,
-		                    Engine::getScene().getCamera().position + getLightDirection(),
+	                  		Engine::getScene().getCamera().getPosition(),
+		                    Engine::getScene().getCamera().getPosition() + getLightDirection(),
 	                  		glm::vec3(0, 1, 0));
 	
 	_shadowMapFb->bindForDrawing();

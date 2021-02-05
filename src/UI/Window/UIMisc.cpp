@@ -49,16 +49,16 @@ void UIMisc::show()
 		UIInspector::setShowRawQuaternion(showRawQuaternion);
 	}
 	
-	float cameraSpeed = Engine::getScene().getCamera().speed;
+	float cameraSpeed = Engine::getScene().getCamera().getSpeed();
 	if (ImGui::SliderFloat("Camera speed", &cameraSpeed, 0, 10))
 	{
-		Engine::getScene().getCamera().speed = cameraSpeed;
+		Engine::getScene().getCamera().setSpeed(cameraSpeed);
 	}
 	
-	float exposure = Engine::getScene().getCamera().exposure;
+	float exposure = Engine::getScene().getCamera().getExposure();
 	if (ImGui::SliderFloat("Exposure", &exposure, 0, 10))
 	{
-		Engine::getScene().getCamera().exposure = exposure;
+		Engine::getScene().getCamera().setExposure(exposure);
 	}
 	
 	ImGui::Separator();

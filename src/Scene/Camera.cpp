@@ -109,25 +109,25 @@ void Camera::update()
 	
 	if (Engine::getWindow().getKey(GLFW_KEY_W) == GLFW_PRESS)
 	{
-		position += getOrientation() * ratio;
+		setPosition(getPosition() + getOrientation() * ratio);
 	}
 	if (Engine::getWindow().getKey(GLFW_KEY_S) == GLFW_PRESS)
 	{
-		position -= getOrientation() * ratio;
+		setPosition(getPosition() - getOrientation() * ratio);
 	}
 	if (Engine::getWindow().getKey(GLFW_KEY_A) == GLFW_PRESS)
 	{
-		position += getSideOrientation() * ratio;
+		setPosition(getPosition() + getSideOrientation() * ratio);
 	}
 	if (Engine::getWindow().getKey(GLFW_KEY_D) == GLFW_PRESS)
 	{
-		position -= getSideOrientation() * ratio;
+		setPosition(getPosition() - getSideOrientation() * ratio);
 	}
 	
 	glm::vec2 currentMousePos = Engine::getWindow().getCursorPos();
 	
 	glm::vec2 mouseOffset = currentMousePos - _previousMousePos;
-	sphericalCoords -= mouseOffset / 12.0f;
+	setSphericalCoords(getSphericalCoords() - mouseOffset / 12.0f);
 	
 	_previousMousePos = currentMousePos;
 }
