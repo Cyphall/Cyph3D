@@ -38,9 +38,6 @@ _size(settings.size), _useMipmaps(settings.useMipmaps)
 	glTextureParameteriv(_handle, GL_TEXTURE_SWIZZLE_RGBA, settings.swizzle.data());
 	
 	glTextureStorage2D(_handle, _useMipmaps ? calculateMipmapCount(_size) : 1, settings.internalFormat, _size.x, _size.y);
-	
-	_bindlessHandle = glGetTextureHandleARB(_handle);
-	glMakeTextureHandleResidentARB(_bindlessHandle);
 }
 
 Texture::~Texture()
@@ -55,7 +52,22 @@ int Texture::calculateMipmapCount(const glm::ivec2& size)
 
 GLuint64 Texture::getBindlessHandle() const
 {
-	return _bindlessHandle;
+	GLuint64 bindlessHandle = glGetTextureHandleARB(_handle);
+	if (!glIsTextureHandleResidentARB(bindlessHandle))
+	{
+		glMakeTextureHandleResidentARB(bindlessHandle);
+	}
+	return bindlessHandle;
+}
+
+GLuint64 Texture::getBindlessHandle(const Sampler* sampler) const
+{
+	GLuint64 bindlessHandle = glGetTextureSamplerHandleARB(_handle, sampler->getHandle());
+	if (!glIsTextureHandleResidentARB(bindlessHandle))
+	{
+		glMakeTextureHandleResidentARB(bindlessHandle);
+	}
+	return bindlessHandle;
 }
 
 void Texture::setData(const void* data, GLenum format, GLenum type)
