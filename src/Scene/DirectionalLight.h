@@ -26,12 +26,13 @@ public:
 	
 	void updateShadowMap(VertexArray& vao);
 	
-	void setCastShadows(bool value);
 	bool getCastShadows() const;
+	void setCastShadows(bool value);
+	
 	LightData getDataStruct();
 	
-	void setResolution(int value);
 	int getResolution() const;
+	void setResolution(int value);
 
 private:
 	std::unique_ptr<Texture> _shadowMap;
