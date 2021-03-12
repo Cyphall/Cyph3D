@@ -263,11 +263,11 @@ nlohmann::json Scene::serializeSceneObject(Transform* transform)
 {
 	nlohmann::json jsonObject;
 	
-	glm::vec3 position = transform->getPosition();
+	glm::vec3 position = transform->getLocalPosition();
 	jsonObject["position"] = {position.x, position.y, position.z};
-	glm::quat rotation = transform->getRotation();
+	glm::quat rotation = transform->getLocalRotation();
 	jsonObject["rotation"] = {rotation.w, rotation.x, rotation.y, rotation.z};
-	glm::vec3 scale = transform->getScale();
+	glm::vec3 scale = transform->getLocalScale();
 	jsonObject["scale"] = {scale.x, scale.y, scale.z};
 	
 	jsonObject["name"] = transform->getOwner()->getName();

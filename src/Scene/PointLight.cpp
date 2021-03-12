@@ -120,7 +120,7 @@ void PointLight::updateShadowMap(VertexArray& vao)
 		vao.bindBufferToSlot(vbo, 0);
 		vao.bindIndexBuffer(ibo);
 		
-		_shadowMapProgram->setUniform("u_model", &meshObject->getTransform().getWorldMatrix());
+		_shadowMapProgram->setUniform("u_model", &meshObject->getTransform().getLocalToWorldMatrix());
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

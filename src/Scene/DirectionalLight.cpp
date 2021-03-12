@@ -75,7 +75,7 @@ DirectionalLight::LightData DirectionalLight::getDataStruct()
 
 glm::vec3 DirectionalLight::getLightDirection()
 {
-	return glm::vec3(glm::mat4(glm::mat3(_transform.getWorldMatrix())) * glm::vec4(0, -1, 0, 1));
+	return -_transform.getUp();
 }
 
 void DirectionalLight::updateShadowMap(VertexArray& vao)
@@ -111,7 +111,7 @@ void DirectionalLight::updateShadowMap(VertexArray& vao)
 		vao.bindBufferToSlot(vbo, 0);
 		vao.bindIndexBuffer(ibo);
 		
-		glm::mat4 mvp = _viewProjection * meshObject->getTransform().getWorldMatrix();
+		glm::mat4 mvp = _viewProjection * meshObject->getTransform().getLocalToWorldMatrix();
 		
 		_shadowMapProgram->setUniform("u_mvp", &mvp);
 		

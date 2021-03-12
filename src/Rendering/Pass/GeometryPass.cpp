@@ -94,7 +94,7 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		meshObject->getDrawingMaterial()->bind(meshObject->getTransform().getWorldMatrix(), vp, pos, i);
+		meshObject->getDrawingMaterial()->bind(meshObject->getTransform().getLocalToWorldMatrix(), vp, pos, i);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

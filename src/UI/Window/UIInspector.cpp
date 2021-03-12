@@ -89,18 +89,18 @@ void UIInspector::showSceneObject(SceneObject* selected)
 	
 	ImGui::Text("Transform");
 	
-	glm::vec3 imGuiPosition = selected->getTransform().getPosition();
+	glm::vec3 imGuiPosition = selected->getTransform().getLocalPosition();
 	if (ImGui::DragFloat3("Position", glm::value_ptr(imGuiPosition), 0.01f))
 	{
-		selected->getTransform().setPosition(imGuiPosition);
+		selected->getTransform().setLocalPosition(imGuiPosition);
 	}
 	
 	if (_showRawQuaternion)
 	{
-		glm::quat imGuiRotation = selected->getTransform().getRotation();
+		glm::quat imGuiRotation = selected->getTransform().getLocalRotation();
 		if (ImGui::DragFloat4("Quaternion", glm::value_ptr(imGuiRotation), 0.01f))
 		{
-			selected->getTransform().setRotation(imGuiRotation);
+			selected->getTransform().setLocalRotation(imGuiRotation);
 		}
 	}
 	else
@@ -112,10 +112,10 @@ void UIInspector::showSceneObject(SceneObject* selected)
 		}
 	}
 	
-	glm::vec3 imGuiScale = selected->getTransform().getScale();
+	glm::vec3 imGuiScale = selected->getTransform().getLocalScale();
 	if (ImGui::DragFloat3("Scale", glm::value_ptr(imGuiScale), 0.01f))
 	{
-		selected->getTransform().setScale(imGuiScale);
+		selected->getTransform().setLocalScale(imGuiScale);
 	}
 	
 	ImGui::Separator();

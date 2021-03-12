@@ -23,15 +23,17 @@ void MeshObject::update()
 {
 	double deltaTime = Engine::getTimer().deltaTime();
 	
-	_transform.setPosition(_transform.getPosition() + _velocity * (float)deltaTime);
+	glm::vec3 velocity = _transform.localToParentDirection(_velocity);
+	
+	_transform.setLocalPosition(_transform.getLocalPosition() + velocity * (float) deltaTime);
 	
 	glm::vec3 rotationOffset = _angularVelicoty * (float)deltaTime;
 	
-	glm::quat rotation = _transform.getRotation();
+	glm::quat rotation = _transform.getLocalRotation();
 	rotation = glm::rotate(rotation, glm::radians(rotationOffset.x), glm::vec3(1, 0, 0));
 	rotation = glm::rotate(rotation, glm::radians(rotationOffset.y), glm::vec3(0, 1, 0));
 	rotation = glm::rotate(rotation, glm::radians(rotationOffset.z), glm::vec3(0, 0, 1));
-	_transform.setRotation(rotation);
+	_transform.setLocalRotation(rotation);
 }
 
 Material* MeshObject::getMaterial()

@@ -55,7 +55,7 @@ void ZPrePass::render(std::unordered_map<std::string, Texture*>& textures, Scene
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		glm::mat4 mvp = vp * meshObject->getTransform().getWorldMatrix();
+		glm::mat4 mvp = vp * meshObject->getTransform().getLocalToWorldMatrix();
 		
 		_shader->setUniform("u_mvp", &mvp);
 		
