@@ -1,13 +1,14 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : enable
 
-in V2F
+in G2F
 {
     vec3 fragPos;
     vec2 texCoords;
     vec3 T;
     vec3 N;
-} v2f;
+    vec3 flatNormal_WS;
+} g2f;
 
 uniform vec3 u_viewPos;
 uniform int  u_objectIndex;
@@ -29,14 +30,14 @@ vec2 POM(vec2 texCoords, vec3 viewDir);
 
 void main()
 {
-    vec3 T = normalize(v2f.T);
-    vec3 N = normalize(v2f.N);
-    vec3 B = normalize(cross(v2f.N, v2f.T));
+    vec3 T = normalize(g2f.T);
+    vec3 N = normalize(g2f.N);
+    vec3 B = normalize(cross(g2f.N, g2f.T));
     mat3 tangentToWorld = mat3(T, B, N);
     mat3 worldToTangent = transpose(tangentToWorld);
 
-    vec3 viewDir = normalize(u_viewPos - v2f.fragPos);
-	vec2 texCoords = POM(v2f.texCoords, normalize(worldToTangent * viewDir));
+    vec3 viewDir = normalize(u_viewPos - g2f.fragPos);
+	vec2 texCoords = POM(g2f.texCoords, normalize(worldToTangent * viewDir));
 
     o_color = texture(u_colorMap, texCoords).rgb;
 
@@ -51,7 +52,7 @@ void main()
 
     o_objectIndex = u_objectIndex;
 
-    o_geometryNormal = tangentToWorld * vec3(0, 0, 1);
+    o_geometryNormal = g2f.flatNormal_WS;
     o_geometryNormal = (o_geometryNormal + 1) * 0.5;
 }
 
