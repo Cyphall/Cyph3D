@@ -11,7 +11,6 @@ IRenderPass(textures)
 void ShadowMapPass::preparePipeline()
 {
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 }
@@ -35,7 +34,6 @@ void ShadowMapPass::restorePipeline()
 {
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	
 	glm::ivec2 size = Engine::getWindow().getSize();

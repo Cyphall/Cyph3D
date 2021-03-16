@@ -4,6 +4,7 @@
 /* ------ consts ------ */
 const float PI = 3.14159265359;
 const float TWO_PI = PI*2;
+const float SQRT_2 = 1.41421356237;
 
 /* ------ inputs from vertex shader ------ */
 in V2F {
@@ -30,7 +31,8 @@ layout(bindless_sampler) struct DirectionalLight
 	bool  castShadows;
 	mat4  lightViewProjection;
 	sampler2D shadowMap;
-	vec2  padding;
+	float mapSize;
+	float mapDepth;
 };
 
 struct FragData
@@ -77,8 +79,6 @@ vec4 lighting();
 
 vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi);
 float InterleavedGradientNoise(vec2 position_screen);
-float AvgBlockersDepthToPenumbra(float z_shadowMapView, float avgBlockersDepth);
-float Penumbra(float phi, vec2 fragUV_SMV, float fragDepth_SMV, float texelSize, int lightIndex);
 
 float isInDirectionalShadow(int lightIndex);
 float isInPointShadow(int lightIndex);
@@ -172,84 +172,61 @@ vec4 lighting()
 // Based on the code at https://www.gamedev.net/tutorials/programming/graphics/contact-hardening-soft-shadows-made-fast-r4906/
 vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
 {
-	float GoldenAngle = 2.4f;
-
-	float r = sqrt(sampleIndex + 0.5f) / sqrt(samplesCount);
+	float GoldenAngle = 2.4;
+	
+	float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
 	float theta = sampleIndex * GoldenAngle + phi;
-
+	
 	float sine = sin(theta);
 	float cosine = cos(theta);
-
+	
 	return vec2(r * cosine, r * sine);
 }
 
 float InterleavedGradientNoise(vec2 position_screen)
 {
-	vec3 magic = vec3(0.06711056f, 0.00583715f, 52.9829189f);
+	vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
 	return fract(magic.z * fract(dot(position_screen, magic.xy)));
 }
 
-float AvgBlockersDepthToPenumbra(float fragDepth_SMV, float blockersDepth_SMV)
+vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelRadius, float samplingRadius)
 {
-	return 200 * (fragDepth_SMV - blockersDepth_SMV) / blockersDepth_SMV;
+	float angle = acos(dot(fragNormal, lightDir));
+	
+	return fragNormal * (texelRadius * sin(angle)) * samplingRadius * 2;
 }
 
-float Penumbra(float phi, vec2 fragUV_SMV, float fragDepth_SMV, float texelSize, int lightIndex)
-{
-	float avgBlockersDepth = 0.0f;
-	int blockersCount = 0;
-
-	const float samplingRadiusNormalized = 30 * texelSize;
-	const int sampleCount = 16;
-
-	for(int i = 0; i < sampleCount; i ++)
-	{
-		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
-		float sampleDepth = texture(directionalLights[lightIndex].shadowMap, fragUV_SMV + uvOffset).r;
-
-		if(sampleDepth < fragDepth_SMV)
-		{
-			avgBlockersDepth += sampleDepth;
-			blockersCount++;
-		}
-	}
-
-	if(blockersCount > 0)
-	{
-		avgBlockersDepth /= float(blockersCount);
-		return AvgBlockersDepthToPenumbra(fragDepth_SMV, avgBlockersDepth);
-	}
-	else
-	{
-		return 0.0f;
-	}
-}
-
-// Based on the code at https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping by Joey de Vries (https://twitter.com/JoeyDeVriez)
 float isInDirectionalShadow(int lightIndex)
 {
-	vec4 shadowMapSpacePos = directionalLights[lightIndex].lightViewProjection * vec4(fragData.pos, 1);
+	float texelSize = 1.0 / textureSize(directionalLights[lightIndex].shadowMap, 0).x;
+	float worstCaseTexelRadius_WS = (texelSize * directionalLights[lightIndex].mapSize * SQRT_2)/2;
+	
+	float samplingRadius = 3;
+	
+	vec3 fragPos = fragData.pos + calculateNormalBias(fragData.geometryNormal, directionalLights[lightIndex].fragToLightDirection, worstCaseTexelRadius_WS, samplingRadius);
+	
+	vec4 shadowMapSpacePos = directionalLights[lightIndex].lightViewProjection * vec4(fragPos, 1);
 	vec3 projCoords = shadowMapSpacePos.xyz / shadowMapSpacePos.w;
 	projCoords = projCoords * 0.5 + 0.5;
 	
 	if (projCoords.z > 1) return 0.0;
-
+	
 	vec2  fragUV_SMV    = projCoords.xy;
 	float fragDepth_SMV = projCoords.z;
 	
-	float texelSize = 1.0 / textureSize(directionalLights[lightIndex].shadowMap, 0).x;
-
-	float phi = InterleavedGradientNoise(fragData.texCoords * vec2(1600, 900)) * TWO_PI;
-	float samplingRadiusNormalized = Penumbra(phi, fragUV_SMV, fragDepth_SMV, texelSize, lightIndex) * texelSize;
-
-	const int sampleCount = 16;
+	const float bias = 0.0002;
+	float samplingRadiusNormalized = samplingRadius * texelSize;
+	float phi = InterleavedGradientNoise(gl_FragCoord.xy) * TWO_PI;
+	
 	float shadow = 0.0;
+	
+	const int sampleCount = 16;
 	for (int i = 0; i < sampleCount; i++)
 	{
 		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
 		float sampleDepth = texture(directionalLights[lightIndex].shadowMap, fragUV_SMV + uvOffset).r;
-
-		if (fragDepth_SMV > sampleDepth)
+		
+		if (fragDepth_SMV - bias > sampleDepth)
 		{
 			shadow++;
 		}

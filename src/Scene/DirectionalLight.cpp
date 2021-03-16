@@ -37,14 +37,12 @@ void DirectionalLight::setCastShadows(bool value)
 	{
 		_shadowMapFb = std::make_unique<Framebuffer>(glm::ivec2(_resolution));
 		
-		TextureCreateInfo createInfo
-		{
-			.size = _shadowMapFb->getSize(),
-			.internalFormat = GL_DEPTH_COMPONENT32,
-			.textureFiltering = LINEAR,
-			.isShadowMap = true
-		};
-		_shadowMap = std::make_unique<Texture>(createInfo);
+		TextureCreateInfo textureCreateInfo;
+		textureCreateInfo.size = _shadowMapFb->getSize();
+		textureCreateInfo.internalFormat = GL_DEPTH_COMPONENT32;
+		textureCreateInfo.textureFiltering = NEAREST;
+		textureCreateInfo.isShadowMap = true;
+		_shadowMap = std::make_unique<Texture>(textureCreateInfo);
 		
 		_shadowMapFb->attachDepth(*_shadowMap.get());
 	}
@@ -69,7 +67,9 @@ DirectionalLight::LightData DirectionalLight::getDataStruct()
 		.color = _linearColor,
 		.castShadows = _castShadows,
 		.lightViewProjection = _castShadows ? _viewProjection : glm::mat4(),
-		.shadowMap = _castShadows ? _shadowMap->getBindlessHandle() : 0
+		.shadowMap = _castShadows ? _shadowMap->getBindlessHandle() : 0,
+		.mapSize = _mapSize,
+		.mapDepth = _mapDepth,
 	};
 }
 
