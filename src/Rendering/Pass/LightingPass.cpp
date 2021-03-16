@@ -56,6 +56,8 @@ void LightingPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_shader->setUniform("u_viewPos", &pos);
 	glm::mat4 viewProjectionInv = glm::inverse(camera.getProjection() * camera.getView());
 	_shader->setUniform("u_viewProjectionInv", &viewProjectionInv);
+	float time = Engine::getTimer().time();
+	_shader->setUniform("u_time", &time);
 	
 	_shader->setUniform("u_normalTexture", textures["gbuffer_normal"]);
 	_shader->setUniform("u_colorTexture", textures["gbuffer_color"]);

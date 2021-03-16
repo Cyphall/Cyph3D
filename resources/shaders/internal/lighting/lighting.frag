@@ -65,8 +65,9 @@ layout(bindless_sampler) uniform sampler2D u_materialTexture;
 layout(bindless_sampler) uniform sampler2D u_geometryNormalTexture;
 layout(bindless_sampler) uniform sampler2D u_depthTexture;
 
-uniform mat4 u_viewProjectionInv;
-uniform vec3 u_viewPos;
+uniform mat4  u_viewProjectionInv;
+uniform vec3  u_viewPos;
+uniform float u_time;
 
 /* ------ outputs ------ */
 out vec4 o_color;
