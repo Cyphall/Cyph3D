@@ -3,11 +3,11 @@
 
 in G2F
 {
-    vec3 fragPos;
-    vec2 texCoords;
-    vec3 T;
-    vec3 N;
-    vec3 flatNormal_WS;
+	vec3 fragPos;
+	vec2 texCoords;
+	vec3 T;
+	vec3 N;
+	vec3 flatNormal_WS;
 } g2f;
 
 uniform vec3 u_viewPos;
@@ -30,30 +30,30 @@ vec2 POM(vec2 texCoords, vec3 viewDir);
 
 void main()
 {
-    vec3 T = normalize(g2f.T);
-    vec3 N = normalize(g2f.N);
-    vec3 B = normalize(cross(g2f.N, g2f.T));
-    mat3 tangentToWorld = mat3(T, B, N);
-    mat3 worldToTangent = transpose(tangentToWorld);
-
-    vec3 viewDir = normalize(u_viewPos - g2f.fragPos);
+	vec3 T = normalize(g2f.T);
+	vec3 N = normalize(g2f.N);
+	vec3 B = normalize(cross(g2f.N, g2f.T));
+	mat3 tangentToWorld = mat3(T, B, N);
+	mat3 worldToTangent = transpose(tangentToWorld);
+	
+	vec3 viewDir = normalize(u_viewPos - g2f.fragPos);
 	vec2 texCoords = POM(g2f.texCoords, normalize(worldToTangent * viewDir));
-
-    o_color = texture(u_colorMap, texCoords).rgb;
-
-    o_normal = normalize(texture(u_normalMap, texCoords).rgb * 2.0 - 1.0);
-    o_normal = tangentToWorld * o_normal;
-    o_normal = (o_normal + 1) * 0.5;
-
-    o_material.r = texture(u_roughnessMap, texCoords).r;
-    o_material.g = texture(u_metallicMap, texCoords).r;
-    o_material.b = texture(u_emissiveMap, texCoords).r;
-    o_material.a = 1;
-
-    o_objectIndex = u_objectIndex;
-
-    o_geometryNormal = g2f.flatNormal_WS;
-    o_geometryNormal = (o_geometryNormal + 1) * 0.5;
+	
+	o_color = texture(u_colorMap, texCoords).rgb;
+	
+	o_normal = normalize(texture(u_normalMap, texCoords).rgb * 2.0 - 1.0);
+	o_normal = tangentToWorld * o_normal;
+	o_normal = (o_normal + 1) * 0.5;
+	
+	o_material.r = texture(u_roughnessMap, texCoords).r;
+	o_material.g = texture(u_metallicMap, texCoords).r;
+	o_material.b = texture(u_emissiveMap, texCoords).r;
+	o_material.a = 1;
+	
+	o_objectIndex = u_objectIndex;
+	
+	o_geometryNormal = g2f.flatNormal_WS;
+	o_geometryNormal = (o_geometryNormal + 1) * 0.5;
 }
 
 float getDepth(vec2 texCoords)
@@ -66,47 +66,47 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 	const float depthScale     = 0.05;
 	const int   linearSamples  = 8;
 	const int   binarySamples  = 6;
-
+	
 	// Initial sampling pass
 	vec2 currentTexCoords = texCoords;
-
+	
 	float currentTexDepth  = getDepth(currentTexCoords);
 	float previousTexDepth;
-
+	
 	if (currentTexDepth == 0 || linearSamples == 0) return texCoords;
-
+	
 	if (viewDir.z <= 0) return texCoords;
-
+	
 	// Offsets applied at each steps
 	vec2  texCoordsStepOffset = -(viewDir.xy / viewDir.z) / linearSamples * depthScale;
 	float depthStepOffset     = 1.0 / linearSamples;
-
+	
 	float currentDepth = 0;
-
+	
 	while (currentDepth < currentTexDepth)
 	{
 		currentTexCoords += texCoordsStepOffset;
-
+		
 		previousTexDepth = currentTexDepth;
 		currentTexDepth = getDepth(currentTexCoords);
-
+		
 		currentDepth += depthStepOffset;
 	}
-
+	
 	vec2 previousTexCoords = currentTexCoords - texCoordsStepOffset;
 	float previousDepth = currentDepth - depthStepOffset;
-
+	
 	// Resampling pass
-
+	
 	for (int i = 0; i < binarySamples; i++)
 	{
 		texCoordsStepOffset *= 0.5;
 		depthStepOffset *= 0.5;
-
+		
 		vec2  halfwayTexCoords = previousTexCoords + texCoordsStepOffset;
 		float halfwayTexDepth  = getDepth(halfwayTexCoords);
 		float halfwayDepth     = previousDepth + depthStepOffset;
-
+		
 		// If we are still above the surface
 		if (halfwayDepth < halfwayTexDepth)
 		{
@@ -121,14 +121,14 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 			currentDepth     = halfwayDepth;
 		}
 	}
-
+	
 	// Interpolation
 	float afterDepth  = currentTexDepth - currentDepth;
 	float beforeDepth = previousTexDepth - currentDepth + depthStepOffset;
-
+	
 	float weight = afterDepth / (afterDepth - beforeDepth);
 	texCoords = previousTexCoords * weight + currentTexCoords * (1.0 - weight);
-
+	
 	return texCoords;
 }
 

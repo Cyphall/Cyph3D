@@ -105,7 +105,7 @@ void main()
 {
 	// Mandatory data
 	fragData.texCoords = v2f.texCoords;
-
+	
 	if (isLit() == 0)
 	{
 		o_color = vec4(getColor(), 1);
@@ -139,7 +139,7 @@ vec4 lighting()
 	vec3 finalColor = fragData.color * fragData.emissiveIntensity;
 	
 	// Point Light calculation
-	for(int i = 0; i < pointLights.length(); ++i)
+	for (int i = 0; i < pointLights.length(); ++i)
 	{
 		float shadow = pointLights[i].castShadows ? isInPointShadow(i) : 0;
 		
@@ -149,12 +149,12 @@ vec4 lighting()
 		float distance    = length(pointLights[i].pos - fragData.pos);
 		float attenuation = 1.0 / (1 + distance * distance);
 		vec3  radiance    = pointLights[i].color * pointLights[i].intensity * attenuation;
-
+		
 		finalColor += calculateLighting(radiance, lightDir, halfwayDir) * (1 - shadow);
 	}
-
+	
 	// Directional Light calculation
-	for(int i = 0; i < directionalLights.length(); ++i)
+	for (int i = 0; i < directionalLights.length(); ++i)
 	{
 		float shadow = directionalLights[i].castShadows ? isInDirectionalShadow(i) : 0;
 		
@@ -162,10 +162,10 @@ vec4 lighting()
 		vec3 lightDir    = directionalLights[i].fragToLightDirection;
 		vec3 halfwayDir  = normalize(fragData.viewDir + lightDir);
 		vec3 radiance    = directionalLights[i].color * directionalLights[i].intensity;
-
+		
 		finalColor += calculateLighting(radiance, lightDir, halfwayDir) * (1 - shadow);
 	}
-
+	
 	return vec4(finalColor, 1);
 }
 
@@ -241,7 +241,7 @@ float isInPointShadow(int lightIndex)
 {
 	// get vector between fragment position and light position
 	vec3 fragToLight = fragData.pos - pointLights[lightIndex].pos;
-	// use the light to fragment vector to sample from the depth map    
+	// use the light to fragment vector to sample from the depth map
 	float closestDepth = texture(pointLights[lightIndex].shadowMap, fragToLight).r;
 	// it is currently in linear range between [0,1]. Re-transform back to original value
 	closestDepth *= pointLights[lightIndex].far;
@@ -249,43 +249,43 @@ float isInPointShadow(int lightIndex)
 	float currentDepth = length(fragToLight);
 	// now test for shadows
 	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
-
+	
 	return shadow;
 }
 
 vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 halfwayDir)
 {
-    vec3 brdf = calculateBRDF(lightDir, halfwayDir);
-
+	vec3 brdf = calculateBRDF(lightDir, halfwayDir);
+	
 	return brdf * radiance * max(dot(fragData.normal, lightDir), 0.0);
 }
 
 // Cook-Torrance
 vec3 calculateBRDF(vec3 lightDir, vec3 halfwayDir)
 {
-    // ---------- Specular part ----------
-
-    float D = DistributionGGX(fragData.normal, halfwayDir, fragData.roughness);
-    vec3  F = fresnelSchlick(max(dot(halfwayDir, fragData.viewDir), 0.0), fragData.F0);
-    float G = GeometrySmith(fragData.normal, fragData.viewDir, lightDir, fragData.roughness);
-
-    vec3  numerator   = D * F * G;
-    float denominator = 4.0 * max(dot(fragData.normal, fragData.viewDir), 0.0) * max(dot(fragData.normal, lightDir), 0.0);
-    vec3  specular    = numerator / max(denominator, 0.001);
-
-    vec3 specularWeight = F;
-
-    // ---------- Diffuse part ----------
-
-    vec3 diffuse = fragData.color / PI;
-
-    vec3 diffuseWeight = vec3(1.0) - specularWeight;
-    diffuseWeight *= 1.0 - fragData.metalness; // Metals have no diffuse
-
-    // ---------- Final result ----------
-
-    // specularWeight already integrated to specular
-    return (diffuseWeight * diffuse) + (specular);
+	// ---------- Specular part ----------
+	
+	float D = DistributionGGX(fragData.normal, halfwayDir, fragData.roughness);
+	vec3  F = fresnelSchlick(max(dot(halfwayDir, fragData.viewDir), 0.0), fragData.F0);
+	float G = GeometrySmith(fragData.normal, fragData.viewDir, lightDir, fragData.roughness);
+	
+	vec3  numerator   = D * F * G;
+	float denominator = 4.0 * max(dot(fragData.normal, fragData.viewDir), 0.0) * max(dot(fragData.normal, lightDir), 0.0);
+	vec3  specular    = numerator / max(denominator, 0.001);
+	
+	vec3 specularWeight = F;
+	
+	// ---------- Diffuse part ----------
+	
+	vec3 diffuse = fragData.color / PI;
+	
+	vec3 diffuseWeight = vec3(1.0) - specularWeight;
+	diffuseWeight *= 1.0 - fragData.metalness; // Metals have no diffuse
+	
+	// ---------- Final result ----------
+	
+	// specularWeight already integrated to specular
+	return (diffuseWeight * diffuse) + (specular);
 }
 
 vec3 getPosition()
@@ -342,11 +342,11 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 	float a2     = a*a;
 	float NdotH  = max(dot(N, H), 0.0);
 	float NdotH2 = NdotH*NdotH;
-
+	
 	float num   = a2;
 	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
 	denom = PI * denom * denom;
-
+	
 	return num / denom;
 }
 
@@ -355,10 +355,10 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 {
 	float r = (roughness + 1.0);
 	float k = (r*r) / 8.0;
-
+	
 	float num   = NdotV;
 	float denom = NdotV * (1.0 - k) + k;
-
+	
 	return num / denom;
 }
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
@@ -367,7 +367,7 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 	float NdotL = max(dot(N, L), 0.0);
 	float ggx2  = GeometrySchlickGGX(NdotV, roughness);
 	float ggx1  = GeometrySchlickGGX(NdotL, roughness);
-
+	
 	return ggx1 * ggx2;
 }
 

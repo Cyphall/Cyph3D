@@ -1,7 +1,10 @@
 {
-	"colorMap":
-	{
+	"colorMap": {
 		"type": "color_srgb",
-		"default_data": [255, 0, 255]
+		"default_data": [
+			255,
+			0,
+			255
+		]
 	}
 }

@@ -1,32 +1,42 @@
 {
-	"colorMap":
-	{
+	"colorMap": {
 		"type": "color_srgb",
-		"default_data": [255, 255, 255]
+		"default_data": [
+			255,
+			255,
+			255
+		]
 	},
-	"normalMap":
-	{
+	"normalMap": {
 		"type": "normal_map",
-		"default_data": [128, 128, 255]
+		"default_data": [
+			128,
+			128,
+			255
+		]
 	},
-	"roughnessMap":
-	{
+	"roughnessMap": {
 		"type": "grayscale",
-		"default_data": [128]
+		"default_data": [
+			128
+		]
 	},
-	"displacementMap":
-	{
+	"displacementMap": {
 		"type": "grayscale",
-		"default_data": [255]
+		"default_data": [
+			255
+		]
 	},
-	"metallicMap":
-	{
+	"metallicMap": {
 		"type": "grayscale",
-		"default_data": [0]
+		"default_data": [
+			0
+		]
 	},
-	"emissiveMap":
-	{
+	"emissiveMap": {
 		"type": "grayscale",
-		"default_data": [0]
+		"default_data": [
+			0
+		]
 	}
 }

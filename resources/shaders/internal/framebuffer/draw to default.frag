@@ -3,7 +3,7 @@
 
 in V2F
 {
-    vec2 texCoords;
+	vec2 texCoords;
 } v2f;
 
 layout(bindless_sampler) uniform sampler2D u_texture;

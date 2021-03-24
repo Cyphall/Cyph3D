@@ -11,6 +11,6 @@ out V2F
 void main()
 {
 	gl_Position = vec4(a_position, 0, 1);
-
+	
 	v2f.texCoords = a_uv;
 }

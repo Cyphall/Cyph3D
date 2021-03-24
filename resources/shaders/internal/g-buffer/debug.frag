@@ -2,7 +2,7 @@
 #extension GL_ARB_bindless_texture : enable
 
 in V2F {
-    vec2  texCoords;
+	vec2  texCoords;
 } v2f;
 
 layout(bindless_sampler) uniform sampler2D u_normalTexture;
@@ -16,54 +16,54 @@ out vec4 o_color;
 
 void main()
 {
-    vec2 texCoords = v2f.texCoords;
-    
-    if (texCoords.x <= 1.0/3.0 && texCoords.y >= 2.0/3.0)
-    {
-        texCoords.x = (texCoords.x - 0.0/3.0) * 3;
-        texCoords.y = (texCoords.y - 2.0/3.0) * 3;
-
-        float depth = texture(u_depthTexture, texCoords).r;
-        vec4 clipSpacePosition = vec4(texCoords, depth, 1) * 2.0 - 1.0;
-        vec4 worldSpacePosition = u_viewProjectionInv * clipSpacePosition;
-        worldSpacePosition /= worldSpacePosition.w;
-
-        o_color = worldSpacePosition;
-    }
-    else if (texCoords.x <= 2.0/3.0 && texCoords.y >= 2.0/3.0)
-    {
-        texCoords.x = (texCoords.x - 1.0/3.0) * 3;
-        texCoords.y = (texCoords.y - 2.0/3.0) * 3;
-        o_color = texture(u_normalTexture, texCoords);
-    }
-    else if (texCoords.x <= 3.0/3.0 && texCoords.y >= 2.0/3.0)
-    {
-        texCoords.x = (texCoords.x - 2.0/3.0) * 3;
-        texCoords.y = (texCoords.y - 2.0/3.0) * 3;
-        o_color = texture(u_geometryNormalTexture, texCoords);
-    }
-    else if (texCoords.x <= 1.0/3.0 && texCoords.y >= 1.0/3.0)
-    {
-        texCoords.x = (texCoords.x - 0.0/3.0) * 3;
-        texCoords.y = (texCoords.y - 1.0/3.0) * 3;
-        o_color = texture(u_materialTexture, texCoords);
-    }
-    else if (texCoords.x <= 2.0/3.0 && texCoords.y >= 1.0/3.0)
-    {
-        texCoords.x = (texCoords.x - 1.0/3.0) * 3;
-        texCoords.y = (texCoords.y - 1.0/3.0) * 3;
-        o_color = texture(u_colorTexture, texCoords);
-    }
-    else if (texCoords.x <= 3.0/3.0 && texCoords.y >= 1.0/3.0)
-    {
-        texCoords.x = (texCoords.x - 2.0/3.0) * 3;
-        texCoords.y = (texCoords.y - 1.0/3.0) * 3;
-
-        float depth = texture(u_depthTexture, texCoords).r;
-        o_color = vec4(depth, depth, depth, 1);
-    }
-    else
-    {
-        o_color = vec4(0);
-    }
+	vec2 texCoords = v2f.texCoords;
+	
+	if (texCoords.x <= 1.0/3.0 && texCoords.y >= 2.0/3.0)
+	{
+		texCoords.x = (texCoords.x - 0.0/3.0) * 3;
+		texCoords.y = (texCoords.y - 2.0/3.0) * 3;
+		
+		float depth = texture(u_depthTexture, texCoords).r;
+		vec4 clipSpacePosition = vec4(texCoords, depth, 1) * 2.0 - 1.0;
+		vec4 worldSpacePosition = u_viewProjectionInv * clipSpacePosition;
+		worldSpacePosition /= worldSpacePosition.w;
+		
+		o_color = worldSpacePosition;
+	}
+	else if (texCoords.x <= 2.0/3.0 && texCoords.y >= 2.0/3.0)
+	{
+		texCoords.x = (texCoords.x - 1.0/3.0) * 3;
+		texCoords.y = (texCoords.y - 2.0/3.0) * 3;
+		o_color = texture(u_normalTexture, texCoords);
+	}
+	else if (texCoords.x <= 3.0/3.0 && texCoords.y >= 2.0/3.0)
+	{
+		texCoords.x = (texCoords.x - 2.0/3.0) * 3;
+		texCoords.y = (texCoords.y - 2.0/3.0) * 3;
+		o_color = texture(u_geometryNormalTexture, texCoords);
+	}
+	else if (texCoords.x <= 1.0/3.0 && texCoords.y >= 1.0/3.0)
+	{
+		texCoords.x = (texCoords.x - 0.0/3.0) * 3;
+		texCoords.y = (texCoords.y - 1.0/3.0) * 3;
+		o_color = texture(u_materialTexture, texCoords);
+	}
+	else if (texCoords.x <= 2.0/3.0 && texCoords.y >= 1.0/3.0)
+	{
+		texCoords.x = (texCoords.x - 1.0/3.0) * 3;
+		texCoords.y = (texCoords.y - 1.0/3.0) * 3;
+		o_color = texture(u_colorTexture, texCoords);
+	}
+	else if (texCoords.x <= 3.0/3.0 && texCoords.y >= 1.0/3.0)
+	{
+		texCoords.x = (texCoords.x - 2.0/3.0) * 3;
+		texCoords.y = (texCoords.y - 1.0/3.0) * 3;
+		
+		float depth = texture(u_depthTexture, texCoords).r;
+		o_color = vec4(depth, depth, depth, 1);
+	}
+	else
+	{
+		o_color = vec4(0);
+	}
 }

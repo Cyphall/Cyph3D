@@ -4,7 +4,7 @@ layout (location = 0) in vec3 a_position;
 
 out V2F
 {
-    vec3 texCoords;
+	vec3 texCoords;
 } v2f;
 
 uniform mat4 u_mvp;
