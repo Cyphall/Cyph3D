@@ -240,13 +240,13 @@ float isInDirectionalShadow(int lightIndex)
 float isInPointShadow(int lightIndex)
 {
 	// get vector between fragment position and light position
-	vec3 fragToLight = fragData.pos - pointLights[lightIndex].pos;
+	vec3 lightToFrag = fragData.pos - pointLights[lightIndex].pos;
 	// use the light to fragment vector to sample from the depth map
-	float closestDepth = texture(pointLights[lightIndex].shadowMap, fragToLight).r;
+	float closestDepth = texture(pointLights[lightIndex].shadowMap, lightToFrag).r;
 	// it is currently in linear range between [0,1]. Re-transform back to original value
 	closestDepth *= pointLights[lightIndex].far;
 	// now get current linear depth as the length between the fragment and light position
-	float currentDepth = length(fragToLight);
+	float currentDepth = length(lightToFrag);
 	// now test for shadows
 	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 	
