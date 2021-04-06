@@ -18,7 +18,7 @@ public:
 		int32_t    castShadows; // bool
 		uint64_t   shadowMap;
 		float32_t  _far;
-		float32_t  padding;
+		float32_t  maxTexelSizeAtUnitDistance;
 	};
 	
 	PointLight(Transform* parent, const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 srgbColor = glm::vec3(1), float intensity = 1, bool castShadows = false);

@@ -19,6 +19,7 @@ layout(location = 1) out vec3 o_color;
 layout(location = 2) out vec4 o_material;
 layout(location = 3) out vec3 o_geometryNormal;
 layout(location = 4) out int  o_objectIndex;
+layout(location = 5) out vec3 o_position;
 
 void main()
 {
@@ -39,4 +40,6 @@ void main()
 	
 	o_geometryNormal = g2f.flatNormal_WS;
 	o_geometryNormal = (o_geometryNormal + 1) * 0.5;
+	
+	o_position = g2f.fragPos;
 }

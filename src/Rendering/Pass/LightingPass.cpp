@@ -64,6 +64,7 @@ void LightingPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_shader->setUniform("u_materialTexture", textures["gbuffer_material"]);
 	_shader->setUniform("u_geometryNormalTexture", textures["gbuffer_gemoetryNormal"]);
 	_shader->setUniform("u_depthTexture", textures["z-prepass_depth"]);
+	_shader->setUniform("u_position", textures["gbuffer_position"]);
 	
 	_shader->bind();
 	_framebuffer.bindForDrawing();

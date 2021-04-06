@@ -10,6 +10,7 @@ layout(bindless_sampler) uniform sampler2D u_colorTexture;
 layout(bindless_sampler) uniform sampler2D u_materialTexture;
 layout(bindless_sampler) uniform sampler2D u_geometryNormalTexture;
 layout(bindless_sampler) uniform sampler2D u_depthTexture;
+layout(bindless_sampler) uniform sampler2D u_position;
 uniform mat4 u_viewProjectionInv;
 
 out vec4 o_color;
@@ -23,12 +24,7 @@ void main()
 		texCoords.x = (texCoords.x - 0.0/3.0) * 3;
 		texCoords.y = (texCoords.y - 2.0/3.0) * 3;
 		
-		float depth = texture(u_depthTexture, texCoords).r;
-		vec4 clipSpacePosition = vec4(texCoords, depth, 1) * 2.0 - 1.0;
-		vec4 worldSpacePosition = u_viewProjectionInv * clipSpacePosition;
-		worldSpacePosition /= worldSpacePosition.w;
-		
-		o_color = worldSpacePosition;
+		o_color = texture(u_position, texCoords);
 	}
 	else if (texCoords.x <= 2.0/3.0 && texCoords.y >= 2.0/3.0)
 	{

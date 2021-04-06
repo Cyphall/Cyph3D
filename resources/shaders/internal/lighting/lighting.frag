@@ -20,7 +20,7 @@ layout(bindless_sampler) struct PointLight
 	bool  castShadows;
 	samplerCube shadowMap;
 	float far;
-	float padding;
+	float maxTexelSizeAtUnitDistance;
 };
 
 layout(bindless_sampler) struct DirectionalLight
@@ -66,13 +66,14 @@ layout(bindless_sampler) uniform sampler2D u_colorTexture;
 layout(bindless_sampler) uniform sampler2D u_materialTexture;
 layout(bindless_sampler) uniform sampler2D u_geometryNormalTexture;
 layout(bindless_sampler) uniform sampler2D u_depthTexture;
+layout(bindless_sampler) uniform sampler2D u_position;
 
 uniform mat4  u_viewProjectionInv;
 uniform vec3  u_viewPos;
 uniform float u_time;
 
 /* ------ outputs ------ */
-out vec4 o_color;
+layout(location = 0) out vec4 o_color;
 
 /* ------ function declarations ------ */
 vec4 lighting();
@@ -189,21 +190,26 @@ float InterleavedGradientNoise(vec2 position_screen)
 	return fract(magic.z * fract(dot(position_screen, magic.xy)));
 }
 
-vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelRadius, float samplingRadius)
+vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelSize_WS, float samplingRadius)
 {
 	float angle = acos(dot(fragNormal, lightDir));
 	
-	return fragNormal * (texelRadius * sin(angle)) * samplingRadius * 2;
+	float worstCaseTexelSize_WS = texelSize_WS * SQRT_2;
+	float worstCaseTexelRadius_WS = worstCaseTexelSize_WS * 0.5;
+	
+	float finalRadius = worstCaseTexelSize_WS + samplingRadius * texelSize_WS;
+	
+	return fragNormal * (finalRadius * sin(angle)) + fragNormal * texelSize_WS;
 }
 
 float isInDirectionalShadow(int lightIndex)
 {
 	float texelSize = 1.0 / textureSize(directionalLights[lightIndex].shadowMap, 0).x;
-	float worstCaseTexelRadius_WS = (texelSize * directionalLights[lightIndex].mapSize * SQRT_2)/2;
+	float texelSize_WS = texelSize * directionalLights[lightIndex].mapSize;
 	
 	float samplingRadius = 3;
 	
-	vec3 fragPos = fragData.pos + calculateNormalBias(fragData.geometryNormal, directionalLights[lightIndex].fragToLightDirection, worstCaseTexelRadius_WS, samplingRadius);
+	vec3 fragPos = fragData.pos + calculateNormalBias(fragData.geometryNormal, directionalLights[lightIndex].fragToLightDirection, texelSize_WS, samplingRadius);
 	
 	vec4 shadowMapSpacePos = directionalLights[lightIndex].lightViewProjection * vec4(fragPos, 1);
 	vec3 projCoords = shadowMapSpacePos.xyz / shadowMapSpacePos.w;
@@ -236,19 +242,51 @@ float isInDirectionalShadow(int lightIndex)
 	return shadow;
 }
 
-// Based on the code at https://learnopengl.com/Advanced-Lighting/Shadows/Point-Shadows by Joey de Vries (https://twitter.com/JoeyDeVriez)
 float isInPointShadow(int lightIndex)
 {
 	// get vector between fragment position and light position
 	vec3 lightToFrag = fragData.pos - pointLights[lightIndex].pos;
-	// use the light to fragment vector to sample from the depth map
-	float closestDepth = texture(pointLights[lightIndex].shadowMap, lightToFrag).r;
-	// it is currently in linear range between [0,1]. Re-transform back to original value
-	closestDepth *= pointLights[lightIndex].far;
-	// now get current linear depth as the length between the fragment and light position
-	float currentDepth = length(lightToFrag);
-	// now test for shadows
-	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+	float fragDist = length(lightToFrag);
+	
+	float texelSize_WS = pointLights[lightIndex].maxTexelSizeAtUnitDistance * fragDist;
+	
+	float samplingRadius = 3;
+	
+	vec3 fragPos = fragData.pos + calculateNormalBias(fragData.geometryNormal, -lightToFrag / fragDist, texelSize_WS, samplingRadius);
+	
+	// recalculate with normal-biased frag position
+	lightToFrag = fragPos - pointLights[lightIndex].pos;
+	fragDist = length(lightToFrag);
+	
+	float fragDepth_SMV = fragDist;
+	
+	vec3 forward = lightToFrag / fragDist;
+	vec3 up = vec3(0, 1, 0);
+	vec3 left = normalize(cross(forward, up));
+	up = cross(left, forward);
+	
+	const float bias = 0.0002;
+	float samplingRadiusNormalized = samplingRadius * pointLights[lightIndex].maxTexelSizeAtUnitDistance;
+	float phi = InterleavedGradientNoise(gl_FragCoord.xy) * TWO_PI;
+	
+	float shadow = 0.0;
+	
+	const int sampleCount = 128;
+	for (int i = 0; i < sampleCount; i++)
+	{
+		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
+		vec3 posOffset = (left * uvOffset.x) + (up * uvOffset.y);
+		float sampleDepth = texture(pointLights[lightIndex].shadowMap, forward + posOffset).r;
+		
+		// it is currently in linear range between [0,1]. Re-transform back to original value
+		sampleDepth *= pointLights[lightIndex].far;
+		
+		if (fragDepth_SMV - bias > sampleDepth)
+		{
+			shadow++;
+		}
+	}
+	shadow /= sampleCount;
 	
 	return shadow;
 }
@@ -290,9 +328,7 @@ vec3 calculateBRDF(vec3 lightDir, vec3 halfwayDir)
 
 vec3 getPosition()
 {
-	vec4 clipSpacePosition = vec4(fragData.texCoords, fragData.depth, 1) * 2.0 - 1.0;
-	vec4 worldSpacePosition = u_viewProjectionInv * clipSpacePosition;
-	return worldSpacePosition.xyz / worldSpacePosition.w;
+	return texture(u_position, fragData.texCoords).rgb;
 }
 
 vec3 getColor()

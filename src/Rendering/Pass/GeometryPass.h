@@ -16,6 +16,7 @@ private:
 	Framebuffer _gbuffer;
 	
 	Texture _normalTexture;
+	Texture _positionTexture;
 	Texture _colorTexture;
 	Texture _materialTexture;
 	Texture _geometryNormalTexture;

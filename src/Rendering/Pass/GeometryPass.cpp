@@ -30,6 +30,11 @@ _objectIndexTexture(TextureCreateInfo
 {
   .size = _gbuffer.getSize(),
   .internalFormat = GL_R32I
+}),
+_positionTexture(TextureCreateInfo
+{
+	.size = _gbuffer.getSize(),
+	.internalFormat = GL_RGB32F
 })
 {
 	_gbuffer.attachColor(_normalTexture);
@@ -37,6 +42,7 @@ _objectIndexTexture(TextureCreateInfo
 	_gbuffer.attachColor(_materialTexture);
 	_gbuffer.attachColor(_geometryNormalTexture);
 	_gbuffer.attachColor(_objectIndexTexture);
+	_gbuffer.attachColor(_positionTexture);
 	_gbuffer.attachDepth(*textures["z-prepass_depth"]);
 	
 	_gbuffer.addToDrawBuffers(_normalTexture, 0);
@@ -44,12 +50,14 @@ _objectIndexTexture(TextureCreateInfo
 	_gbuffer.addToDrawBuffers(_materialTexture, 2);
 	_gbuffer.addToDrawBuffers(_geometryNormalTexture, 3);
 	_gbuffer.addToDrawBuffers(_objectIndexTexture, 4);
+	_gbuffer.addToDrawBuffers(_positionTexture, 5);
 	
 	textures["gbuffer_normal"] = &_normalTexture;
 	textures["gbuffer_color"] = &_colorTexture;
 	textures["gbuffer_material"] = &_materialTexture;
 	textures["gbuffer_gemoetryNormal"] = &_geometryNormalTexture;
 	textures["gbuffer_objectIndex"] = &_objectIndexTexture;
+	textures["gbuffer_position"] = &_positionTexture;
 	
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
 	_vao.defineFormat(0, 1, 2, GL_FLOAT, offsetof(Mesh::VertexData, uv));
@@ -71,6 +79,7 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	_colorTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	_materialTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	_geometryNormalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	_positionTexture.clear(GL_RGB, GL_FLOAT, nullptr);
 	
 	int clearIndex = -1;
 	_objectIndexTexture.clear(GL_RED_INTEGER, GL_INT, &clearIndex);

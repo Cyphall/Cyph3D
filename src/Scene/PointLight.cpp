@@ -71,7 +71,8 @@ PointLight::LightData PointLight::getDataStruct()
 		.color = _linearColor,
 		.castShadows = _castShadows,
 		.shadowMap = _castShadows ? _shadowMap->getBindlessHandle() : 0,
-		._far = _castShadows ? _FAR : 0
+		._far = _castShadows ? _FAR : 0,
+		.maxTexelSizeAtUnitDistance = 2.0f / _resolution
 	};
 }
 
