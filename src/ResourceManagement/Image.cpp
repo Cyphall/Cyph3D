@@ -20,7 +20,7 @@ void Image::finishLoading(const ImageLoadingData& data)
 
 ImageLoadingData Image::loadFromFile(const std::string& name, ImageType type)
 {
-	std::string path = fmt::format("resources/materials/{}", name);
+	std::string path = fmt::format("resources/{}", name);
 	
 	ImageLoadingData imageData{};
 	
