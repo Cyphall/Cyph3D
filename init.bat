@@ -4,4 +4,6 @@ git clone https://github.com/Microsoft/vcpkg
 cd vcpkg
 call bootstrap-vcpkg.bat
 vcpkg install glfw3 glm nlohmann-json assimp stb fmt magic-enum
+rmdir /s /q .git
+cd ..
 pause
