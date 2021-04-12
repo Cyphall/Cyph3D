@@ -15,7 +15,7 @@ target_compile_features(Cyph3D PRIVATE cxx_std_20)
 target_compile_options(Cyph3D PRIVATE "$<$<CONFIG:Release>:-O2>")
 
 find_path(STB_INCLUDE_DIRS "stb.h")
-find_package(Assimp CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
@@ -33,7 +33,7 @@ target_link_libraries(Cyph3D PRIVATE
 		assimp::assimp
 		fmt::fmt
 		glfw
-		glm
+		glm::glm
 		magic_enum::magic_enum
 		nlohmann_json nlohmann_json::nlohmann_json)
 
