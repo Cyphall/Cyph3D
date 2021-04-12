@@ -1,7 +1,6 @@
 #include "Skybox.h"
 #include "../Helper/JsonHelper.h"
 #include "../Helper/TextureHelper.h"
-#include <stb_image.h>
 #include <fmt/core.h>
 
 void Skybox::finishLoading(const SkyboxLoadingData& data)
@@ -30,12 +29,12 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 	
 	std::string facePaths[6] =
 	{
-		path + '/' + static_cast<std::string>(root["right"]),
-		path + '/' + static_cast<std::string>(root["left"]),
-		path + '/' + static_cast<std::string>(root["down"]),
-		path + '/' + static_cast<std::string>(root["up"]),
-		path + '/' + static_cast<std::string>(root["front"]),
-		path + '/' + static_cast<std::string>(root["back"])
+		fmt::format("{}/{}", path, static_cast<std::string>(root["right"])),
+		fmt::format("{}/{}", path, static_cast<std::string>(root["left"])),
+		fmt::format("{}/{}", path, static_cast<std::string>(root["down"])),
+		fmt::format("{}/{}", path, static_cast<std::string>(root["up"])),
+		fmt::format("{}/{}", path, static_cast<std::string>(root["front"])),
+		fmt::format("{}/{}", path, static_cast<std::string>(root["back"]))
 	};
 	
 	SkyboxLoadingData skyboxData{};

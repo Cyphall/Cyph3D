@@ -42,7 +42,7 @@ _name(std::move(name))
 		if (jsonRoot.contains(mapName))
 		{
 			image = resourceManager->requestImage(
-					"materials/" + _name + '/' + static_cast<std::string>(jsonRoot[mapName]),
+					fmt::format("materials/{}/{}", _name, static_cast<std::string>(jsonRoot[mapName])),
 					mapDefinition.type);
 		}
 		
