@@ -10,7 +10,7 @@ layout(bindless_sampler) uniform sampler2D u_colorTexture;
 layout(bindless_sampler) uniform sampler2D u_materialTexture;
 layout(bindless_sampler) uniform sampler2D u_geometryNormalTexture;
 layout(bindless_sampler) uniform sampler2D u_depthTexture;
-layout(bindless_sampler) uniform sampler2D u_position;
+layout(bindless_sampler) uniform sampler2D u_positionTexture;
 uniform mat4 u_viewProjectionInv;
 
 out vec4 o_color;
@@ -24,7 +24,7 @@ void main()
 		texCoords.x = (texCoords.x - 0.0/3.0) * 3;
 		texCoords.y = (texCoords.y - 2.0/3.0) * 3;
 		
-		o_color = texture(u_position, texCoords);
+		o_color = texture(u_positionTexture, texCoords);
 	}
 	else if (texCoords.x <= 2.0/3.0 && texCoords.y >= 2.0/3.0)
 	{

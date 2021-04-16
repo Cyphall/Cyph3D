@@ -35,12 +35,12 @@ void GBufferDebugPass::render(std::unordered_map<std::string, Texture*>& texture
 	glm::mat4 viewProjectionInv = glm::inverse(camera.getProjection() * camera.getView());
 	_shader->setUniform("u_viewProjectionInv", &viewProjectionInv);
 	
-	Texture* test = textures["gbuffer_normal"];
 	_shader->setUniform("u_normalTexture", textures["gbuffer_normal"]);
 	_shader->setUniform("u_colorTexture", textures["gbuffer_color"]);
 	_shader->setUniform("u_materialTexture", textures["gbuffer_material"]);
 	_shader->setUniform("u_geometryNormalTexture", textures["gbuffer_gemoetryNormal"]);
 	_shader->setUniform("u_depthTexture", textures["z-prepass_depth"]);
+	_shader->setUniform("u_positionTexture", textures["gbuffer_position"]);
 	
 	_shader->bind();
 	_framebuffer.bindForDrawing();
