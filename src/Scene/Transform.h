@@ -21,20 +21,21 @@ public:
 	void setParent(Transform* parent);
 	std::vector<Transform*>& getChildren();
 	
-	glm::vec3 getLocalPosition();
+	glm::vec3 getLocalPosition() const;
 	glm::vec3 getWorldPosition();
 	void setLocalPosition(glm::vec3 position);
 	
-	glm::quat getLocalRotation();
+	glm::quat getLocalRotation() const;
 	glm::quat getWorldRotation();
 	void setLocalRotation(glm::quat rotation);
 	
-	glm::vec3 getLocalScale();
+	glm::vec3 getLocalScale() const;
 	glm::vec3 getWorldScale();
 	void setLocalScale(glm::vec3 scale);
 	
-	glm::vec3 getEulerRotation();
-	void setEulerRotation(glm::vec3 eulerRotation);
+	glm::vec3 getEulerLocalRotation() const;
+	glm::vec3 getEulerWorldRotation();
+	void setEulerLocalRotation(glm::vec3 eulerRotation);
 	
 	glm::vec3 getForward();
 	glm::vec3 getUp();

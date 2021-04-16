@@ -105,10 +105,10 @@ void UIInspector::showSceneObject(SceneObject* selected)
 	}
 	else
 	{
-		glm::vec3 imGuiRotation = selected->getTransform().getEulerRotation();
+		glm::vec3 imGuiRotation = selected->getTransform().getEulerLocalRotation();
 		if (ImGui::DragFloat3("Rotation", glm::value_ptr(imGuiRotation), 0.01f))
 		{
-			selected->getTransform().setEulerRotation(imGuiRotation);
+			selected->getTransform().setEulerLocalRotation(imGuiRotation);
 		}
 	}
 	

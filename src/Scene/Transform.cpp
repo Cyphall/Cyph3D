@@ -69,7 +69,7 @@ void Transform::invalidateWorldCache()
 	}
 }
 
-glm::vec3 Transform::getLocalPosition()
+glm::vec3 Transform::getLocalPosition() const
 {
 	return _localPosition;
 }
@@ -91,7 +91,7 @@ void Transform::setLocalPosition(glm::vec3 position)
 	invalidateLocalCache();
 }
 
-glm::quat Transform::getLocalRotation()
+glm::quat Transform::getLocalRotation() const
 {
 	return _localRotation;
 }
@@ -113,7 +113,7 @@ void Transform::setLocalRotation(glm::quat rotation)
 	invalidateLocalCache();
 }
 
-glm::vec3 Transform::getLocalScale()
+glm::vec3 Transform::getLocalScale() const
 {
 	return _localScale;
 }
@@ -135,12 +135,17 @@ void Transform::setLocalScale(glm::vec3 scale)
 	invalidateLocalCache();
 }
 
-glm::vec3 Transform::getEulerRotation()
+glm::vec3 Transform::getEulerLocalRotation() const
 {
 	return glm::degrees(glm::eulerAngles(_localRotation));
 }
 
-void Transform::setEulerRotation(glm::vec3 eulerRotation)
+glm::vec3 Transform::getEulerWorldRotation()
+{
+	return glm::degrees(glm::eulerAngles(_cachedWorldRotation));
+}
+
+void Transform::setEulerLocalRotation(glm::vec3 eulerRotation)
 {
 	setLocalRotation(glm::quat(glm::radians(eulerRotation)));
 }
