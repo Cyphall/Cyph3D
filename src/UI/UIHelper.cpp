@@ -6,7 +6,9 @@
 #include "Window/UIHierarchy.h"
 #include "Window/UIInspector.h"
 #include "Window/UIResourceExplorer.h"
+#include "Gizmo/UIGizmo.h"
 #include <imgui.h>
+#include <ImGuizmo.h>
 #include "../Window.h"
 
 ImGuiContext* UIHelper::_context = nullptr;
@@ -15,6 +17,7 @@ void UIHelper::init()
 {
 	_context = ImGui::CreateContext();
 	ImGui::SetCurrentContext(_context);
+	ImGuizmo::SetImGuiContext(_context);
 	
 	ImGui_ImplGlfw_InitForOpenGL(Engine::getWindow().getHandle(), true);
 	ImGui_ImplOpenGL3_Init("#version 460 core");
@@ -36,6 +39,7 @@ void UIHelper::update()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+	ImGuizmo::BeginFrame();
 	
 	if (!Engine::getWindow().isGuiOpen()) return;
 	
@@ -43,6 +47,7 @@ void UIHelper::update()
 	UIHierarchy::show();
 	UIInspector::show();
 	UIResourceExplorer::show();
+	UIGizmo::show();
 }
 
 void UIHelper::shutdown()
