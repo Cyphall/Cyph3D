@@ -5,7 +5,12 @@
 ResourceManager::ResourceManager(int threadCount):
 _threadPool(threadCount)
 {
+	_threadPool.init();
+}
 
+ResourceManager::~ResourceManager()
+{
+	_threadPool.shutdown();
 }
 
 void ResourceManager::update()
@@ -30,7 +35,7 @@ void ResourceManager::loadModel(Model* model, const std::string& name)
 {
 	Logger::Info(fmt::format("Loading model \"{}\"", name));
 	
-	_threadPool.enqueue_work([&, model, name]{
+	_threadPool.submit([&, model, name]{
 		ModelLoadingData modelData = Model::loadFromFile(name);
 		_modelLoadingQueue.enqueue(std::make_pair(model, std::move(modelData)));
 	});
@@ -63,7 +68,7 @@ void ResourceManager::loadImage(Image* image, const std::string& name, ImageType
 {
 	Logger::Info(fmt::format("Loading image \"{}\"", name));
 	
-	_threadPool.enqueue_work([&, image, name, type]
+	_threadPool.submit([&, image, name, type]
 	{
 		ImageLoadingData imageData = Image::loadFromFile(name, type);
 		_imageLoadingQueue.enqueue(std::make_pair(image, std::move(imageData)));
@@ -98,7 +103,7 @@ void ResourceManager::loadSkybox(Skybox* skybox, const std::string& name)
 {
 	Logger::Info(fmt::format("Loading skybox \"{}\"", name));
 	
-	_threadPool.enqueue_work([&, skybox, name]
+	_threadPool.submit([&, skybox, name]
 	{
 		SkyboxLoadingData skyboxData = Skybox::loadFromFile(name);
 		_skyboxLoadingQueue.enqueue(std::make_pair(skybox, std::move(skyboxData)));

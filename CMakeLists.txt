@@ -25,7 +25,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 target_include_directories(Cyph3D PRIVATE
         "vendor/glad/include"
 		"vendor/imgui-1.82/include"
-		"vendor/thread_pool/include"
+		"vendor/thread-pool/include"
 		"vendor/concurrentqueue/include"
 		"vendor/imguizmo-f7bbbe3/include"
 		${STB_INCLUDE_DIRS})
