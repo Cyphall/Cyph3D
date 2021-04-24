@@ -9,16 +9,13 @@ in V2F
 	vec2 texCoords;
 } v2f;
 
-out vec4 o_color;
+out vec3 o_color;
 
 void main()
 {
-	vec4 rawColor = texture(u_colorTexture, v2f.texCoords);
-	
-	vec3 color = rawColor.rgb;
-	float alpha = rawColor.a;
+	vec3 color = texture(u_colorTexture, v2f.texCoords).rgb;
 	
 	color *= pow(2, u_exposure);
 	
-	o_color = vec4(color, alpha);
+	o_color = color;
 }

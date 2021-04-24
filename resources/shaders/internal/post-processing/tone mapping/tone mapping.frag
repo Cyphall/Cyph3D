@@ -11,16 +11,13 @@ in V2F
 	vec2 texCoords;
 } v2f;
 
-out vec4 o_color;
+out vec3 o_color;
 
 void main()
 {
-	vec4 rawColor = texture(u_colorTexture, v2f.texCoords);
+	vec3 color = texture(u_colorTexture, v2f.texCoords).rgb;
 	
-	vec3 color = rawColor.rgb;
-	float alpha = rawColor.a;
-	
-	o_color = vec4(toSRGB(ACESFilm(color)), alpha);
+	o_color = toSRGB(ACESFilm(color));
 }
 
 vec3 toSRGB(vec3 linear)
