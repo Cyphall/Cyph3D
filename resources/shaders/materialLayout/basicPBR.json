@@ -11,8 +11,7 @@
 		"type": "normal_map",
 		"default_data": [
 			128,
-			128,
-			255
+			128
 		]
 	},
 	"roughnessMap": {

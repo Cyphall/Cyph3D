@@ -15,8 +15,8 @@ TextureProperties TextureHelper::getTextureProperties(ImageType type)
 		case NORMAL_MAP:
 			return TextureProperties
 			{
-					.internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM,
-					.swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ZERO}
+					.internalFormat = GL_COMPRESSED_RG_RGTC2,
+					.swizzle = {GL_RED, GL_GREEN, GL_ZERO, GL_ZERO}
 			};
 		case GRAYSCALE:
 			return TextureProperties
