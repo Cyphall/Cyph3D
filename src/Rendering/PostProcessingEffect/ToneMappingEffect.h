@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../IPostProcessEffect.h"
+#include "../IPostProcessingEffect.h"
 #include "../../GLObject/Framebuffer.h"
 
-class ToneMappingPostProcess : public IPostProcessEffect
+class ToneMappingEffect : public IPostProcessingEffect
 {
 public:
-	ToneMappingPostProcess();
+	ToneMappingEffect();
 	
 	Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
 

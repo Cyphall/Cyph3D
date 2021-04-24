@@ -1,10 +1,10 @@
 #include "PostProcessingPass.h"
-#include "../PostProcessingPass/ToneMappingPostProcess.h"
+#include "../PostProcessingEffect/ToneMappingEffect.h"
 
 PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures):
 IRenderPass(textures)
 {
-	_effects.push_back(std::make_unique<ToneMappingPostProcess>());
+	_effects.push_back(std::make_unique<ToneMappingEffect>());
 }
 
 void PostProcessingPass::preparePipeline()

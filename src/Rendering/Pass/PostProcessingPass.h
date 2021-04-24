@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IRenderPass.h"
-#include "../IPostProcessEffect.h"
+#include "../IPostProcessingEffect.h"
 
 class PostProcessingPass : public IRenderPass
 {
@@ -13,5 +13,5 @@ public:
 	void restorePipeline() override;
 	
 private:
-	std::vector<std::unique_ptr<IPostProcessEffect>> _effects;
+	std::vector<std::unique_ptr<IPostProcessingEffect>> _effects;
 };

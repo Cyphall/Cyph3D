@@ -3,10 +3,10 @@
 #include "../GLObject/Texture.h"
 #include <unordered_map>
 
-class IPostProcessEffect
+class IPostProcessingEffect
 {
 public:
-	virtual ~IPostProcessEffect() = default;
+	virtual ~IPostProcessingEffect() = default;
 	
 	virtual Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) = 0;
 };

@@ -6,7 +6,7 @@
 #include "../Scene/PointLight.h"
 #include "../Scene/DirectionalLight.h"
 #include "../Scene/MeshObject.h"
-#include "IPostProcessEffect.h"
+#include "IPostProcessingEffect.h"
 #include "Pass/GeometryPass.h"
 #include "Pass/GBufferDebugPass.h"
 #include "Pass/SkyboxPass.h"
