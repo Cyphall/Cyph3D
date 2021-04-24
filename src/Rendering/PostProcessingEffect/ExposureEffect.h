@@ -3,10 +3,10 @@
 #include "IPostProcessingEffect.h"
 #include "../../GLObject/Framebuffer.h"
 
-class ToneMappingEffect : public IPostProcessingEffect
+class ExposureEffect : public IPostProcessingEffect
 {
 public:
-	ToneMappingEffect();
+	ExposureEffect();
 	
 	Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
 

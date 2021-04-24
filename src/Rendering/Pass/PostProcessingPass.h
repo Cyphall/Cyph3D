@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IRenderPass.h"
-#include "../IPostProcessingEffect.h"
+#include "../PostProcessingEffect/IPostProcessingEffect.h"
 
 class PostProcessingPass : public IRenderPass
 {

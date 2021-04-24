@@ -1,9 +1,11 @@
 #include "PostProcessingPass.h"
 #include "../PostProcessingEffect/ToneMappingEffect.h"
+#include "../PostProcessingEffect/ExposureEffect.h"
 
 PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures):
 IRenderPass(textures)
 {
+	_effects.push_back(std::make_unique<ExposureEffect>());
 	_effects.push_back(std::make_unique<ToneMappingEffect>());
 }
 
@@ -16,9 +18,9 @@ void PostProcessingPass::render(std::unordered_map<std::string, Texture*>& textu
 {
 	Texture* renderTexture = textures["raw_render"];
 	
-	for (int i = 0; i < _effects.size(); i++)
+	for (auto& effect : _effects)
 	{
-		renderTexture = _effects[i]->render(renderTexture, textures);
+		renderTexture = effect->render(renderTexture, textures);
 	}
 	
 	textures["final"] = renderTexture;

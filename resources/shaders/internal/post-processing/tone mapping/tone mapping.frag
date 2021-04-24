@@ -5,7 +5,6 @@ vec3 toSRGB(vec3 linear);
 vec3 ACESFilm(vec3 x);
 
 layout(bindless_sampler) uniform sampler2D u_colorTexture;
-uniform float u_exposure;
 
 in V2F
 {
@@ -19,10 +18,9 @@ void main()
 	vec4 rawColor = texture(u_colorTexture, v2f.texCoords);
 	
 	vec3 color = rawColor.rgb;
+	float alpha = rawColor.a;
 	
-	color *= pow(2, u_exposure);
-	
-	o_color = vec4(toSRGB(ACESFilm(color)), rawColor.a);
+	o_color = vec4(toSRGB(ACESFilm(color)), alpha);
 }
 
 vec3 toSRGB(vec3 linear)

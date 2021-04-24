@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../GLObject/Texture.h"
+#include "../../GLObject/Texture.h"
 #include <unordered_map>
 
 class IPostProcessingEffect
