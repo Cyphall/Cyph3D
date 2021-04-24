@@ -1,8 +1,8 @@
 #include "ToneMappingPostProcess.h"
-#include "../Window.h"
-#include "../Scene/Scene.h"
-#include "../Engine.h"
-#include "../Helper/RenderHelper.h"
+#include "../../Window.h"
+#include "../../Scene/Scene.h"
+#include "../../Engine.h"
+#include "../../Helper/RenderHelper.h"
 
 ToneMappingPostProcess::ToneMappingPostProcess():
 _framebuffer(Engine::getWindow().getSize()),

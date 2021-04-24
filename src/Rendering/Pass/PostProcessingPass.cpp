@@ -1,5 +1,5 @@
 #include "PostProcessingPass.h"
-#include "../ToneMappingPostProcess.h"
+#include "../PostProcessingPass/ToneMappingPostProcess.h"
 
 PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures):
 IRenderPass(textures)

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "IPostProcessEffect.h"
-#include "../GLObject/Framebuffer.h"
+#include "../IPostProcessEffect.h"
+#include "../../GLObject/Framebuffer.h"
 
 class ToneMappingPostProcess : public IPostProcessEffect
 {
