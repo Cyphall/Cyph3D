@@ -1,11 +1,13 @@
 #include "PostProcessingPass.h"
 #include "../PostProcessingEffect/ToneMappingEffect.h"
 #include "../PostProcessingEffect/ExposureEffect.h"
+#include "../PostProcessingEffect/BloomEffect.h"
 
 PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures):
 IRenderPass(textures)
 {
 	_effects.push_back(std::make_unique<ExposureEffect>());
+	_effects.push_back(std::make_unique<BloomEffect>());
 	_effects.push_back(std::make_unique<ToneMappingEffect>());
 }
 
