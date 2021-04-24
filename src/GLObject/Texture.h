@@ -24,7 +24,7 @@ public:
 	
 private:
 	glm::ivec2 _size;
-	bool _useMipmaps;
+	bool _anisotropicFiltering;
 	
 	static int calculateMipmapCount(const glm::ivec2& size);
 };

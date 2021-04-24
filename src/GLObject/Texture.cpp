@@ -1,43 +1,45 @@
 #include "Texture.h"
 
 Texture::Texture(const TextureCreateInfo& settings):
-_size(settings.size), _useMipmaps(settings.useMipmaps)
+_size(settings.size), _anisotropicFiltering(settings.anisotropicFiltering)
 {
 	glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
 	
-	GLenum minFiltering;
-	if (_useMipmaps)
-	{
-		minFiltering = settings.textureFiltering == NEAREST ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
-	}
-	else
-	{
-		minFiltering = settings.textureFiltering == NEAREST ? GL_NEAREST : GL_LINEAR;
-	}
-	GLenum magFiltering = settings.textureFiltering == NEAREST ? GL_NEAREST : GL_LINEAR;
+	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, settings.minFilter);
+	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, settings.magFilter);
 	
-	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, minFiltering);
-	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, magFiltering);
+	glTextureParameterf(_handle, GL_TEXTURE_MIN_LOD, settings.minLod);
+	glTextureParameterf(_handle, GL_TEXTURE_MAX_LOD, settings.maxLod);
 	
-	if (_useMipmaps)
+	glTextureParameterf(_handle, GL_TEXTURE_LOD_BIAS, settings.lodBias);
+	
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, settings.wrapS);
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, settings.wrapT);
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_R, settings.wrapR);
+	
+	glTextureParameterfv(_handle, GL_TEXTURE_BORDER_COLOR, settings.borderColor.data());
+	
+	glTextureParameteri(_handle, GL_TEXTURE_BASE_LEVEL, settings.baseLevel);
+	glTextureParameteri(_handle, GL_TEXTURE_MAX_LEVEL, settings.maxLevel);
+	
+	glTextureParameteri(_handle, GL_DEPTH_STENCIL_TEXTURE_MODE, settings.depthStencilTextureMode);
+	
+	if (settings.compareFunc != GL_NONE)
+	{
+		glTextureParameteri(_handle, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+		glTextureParameteri(_handle, GL_TEXTURE_COMPARE_FUNC, settings.compareFunc);
+	}
+	
+	if (settings.anisotropicFiltering)
 	{
 		GLfloat anisoCount;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &anisoCount);
 		glTextureParameterf(_handle, GL_TEXTURE_MAX_ANISOTROPY, anisoCount);
 	}
 	
-	if (settings.isShadowMap)
-	{
-		glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-		
-		GLfloat borderColor[] = {1, 1, 1, 1};
-		glTextureParameterfv(_handle, GL_TEXTURE_BORDER_COLOR, borderColor);
-	}
-	
 	glTextureParameteriv(_handle, GL_TEXTURE_SWIZZLE_RGBA, settings.swizzle.data());
 	
-	glTextureStorage2D(_handle, _useMipmaps ? calculateMipmapCount(_size) : 1, settings.internalFormat, _size.x, _size.y);
+	glTextureStorage2D(_handle, _anisotropicFiltering ? calculateMipmapCount(_size) : 1, settings.internalFormat, _size.x, _size.y);
 }
 
 Texture::~Texture()
@@ -73,7 +75,7 @@ GLuint64 Texture::getBindlessHandle(const Sampler* sampler) const
 void Texture::setData(const void* data, GLenum format, GLenum type)
 {
 	glTextureSubImage2D(_handle, 0, 0, 0, _size.x, _size.y, format, type, data);
-	if (_useMipmaps)
+	if (_anisotropicFiltering)
 		glGenerateTextureMipmap(_handle);
 }
 

@@ -24,7 +24,7 @@ Sampler::Sampler(const SamplerCreateInfo& settings)
 		glSamplerParameteri(_handle, GL_TEXTURE_COMPARE_FUNC, settings.compareFunc);
 	}
 	
-	if (settings.enableAnisotropicFiltering)
+	if (settings.anisotropicFiltering)
 	{
 		GLfloat anisoCount;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &anisoCount);

@@ -29,7 +29,8 @@ _name(std::move(name))
 		TextureCreateInfo createInfo;
 		createInfo.size = glm::ivec2(1);
 		createInfo.internalFormat = textureProperties.internalFormat;
-		createInfo.textureFiltering = NEAREST;
+		createInfo.minFilter = GL_NEAREST;
+		createInfo.magFilter = GL_NEAREST;
 		createInfo.swizzle = textureProperties.swizzle;
 		
 		std::unique_ptr<Texture> defaultColor = std::make_unique<Texture>(createInfo);

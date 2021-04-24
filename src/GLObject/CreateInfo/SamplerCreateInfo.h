@@ -14,5 +14,5 @@ struct SamplerCreateInfo
 	GLenum wrapR = GL_REPEAT;
 	std::array<float, 4> borderColor = {0.0f, 0.0f, 0.0f, 0.0f};
 	GLenum compareFunc = GL_NONE;
-	bool enableAnisotropicFiltering = false;
+	bool anisotropicFiltering = false;
 };

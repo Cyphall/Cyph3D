@@ -40,8 +40,11 @@ void DirectionalLight::setCastShadows(bool value)
 		TextureCreateInfo textureCreateInfo;
 		textureCreateInfo.size = _shadowMapFb->getSize();
 		textureCreateInfo.internalFormat = GL_DEPTH_COMPONENT32;
-		textureCreateInfo.textureFiltering = NEAREST;
-		textureCreateInfo.isShadowMap = true;
+		textureCreateInfo.minFilter = GL_NEAREST;
+		textureCreateInfo.magFilter = GL_NEAREST;
+		textureCreateInfo.wrapS = GL_CLAMP_TO_BORDER;
+		textureCreateInfo.wrapT = GL_CLAMP_TO_BORDER;
+		textureCreateInfo.borderColor = {1, 1, 1, 1};
 		_shadowMap = std::make_unique<Texture>(textureCreateInfo);
 		
 		_shadowMapFb->attachDepth(*_shadowMap.get());

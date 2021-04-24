@@ -8,8 +8,9 @@ void Image::finishLoading(const ImageLoadingData& data)
 	TextureCreateInfo createInfo;
 	createInfo.size = data.data.getSize();
 	createInfo.internalFormat = data.internalFormat;
-	createInfo.textureFiltering = LINEAR;
-	createInfo.useMipmaps = true;
+	createInfo.minFilter = GL_LINEAR_MIPMAP_LINEAR;
+	createInfo.magFilter = GL_LINEAR;
+	createInfo.anisotropicFiltering = true;
 	createInfo.swizzle = data.swizzle;
 	
 	_resource = std::make_unique<Texture>(createInfo);
