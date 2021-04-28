@@ -3,16 +3,16 @@
 
 #include "../../GLObject/ShaderProgram.h"
 #include "../../GLObject/Framebuffer.h"
-#include "IRenderPass.h"
+#include "RenderPass.h"
 
-class ZPrePass : public IRenderPass
+class ZPrePass : public RenderPass
 {
 public:
 	ZPrePass(std::unordered_map<std::string, Texture*>& textures);
 	
-	void preparePipeline() override;
-	void render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera) override;
-	void restorePipeline() override;
+	void preparePipelineImpl() override;
+	void renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera) override;
+	void restorePipelineImpl() override;
 	
 private:
 	ShaderProgram* _shader;

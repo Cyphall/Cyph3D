@@ -4,7 +4,7 @@
 #include "../../Scene/MeshObject.h"
 
 GeometryPass::GeometryPass(std::unordered_map<std::string, Texture*>& textures):
-IRenderPass(textures),
+RenderPass(textures, "Geometry pass"),
 _gbuffer(Engine::getWindow().getSize()),
 _normalTexture(TextureCreateInfo
 {
@@ -65,7 +65,7 @@ _positionTexture(TextureCreateInfo
 	_vao.defineFormat(0, 3, 3, GL_FLOAT, offsetof(Mesh::VertexData, tangent));
 }
 
-void GeometryPass::preparePipeline()
+void GeometryPass::preparePipelineImpl()
 {
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
@@ -73,7 +73,7 @@ void GeometryPass::preparePipeline()
 	glEnable(GL_CULL_FACE);
 }
 
-void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
 	_normalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	_colorTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
@@ -109,7 +109,7 @@ void GeometryPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	}
 }
 
-void GeometryPass::restorePipeline()
+void GeometryPass::restorePipelineImpl()
 {
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);

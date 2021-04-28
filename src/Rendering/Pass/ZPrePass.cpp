@@ -4,7 +4,7 @@
 #include "../../Engine.h"
 
 ZPrePass::ZPrePass(std::unordered_map<std::string, Texture*>& textures) :
-IRenderPass(textures),
+RenderPass(textures, "Z prepass"),
 _framebuffer(Engine::getWindow().getSize()),
 _depthTexture(TextureCreateInfo
 {
@@ -24,14 +24,14 @@ _depthTexture(TextureCreateInfo
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
 }
 
-void ZPrePass::preparePipeline()
+void ZPrePass::preparePipelineImpl()
 {
 	glEnable(GL_DEPTH_TEST);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glEnable(GL_CULL_FACE);
 }
 
-void ZPrePass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void ZPrePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
 	float clearDepth = 1;
 	_depthTexture.clear(GL_DEPTH_COMPONENT, GL_FLOAT, &clearDepth);
@@ -63,7 +63,7 @@ void ZPrePass::render(std::unordered_map<std::string, Texture*>& textures, Scene
 	}
 }
 
-void ZPrePass::restorePipeline()
+void ZPrePass::restorePipelineImpl()
 {
 	glDisable(GL_DEPTH_TEST);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

@@ -79,11 +79,9 @@ void Renderer::render()
 	
 }
 
-void Renderer::render(IRenderPass& pass, Camera& camera)
+void Renderer::render(RenderPass& pass, Camera& camera)
 {
-	pass.preparePipeline();
 	pass.render(_textures, _registry, camera);
-	pass.restorePipeline();
 }
 
 std::unordered_map<std::string, Texture*>& Renderer::getTextures()

@@ -6,7 +6,7 @@
 #include "../../Engine.h"
 
 LightingPass::LightingPass(std::unordered_map<std::string, Texture*>& textures):
-IRenderPass(textures),
+RenderPass(textures, "Lighting pass"),
 _framebuffer(Engine::getWindow().getSize()),
 _rawRenderTexture(TextureCreateInfo
  {
@@ -26,12 +26,12 @@ _rawRenderTexture(TextureCreateInfo
 	textures["raw_render"] = &_rawRenderTexture;
 }
 
-void LightingPass::preparePipeline()
+void LightingPass::preparePipelineImpl()
 {
 	glEnable(GL_CULL_FACE);
 }
 
-void LightingPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
 	std::vector<DirectionalLight::LightData> directionalLightData;
 	directionalLightData.reserve(objects.directionalLights.size());
@@ -74,7 +74,7 @@ void LightingPass::render(std::unordered_map<std::string, Texture*>& textures, S
 	RenderHelper::drawScreenQuad();
 }
 
-void LightingPass::restorePipeline()
+void LightingPass::restorePipelineImpl()
 {
 	glDisable(GL_CULL_FACE);
 }

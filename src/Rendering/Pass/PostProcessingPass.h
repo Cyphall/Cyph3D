@@ -1,17 +1,17 @@
 #pragma once
 
-#include "IRenderPass.h"
-#include "../PostProcessingEffect/IPostProcessingEffect.h"
+#include "RenderPass.h"
+#include "../PostProcessingEffect/PostProcessingEffect.h"
 
-class PostProcessingPass : public IRenderPass
+class PostProcessingPass : public RenderPass
 {
 public:
 	PostProcessingPass(std::unordered_map<std::string, Texture*>& textures);
 	
-	void preparePipeline() override;
-	void render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera) override;
-	void restorePipeline() override;
+	void preparePipelineImpl() override;
+	void renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera) override;
+	void restorePipelineImpl() override;
 	
 private:
-	std::vector<std::unique_ptr<IPostProcessingEffect>> _effects;
+	std::vector<std::unique_ptr<PostProcessingEffect>> _effects;
 };

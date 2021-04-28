@@ -5,6 +5,7 @@
 #include "../../Helper/RenderHelper.h"
 
 ExposureEffect::ExposureEffect():
+PostProcessingEffect("Exposure"),
 _framebuffer(Engine::getWindow().getSize()),
 _outputTexture(TextureCreateInfo
 {
@@ -21,7 +22,7 @@ _outputTexture(TextureCreateInfo
 	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
 
-Texture* ExposureEffect::render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
+Texture* ExposureEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
 {
 	_shaderProgram->setUniform("u_colorTexture", currentRenderTexture);
 	float exposure = Engine::getScene().getCamera().getExposure();

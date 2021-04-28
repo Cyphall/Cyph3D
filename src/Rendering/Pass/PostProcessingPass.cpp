@@ -4,19 +4,19 @@
 #include "../PostProcessingEffect/BloomEffect.h"
 
 PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures):
-IRenderPass(textures)
+RenderPass(textures, "Post-processing pass")
 {
 	_effects.push_back(std::make_unique<ExposureEffect>());
 	_effects.push_back(std::make_unique<BloomEffect>());
 	_effects.push_back(std::make_unique<ToneMappingEffect>());
 }
 
-void PostProcessingPass::preparePipeline()
+void PostProcessingPass::preparePipelineImpl()
 {
 	glEnable(GL_CULL_FACE);
 }
 
-void PostProcessingPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
 	Texture* renderTexture = textures["raw_render"];
 	
@@ -28,7 +28,7 @@ void PostProcessingPass::render(std::unordered_map<std::string, Texture*>& textu
 	textures["final"] = renderTexture;
 }
 
-void PostProcessingPass::restorePipeline()
+void PostProcessingPass::restorePipelineImpl()
 {
 	glDisable(GL_CULL_FACE);
 }

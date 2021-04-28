@@ -1,14 +1,14 @@
 #pragma once
 
-#include "IPostProcessingEffect.h"
+#include "PostProcessingEffect.h"
 #include "../../GLObject/Framebuffer.h"
 
-class ToneMappingEffect : public IPostProcessingEffect
+class ToneMappingEffect : public PostProcessingEffect
 {
 public:
 	ToneMappingEffect();
 	
-	Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
+	Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
 
 private:
 	Framebuffer _framebuffer;

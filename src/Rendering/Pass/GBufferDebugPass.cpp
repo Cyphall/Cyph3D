@@ -5,7 +5,7 @@
 #include "../../Helper/RenderHelper.h"
 
 GBufferDebugPass::GBufferDebugPass(std::unordered_map<std::string, Texture*>& textures) :
-IRenderPass(textures),
+RenderPass(textures, "GBuffer Debug pass"),
 _framebuffer(Engine::getWindow().getSize()),
 _debugTexture(TextureCreateInfo
 {
@@ -25,12 +25,12 @@ _debugTexture(TextureCreateInfo
 	textures["gbuffer_debug"] = &_debugTexture;
 }
 
-void GBufferDebugPass::preparePipeline()
+void GBufferDebugPass::preparePipelineImpl()
 {
 	glEnable(GL_CULL_FACE);
 }
 
-void GBufferDebugPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void GBufferDebugPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
 	glm::mat4 viewProjectionInv = glm::inverse(camera.getProjection() * camera.getView());
 	_shader->setUniform("u_viewProjectionInv", &viewProjectionInv);
@@ -50,7 +50,7 @@ void GBufferDebugPass::render(std::unordered_map<std::string, Texture*>& texture
 	RenderHelper::drawScreenQuad();
 }
 
-void GBufferDebugPass::restorePipeline()
+void GBufferDebugPass::restorePipelineImpl()
 {
 	glDisable(GL_CULL_FACE);
 }

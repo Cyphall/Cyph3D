@@ -6,7 +6,7 @@
 #include "../Scene/PointLight.h"
 #include "../Scene/DirectionalLight.h"
 #include "../Scene/MeshObject.h"
-#include "PostProcessingEffect/IPostProcessingEffect.h"
+#include "PostProcessingEffect/PostProcessingEffect.h"
 #include "Pass/GeometryPass.h"
 #include "Pass/GBufferDebugPass.h"
 #include "Pass/SkyboxPass.h"
@@ -47,5 +47,5 @@ private:
 	
 	Framebuffer _objectIndexFramebuffer;
 	
-	void render(IRenderPass& pass, Camera& camera);
+	void render(RenderPass& pass, Camera& camera);
 };

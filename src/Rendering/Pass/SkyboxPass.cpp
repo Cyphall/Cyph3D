@@ -6,10 +6,10 @@
 #include <glm/gtx/transform.hpp>
 
 SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures):
-		IRenderPass(textures),
-		_framebuffer(Engine::getWindow().getSize()),
-		_vao(),
-		_vbo(36, GL_DYNAMIC_STORAGE_BIT)
+RenderPass(textures, "Skybox pass"),
+_framebuffer(Engine::getWindow().getSize()),
+_vao(),
+_vbo(36, GL_DYNAMIC_STORAGE_BIT)
 {
 	_framebuffer.attachColor(*textures["gbuffer_color"]);
 	_framebuffer.attachDepth(*textures["z-prepass_depth"]);
@@ -72,7 +72,7 @@ SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures):
 	
 }
 
-void SkyboxPass::preparePipeline()
+void SkyboxPass::preparePipelineImpl()
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -80,7 +80,7 @@ void SkyboxPass::preparePipeline()
 	glDepthMask(GL_FALSE);
 }
 
-void SkyboxPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void SkyboxPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
 	_framebuffer.bindForDrawing();
 	
@@ -100,7 +100,7 @@ void SkyboxPass::render(std::unordered_map<std::string, Texture*>& textures, Sce
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-void SkyboxPass::restorePipeline()
+void SkyboxPass::restorePipelineImpl()
 {
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);

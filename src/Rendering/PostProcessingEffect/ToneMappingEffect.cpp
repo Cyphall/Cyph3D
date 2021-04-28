@@ -5,6 +5,7 @@
 #include "../../Helper/RenderHelper.h"
 
 ToneMappingEffect::ToneMappingEffect():
+PostProcessingEffect("Tonemapping"),
 _framebuffer(Engine::getWindow().getSize()),
 _outputTexture(TextureCreateInfo
 {
@@ -21,7 +22,7 @@ _outputTexture(TextureCreateInfo
 	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
 
-Texture* ToneMappingEffect::render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
+Texture* ToneMappingEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
 {
 	_shaderProgram->setUniform("u_colorTexture", currentRenderTexture);
 	

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "IPostProcessingEffect.h"
+#include "PostProcessingEffect.h"
 #include "../../GLObject/Framebuffer.h"
 
-class BloomEffect : public IPostProcessingEffect
+class BloomEffect : public PostProcessingEffect
 {
 public:
 	BloomEffect();
 	
-	Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
+	Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
 
 private:
 	Framebuffer _extractBrightFramebuffer;

@@ -3,19 +3,19 @@
 #include "../../Engine.h"
 
 ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, Texture*>& textures):
-IRenderPass(textures)
+RenderPass(textures, "Shadow map pass")
 {
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
 }
 
-void ShadowMapPass::preparePipeline()
+void ShadowMapPass::preparePipelineImpl()
 {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 }
 
-void ShadowMapPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void ShadowMapPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
 	_vao.bind();
 	
@@ -30,7 +30,7 @@ void ShadowMapPass::render(std::unordered_map<std::string, Texture*>& textures, 
 	}
 }
 
-void ShadowMapPass::restorePipeline()
+void ShadowMapPass::restorePipelineImpl()
 {
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);

@@ -5,6 +5,7 @@
 #include "../../Helper/RenderHelper.h"
 
 BloomEffect::BloomEffect():
+PostProcessingEffect("Bloom"),
 _extractBrightFramebuffer(Engine::getWindow().getSize()),
 _blurFramebuffer(Engine::getWindow().getSize()),
 _combineFramebuffer(Engine::getWindow().getSize()),
@@ -63,7 +64,7 @@ _outputTexture(TextureCreateInfo
 	}
 }
 
-Texture* BloomEffect::render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
+Texture* BloomEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
 {
 	extractBright(currentRenderTexture);
 	

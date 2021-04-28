@@ -1,16 +1,16 @@
 #pragma once
 
-#include "IRenderPass.h"
+#include "RenderPass.h"
 #include "../../GLObject/ShaderStorageBuffer.h"
 
-class LightingPass : public IRenderPass
+class LightingPass : public RenderPass
 {
 public:
 	LightingPass(std::unordered_map<std::string, Texture*>& textures);
 	
-	void preparePipeline() override;
-	void render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera) override;
-	void restorePipeline() override;
+	void preparePipelineImpl() override;
+	void renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera) override;
+	void restorePipelineImpl() override;
 	
 private:
 	ShaderStorageBuffer<PointLight::LightData> _pointLightsBuffer;
