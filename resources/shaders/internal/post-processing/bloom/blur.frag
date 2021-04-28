@@ -4,14 +4,17 @@
 layout(bindless_sampler) uniform sampler2D u_brightOnlyTexture;
 uniform bool u_horizontal;
 
+layout(std430, binding = 2) buffer UselessNameBecauseItIsNeverUsedAnywhere1
+{
+	float weight[];
+};
+
 in V2F
 {
 	vec2 texCoords;
 } v2f;
 
 out vec3 o_color;
-
-const float weight[5] = {0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
 
 void main()
 {
@@ -20,7 +23,7 @@ void main()
 	
 	if(u_horizontal)
 	{
-		for(int i = 1; i < 5; ++i)
+		for(int i = 1; i < weight.length(); ++i)
 		{
 			result += texture(u_brightOnlyTexture, v2f.texCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
 			result += texture(u_brightOnlyTexture, v2f.texCoords - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
@@ -28,7 +31,7 @@ void main()
 	}
 	else
 	{
-		for(int i = 1; i < 5; ++i)
+		for(int i = 1; i < weight.length(); ++i)
 		{
 			result += texture(u_brightOnlyTexture, v2f.texCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
 			result += texture(u_brightOnlyTexture, v2f.texCoords - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
