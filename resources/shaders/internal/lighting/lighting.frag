@@ -383,7 +383,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
 	denom = PI * denom * denom;
 	
-	return num / denom;
+	return num / max(denom, 0.0000001);
 }
 
 // Geometry Shadowing Function
@@ -395,7 +395,7 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 	float num   = NdotV;
 	float denom = NdotV * (1.0 - k) + k;
 	
-	return num / denom;
+	return num / max(denom, 0.0000001);
 }
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 {
@@ -410,5 +410,5 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 // Fresnel Function
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
-	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
