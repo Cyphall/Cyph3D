@@ -57,7 +57,7 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, S
 		
 		glm::mat4 mvp = vp * meshObject->getTransform().getLocalToWorldMatrix();
 		
-		_shader->setUniform("u_mvp", &mvp);
+		_shader->setUniform("u_mvp", mvp);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

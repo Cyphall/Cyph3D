@@ -25,8 +25,7 @@ _outputTexture(TextureCreateInfo
 Texture* ExposureEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
 {
 	_shaderProgram->setUniform("u_colorTexture", currentRenderTexture);
-	float exposure = Engine::getScene().getCamera().getExposure();
-	_shaderProgram->setUniform("u_exposure", &exposure);
+	_shaderProgram->setUniform("u_exposure", Engine::getScene().getCamera().getExposure());
 	
 	_framebuffer.bindForDrawing();
 	_shaderProgram->bind();

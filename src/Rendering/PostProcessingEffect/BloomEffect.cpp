@@ -103,33 +103,28 @@ void BloomEffect::extractBright(Texture* original)
 
 void BloomEffect::blur()
 {
-	{
-		_blurFramebuffer.addToDrawBuffers(_blurTextures[1], 0);
-		_blurFramebuffer.bindForDrawing();
-		
-		_blurProgram->setUniform("u_brightOnlyTexture", &_blurTextures[0]);
-		bool temp = false;
-		_blurProgram->setUniform("u_horizontal", &temp);
-		_blurProgram->bind();
-		
-		RenderHelper::drawScreenQuad();
-		
-		_blurFramebuffer.removeFromDrawBuffers(_blurTextures[1]);
-	}
+	_blurFramebuffer.addToDrawBuffers(_blurTextures[1], 0);
+	_blurFramebuffer.bindForDrawing();
 	
-	{
-		_blurFramebuffer.addToDrawBuffers(_blurTextures[0], 0);
-		_blurFramebuffer.bindForDrawing();
-		
-		_blurProgram->setUniform("u_brightOnlyTexture", &_blurTextures[1]);
-		bool temp = true;
-		_blurProgram->setUniform("u_horizontal", &temp);
-		_blurProgram->bind();
-		
-		RenderHelper::drawScreenQuad();
-		
-		_blurFramebuffer.removeFromDrawBuffers(_blurTextures[0]);
-	}
+	_blurProgram->setUniform("u_brightOnlyTexture", _blurTextures[0]);
+	_blurProgram->setUniform("u_horizontal", false);
+	_blurProgram->bind();
+	
+	RenderHelper::drawScreenQuad();
+	
+	_blurFramebuffer.removeFromDrawBuffers(_blurTextures[1]);
+	
+	
+	_blurFramebuffer.addToDrawBuffers(_blurTextures[0], 0);
+	_blurFramebuffer.bindForDrawing();
+	
+	_blurProgram->setUniform("u_brightOnlyTexture", _blurTextures[1]);
+	_blurProgram->setUniform("u_horizontal", true);
+	_blurProgram->bind();
+	
+	RenderHelper::drawScreenQuad();
+	
+	_blurFramebuffer.removeFromDrawBuffers(_blurTextures[0]);
 }
 
 void BloomEffect::combine(Texture* original)
@@ -137,7 +132,7 @@ void BloomEffect::combine(Texture* original)
 	_combineFramebuffer.bindForDrawing();
 	
 	_combineProgram->setUniform("u_colorTexture1", original);
-	_combineProgram->setUniform("u_colorTexture2", &_blurTextures[0]);
+	_combineProgram->setUniform("u_colorTexture2", _blurTextures[0]);
 	_combineProgram->bind();
 	
 	RenderHelper::drawScreenQuad();

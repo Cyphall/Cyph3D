@@ -100,8 +100,8 @@ void PointLight::updateShadowMap(VertexArray& vao)
 	_shadowMapFb->bindForDrawing();
 	_shadowMapProgram->bind();
 	_shadowMapProgram->setUniform("u_viewProjections", _viewProjections, 6);
-	_shadowMapProgram->setUniform("u_lightPos", &worldPos);
-	_shadowMapProgram->setUniform("u_far", &_FAR);
+	_shadowMapProgram->setUniform("u_lightPos", worldPos);
+	_shadowMapProgram->setUniform("u_far", _FAR);
 	
 	float depthColor = 1;
 	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
@@ -121,7 +121,7 @@ void PointLight::updateShadowMap(VertexArray& vao)
 		vao.bindBufferToSlot(vbo, 0);
 		vao.bindIndexBuffer(ibo);
 		
-		_shadowMapProgram->setUniform("u_model", &meshObject->getTransform().getLocalToWorldMatrix());
+		_shadowMapProgram->setUniform("u_model", meshObject->getTransform().getLocalToWorldMatrix());
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

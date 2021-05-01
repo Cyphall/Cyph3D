@@ -91,9 +91,9 @@ void SkyboxPass::renderImpl(std::unordered_map<std::string, Texture*>& textures,
 			glm::mat4(glm::mat3(camera.getView())) *
 			glm::rotate(glm::radians(Engine::getScene().getSkybox()->getRotation()), glm::vec3(0, 1, 0));
 	
-	_shader->setUniform("u_mvp", &mvp);
+	_shader->setUniform("u_mvp", mvp);
 	
-	_shader->setUniform("u_skybox", &Engine::getScene().getSkybox()->getResource());
+	_shader->setUniform("u_skybox", Engine::getScene().getSkybox()->getResource());
 	
 	_vao.bind();
 	

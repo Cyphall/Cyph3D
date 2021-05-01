@@ -32,8 +32,7 @@ void GBufferDebugPass::preparePipelineImpl()
 
 void GBufferDebugPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
 {
-	glm::mat4 viewProjectionInv = glm::inverse(camera.getProjection() * camera.getView());
-	_shader->setUniform("u_viewProjectionInv", &viewProjectionInv);
+	_shader->setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));
 	
 	_shader->setUniform("u_normalTexture", textures["gbuffer_normal"]);
 	_shader->setUniform("u_colorTexture", textures["gbuffer_color"]);

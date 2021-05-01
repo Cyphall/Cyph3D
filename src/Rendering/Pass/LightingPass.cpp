@@ -52,12 +52,9 @@ void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_pointLightsBuffer.bind(0);
 	
 	
-	glm::vec3 pos = camera.getPosition();
-	_shader->setUniform("u_viewPos", &pos);
-	glm::mat4 viewProjectionInv = glm::inverse(camera.getProjection() * camera.getView());
-	_shader->setUniform("u_viewProjectionInv", &viewProjectionInv);
-	float time = Engine::getTimer().time();
-	_shader->setUniform("u_time", &time);
+	_shader->setUniform("u_viewPos", camera.getPosition());
+	_shader->setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));
+	_shader->setUniform("u_time", (float)Engine::getTimer().time());
 	
 	_shader->setUniform("u_normalTexture", textures["gbuffer_normal"]);
 	_shader->setUniform("u_colorTexture", textures["gbuffer_color"]);
