@@ -86,7 +86,7 @@ Texture* BloomEffect::renderImpl(Texture* currentRenderTexture, std::unordered_m
 	blur();
 	blur();
 	
-	combine(currentRenderTexture);
+	combine();
 	
 	return &_outputTexture;
 }
@@ -127,11 +127,11 @@ void BloomEffect::blur()
 	_blurFramebuffer.removeFromDrawBuffers(_blurTextures[0]);
 }
 
-void BloomEffect::combine(Texture* original)
+void BloomEffect::combine()
 {
 	_combineFramebuffer.bindForDrawing();
 	
-	_combineProgram->setUniform("u_colorTexture1", original);
+	_combineProgram->setUniform("u_colorTexture1", _nonBrightTexture);
 	_combineProgram->setUniform("u_colorTexture2", _blurTextures[0]);
 	_combineProgram->bind();
 	

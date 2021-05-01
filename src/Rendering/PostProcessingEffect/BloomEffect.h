@@ -38,7 +38,7 @@ private:
 	
 	void extractBright(Texture* original);
 	void blur();
-	void combine(Texture* original);
+	void combine();
 	
 	float gaussian(float x, float mu, float sigma);
 	std::vector<float> gaussianKernel(int kernelRadius, float sigma);
