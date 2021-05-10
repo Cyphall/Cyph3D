@@ -1,7 +1,7 @@
 #include "Texture.h"
 
 Texture::Texture(const TextureCreateInfo& settings):
-_size(settings.size), _anisotropicFiltering(settings.anisotropicFiltering)
+_size(settings.size)
 {
 	glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
 	
@@ -35,11 +35,17 @@ _size(settings.size), _anisotropicFiltering(settings.anisotropicFiltering)
 		GLfloat anisoCount;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &anisoCount);
 		glTextureParameterf(_handle, GL_TEXTURE_MAX_ANISOTROPY, anisoCount);
+		
+		_levels = calculateMipmapCount(_size);
+	}
+	else
+	{
+		_levels = settings.levels;
 	}
 	
 	glTextureParameteriv(_handle, GL_TEXTURE_SWIZZLE_RGBA, settings.swizzle.data());
 	
-	glTextureStorage2D(_handle, _anisotropicFiltering ? calculateMipmapCount(_size) : 1, settings.internalFormat, _size.x, _size.y);
+	glTextureStorage2D(_handle, _levels, settings.internalFormat, _size.x, _size.y);
 }
 
 Texture::~Texture()
@@ -75,8 +81,7 @@ GLuint64 Texture::getBindlessHandle(const Sampler* sampler) const
 void Texture::setData(const void* data, GLenum format, GLenum type)
 {
 	glTextureSubImage2D(_handle, 0, 0, 0, _size.x, _size.y, format, type, data);
-	if (_anisotropicFiltering)
-		glGenerateTextureMipmap(_handle);
+	generateMipmaps();
 }
 
 glm::ivec2 Texture::getSize() const
@@ -87,4 +92,11 @@ glm::ivec2 Texture::getSize() const
 void Texture::clear(GLenum format, GLenum type, void* clearData)
 {
 	glClearTexImage(_handle, 0, format, type, clearData);
+}
+
+void Texture::generateMipmaps()
+{
+	if (_levels == 1) return;
+	
+	glGenerateTextureMipmap(_handle);
 }

@@ -22,6 +22,7 @@ struct TextureCreateInfo
 	bool anisotropicFiltering = false;
 	std::array<GLint, 4> swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA};
 	int baseLevel = 0;
+	int levels = 1; // ignored if anisotropicFiltering == true
 	int maxLevel = 1000;
 	GLenum depthStencilTextureMode = GL_DEPTH_COMPONENT;
 };

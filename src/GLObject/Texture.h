@@ -19,12 +19,13 @@ public:
 	GLuint64 getBindlessHandle() const;
 	GLuint64 getBindlessHandle(const Sampler* sampler) const;
 	void setData(const void* data, GLenum format, GLenum type);
+	void generateMipmaps();
 	glm::ivec2 getSize() const;
 	void clear(GLenum format, GLenum type, void* clearData);
 	
 private:
 	glm::ivec2 _size;
-	bool _anisotropicFiltering;
+	int _levels;
 	
 	static int calculateMipmapCount(const glm::ivec2& size);
 };
