@@ -11,10 +11,10 @@ _framebuffer(Engine::getWindow().getSize()),
 _vao(),
 _vbo(36, GL_DYNAMIC_STORAGE_BIT)
 {
-	_framebuffer.attachColor(*textures["gbuffer_color"]);
-	_framebuffer.attachDepth(*textures["z-prepass_depth"]);
+	_framebuffer.attachColor(0, *textures["gbuffer_color"]);
+	_framebuffer.addToDrawBuffers(0, 0);
 	
-	_framebuffer.addToDrawBuffers(*textures["gbuffer_color"], 0);
+	_framebuffer.attachDepth(*textures["z-prepass_depth"]);
 	
 	ShaderProgramCreateInfo skyboxShaderProgramCreateInfo;
 	skyboxShaderProgramCreateInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/skybox/skybox");

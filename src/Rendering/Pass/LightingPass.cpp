@@ -20,8 +20,8 @@ _rawRenderTexture(TextureCreateInfo
 	
 	_shader = Engine::getGlobalRM().requestShaderProgram(lightingShaderProgramCreateInfo);
 	
-	_framebuffer.attachColor(_rawRenderTexture);
-	_framebuffer.addToDrawBuffers(_rawRenderTexture, 0);
+	_framebuffer.attachColor(0, _rawRenderTexture);
+	_framebuffer.addToDrawBuffers(0, 0);
 	
 	textures["raw_render"] = &_rawRenderTexture;
 }

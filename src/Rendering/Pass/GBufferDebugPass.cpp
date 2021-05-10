@@ -19,8 +19,8 @@ _debugTexture(TextureCreateInfo
 	
 	_shader = Engine::getGlobalRM().requestShaderProgram(createInfo);
 	
-	_framebuffer.attachColor(_debugTexture);
-	_framebuffer.addToDrawBuffers(_debugTexture, 0);
+	_framebuffer.attachColor(0, _debugTexture);
+	_framebuffer.addToDrawBuffers(0, 0);
 	
 	textures["gbuffer_debug"] = &_debugTexture;
 }

@@ -12,13 +12,6 @@
 class Framebuffer : public BufferBase
 {
 public:
-	struct ColorAttachment
-	{
-		GLuint             handle;
-		int                attachmentSlot;
-		std::optional<int> drawSlot;
-	};
-	
 	explicit Framebuffer(glm::ivec2 size);
 	
 	~Framebuffer() override;
@@ -27,29 +20,22 @@ public:
 	void bindForReading();
 	glm::ivec2 getSize();
 	
-	void attachColor(const Texture& texture);
-	void attachColor(const Cubemap& cubemap);
-	void attachColor(const Cubemap& cubemap, int face);
-	void detachColor(const Texture& texture);
-	void detachColor(const Cubemap& cubemap);
+	void attachColor(int attachmentSlot, const Texture& texture, int level = 0);
+	void attachColor(int attachmentSlot, const Cubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
+	void detachColor(int attachmentSlot);
 	
-	void attachDepth(const Texture& texture);
-	void attachDepth(const Cubemap& cubemap);
-	void attachDepth(const Cubemap& cubemap, int face);
+	void attachDepth(const Texture& texture, int level = 0);
+	void attachDepth(const Cubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
 	void detachDepth();
 	
-	void attachStencil(const Texture& texture);
-	void attachStencil(const Cubemap& cubemap);
-	void attachStencil(const Cubemap& cubemap, int face);
+	void attachStencil(const Texture& texture, int level = 0);
+	void attachStencil(const Cubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
 	void detachStencil();
 	
-	void addToDrawBuffers(const Texture& texture, int slot);
-	void addToDrawBuffers(const Cubemap& cubemap, int slot);
-	void removeFromDrawBuffers(const Texture& texture);
-	void removeFromDrawBuffers(const Cubemap& cubemap);
+	void addToDrawBuffers(int attachmentSlot, int drawLocation);
+	void removeFromDrawBuffers(int attachmentSlot);
 	
-	void setReadBuffer(const Texture& texture);
-	void setReadBuffer(const Cubemap& cubemap);
+	void setReadBuffer(int attachmentSlot);
 	void removeReadBuffer();
 	
 	static void initDrawToDefault();
@@ -60,52 +46,40 @@ public:
 private:
 	glm::ivec2 _size;
 	
+	std::array<std::optional<int>, 32> _colorAttachments;
+	std::optional<int> _readBuffer;
+	
 	bool _drawBuffersChanged = true;
 	bool _readBufferChanged = true;
 	
-	std::list<ColorAttachment> _colorAttachments;
-	
-	// GLuint: texture or cubemap handle
-	std::optional<GLuint> _depthAttachment = 0;
-	std::optional<GLuint> _stencilAttachment = 0;
-	
-	std::optional<int> _readBuffer;
-	
-	void verifySize(glm::ivec2 size);
-	void verifyDrawBufferCount();
-	void verifyColorAttachmentCount();
-	void verifyFace(int face);
-	void verifyColorAttachmentExistence(GLuint handle);
-	void verifyObjectIsNotAttachedAsColor(GLuint handle);
-	void verifyDepthAttachmentExistence();
-	void verifyObjectIsNotAttachedAsDepth(GLuint handle);
-	void verifyStencilAttachmentExistence();
-	void verifyObjectIsNotAttachedAsStencil(GLuint handle);
-	void verifyTextureIsDrawBuffer(GLuint handle);
-	void verifyTextureIsNotDrawBuffer(GLuint handle);
-	void verifyTextureIsReadBuffer(GLuint handle);
-	void verifyTextureIsNotReadBuffer(GLuint handle);
-	
-	void attachColorImpl(GLuint handle, int face);
-	void detachColorImpl(GLuint handle);
-	void attachDepthImpl(GLuint handle, int face);
+	void attachColorImpl(int attachmentSlot, GLuint handle, std::optional<int> face, int level);
+	void detachColorImpl(int attachmentSlot);
+	void attachDepthImpl(GLuint handle, std::optional<int> face, int level);
 	void detachDepthImpl();
-	void attachStencilImpl(GLuint handle, int face);
+	void attachStencilImpl(GLuint handle, std::optional<int> face, int level);
 	void detachStencilImpl();
 	
-	void addToDrawBuffersImpl(GLuint handle, int slot);
-	void removeFromDrawBuffersImpl(GLuint handle);
+	void addToDrawBuffersImpl(int attachmentSlot, int drawLocation);
+	void removeFromDrawBuffersImpl(int attachmentSlot);
 	
-	void setReadBufferImpl(GLuint handle);
+	void setReadBufferImpl(int attachmentSlot);
 	void removeReadBufferImpl();
-	
-	ColorAttachment* getColorAttachmentByHandle(GLuint handle);
 	
 	void updateDrawBuffers();
 	void updateReadBuffer();
 	
 	void checkDrawCompleteness();
 	void checkReadCompleteness();
+	
+	void verifySize(glm::ivec2 size);
+	void verifyDrawBufferCount();
+	void verifyColorAttachmentSlots();
+	void verifyFace(int face);
+	void verifyObjectIsNotAttachedAsColor(GLuint handle);
+	void verifyObjectIsNotAttachedAsDepth(GLuint handle);
+	void verifyObjectIsNotAttachedAsStencil(GLuint handle);
+	void verifyTextureIsNotDrawBuffer(GLuint handle);
+	void verifyTextureIsNotReadBuffer(GLuint handle);
 
 	static ShaderProgram* _drawToDefaultShaderProgram;
 };

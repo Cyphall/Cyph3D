@@ -15,8 +15,8 @@ _lightingPass(_textures),
 _postProcessingPass(_textures),
 _objectIndexFramebuffer(Engine::getWindow().getSize())
 {
-	_objectIndexFramebuffer.attachColor(*_textures["gbuffer_objectIndex"]);
-	_objectIndexFramebuffer.setReadBuffer(*_textures["gbuffer_objectIndex"]);
+	_objectIndexFramebuffer.attachColor(0, *_textures["gbuffer_objectIndex"]);
+	_objectIndexFramebuffer.setReadBuffer(0);
 }
 
 bool Renderer::getDebug() const

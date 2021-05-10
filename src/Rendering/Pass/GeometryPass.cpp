@@ -37,20 +37,20 @@ _positionTexture(TextureCreateInfo
 	.internalFormat = GL_RGB32F
 })
 {
-	_gbuffer.attachColor(_normalTexture);
-	_gbuffer.attachColor(_colorTexture);
-	_gbuffer.attachColor(_materialTexture);
-	_gbuffer.attachColor(_geometryNormalTexture);
-	_gbuffer.attachColor(_objectIndexTexture);
-	_gbuffer.attachColor(_positionTexture);
+	_gbuffer.attachColor(0, _normalTexture);
+	_gbuffer.attachColor(1, _colorTexture);
+	_gbuffer.attachColor(2, _materialTexture);
+	_gbuffer.attachColor(3, _geometryNormalTexture);
+	_gbuffer.attachColor(4, _objectIndexTexture);
+	_gbuffer.attachColor(5, _positionTexture);
 	_gbuffer.attachDepth(*textures["z-prepass_depth"]);
 	
-	_gbuffer.addToDrawBuffers(_normalTexture, 0);
-	_gbuffer.addToDrawBuffers(_colorTexture, 1);
-	_gbuffer.addToDrawBuffers(_materialTexture, 2);
-	_gbuffer.addToDrawBuffers(_geometryNormalTexture, 3);
-	_gbuffer.addToDrawBuffers(_objectIndexTexture, 4);
-	_gbuffer.addToDrawBuffers(_positionTexture, 5);
+	_gbuffer.addToDrawBuffers(0, 0);
+	_gbuffer.addToDrawBuffers(1, 1);
+	_gbuffer.addToDrawBuffers(2, 2);
+	_gbuffer.addToDrawBuffers(3, 3);
+	_gbuffer.addToDrawBuffers(4, 4);
+	_gbuffer.addToDrawBuffers(5, 5);
 	
 	textures["gbuffer_normal"] = &_normalTexture;
 	textures["gbuffer_color"] = &_colorTexture;

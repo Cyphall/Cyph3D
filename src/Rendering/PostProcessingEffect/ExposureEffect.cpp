@@ -13,8 +13,8 @@ _outputTexture(TextureCreateInfo
 	.internalFormat = GL_RGB16F
 })
 {
-	_framebuffer.attachColor(_outputTexture);
-	_framebuffer.addToDrawBuffers(_outputTexture, 0);
+	_framebuffer.attachColor(0, _outputTexture);
+	_framebuffer.addToDrawBuffers(0, 0);
 	
 	ShaderProgramCreateInfo createInfo;
 	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/post-processing/post-processing");

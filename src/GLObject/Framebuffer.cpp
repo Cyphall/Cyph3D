@@ -46,19 +46,6 @@ glm::ivec2 Framebuffer::getSize()
 	return _size;
 }
 
-Framebuffer::ColorAttachment* Framebuffer::getColorAttachmentByHandle(GLuint handle)
-{
-	for (ColorAttachment& attachment : _colorAttachments)
-	{
-		if (attachment.handle == handle)
-		{
-			return &attachment;
-		}
-	}
-	
-	return nullptr;
-}
-
 void Framebuffer::checkDrawCompleteness()
 {
 	GLenum state = glCheckNamedFramebufferStatus(_handle, GL_DRAW_FRAMEBUFFER);
@@ -81,7 +68,7 @@ void Framebuffer::verifySize(glm::ivec2 size)
 {
 	if (size != _size)
 	{
-		throw std::runtime_error("The texture size does not match the framebuffer size");
+		throw std::runtime_error(fmt::format("The texture size ({}x{}) does not match the framebuffer size ({}x{})", size.x, size.y, _size.x, _size.y));
 	}
 }
 
@@ -89,30 +76,34 @@ void Framebuffer::verifyDrawBufferCount()
 {
 	int maxDrawBuffers;
 	glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
-	
+
 	int drawBufferCount = 0;
-	for (const ColorAttachment& attachment : _colorAttachments)
+	for (const std::optional<int>& attachment : _colorAttachments)
 	{
-		if (attachment.drawSlot.has_value())
+		if (attachment.has_value())
 		{
 			drawBufferCount++;
 		}
 	}
-	
+
 	if (drawBufferCount > maxDrawBuffers)
 	{
-		throw std::runtime_error("The number of draw buffers is higher than the maximum number of draw buffers");
+		throw std::runtime_error(fmt::format("The number of draw buffers ({}) is higher than the maximum number of draw buffers ({})", drawBufferCount, maxDrawBuffers));
 	}
 }
 
-void Framebuffer::verifyColorAttachmentCount()
+void Framebuffer::verifyColorAttachmentSlots()
 {
 	int maxColorAttachments;
 	glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxColorAttachments);
 	
-	if (_colorAttachments.size() >= maxColorAttachments)
+	for (int i = maxColorAttachments; i < 32; i++)
 	{
-		throw std::runtime_error("The number color attachments is higher than the maximum number of color attachments");
+		const std::optional<int>& attachment = _colorAttachments[i];
+		if (attachment.has_value())
+		{
+			throw std::runtime_error(fmt::format("The color attachment slot {} is above the highest available slot ({})", i, maxColorAttachments));
+		}
 	}
 }
 
@@ -120,121 +111,34 @@ void Framebuffer::verifyFace(int face)
 {
 	if (!MathHelper::between(face, 0, 5))
 	{
-		throw std::runtime_error("The face index must be between 0 and 5 included");
-	}
-}
-
-void Framebuffer::verifyColorAttachmentExistence(GLuint handle)
-{
-	for (const ColorAttachment& attachment : _colorAttachments)
-	{
-		if (attachment.handle == handle)
-		{
-			return;
-		}
-	}
-	
-	throw std::runtime_error("The texture is not attached to this framebuffer");
-}
-
-void Framebuffer::verifyObjectIsNotAttachedAsColor(GLuint handle)
-{
-	for (const ColorAttachment& attachment : _colorAttachments)
-	{
-		if (attachment.handle == handle)
-		{
-			throw std::runtime_error("This texture is already attached as color to this framebuffer");
-		}
-	}
-}
-
-void Framebuffer::verifyDepthAttachmentExistence()
-{
-	if (_depthAttachment == 0)
-	{
-		throw std::runtime_error("No texture is attached as depth to this framebuffer");
-	}
-}
-
-void Framebuffer::verifyObjectIsNotAttachedAsDepth(GLuint handle)
-{
-	if (_depthAttachment == handle)
-	{
-		throw std::runtime_error("This texture is already attached as depth to this framebuffer");
-	}
-}
-
-void Framebuffer::verifyStencilAttachmentExistence()
-{
-	if (_stencilAttachment == 0)
-	{
-		throw std::runtime_error("No texture is attached as stencil to this framebuffer");
-	}
-}
-
-void Framebuffer::verifyObjectIsNotAttachedAsStencil(GLuint handle)
-{
-	if (_stencilAttachment == handle)
-	{
-		throw std::runtime_error("This texture is already attached as stencil to this framebuffer");
-	}
-}
-
-void Framebuffer::verifyTextureIsDrawBuffer(GLuint handle)
-{
-	ColorAttachment* attachment = getColorAttachmentByHandle(handle);
-	
-	if (!attachment->drawSlot)
-	{
-		throw std::runtime_error("This texture is not in a draw buffer slot");
-	}
-}
-
-void Framebuffer::verifyTextureIsNotDrawBuffer(GLuint handle)
-{
-	ColorAttachment* attachment = getColorAttachmentByHandle(handle);
-	
-	if (attachment->drawSlot)
-	{
-		throw std::runtime_error("This texture is already in a draw buffer slot");
-	}
-}
-
-void Framebuffer::verifyTextureIsReadBuffer(GLuint handle)
-{
-	if (_readBuffer != handle)
-	{
-		throw std::runtime_error("This texture is not in a draw buffer slot");
-	}
-}
-
-void Framebuffer::verifyTextureIsNotReadBuffer(GLuint handle)
-{
-	if (_readBuffer == handle)
-	{
-		throw std::runtime_error("This texture is already in a draw buffer slot");
+		throw std::runtime_error(fmt::format("The face index ({}) is not in the interval [0,5]", face));
 	}
 }
 
 void Framebuffer::updateDrawBuffers()
 {
-	int highestIndex = -1;
-	for (const ColorAttachment& attachment : _colorAttachments)
+	std::optional<int> highestIndex;
+	for (const std::optional<int>& attachment : _colorAttachments)
 	{
-		if (attachment.drawSlot.has_value() && attachment.drawSlot.value() > highestIndex)
+		if (attachment.has_value() && (!highestIndex.has_value() || attachment.value() > highestIndex))
 		{
-			highestIndex = attachment.drawSlot.value();
+			highestIndex = attachment.value();
 		}
 	}
 	
 	std::vector<GLenum> drawBuffers;
-	drawBuffers.resize(highestIndex+1, GL_NONE);
-	
-	for (const ColorAttachment& attachment : _colorAttachments)
+	if (highestIndex.has_value())
 	{
-		if (attachment.drawSlot.has_value())
+		drawBuffers.resize(highestIndex.value() + 1, GL_NONE);
+		
+		for (int i = 0; i < 32; i++)
 		{
-			drawBuffers[attachment.drawSlot.value()] = GL_COLOR_ATTACHMENT0 + attachment.attachmentSlot;
+			const std::optional<int>& attachment = _colorAttachments[i];
+			
+			if (attachment.has_value())
+			{
+				drawBuffers[attachment.value()] = GL_COLOR_ATTACHMENT0 + i;
+			}
 		}
 	}
 	
@@ -259,344 +163,179 @@ void Framebuffer::updateReadBuffer()
 	_readBufferChanged = false;
 }
 
-#pragma region Attachment setters
-
-void Framebuffer::attachColor(const Texture& texture)
+void Framebuffer::attachColor(int attachmentSlot, const Texture& texture, int level)
 {
 	verifySize(texture.getSize());
-	verifyObjectIsNotAttachedAsColor(texture.getHandle());
-	verifyObjectIsNotAttachedAsDepth(texture.getHandle());
-	verifyObjectIsNotAttachedAsStencil(texture.getHandle());
 	
-	attachColorImpl(texture.getHandle(), -1);
+	attachColorImpl(attachmentSlot, texture.getHandle(), std::nullopt, level);
+	
+	verifyColorAttachmentSlots();
 }
 
-void Framebuffer::attachColor(const Cubemap& cubemap)
+void Framebuffer::attachColor(int attachmentSlot, const Cubemap& cubemap, std::optional<int> face, int level)
 {
 	verifySize(cubemap.getSize());
-	verifyObjectIsNotAttachedAsColor(cubemap.getHandle());
-	verifyObjectIsNotAttachedAsDepth(cubemap.getHandle());
-	verifyObjectIsNotAttachedAsStencil(cubemap.getHandle());
+	if (face.has_value())
+	{
+		verifyFace(face.value());
+	}
 	
-	attachColorImpl(cubemap.getHandle(), -1);
+	attachColorImpl(attachmentSlot, cubemap.getHandle(), face, level);
+	
+	verifyColorAttachmentSlots();
 }
 
-void Framebuffer::attachColor(const Cubemap& cubemap, int face)
+void Framebuffer::detachColor(int attachmentSlot)
 {
-	verifySize(cubemap.getSize());
-	verifyFace(face);
-	verifyObjectIsNotAttachedAsColor(cubemap.getHandle());
-	verifyObjectIsNotAttachedAsDepth(cubemap.getHandle());
-	verifyObjectIsNotAttachedAsStencil(cubemap.getHandle());
-	
-	attachColorImpl(cubemap.getHandle(), face);
+	detachColorImpl(attachmentSlot);
 }
 
-void Framebuffer::detachColor(const Texture& texture)
+void Framebuffer::attachDepth(const Texture& texture, int level)
 {
-	verifyColorAttachmentExistence(texture.getHandle());
-	
-	detachColorImpl(texture.getHandle());
-}
-
-void Framebuffer::detachColor(const Cubemap& cubemap)
-{
-	verifyColorAttachmentExistence(cubemap.getHandle());
-	
-	detachColorImpl(cubemap.getHandle());
-}
-
-void Framebuffer::attachDepth(const Texture& texture)
-{
-	if (_depthAttachment == texture.getHandle())
-		return;
-	
 	verifySize(texture.getSize());
-	verifyObjectIsNotAttachedAsColor(texture.getHandle());
-	verifyObjectIsNotAttachedAsDepth(texture.getHandle());
 	
-	attachDepthImpl(texture.getHandle(), -1);
+	attachDepthImpl(texture.getHandle(), std::nullopt, level);
 }
 
-void Framebuffer::attachDepth(const Cubemap& cubemap)
+void Framebuffer::attachDepth(const Cubemap& cubemap, std::optional<int> face, int level)
 {
-	if (_depthAttachment == cubemap.getHandle())
-		return;
-	
 	verifySize(cubemap.getSize());
-	verifyObjectIsNotAttachedAsColor(cubemap.getHandle());
-	verifyObjectIsNotAttachedAsDepth(cubemap.getHandle());
 	
-	attachDepthImpl(cubemap.getHandle(), -1);
-}
-
-void Framebuffer::attachDepth(const Cubemap& cubemap, int face)
-{
-	if (_depthAttachment == cubemap.getHandle())
-		return;
+	if (face.has_value())
+	{
+		verifyFace(face.value());
+	}
 	
-	verifySize(cubemap.getSize());
-	verifyFace(face);
-	verifyObjectIsNotAttachedAsColor(cubemap.getHandle());
-	verifyObjectIsNotAttachedAsDepth(cubemap.getHandle());
-	
-	attachDepthImpl(cubemap.getHandle(), face);
+	attachDepthImpl(cubemap.getHandle(), face, level);
 }
 
 void Framebuffer::detachDepth()
 {
-	verifyDepthAttachmentExistence();
-	
 	detachDepthImpl();
 }
 
-void Framebuffer::attachStencil(const Texture& texture)
+void Framebuffer::attachStencil(const Texture& texture, int level)
 {
-	if (_stencilAttachment == texture.getHandle())
-		return;
-	
 	verifySize(texture.getSize());
-	verifyObjectIsNotAttachedAsColor(texture.getHandle());
-	verifyObjectIsNotAttachedAsStencil(texture.getHandle());
 	
-	attachStencilImpl(texture.getHandle(), -1);
+	attachStencilImpl(texture.getHandle(), std::nullopt, level);
 }
 
-void Framebuffer::attachStencil(const Cubemap& cubemap)
+void Framebuffer::attachStencil(const Cubemap& cubemap, std::optional<int> face, int level)
 {
-	if (_stencilAttachment == cubemap.getHandle())
-		return;
-	
 	verifySize(cubemap.getSize());
-	verifyObjectIsNotAttachedAsColor(cubemap.getHandle());
-	verifyObjectIsNotAttachedAsStencil(cubemap.getHandle());
 	
-	attachStencilImpl(cubemap.getHandle(), -1);
-}
-
-void Framebuffer::attachStencil(const Cubemap& cubemap, int face)
-{
-	if (_stencilAttachment == cubemap.getHandle())
-		return;
+	if (face.has_value())
+	{
+		verifyFace(face.value());
+	}
 	
-	verifySize(cubemap.getSize());
-	verifyFace(face);
-	verifyObjectIsNotAttachedAsColor(cubemap.getHandle());
-	verifyObjectIsNotAttachedAsStencil(cubemap.getHandle());
-	
-	attachStencilImpl(cubemap.getHandle(), face);
+	attachStencilImpl(cubemap.getHandle(), face, level);
 }
 
 void Framebuffer::detachStencil()
 {
-	verifyStencilAttachmentExistence();
-	
 	detachStencilImpl();
 }
 
-void Framebuffer::attachColorImpl(GLuint handle, int face)
+void Framebuffer::attachColorImpl(int attachmentSlot, GLuint handle, std::optional<int> face, int level)
 {
-	int slot;
-	for (slot = 0;; slot++)
-	{
-		bool alreadyPresent = false;
-		for (const ColorAttachment& attachment : _colorAttachments)
-		{
-			if (attachment.attachmentSlot == slot)
-			{
-				alreadyPresent = true;
-				break;
-			}
-		}
-		
-		if (!alreadyPresent)
-		{
-			break;
-		}
-	}
+	GLenum attachmentEnum = GL_COLOR_ATTACHMENT0 + attachmentSlot;
 	
-	GLenum attachmentEnum = GL_COLOR_ATTACHMENT0 + slot;
-	
-	if (face == -1)
+	if (face)
 	{
-		glNamedFramebufferTexture(_handle, attachmentEnum, handle, 0);
-		
+		glNamedFramebufferTextureLayer(_handle, attachmentEnum, handle, level, face.value());
 	}
 	else
 	{
-		glNamedFramebufferTextureLayer(_handle, attachmentEnum, handle, 0, face);
-	}
-	
-	ColorAttachment attachment{};
-	attachment.handle = handle;
-	attachment.attachmentSlot = slot;
-	_colorAttachments.push_back(attachment);
-	
-	verifyColorAttachmentCount();
-}
-
-void Framebuffer::detachColorImpl(GLuint handle)
-{
-	for (auto it = _colorAttachments.cbegin(); it != _colorAttachments.cend(); )
-	{
-		if (it->handle == handle)
-		{
-			GLenum attachmentEnum = GL_COLOR_ATTACHMENT0 + it->attachmentSlot;
-			glNamedFramebufferTexture(_handle, attachmentEnum, 0, 0);
-			
-			if (it->drawSlot.has_value())
-			{
-				_drawBuffersChanged = true;
-			}
-			
-			it = _colorAttachments.erase(it);
-		}
-		else
-		{
-			it++;
-		}
+		glNamedFramebufferTexture(_handle, attachmentEnum, handle, level);
 	}
 }
 
-void Framebuffer::attachDepthImpl(GLuint handle, int face)
+void Framebuffer::detachColorImpl(int attachmentSlot)
 {
-	if (face == -1)
+	glNamedFramebufferTexture(_handle, GL_COLOR_ATTACHMENT0 + attachmentSlot, 0, 0);
+}
+
+void Framebuffer::attachDepthImpl(GLuint handle, std::optional<int> face, int level)
+{
+	if (face)
 	{
-		glNamedFramebufferTexture(_handle, GL_DEPTH_ATTACHMENT, handle, 0);
-		
+		glNamedFramebufferTextureLayer(_handle, GL_DEPTH_ATTACHMENT, handle, level, face.value());
 	}
 	else
 	{
-		glNamedFramebufferTextureLayer(_handle, GL_DEPTH_ATTACHMENT, handle, 0, face);
+		glNamedFramebufferTexture(_handle, GL_DEPTH_ATTACHMENT, handle, level);
 	}
-	
-	_depthAttachment = handle;
 }
 
 void Framebuffer::detachDepthImpl()
 {
 	glNamedFramebufferTexture(_handle, GL_DEPTH_ATTACHMENT, 0, 0);
-	
-	_depthAttachment.reset();
 }
 
-void Framebuffer::attachStencilImpl(GLuint handle, int face)
+void Framebuffer::attachStencilImpl(GLuint handle, std::optional<int> face, int level)
 {
-	if (face == -1)
+	if (face)
 	{
-		glNamedFramebufferTexture(_handle, GL_STENCIL_ATTACHMENT, handle, 0);
-		
+		glNamedFramebufferTextureLayer(_handle, GL_STENCIL_ATTACHMENT, handle, level, face.value());
 	}
 	else
 	{
-		glNamedFramebufferTextureLayer(_handle, GL_STENCIL_ATTACHMENT, handle, 0, face);
+		glNamedFramebufferTexture(_handle, GL_STENCIL_ATTACHMENT, handle, level);
 	}
-	
-	_stencilAttachment = handle;
 }
 
 void Framebuffer::detachStencilImpl()
 {
 	glNamedFramebufferTexture(_handle, GL_STENCIL_ATTACHMENT, 0, 0);
-	
-	_stencilAttachment.reset();
 }
 
-void Framebuffer::addToDrawBuffersImpl(GLuint handle, int slot)
+void Framebuffer::addToDrawBuffersImpl(int attachmentSlot, int drawLocation)
 {
-	ColorAttachment* attachment = getColorAttachmentByHandle(handle);
-	
-	attachment->drawSlot = slot;
-	
+	_colorAttachments[attachmentSlot] = drawLocation;
 	_drawBuffersChanged = true;
 }
 
-void Framebuffer::removeFromDrawBuffersImpl(GLuint handle)
+void Framebuffer::removeFromDrawBuffersImpl(int attachmentSlot)
 {
-	ColorAttachment* attachment = getColorAttachmentByHandle(handle);
-	
-	attachment->drawSlot.reset();
-	
+	_colorAttachments[attachmentSlot].reset();
 	_drawBuffersChanged = true;
 }
 
-void Framebuffer::setReadBufferImpl(GLuint handle)
+void Framebuffer::setReadBufferImpl(int attachmentSlot)
 {
-	_readBuffer = getColorAttachmentByHandle(handle)->attachmentSlot;
+	_readBuffer = attachmentSlot;
+	_readBufferChanged = true;
 }
 
 void Framebuffer::removeReadBufferImpl()
 {
 	_readBuffer.reset();
+	_readBufferChanged = true;
 }
 
-#pragma endregion Attachment setters
-
-#pragma region Draw buffers setters
-
-void Framebuffer::addToDrawBuffers(const Texture& texture, int slot)
+void Framebuffer::addToDrawBuffers(int attachmentSlot, int drawLocation)
 {
-	verifyColorAttachmentExistence(texture.getHandle());
-	verifyTextureIsNotDrawBuffer(texture.getHandle());
-	
-	addToDrawBuffersImpl(texture.getHandle(), slot);
+	addToDrawBuffersImpl(attachmentSlot, drawLocation);
 	
 	verifyDrawBufferCount();
 }
 
-void Framebuffer::addToDrawBuffers(const Cubemap& cubemap, int slot)
+void Framebuffer::removeFromDrawBuffers(int attachmentSlot)
 {
-	verifyColorAttachmentExistence(cubemap.getHandle());
-	verifyTextureIsNotDrawBuffer(cubemap.getHandle());
-	
-	addToDrawBuffersImpl(cubemap.getHandle(), slot);
-	
-	verifyDrawBufferCount();
+	removeFromDrawBuffersImpl(attachmentSlot);
 }
 
-void Framebuffer::removeFromDrawBuffers(const Texture& texture)
+void Framebuffer::setReadBuffer(int attachmentSlot)
 {
-	verifyColorAttachmentExistence(texture.getHandle());
-	verifyTextureIsDrawBuffer(texture.getHandle());
-	
-	removeFromDrawBuffersImpl(texture.getHandle());
-}
-
-void Framebuffer::removeFromDrawBuffers(const Cubemap& cubemap)
-{
-	verifyColorAttachmentExistence(cubemap.getHandle());
-	verifyTextureIsDrawBuffer(cubemap.getHandle());
-	
-	removeFromDrawBuffersImpl(cubemap.getHandle());
-}
-
-void Framebuffer::setReadBuffer(const Texture& texture)
-{
-	verifyColorAttachmentExistence(texture.getHandle());
-	verifyTextureIsNotReadBuffer(texture.getHandle());
-	
-	setReadBufferImpl(texture.getHandle());
-}
-
-void Framebuffer::setReadBuffer(const Cubemap& cubemap)
-{
-	verifyColorAttachmentExistence(cubemap.getHandle());
-	verifyTextureIsNotReadBuffer(cubemap.getHandle());
-	
-	setReadBufferImpl(cubemap.getHandle());
+	setReadBufferImpl(attachmentSlot);
 }
 
 void Framebuffer::removeReadBuffer()
 {
-	if (!_readBuffer)
-	{
-		throw std::runtime_error("No texture is defined as read buffer");
-	}
-	
 	removeReadBufferImpl();
 }
-
-#pragma endregion Draw buffers setters
 
 #pragma region DrawToDefault
 

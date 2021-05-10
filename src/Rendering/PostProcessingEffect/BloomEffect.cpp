@@ -38,16 +38,15 @@ _outputTexture(TextureCreateInfo
 	.internalFormat = GL_RGB16F
 })
 {
-	_extractBrightFramebuffer.attachColor(_nonBrightTexture);
-	_extractBrightFramebuffer.attachColor(_blurTextures[0]);
-	_extractBrightFramebuffer.addToDrawBuffers(_nonBrightTexture, 0);
-	_extractBrightFramebuffer.addToDrawBuffers(_blurTextures[0], 1);
+	_extractBrightFramebuffer.attachColor(0, _nonBrightTexture);
+	_extractBrightFramebuffer.attachColor(1, _blurTextures[0]);
+	_extractBrightFramebuffer.addToDrawBuffers(0, 0);
+	_extractBrightFramebuffer.addToDrawBuffers(1, 1);
 	
-	_blurFramebuffer.attachColor(_blurTextures[0]);
-	_blurFramebuffer.attachColor(_blurTextures[1]);
+	_blurFramebuffer.addToDrawBuffers(0, 0);
 	
-	_combineFramebuffer.attachColor(_outputTexture);
-	_combineFramebuffer.addToDrawBuffers(_outputTexture, 0);
+	_combineFramebuffer.attachColor(0, _outputTexture);
+	_combineFramebuffer.addToDrawBuffers(0, 0);
 	
 	{
 		ShaderProgramCreateInfo createInfo;
@@ -103,7 +102,7 @@ void BloomEffect::extractBright(Texture* original)
 
 void BloomEffect::blur()
 {
-	_blurFramebuffer.addToDrawBuffers(_blurTextures[1], 0);
+	_blurFramebuffer.attachColor(0, _blurTextures[1]);
 	_blurFramebuffer.bindForDrawing();
 	
 	_blurProgram->setUniform("u_brightOnlyTexture", _blurTextures[0]);
@@ -112,10 +111,8 @@ void BloomEffect::blur()
 	
 	RenderHelper::drawScreenQuad();
 	
-	_blurFramebuffer.removeFromDrawBuffers(_blurTextures[1]);
 	
-	
-	_blurFramebuffer.addToDrawBuffers(_blurTextures[0], 0);
+	_blurFramebuffer.attachColor(0, _blurTextures[0]);
 	_blurFramebuffer.bindForDrawing();
 	
 	_blurProgram->setUniform("u_brightOnlyTexture", _blurTextures[1]);
@@ -123,8 +120,6 @@ void BloomEffect::blur()
 	_blurProgram->bind();
 	
 	RenderHelper::drawScreenQuad();
-	
-	_blurFramebuffer.removeFromDrawBuffers(_blurTextures[0]);
 }
 
 void BloomEffect::combine()
