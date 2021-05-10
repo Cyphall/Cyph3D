@@ -5,12 +5,6 @@
 #include <optional>
 #include <array>
 
-enum TextureFiltering
-{
-	NEAREST,
-	LINEAR
-};
-
 struct TextureCreateInfo
 {
 	glm::ivec2 size;
