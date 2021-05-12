@@ -65,7 +65,8 @@ void Engine::init(bool windowed)
 	Logger::Info(fmt::format("GPU: {}", glGetString(GL_RENDERER)), "OPGL");
 	
 	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	if (IsDebuggerPresent())
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 //	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 	glDebugMessageCallback(messageCallback, nullptr);
 	
