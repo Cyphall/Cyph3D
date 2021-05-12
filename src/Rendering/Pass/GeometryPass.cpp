@@ -71,6 +71,7 @@ void GeometryPass::preparePipelineImpl()
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_EQUAL);
 	glEnable(GL_CULL_FACE);
+	glDisable(GL_DITHER);
 }
 
 void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
@@ -115,4 +116,5 @@ void GeometryPass::restorePipelineImpl()
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	glDisable(GL_CULL_FACE);
+	glEnable(GL_DITHER);
 }
