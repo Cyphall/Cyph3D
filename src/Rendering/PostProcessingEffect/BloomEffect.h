@@ -22,14 +22,14 @@ private:
 	ShaderProgram* _extractBrightProgram;
 	Texture _nonBrightTexture;
 	
-	Framebuffer _blurFramebuffer;
+	std::array<Texture, 2> _blurTextures;
+	std::array<Framebuffer, 5> _blurFramebuffers;
 	ShaderProgram* _blurProgram;
+	ShaderProgram* _passthroughLevelProgram;
 	
 	Framebuffer _combineFramebuffer;
 	ShaderProgram* _combineProgram;
 	Texture _outputTexture;
-	
-	std::array<Texture, 2> _blurTextures;
 	
 	ShaderStorageBuffer<float> _kernelBuffer;
 	bool _kernelChanged = true;
@@ -37,7 +37,9 @@ private:
 	float _kernelSigma = 5;
 	
 	void extractBright(Texture* original);
-	void blur();
+	void downsample();
+	void blur(int level);
+	void combineWithNextLevel(int level);
 	void combine();
 	
 	float gaussian(float x, float mu, float sigma);

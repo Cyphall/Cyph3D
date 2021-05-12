@@ -1,3 +1,4 @@
+#include <fmt/core.h>
 #include "BloomEffect.h"
 #include "../../Window.h"
 #include "../../Scene/Scene.h"
@@ -12,26 +13,38 @@ _nonBrightTexture(TextureCreateInfo
 	.size = Engine::getWindow().getSize(),
 	.internalFormat = GL_RGB16F
 }),
-_blurFramebuffer(Engine::getWindow().getSize()),
-_combineFramebuffer(Engine::getWindow().getSize()),
 _blurTextures{
 	Texture(TextureCreateInfo
 	{
 		.size = Engine::getWindow().getSize(),
 		.internalFormat = GL_RGB16F,
+		.minFilter = GL_NEAREST_MIPMAP_NEAREST,
+		.magFilter = GL_NEAREST,
 		.wrapS = GL_CLAMP_TO_BORDER,
 		.wrapT = GL_CLAMP_TO_BORDER,
-		.borderColor = {0, 0, 0, 1}
+		.borderColor = {0, 0, 0, 1},
+		.levels = 5
 	}),
 	Texture(TextureCreateInfo
 	{
 		.size = Engine::getWindow().getSize(),
 		.internalFormat = GL_RGB16F,
+		.minFilter = GL_NEAREST_MIPMAP_NEAREST,
+		.magFilter = GL_NEAREST,
 		.wrapS = GL_CLAMP_TO_BORDER,
 		.wrapT = GL_CLAMP_TO_BORDER,
-		.borderColor = {0, 0, 0, 1}
+		.borderColor = {0, 0, 0, 1},
+		.levels = 5
 	})
 },
+_blurFramebuffers{
+	Framebuffer(_blurTextures[0].getSize(0)),
+	Framebuffer(_blurTextures[0].getSize(1)),
+	Framebuffer(_blurTextures[0].getSize(2)),
+	Framebuffer(_blurTextures[0].getSize(3)),
+	Framebuffer(_blurTextures[0].getSize(4))
+},
+_combineFramebuffer(Engine::getWindow().getSize()),
 _outputTexture(TextureCreateInfo
 {
 	.size = Engine::getWindow().getSize(),
@@ -43,7 +56,11 @@ _outputTexture(TextureCreateInfo
 	_extractBrightFramebuffer.addToDrawBuffers(0, 0);
 	_extractBrightFramebuffer.addToDrawBuffers(1, 1);
 	
-	_blurFramebuffer.addToDrawBuffers(0, 0);
+	_blurFramebuffers[0].addToDrawBuffers(0, 0);
+	_blurFramebuffers[1].addToDrawBuffers(0, 0);
+	_blurFramebuffers[2].addToDrawBuffers(0, 0);
+	_blurFramebuffers[3].addToDrawBuffers(0, 0);
+	_blurFramebuffers[4].addToDrawBuffers(0, 0);
 	
 	_combineFramebuffer.attachColor(0, _outputTexture);
 	_combineFramebuffer.addToDrawBuffers(0, 0);
@@ -68,24 +85,48 @@ _outputTexture(TextureCreateInfo
 		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/combine");
 		_combineProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 	}
+	
+	{
+		ShaderProgramCreateInfo createInfo;
+		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/post-processing/post-processing");
+		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/passthroughLevel");
+		_passthroughLevelProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
+	}
 }
 
 Texture* BloomEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
 {
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "extractBright");
 	extractBright(currentRenderTexture);
+	glPopDebugGroup();
+	
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "downsample");
+	downsample();
+	glPopDebugGroup();
 	
 	if (_kernelChanged)
 		recalculateGaussianKernel();
 	
 	_kernelBuffer.bind(2);
 	
-	blur();
-	blur();
-	blur();
-	blur();
-	blur();
+	for (int i = 4; i > 0; i--)
+	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, fmt::format("blur({})", i).c_str());
+		blur(i);
+		glPopDebugGroup();
+		
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, fmt::format("combineWithNextLevel({})", i).c_str());
+		combineWithNextLevel(i);
+		glPopDebugGroup();
+	}
 	
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "blur(0)");
+	blur(0);
+	glPopDebugGroup();
+	
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "combine");
 	combine();
+	glPopDebugGroup();
 	
 	return &_outputTexture;
 }
@@ -100,26 +141,65 @@ void BloomEffect::extractBright(Texture* original)
 	RenderHelper::drawScreenQuad();
 }
 
-void BloomEffect::blur()
+void BloomEffect::downsample()
 {
-	_blurFramebuffer.attachColor(0, _blurTextures[1]);
-	_blurFramebuffer.bindForDrawing();
+	_blurTextures[0].generateMipmaps();
+}
+
+void BloomEffect::blur(int level)
+{
+	glm::ivec2 levelSize = _blurTextures[0].getSize(level);
+	glViewport(0, 0, levelSize.x, levelSize.y);
 	
-	_blurProgram->setUniform("u_brightOnlyTexture", _blurTextures[0]);
+	
+	_blurFramebuffers[level].attachColor(0, _blurTextures[1], level);
+	_blurFramebuffers[level].bindForDrawing();
+	
+	_blurProgram->setUniform("u_sourceTexture", _blurTextures[0]);
 	_blurProgram->setUniform("u_horizontal", false);
+	_blurProgram->setUniform("u_mipmapLevel", level);
 	_blurProgram->bind();
 	
 	RenderHelper::drawScreenQuad();
 	
 	
-	_blurFramebuffer.attachColor(0, _blurTextures[0]);
-	_blurFramebuffer.bindForDrawing();
+	_blurFramebuffers[level].attachColor(0, _blurTextures[0], level);
+	_blurFramebuffers[level].bindForDrawing();
 	
-	_blurProgram->setUniform("u_brightOnlyTexture", _blurTextures[1]);
+	_blurProgram->setUniform("u_sourceTexture", _blurTextures[1]);
 	_blurProgram->setUniform("u_horizontal", true);
+	_blurProgram->setUniform("u_mipmapLevel", level);
 	_blurProgram->bind();
 	
 	RenderHelper::drawScreenQuad();
+	
+	
+	glm::ivec2 fullSize = _blurTextures[0].getSize(0);
+	glViewport(0, 0, fullSize.x, fullSize.y);
+}
+
+void BloomEffect::combineWithNextLevel(int level)
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	
+	glm::ivec2 levelSize = _blurTextures[0].getSize(level-1);
+	glViewport(0, 0, levelSize.x, levelSize.y);
+	
+	_blurFramebuffers[level-1].attachColor(0, _blurTextures[0], level-1);
+	_blurFramebuffers[level-1].bindForDrawing();
+	
+	_passthroughLevelProgram->setUniform("u_colorTexture", _blurTextures[0]);
+	_passthroughLevelProgram->setUniform("u_level", level);
+	_passthroughLevelProgram->bind();
+	
+	RenderHelper::drawScreenQuad();
+	
+	glm::ivec2 fullSize = _blurTextures[0].getSize(0);
+	glViewport(0, 0, fullSize.x, fullSize.y);
+	
+	glDisable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ZERO);
 }
 
 void BloomEffect::combine()

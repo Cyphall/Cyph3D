@@ -18,5 +18,5 @@ void main()
 	float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	
 	o_nonBrightColor = color / max(brightness, 1);
-	o_brightColor = o_nonBrightColor * max(brightness-1, 0);
+	o_brightColor = (o_nonBrightColor * max(brightness-1, 0)) * 0.2;
 }
