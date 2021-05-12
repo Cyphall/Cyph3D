@@ -165,7 +165,7 @@ void Framebuffer::updateReadBuffer()
 
 void Framebuffer::attachColor(int attachmentSlot, const Texture& texture, int level)
 {
-	verifySize(texture.getSize());
+	verifySize(texture.getSize(level));
 	
 	attachColorImpl(attachmentSlot, texture.getHandle(), std::nullopt, level);
 	
@@ -192,7 +192,7 @@ void Framebuffer::detachColor(int attachmentSlot)
 
 void Framebuffer::attachDepth(const Texture& texture, int level)
 {
-	verifySize(texture.getSize());
+	verifySize(texture.getSize(level));
 	
 	attachDepthImpl(texture.getHandle(), std::nullopt, level);
 }
@@ -216,7 +216,7 @@ void Framebuffer::detachDepth()
 
 void Framebuffer::attachStencil(const Texture& texture, int level)
 {
-	verifySize(texture.getSize());
+	verifySize(texture.getSize(level));
 	
 	attachStencilImpl(texture.getHandle(), std::nullopt, level);
 }

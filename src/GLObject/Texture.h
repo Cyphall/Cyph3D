@@ -20,11 +20,10 @@ public:
 	GLuint64 getBindlessHandle(const Sampler* sampler) const;
 	void setData(const void* data, GLenum format, GLenum type);
 	void generateMipmaps();
-	glm::ivec2 getSize() const;
+	glm::ivec2 getSize(int level = 0) const;
 	void clear(GLenum format, GLenum type, void* clearData);
 	
 private:
-	glm::ivec2 _size;
 	int _levels;
 	
 	static int calculateMipmapCount(const glm::ivec2& size);
