@@ -1,0 +1,6 @@
+{
+	"shader": "basicPBR",
+	"colorMap": "col.png",
+	"emissiveMap": "emis.png",
+	"roughnessMap": "rgh.png"
+}
