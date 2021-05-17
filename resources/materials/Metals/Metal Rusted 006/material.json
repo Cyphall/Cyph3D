@@ -1,0 +1,7 @@
+{
+	"shader": "basicPBR",
+	"colorMap": "col.png",
+	"normalMap": "nrm.jpg",
+	"roughnessMap": "rgh.jpg",
+	"metallicMap": "met.jpg"
+}
