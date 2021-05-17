@@ -23,7 +23,7 @@ private:
 	Texture _nonBrightTexture;
 	
 	std::array<Texture, 2> _blurTextures;
-	std::array<Framebuffer, 5> _blurFramebuffers;
+	std::array<Framebuffer, 6> _blurFramebuffers;
 	ShaderProgram* _blurProgram;
 	ShaderProgram* _passthroughLevelProgram;
 	

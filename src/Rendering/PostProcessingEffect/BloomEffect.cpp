@@ -23,7 +23,7 @@ _blurTextures{
 		.wrapS = GL_CLAMP_TO_BORDER,
 		.wrapT = GL_CLAMP_TO_BORDER,
 		.borderColor = {0, 0, 0, 1},
-		.levels = 5
+		.levels = 6
 	}),
 	Texture(TextureCreateInfo
 	{
@@ -34,7 +34,7 @@ _blurTextures{
 		.wrapS = GL_CLAMP_TO_BORDER,
 		.wrapT = GL_CLAMP_TO_BORDER,
 		.borderColor = {0, 0, 0, 1},
-		.levels = 5
+		.levels = 6
 	})
 },
 _blurFramebuffers{
@@ -42,7 +42,8 @@ _blurFramebuffers{
 	Framebuffer(_blurTextures[0].getSize(1)),
 	Framebuffer(_blurTextures[0].getSize(2)),
 	Framebuffer(_blurTextures[0].getSize(3)),
-	Framebuffer(_blurTextures[0].getSize(4))
+	Framebuffer(_blurTextures[0].getSize(4)),
+	Framebuffer(_blurTextures[0].getSize(5))
 },
 _combineFramebuffer(Engine::getWindow().getSize()),
 _outputTexture(TextureCreateInfo
@@ -61,6 +62,7 @@ _outputTexture(TextureCreateInfo
 	_blurFramebuffers[2].addToDrawBuffers(0, 0);
 	_blurFramebuffers[3].addToDrawBuffers(0, 0);
 	_blurFramebuffers[4].addToDrawBuffers(0, 0);
+	_blurFramebuffers[5].addToDrawBuffers(0, 0);
 	
 	_combineFramebuffer.attachColor(0, _outputTexture);
 	_combineFramebuffer.addToDrawBuffers(0, 0);
@@ -109,7 +111,7 @@ Texture* BloomEffect::renderImpl(Texture* currentRenderTexture, std::unordered_m
 	
 	_kernelBuffer.bind(2);
 	
-	for (int i = 4; i > 0; i--)
+	for (int i = 5; i > 0; i--)
 	{
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, fmt::format("blur({})", i).c_str());
 		blur(i);
