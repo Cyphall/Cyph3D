@@ -203,3 +203,12 @@ const char* DirectionalLight::getIdentifier() const
 {
 	return identifier;
 }
+
+void DirectionalLight::duplicate(Entity& targetEntity) const
+{
+	DirectionalLight& newComponent = targetEntity.addComponent<DirectionalLight>();
+	newComponent.setSrgbColor(getSrgbColor());
+	newComponent.setIntensity(getIntensity());
+	newComponent.setCastShadows(getCastShadows());
+	newComponent.setResolution(getResolution());
+}

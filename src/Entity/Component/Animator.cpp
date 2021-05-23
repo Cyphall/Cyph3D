@@ -86,3 +86,10 @@ const char* Animator::getIdentifier() const
 {
 	return identifier;
 }
+
+void Animator::duplicate(Entity& targetEntity) const
+{
+	Animator& newComponent = targetEntity.addComponent<Animator>();
+	newComponent.setVelocity(getVelocity());
+	newComponent.setAngularVelocity(getAngularVelocity());
+}

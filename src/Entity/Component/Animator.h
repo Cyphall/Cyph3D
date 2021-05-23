@@ -17,6 +17,8 @@ public:
 	void onUpdate() override;
 	void onDrawUi() override;
 	
+	void duplicate(Entity& targetEntity) const override;
+	
 	static const char* identifier;
 	const char* getIdentifier() const override;
 	

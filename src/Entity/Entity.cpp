@@ -2,6 +2,7 @@
 #include <imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "Entity.h"
+#include "../Scene/Scene.h"
 #include "Component/Animator.h"
 #include "Component/DirectionalLight.h"
 #include "Component/PointLight.h"
@@ -209,4 +210,26 @@ std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::allo
 std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::allocators_end()
 {
 	return _allocators.end();
+}
+
+void Entity::duplicate(Transform& parent) const
+{
+	Entity& newEntity = getScene().createEntity(parent);
+	newEntity.setName(getName());
+	
+	const Transform& thisTransform = getTransform();
+	Transform& newTransform = newEntity.getTransform();
+	newTransform.setLocalPosition(thisTransform.getLocalPosition());
+	newTransform.setLocalRotation(thisTransform.getLocalRotation());
+	newTransform.setLocalScale(thisTransform.getLocalScale());
+	
+	for (auto it = components_cbegin(); it != components_cend(); it++)
+	{
+		it->duplicate(newEntity);
+	}
+	
+	for (Transform* child : getTransform().getChildren())
+	{
+		child->getOwner()->duplicate(newEntity.getTransform());
+	}
 }

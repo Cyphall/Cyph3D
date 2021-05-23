@@ -41,6 +41,8 @@ public:
 	
 	Scene& getScene() const;
 	
+	void duplicate(Transform& parent) const;
+	
 	EntitySerialization serialize() const;
 	void deserialize(const EntitySerialization& data);
 	

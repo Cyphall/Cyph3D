@@ -19,6 +19,8 @@ public:
 	
 	virtual const char* getIdentifier() const = 0;
 	
+	virtual void duplicate(Entity& targetEntity) const = 0;
+	
 	virtual ComponentSerialization serialize() const = 0;
 	virtual void deserialize(const ComponentSerialization& data) = 0;
 

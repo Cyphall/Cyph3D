@@ -17,6 +17,7 @@ private:
 	
 	static std::optional<std::pair<Transform*, Transform*>> _entityToReparent;
 	static Entity* _entityToDelete;
+	static Entity* _entityToDuplicate;
 	static bool _createEntityRequested;
 	
 	static void processHierarchyChanges();

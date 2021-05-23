@@ -6,7 +6,8 @@
 #include "UIInspector.h"
 
 std::optional<std::pair<Transform*, Transform*>> UIHierarchy::_entityToReparent;
-Entity* UIHierarchy::_entityToDelete;
+Entity* UIHierarchy::_entityToDelete = nullptr;
+Entity* UIHierarchy::_entityToDuplicate = nullptr;
 bool UIHierarchy::_createEntityRequested = false;
 
 void UIHierarchy::show()
@@ -29,10 +30,16 @@ void UIHierarchy::show()
 		}
 		
 		std::any selected = UIInspector::getSelected();
-		bool canDelete = selected.has_value() && selected.type() == typeid(Transform*);
-		if (ImGui::MenuItem("Delete Entity", nullptr, false, canDelete))
+		bool entitySelected = selected.has_value() && selected.type() == typeid(Transform*);
+		
+		if (ImGui::MenuItem("Delete Entity", nullptr, false, entitySelected))
 		{
 			_entityToDelete = std::any_cast<Transform*>(selected)->getOwner();
+		}
+		
+		if (ImGui::MenuItem("Duplicate Entity", nullptr, false, entitySelected))
+		{
+			_entityToDuplicate = std::any_cast<Transform*>(selected)->getOwner();
 		}
 		
 		ImGui::EndPopup();
@@ -97,6 +104,13 @@ void UIHierarchy::processHierarchyChanges()
 		}
 		
 		_entityToDelete = nullptr;
+	}
+	
+	if (_entityToDuplicate != nullptr)
+	{
+		_entityToDuplicate->duplicate(*_entityToDuplicate->getTransform().getParent());
+		
+		_entityToDuplicate = nullptr;
 	}
 	
 	if (_createEntityRequested)

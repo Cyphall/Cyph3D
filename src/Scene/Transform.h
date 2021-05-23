@@ -16,7 +16,7 @@ public:
 	
 	~Transform();
 	
-	Transform* getParent();
+	Transform* getParent() const;
 	void setParent(Transform* parent);
 	std::vector<Transform*>& getChildren();
 	const std::vector<Transform*>& getChildren() const;

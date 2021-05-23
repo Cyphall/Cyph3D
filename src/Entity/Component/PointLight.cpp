@@ -202,3 +202,12 @@ const char* PointLight::getIdentifier() const
 {
 	return identifier;
 }
+
+void PointLight::duplicate(Entity& targetEntity) const
+{
+	PointLight& newComponent = targetEntity.addComponent<PointLight>();
+	newComponent.setSrgbColor(getSrgbColor());
+	newComponent.setIntensity(getIntensity());
+	newComponent.setCastShadows(getCastShadows());
+	newComponent.setResolution(getResolution());
+}

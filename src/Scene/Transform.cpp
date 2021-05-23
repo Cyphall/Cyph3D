@@ -5,7 +5,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-Transform* Transform::getParent()
+Transform* Transform::getParent() const
 {
 	return _parent;
 }

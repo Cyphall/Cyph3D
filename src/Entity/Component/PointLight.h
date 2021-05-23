@@ -44,6 +44,8 @@ public:
 	void setResolution(int value);
 	int getResolution() const;
 	
+	void duplicate(Entity& targetEntity) const override;
+	
 	ComponentSerialization serialize() const override;
 	void deserialize(const ComponentSerialization& data) override;
 

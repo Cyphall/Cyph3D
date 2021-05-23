@@ -159,3 +159,11 @@ const char* MeshRenderer::getIdentifier() const
 {
 	return identifier;
 }
+
+void MeshRenderer::duplicate(Entity& targetEntity) const
+{
+	MeshRenderer& newComponent = targetEntity.addComponent<MeshRenderer>();
+	newComponent.setMaterial(getMaterial());
+	newComponent.setModel(getModel());
+	newComponent.setContributeShadows(getContributeShadows());
+}
