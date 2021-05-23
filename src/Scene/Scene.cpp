@@ -8,10 +8,6 @@
 #include "../Engine.h"
 #include "Scene.h"
 #include "../UI/Window/UIInspector.h"
-#include "../Entity/Component/Animator.h"
-#include "../Entity/Component/MeshRenderer.h"
-#include "../Entity/Component/PointLight.h"
-#include "../Entity/Component/DirectionalLight.h"
 
 Scene::Scene(Camera camera, std::string name):
 _camera(camera), _root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::thread::hardware_concurrency() - 1)
@@ -92,12 +88,6 @@ void Scene::load(const std::string& name)
 	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/scenes/{}.json", name));
 
 	int version = jsonRoot["version"].get<int>();
-	
-	if (version > 1)
-	{
-		load_old(name);
-		return;
-	}
 	
 	Camera camera(glm::make_vec3(jsonRoot["camera"]["position"].get<std::vector<float>>().data()),
 		glm::make_vec2(jsonRoot["camera"]["spherical_coords"].get<std::vector<float>>().data()));
@@ -218,147 +208,4 @@ EntityConstIterator Scene::entities_cbegin() const
 EntityConstIterator Scene::entities_cend() const
 {
 	return EntityConstIterator(_entities.cend());
-}
-
-void Scene::load_old(const std::string& name)
-{
-	nlohmann::json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/scenes/{}.json", name));
-
-	int version = jsonRoot["version"].get<int>();
-
-	UIInspector::setSelected(std::any());
-
-	std::vector<float> cameraPosArray = jsonRoot["camera"]["position"].get<std::vector<float>>();
-	std::vector<float> cameraSphCoordsArray = jsonRoot["camera"]["spherical_coords"].get<std::vector<float>>();
-
-	Camera camera(glm::vec3(cameraPosArray[0], cameraPosArray[1], cameraPosArray[2]),
-			glm::vec2(cameraSphCoordsArray[0], cameraSphCoordsArray[1]));
-
-	camera.setExposure(jsonRoot["camera"]["exposure"].get<float>());
-
-	Engine::setScene(std::make_unique<Scene>(camera, name));
-	Scene& scene = Engine::getScene();
-
-	if (jsonRoot.contains("skybox"))
-	{
-		scene.setSkybox(scene.getRM().requestSkybox(jsonRoot["skybox"]["name"].get<std::string>()));
-		scene.getSkybox()->setRotation(jsonRoot["skybox"]["rotation"].get<float>());
-	}
-
-	for (nlohmann::json& value : jsonRoot["objects"])
-	{
-		parseSceneObject_old(value, &scene.getRoot(), version, scene);
-	}
-}
-
-void Scene::parseSceneObject_old(nlohmann::json& jsonObject, Transform* parent, int version, Scene& scene)
-{
-	nlohmann::json& jsonData = jsonObject["data"];
-	
-	Entity& entity = scene.createEntity(*parent);
-	Transform& transform = entity.getTransform();
-
-	std::vector<float> positionArray = jsonObject["position"].get<std::vector<float>>();
-	glm::vec3 position(positionArray[0], positionArray[1], positionArray[2]);
-	transform.setLocalPosition(position);
-
-	std::vector<float> rotationArray = jsonObject["rotation"].get<std::vector<float>>();
-	glm::quat rotation = glm::quat(rotationArray[0], rotationArray[1], rotationArray[2], rotationArray[3]);
-	transform.setLocalRotation(rotation);
-
-	std::vector<float> scaleArray = jsonObject["scale"].get<std::vector<float>>();
-	glm::vec3 scale(scaleArray[0], scaleArray[1], scaleArray[2]);
-	transform.setLocalScale(scale);
-
-	std::string name = jsonObject["name"].get<std::string>();
-	entity.setName(name);
-
-	std::string type = jsonObject["type"].get<std::string>();
-
-	if (type == "mesh_object")
-	{
-		std::vector<float> velocityArray = jsonData["velocity"].get<std::vector<float>>();
-		glm::vec3 velocity(velocityArray[0], velocityArray[1], velocityArray[2]);
-
-		std::vector<float> angularVelocityArray = jsonData["angular_velocity"].get<std::vector<float>>();
-		glm::vec3 angularVelocity(angularVelocityArray[0], angularVelocityArray[1], angularVelocityArray[2]);
-		
-		if (velocity != glm::vec3(0) || angularVelocity != glm::vec3(0))
-		{
-			Animator& animator = entity.addComponent<Animator>();
-			animator.setVelocity(velocity);
-			animator.setAngularVelocity(angularVelocity);
-		}
-
-		Material* material = nullptr;
-		if (jsonData.contains("material"))
-		{
-			material = scene.getRM().requestMaterial(jsonData["material"].get<std::string>());
-		}
-
-		Model* model = nullptr;
-		if (jsonData.contains("model"))
-		{
-			model = scene.getRM().requestModel(jsonData["model"].get<std::string>());
-		}
-		
-		bool contributeShadows = jsonData["contribute_shadows"].get<bool>();
-		
-		MeshRenderer& meshRenderer = entity.addComponent<MeshRenderer>();
-		meshRenderer.setMaterial(material);
-		meshRenderer.setModel(model);
-		meshRenderer.setContributeShadows(contributeShadows);
-	}
-	else if (type == "point_light")
-	{
-		PointLight& pointLight = entity.addComponent<PointLight>();
-		
-		std::vector<float> colorArray = jsonData["color"].get<std::vector<float>>();
-		glm::vec3 srgbColor(colorArray[0], colorArray[1], colorArray[2]);
-		pointLight.setSrgbColor(srgbColor);
-
-		float intensity = jsonData["intensity"].get<float>();
-		pointLight.setIntensity(intensity);
-
-		bool castShadows = jsonData["cast_shadows"].get<bool>();
-		pointLight.setCastShadows(castShadows);
-		
-		if (version >= 8)
-		{
-			int shadowResolution = jsonData["shadow_resolution"].get<int>();
-			pointLight.setResolution(shadowResolution);
-		}
-	}
-	else if (type == "directional_light")
-	{
-		DirectionalLight& directionalLight = entity.addComponent<DirectionalLight>();
-		
-		std::vector<float> colorArray = jsonData["color"].get<std::vector<float>>();
-		glm::vec3 srgbColor(colorArray[0], colorArray[1], colorArray[2]);
-		directionalLight.setSrgbColor(srgbColor);
-		
-		float intensity = jsonData["intensity"].get<float>();
-		directionalLight.setIntensity(intensity);
-		
-		bool castShadows = jsonData["cast_shadows"].get<bool>();
-		directionalLight.setCastShadows(castShadows);
-		
-		if (version >= 8)
-		{
-			int shadowResolution = jsonData["shadow_resolution"].get<int>();
-			directionalLight.setResolution(shadowResolution);
-		}
-	}
-	else
-	{
-		throw std::runtime_error(fmt::format("The object type {} is not recognized", jsonObject["type"]));
-	}
-
-	if (jsonObject.contains("children"))
-	{
-		for (nlohmann::json& value : jsonObject["children"])
-		{
-			parseSceneObject_old(value, &transform, version, scene);
-		}
-	}
 }

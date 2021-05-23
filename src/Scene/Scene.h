@@ -36,7 +36,6 @@ public:
 	ResourceManager& getRM();
 	
 	static void load(const std::string& name);
-	static void load_old(const std::string& name);
 	void save();
 	
 	const std::string& getName() const;
@@ -50,6 +49,5 @@ private:
 	ResourceManager _resourceManager;
 	
 	static void deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene);
-	static void parseSceneObject_old(nlohmann::json& jsonObject, Transform* parent, int version, Scene& scene);
 	nlohmann::ordered_json serializeEntity(const Entity& entity);
 };
