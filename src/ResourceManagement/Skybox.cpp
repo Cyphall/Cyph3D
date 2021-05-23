@@ -25,16 +25,16 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 {
 	std::string path = fmt::format("resources/skyboxes/{}", name);
 	
-	nlohmann::json root = JsonHelper::loadJsonFromFile(fmt::format("{}/skybox.json", path));
+	nlohmann::ordered_json root = JsonHelper::loadJsonFromFile(fmt::format("{}/skybox.json", path));
 	
 	std::string facePaths[6] =
 	{
-		fmt::format("{}/{}", path, static_cast<std::string>(root["right"])),
-		fmt::format("{}/{}", path, static_cast<std::string>(root["left"])),
-		fmt::format("{}/{}", path, static_cast<std::string>(root["down"])),
-		fmt::format("{}/{}", path, static_cast<std::string>(root["up"])),
-		fmt::format("{}/{}", path, static_cast<std::string>(root["front"])),
-		fmt::format("{}/{}", path, static_cast<std::string>(root["back"]))
+		fmt::format("{}/{}", path, root["right"].get<std::string>()),
+		fmt::format("{}/{}", path, root["left"].get<std::string>()),
+		fmt::format("{}/{}", path, root["down"].get<std::string>()),
+		fmt::format("{}/{}", path, root["up"].get<std::string>()),
+		fmt::format("{}/{}", path, root["front"].get<std::string>()),
+		fmt::format("{}/{}", path, root["back"].get<std::string>())
 	};
 	
 	SkyboxLoadingData skyboxData{};

@@ -1,6 +1,6 @@
 #include "Timer.h"
 
-void Timer::newFrame()
+void Timer::onNewFrame()
 {
 	auto currentTime = std::chrono::steady_clock::now();
 	

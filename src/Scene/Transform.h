@@ -5,13 +5,12 @@
 #include <vector>
 #include <memory>
 
-class SceneObject;
+class Entity;
 
 class Transform
 {
 public:
-	Transform(SceneObject* owner, Transform* parent, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
-	Transform(SceneObject* owner, Transform* parent, glm::vec3 position, glm::quat rotation, glm::vec3 scale);
+	Transform(Entity* owner, Transform* parent);
 	Transform(const Transform& other) = delete;
 	Transform(Transform&& other) = delete;
 	
@@ -20,6 +19,7 @@ public:
 	Transform* getParent();
 	void setParent(Transform* parent);
 	std::vector<Transform*>& getChildren();
+	const std::vector<Transform*>& getChildren() const;
 	
 	glm::vec3 getLocalPosition() const;
 	glm::vec3 getWorldPosition();
@@ -53,7 +53,7 @@ public:
 	glm::vec3 localToParentDirection(glm::vec3 localDir);
 	glm::vec3 parentToLocalDirection(glm::vec3 worldDir);
 	
-	SceneObject* getOwner();
+	Entity* getOwner();
 	
 	static std::unique_ptr<Transform> createSceneRoot();
 	
@@ -90,7 +90,7 @@ private:
 	Transform* _parent = nullptr;
 	std::vector<Transform*> _children;
 	
-	SceneObject* _owner;
+	Entity* _owner;
 	
 	// Scene root constructor
 	Transform();

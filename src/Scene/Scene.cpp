@@ -1,15 +1,17 @@
 #include <stdexcept>
 #include "../Helper/VectorHelper.h"
-#include "SceneObject.h"
+#include "../Entity/Entity.h"
 #include "../Helper/JsonHelper.h"
 #include <fmt/core.h>
+#include <glm/gtc/type_ptr.hpp>
 #include "../Logger.h"
 #include "../Engine.h"
 #include "Scene.h"
-#include "MeshObject.h"
-#include "PointLight.h"
-#include "DirectionalLight.h"
 #include "../UI/Window/UIInspector.h"
+#include "../Entity/Component/Animator.h"
+#include "../Entity/Component/MeshRenderer.h"
+#include "../Entity/Component/PointLight.h"
+#include "../Entity/Component/DirectionalLight.h"
 
 Scene::Scene(Camera camera, std::string name):
 _camera(camera), _root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::thread::hardware_concurrency() - 1)
@@ -17,48 +19,50 @@ _camera(camera), _root(Transform::createSceneRoot()), _name(std::move(name)), _r
 
 }
 
-Transform* Scene::getRoot()
+Transform& Scene::getRoot()
 {
-	return _root.get();
+	return *_root.get();
 }
 
-void Scene::update()
+void Scene::onUpdate()
 {
 	_camera.update();
-	for (std::unique_ptr<SceneObject>& object : _objects)
+	
+	for (auto it = entities_begin(); it != entities_end(); it++)
 	{
-		object->update();
+		(*it).onUpdate();
 	}
 }
 
-void Scene::add(std::unique_ptr<SceneObject> object)
+void Scene::onPreRender()
 {
-	_objects.emplace_back(std::move(object));
+	for (auto it = entities_begin(); it != entities_end(); it++)
+	{
+		(*it).onPreRender();
+	}
 }
 
-void Scene::remove(SceneObject* object)
+Entity& Scene::addEntity(Transform& parent)
 {
-	for (auto& child : object->getTransform().getChildren())
-	{
-		remove(child->getOwner());
-	}
-	
-	int removeIndex = -1;
-	
-	for (int i = 0; i < _objects.size(); i++)
-	{
-		if (_objects[i].get() == object)
-			removeIndex = i;
-	}
-	
-	if (removeIndex == -1) throw std::runtime_error("Object passed to Scene.remove is not part of that scene");
-	
-	VectorHelper::removeAt(_objects, removeIndex);
+	return *_entities.emplace_back(new Entity(parent, *this)).get();
 }
 
-std::vector<std::unique_ptr<SceneObject>>& Scene::getObjects()
+EntityIterator Scene::removeEntity(EntityIterator where)
 {
-	return _objects;
+	std::vector<Transform*> children = where->getTransform().getChildren();
+	for (Transform* child : children)
+	{
+		for (auto it = _entities.begin(); it != _entities.end(); it++)
+		{
+			if (it->get() == child->getOwner())
+			{
+				removeEntity(EntityIterator(it));
+				break;
+			}
+		}
+	}
+	
+	return EntityIterator(_entities.erase(where.getUnderlyingIterator()));
 }
 
 Camera& Scene::getCamera()
@@ -83,152 +87,59 @@ ResourceManager& Scene::getRM()
 
 void Scene::load(const std::string& name)
 {
-	nlohmann::json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/scenes/{}.json", name));
+	UIInspector::setSelected(std::any());
 	
-	int version = jsonRoot["version"];
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/scenes/{}.json", name));
+
+	int version = jsonRoot["version"].get<int>();
 	
-	if (version < 6)
+	if (version > 1)
 	{
-		Logger::Error("Scene version < 6 are not supported");
+		load_old(name);
 		return;
 	}
 	
-	UIInspector::setSelected(std::any());
-	
-	std::vector<float> cameraPosArray = jsonRoot["camera"]["position"];
-	std::vector<float> cameraSphCoordsArray = jsonRoot["camera"]["spherical_coords"];
-	
-	Camera camera(glm::vec3(cameraPosArray[0], cameraPosArray[1], cameraPosArray[2]),
-			glm::vec2(cameraSphCoordsArray[0], cameraSphCoordsArray[1]));
-	
-	camera.setExposure(jsonRoot["camera"]["exposure"]);
-	
+	Camera camera(glm::make_vec3(jsonRoot["camera"]["position"].get<std::vector<float>>().data()),
+		glm::make_vec2(jsonRoot["camera"]["spherical_coords"].get<std::vector<float>>().data()));
+
+	camera.setExposure(jsonRoot["camera"]["exposure"].get<float>());
+
 	Engine::setScene(std::make_unique<Scene>(camera, name));
 	Scene& scene = Engine::getScene();
-	
-	if (version < 7 && !jsonRoot["skybox"].empty() || version >= 7 && jsonRoot.contains("skybox"))
+
+	if (!jsonRoot["skybox"].is_null())
 	{
-		scene.setSkybox(scene.getRM().requestSkybox(jsonRoot["skybox"]["name"]));
-		scene.getSkybox()->setRotation(jsonRoot["skybox"]["rotation"]);
+		scene.setSkybox(scene.getRM().requestSkybox(jsonRoot["skybox"]["name"].get<std::string>()));
+		scene.getSkybox()->setRotation(jsonRoot["skybox"]["rotation"].get<float>());
 	}
-	
-	for (nlohmann::json& value : jsonRoot["objects"])
+
+	for (nlohmann::ordered_json& value : jsonRoot["entities"])
 	{
-		parseSceneObject(value, scene.getRoot(), version, scene);
+		deserializeEntity(value, scene.getRoot(), version, scene);
 	}
 }
 
-void Scene::parseSceneObject(nlohmann::json& jsonObject, Transform* parent, int version, Scene& scene)
+void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene)
 {
-	nlohmann::json& jsonData = jsonObject["data"];
+	Entity& entity = scene.addEntity(parent);
+	EntitySerialization serialization(json["version"].get<int>());
+	serialization.json = json["data"];
+	entity.deserialize(serialization);
 	
-	std::unique_ptr<SceneObject> sceneObject;
-	
-	std::vector<float> positionArray = jsonObject["position"];
-	glm::vec3 position(positionArray[0], positionArray[1], positionArray[2]);
-	
-	glm::quat rotation;
-	std::vector<float> rotationArray = jsonObject["rotation"];
-	if (version >= 7)
+	for (const nlohmann::ordered_json& child : json["children"])
 	{
-		rotation = glm::quat(rotationArray[0], rotationArray[1], rotationArray[2], rotationArray[3]);
-	}
-	else
-	{
-		rotation = glm::quat(glm::radians(glm::vec3(rotationArray[0], rotationArray[1], rotationArray[2])));
-	}
-	
-	std::vector<float> scaleArray = jsonObject["scale"];
-	glm::vec3 scale(scaleArray[0], scaleArray[1], scaleArray[2]);
-	
-	std::string name = jsonObject["name"];
-	
-	std::string type = jsonObject["type"];
-	
-	if (type == "mesh_object")
-	{
-		std::vector<float> velocityArray = jsonData["velocity"];
-		glm::vec3 velocity(velocityArray[0], velocityArray[1], velocityArray[2]);
-		
-		std::vector<float> angularVelocityArray = jsonData["angular_velocity"];
-		glm::vec3 angularVelocity(angularVelocityArray[0], angularVelocityArray[1], angularVelocityArray[2]);
-		
-		Material* material = nullptr;
-		if (version < 7 && !jsonData["material"].empty() || version >= 7 && jsonData.contains("material"))
-		{
-			material = scene.getRM().requestMaterial(jsonData["material"]);
-		}
-		
-		Model* model = nullptr;
-		if (version < 7 && !jsonData["mesh"].empty() || version >= 7 && jsonData.contains("model"))
-		{
-			model = scene.getRM().requestModel(jsonData[version >= 7 ? "model" : "mesh"]);
-		}
-		
-		sceneObject = std::make_unique<MeshObject>(parent, material, model, name, position, rotation, scale, velocity, angularVelocity);
-		
-		static_cast<MeshObject*>(sceneObject.get())->setContributeShadows(jsonData[version >= 7 ? "contribute_shadows" : "contributeShadows"]);
-	}
-	else if (type == "point_light")
-	{
-		std::vector<float> colorArray = jsonData["color"];
-		glm::vec3 srgbColor(colorArray[0], colorArray[1], colorArray[2]);
-		
-		float intensity = jsonData["intensity"];
-		
-		bool castShadows = jsonData[version >= 7 ? "cast_shadows" : "castShadows"];
-		
-		sceneObject = std::make_unique<PointLight>(parent, name, position, rotation, scale, srgbColor, intensity, castShadows);
-		
-		if (version >= 8)
-		{
-			int shadowResolution = jsonData["shadow_resolution"];
-			static_cast<PointLight*>(sceneObject.get())->setResolution(shadowResolution);
-		}
-	}
-	else if (type == "directional_light")
-	{
-		std::vector<float> colorArray = jsonData["color"];
-		glm::vec3 srgbColor(colorArray[0], colorArray[1], colorArray[2]);
-		
-		float intensity = jsonData["intensity"];
-		
-		bool castShadows = jsonData[version >= 7 ? "cast_shadows" : "castShadows"];
-		
-		sceneObject = std::make_unique<DirectionalLight>(parent, name, position, rotation, scale, srgbColor, intensity, castShadows);
-		
-		if (version >= 8)
-		{
-			int shadowResolution = jsonData["shadow_resolution"];
-			static_cast<DirectionalLight*>(sceneObject.get())->setResolution(shadowResolution);
-		}
-	}
-	else
-	{
-		throw std::runtime_error(fmt::format("The object type {} is not recognized", jsonObject["type"]));
-	}
-	
-	SceneObject* sceneObjectPtr = sceneObject.get();
-	
-	scene.add(std::move(sceneObject));
-	
-	if (version >= 7 && jsonObject.contains("children") || version < 7)
-	{
-		for (nlohmann::json& value : jsonObject["children"])
-		{
-			parseSceneObject(value, &sceneObjectPtr->getTransform(), version, scene);
-		}
+		deserializeEntity(child, entity.getTransform(), version, scene);
 	}
 }
 
 void Scene::save()
 {
-	nlohmann::json jsonRoot;
+	nlohmann::ordered_json jsonRoot;
 	
-	jsonRoot["version"] = 8;
+	jsonRoot["version"] = 1;
 	
 	
-	nlohmann::json jsonCamera;
+	nlohmann::ordered_json jsonCamera;
 	glm::vec3 cameraPosition = _camera.getPosition();
 	jsonCamera["position"] = {cameraPosition.x, cameraPosition.y, cameraPosition.z};
 	glm::vec2 cameraRotation = _camera.getSphericalCoords();
@@ -237,119 +148,49 @@ void Scene::save()
 	
 	jsonRoot["camera"] = jsonCamera;
 	
-	
+	nlohmann::ordered_json jsonSkybox;
 	if (_skybox != nullptr)
 	{
-		nlohmann::json jsonSkybox;
 		jsonSkybox["name"] = _skybox->getName();
 		jsonSkybox["rotation"] = _skybox->getRotation();
-		jsonRoot["skybox"] = jsonSkybox;
 	}
+	jsonRoot["skybox"] = jsonSkybox;
 	
-	
-	nlohmann::json objects;
-	
-	for (Transform* transform : _root->getChildren())
+	std::vector<nlohmann::ordered_json> entities;
+	entities.reserve(_root->getChildren().size());
+	for (Transform* child : _root->getChildren())
 	{
-		objects.push_back(serializeSceneObject(transform));
+		entities.push_back(serializeEntity(*child->getOwner()));
 	}
 	
-	jsonRoot["objects"] = objects;
+	jsonRoot["entities"] = entities;
 	
 	JsonHelper::saveJsonToFile(jsonRoot, fmt::format("resources/scenes/{}.json", _name));
 }
 
-nlohmann::json Scene::serializeSceneObject(Transform* transform)
+nlohmann::ordered_json Scene::serializeEntity(const Entity& entity)
 {
-	nlohmann::json jsonObject;
+	nlohmann::ordered_json jsonData;
 	
-	glm::vec3 position = transform->getLocalPosition();
-	jsonObject["position"] = {position.x, position.y, position.z};
-	glm::quat rotation = transform->getLocalRotation();
-	jsonObject["rotation"] = {rotation.w, rotation.x, rotation.y, rotation.z};
-	glm::vec3 scale = transform->getLocalScale();
-	jsonObject["scale"] = {scale.x, scale.y, scale.z};
+	EntitySerialization serialization = entity.serialize();
+	jsonData["version"] = serialization.version;
+	jsonData["data"] = serialization.json;
 	
-	jsonObject["name"] = transform->getOwner()->getName();
-	
-	
-	nlohmann::json jsonData;
-	
-	MeshObject* meshObject = dynamic_cast<MeshObject*>(transform->getOwner());
-	if (meshObject != nullptr)
+	const Transform& transform = entity.getTransform();
+	std::vector<nlohmann::ordered_json> children;
+	children.reserve(transform.getChildren().size());
+	for (Transform* child : transform.getChildren())
 	{
-		jsonObject["type"] = "mesh_object";
-		
-		glm::vec3 velocity = meshObject->getVelocity();
-		jsonData["velocity"] = {velocity.x, velocity.y, velocity.z};
-		glm::vec3 angularVelocity = meshObject->getAngularVelocity();
-		jsonData["angular_velocity"] = {angularVelocity.x, angularVelocity.y, angularVelocity.z};
-		
-		Model* model = meshObject->getModel();
-		if (model != nullptr)
-		{
-			jsonData["model"] = model->getName();
-		}
-		
-		Material* material = meshObject->getMaterial();
-		if (material != nullptr)
-		{
-			jsonData["material"] = material->getName();
-		}
-		
-		jsonData["contribute_shadows"] = meshObject->getContributeShadows();
+		children.push_back(serializeEntity(*child->getOwner()));
 	}
+	jsonData["children"] = children;
 	
-	Light* light = dynamic_cast<Light*>(transform->getOwner());
-	if (light != nullptr)
-	{
-		glm::vec3 color = light->getSrgbColor();
-		jsonData["color"] = {color.r, color.g, color.b};
-		jsonData["intensity"] = light->getIntensity();
-	}
-	
-	PointLight* pointLight = dynamic_cast<PointLight*>(transform->getOwner());
-	if (pointLight != nullptr)
-	{
-		jsonObject["type"] = "point_light";
-		
-		jsonData["cast_shadows"] = pointLight->getCastShadows();
-		jsonData["shadow_resolution"] = pointLight->getResolution();
-	}
-	
-	DirectionalLight* directionalLight = dynamic_cast<DirectionalLight*>(transform->getOwner());
-	if (directionalLight != nullptr)
-	{
-		jsonObject["type"] = "directional_light";
-		
-		jsonData["cast_shadows"] = directionalLight->getCastShadows();
-		jsonData["shadow_resolution"] = directionalLight->getResolution();
-	}
-	
-	jsonObject["data"] = jsonData;
-	
-	
-	if (!transform->getChildren().empty())
-	{
-		nlohmann::json jsonChildren;
-		
-		for (Transform* childTransform : transform->getChildren())
-		{
-			jsonChildren.push_back(serializeSceneObject(childTransform));
-		}
-		
-		jsonObject["children"] = jsonChildren;
-	}
-	
-	return jsonObject;
+	return jsonData;
 }
 
 Scene::~Scene()
 {
-	for (auto& object : _objects)
-	{
-		object.release();
-	}
+	_entities.clear();
 	
 	_root.release();
 }
@@ -357,4 +198,167 @@ Scene::~Scene()
 const std::string& Scene::getName() const
 {
 	return _name;
+}
+
+EntityIterator Scene::entities_begin()
+{
+	return EntityIterator(_entities.begin());
+}
+
+EntityIterator Scene::entities_end()
+{
+	return EntityIterator(_entities.end());
+}
+
+EntityConstIterator Scene::entities_cbegin() const
+{
+	return EntityConstIterator(_entities.cbegin());
+}
+
+EntityConstIterator Scene::entities_cend() const
+{
+	return EntityConstIterator(_entities.cend());
+}
+
+void Scene::load_old(const std::string& name)
+{
+	nlohmann::json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/scenes/{}.json", name));
+
+	int version = jsonRoot["version"].get<int>();
+
+	UIInspector::setSelected(std::any());
+
+	std::vector<float> cameraPosArray = jsonRoot["camera"]["position"].get<std::vector<float>>();
+	std::vector<float> cameraSphCoordsArray = jsonRoot["camera"]["spherical_coords"].get<std::vector<float>>();
+
+	Camera camera(glm::vec3(cameraPosArray[0], cameraPosArray[1], cameraPosArray[2]),
+			glm::vec2(cameraSphCoordsArray[0], cameraSphCoordsArray[1]));
+
+	camera.setExposure(jsonRoot["camera"]["exposure"].get<float>());
+
+	Engine::setScene(std::make_unique<Scene>(camera, name));
+	Scene& scene = Engine::getScene();
+
+	if (jsonRoot.contains("skybox"))
+	{
+		scene.setSkybox(scene.getRM().requestSkybox(jsonRoot["skybox"]["name"].get<std::string>()));
+		scene.getSkybox()->setRotation(jsonRoot["skybox"]["rotation"].get<float>());
+	}
+
+	for (nlohmann::json& value : jsonRoot["objects"])
+	{
+		parseSceneObject_old(value, &scene.getRoot(), version, scene);
+	}
+}
+
+void Scene::parseSceneObject_old(nlohmann::json& jsonObject, Transform* parent, int version, Scene& scene)
+{
+	nlohmann::json& jsonData = jsonObject["data"];
+	
+	Entity& entity = scene.addEntity(*parent);
+	Transform& transform = entity.getTransform();
+
+	std::vector<float> positionArray = jsonObject["position"].get<std::vector<float>>();
+	glm::vec3 position(positionArray[0], positionArray[1], positionArray[2]);
+	transform.setLocalPosition(position);
+
+	std::vector<float> rotationArray = jsonObject["rotation"].get<std::vector<float>>();
+	glm::quat rotation = glm::quat(rotationArray[0], rotationArray[1], rotationArray[2], rotationArray[3]);
+	transform.setLocalRotation(rotation);
+
+	std::vector<float> scaleArray = jsonObject["scale"].get<std::vector<float>>();
+	glm::vec3 scale(scaleArray[0], scaleArray[1], scaleArray[2]);
+	transform.setLocalScale(scale);
+
+	std::string name = jsonObject["name"].get<std::string>();
+	entity.setName(name);
+
+	std::string type = jsonObject["type"].get<std::string>();
+
+	if (type == "mesh_object")
+	{
+		std::vector<float> velocityArray = jsonData["velocity"].get<std::vector<float>>();
+		glm::vec3 velocity(velocityArray[0], velocityArray[1], velocityArray[2]);
+
+		std::vector<float> angularVelocityArray = jsonData["angular_velocity"].get<std::vector<float>>();
+		glm::vec3 angularVelocity(angularVelocityArray[0], angularVelocityArray[1], angularVelocityArray[2]);
+		
+		if (velocity != glm::vec3(0) || angularVelocity != glm::vec3(0))
+		{
+			Animator& animator = entity.addComponent<Animator>();
+			animator.setVelocity(velocity);
+			animator.setAngularVelocity(angularVelocity);
+		}
+
+		Material* material = nullptr;
+		if (jsonData.contains("material"))
+		{
+			material = scene.getRM().requestMaterial(jsonData["material"].get<std::string>());
+		}
+
+		Model* model = nullptr;
+		if (jsonData.contains("model"))
+		{
+			model = scene.getRM().requestModel(jsonData["model"].get<std::string>());
+		}
+		
+		bool contributeShadows = jsonData["contribute_shadows"].get<bool>();
+		
+		MeshRenderer& meshRenderer = entity.addComponent<MeshRenderer>();
+		meshRenderer.setMaterial(material);
+		meshRenderer.setModel(model);
+		meshRenderer.setContributeShadows(contributeShadows);
+	}
+	else if (type == "point_light")
+	{
+		PointLight& pointLight = entity.addComponent<PointLight>();
+		
+		std::vector<float> colorArray = jsonData["color"].get<std::vector<float>>();
+		glm::vec3 srgbColor(colorArray[0], colorArray[1], colorArray[2]);
+		pointLight.setSrgbColor(srgbColor);
+
+		float intensity = jsonData["intensity"].get<float>();
+		pointLight.setIntensity(intensity);
+
+		bool castShadows = jsonData["cast_shadows"].get<bool>();
+		pointLight.setCastShadows(castShadows);
+		
+		if (version >= 8)
+		{
+			int shadowResolution = jsonData["shadow_resolution"].get<int>();
+			pointLight.setResolution(shadowResolution);
+		}
+	}
+	else if (type == "directional_light")
+	{
+		DirectionalLight& directionalLight = entity.addComponent<DirectionalLight>();
+		
+		std::vector<float> colorArray = jsonData["color"].get<std::vector<float>>();
+		glm::vec3 srgbColor(colorArray[0], colorArray[1], colorArray[2]);
+		directionalLight.setSrgbColor(srgbColor);
+		
+		float intensity = jsonData["intensity"].get<float>();
+		directionalLight.setIntensity(intensity);
+		
+		bool castShadows = jsonData["cast_shadows"].get<bool>();
+		directionalLight.setCastShadows(castShadows);
+		
+		if (version >= 8)
+		{
+			int shadowResolution = jsonData["shadow_resolution"].get<int>();
+			directionalLight.setResolution(shadowResolution);
+		}
+	}
+	else
+	{
+		throw std::runtime_error(fmt::format("The object type {} is not recognized", jsonObject["type"]));
+	}
+
+	if (jsonObject.contains("children"))
+	{
+		for (nlohmann::json& value : jsonObject["children"])
+		{
+			parseSceneObject_old(value, &transform, version, scene);
+		}
+	}
 }

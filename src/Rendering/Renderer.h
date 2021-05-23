@@ -3,9 +3,6 @@
 #include "../GLObject/Framebuffer.h"
 #include "../GLObject/VertexArray.h"
 #include "../GLObject/ShaderStorageBuffer.h"
-#include "../Scene/PointLight.h"
-#include "../Scene/DirectionalLight.h"
-#include "../Scene/MeshObject.h"
 #include "PostProcessingEffect/PostProcessingEffect.h"
 #include "Pass/GeometryPass.h"
 #include "Pass/GBufferDebugPass.h"
@@ -25,17 +22,23 @@ public:
 	
 	void render();
 	
-	MeshObject* getClickedMeshObject(glm::dvec2 clickPos);
+	void onNewFrame();
+	
+	void requestMeshRendering(MeshRenderer::RenderData request);
+	void requestLightRendering(DirectionalLight::RenderData data);
+	void requestLightRendering(PointLight::RenderData data);
+	
+	Entity* getClickedEntity(glm::dvec2 clickPos);
 	
 	std::unordered_map<std::string, Texture*>& getTextures();
-	SceneObjectRegistry& getRegistry();
+	RenderRegistry& getRegistry();
 
 private:
 	// GBuffer
 	bool _debug = false;
 	
 	std::unordered_map<std::string, Texture*> _textures;
-	SceneObjectRegistry _registry;
+	RenderRegistry _registry;
 	
 	ZPrePass _zPrePass;
 	ShadowMapPass _shadowMapPass;

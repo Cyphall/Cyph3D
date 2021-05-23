@@ -1,9 +1,12 @@
 #pragma once
 
-#include "SceneObject.h"
 #include "../ResourceManagement/Skybox.h"
 #include "../ResourceManagement/ResourceManager.h"
 #include "Camera.h"
+#include "Transform.h"
+#include "../Iterator/EntityIterator.h"
+#include "../Iterator/EntityConstIterator.h"
+
 #include <nlohmann/json.hpp>
 
 class Scene
@@ -11,13 +14,20 @@ class Scene
 public:
 	Scene(Camera camera = Camera(), std::string name = "Untitled Scene");
 	~Scene();
-	Transform* getRoot();
-	void update();
 	
-	void add(std::unique_ptr<SceneObject> object);
-	void remove(SceneObject* object);
+	void onUpdate();
+	void onPreRender();
 	
-	std::vector<std::unique_ptr<SceneObject>>& getObjects();
+	Entity& addEntity(Transform& parent);
+	EntityIterator removeEntity(EntityIterator where);
+	
+	EntityIterator entities_begin();
+	EntityIterator entities_end();
+	EntityConstIterator entities_cbegin() const;
+	EntityConstIterator entities_cend() const;
+	
+	Transform& getRoot();
+	
 	Camera& getCamera();
 	
 	Skybox* getSkybox();
@@ -26,18 +36,20 @@ public:
 	ResourceManager& getRM();
 	
 	static void load(const std::string& name);
+	static void load_old(const std::string& name);
 	void save();
 	
 	const std::string& getName() const;
 
 private:
 	std::unique_ptr<Transform> _root;
-	std::vector<std::unique_ptr<SceneObject>> _objects;
+	std::list<std::unique_ptr<Entity>> _entities;
 	Camera _camera;
 	std::string _name;
 	Skybox* _skybox = nullptr;
 	ResourceManager _resourceManager;
 	
-	static void parseSceneObject(nlohmann::json& jsonObject, Transform* parent, int version, Scene& scene);
-	nlohmann::json serializeSceneObject(Transform* transform);
+	static void deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene);
+	static void parseSceneObject_old(nlohmann::json& jsonObject, Transform* parent, int version, Scene& scene);
+	nlohmann::ordered_json serializeEntity(const Entity& entity);
 };

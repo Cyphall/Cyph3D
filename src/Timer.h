@@ -5,7 +5,7 @@
 class Timer
 {
 public:
-	void newFrame();
+	void onNewFrame();
 	
 	double deltaTime() const;
 	double time() const;

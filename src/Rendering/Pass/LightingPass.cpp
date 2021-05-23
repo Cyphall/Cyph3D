@@ -31,22 +31,22 @@ void LightingPass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera)
 {
-	std::vector<DirectionalLight::LightData> directionalLightData;
-	directionalLightData.reserve(objects.directionalLights.size());
-	for (DirectionalLight* light : objects.directionalLights)
+	std::vector<DirectionalLight::NativeData> directionalLightData;
+	directionalLightData.reserve(registry.directionalLights.size());
+	for (DirectionalLight::RenderData& light : registry.directionalLights)
 	{
-		directionalLightData.push_back(light->getDataStruct());
+		directionalLightData.push_back(light.nativeData);
 	}
 	_directionalLightsBuffer.setData(directionalLightData);
 	_directionalLightsBuffer.bind(1);
 	
-	std::vector<PointLight::LightData> pointLightData;
-	pointLightData.reserve(objects.pointLights.size());
-	for (PointLight* light : objects.pointLights)
+	std::vector<PointLight::NativeData> pointLightData;
+	pointLightData.reserve(registry.pointLights.size());
+	for (PointLight::RenderData& light : registry.pointLights)
 	{
-		pointLightData.push_back(light->getDataStruct());
+		pointLightData.push_back(light.nativeData);
 	}
 	_pointLightsBuffer.setData(pointLightData);
 	_pointLightsBuffer.bind(0);

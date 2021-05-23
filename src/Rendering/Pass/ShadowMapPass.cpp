@@ -15,18 +15,18 @@ void ShadowMapPass::preparePipelineImpl()
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 }
 
-void ShadowMapPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void ShadowMapPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera)
 {
 	_vao.bind();
 	
-	for (DirectionalLight* light : objects.directionalLights)
+	for (DirectionalLight::RenderData& data : registry.directionalLights)
 	{
-		light->updateShadowMap(_vao);
+		data.light->updateShadowMap(_vao, registry);
 	}
 	
-	for (PointLight* light : objects.pointLights)
+	for (PointLight::RenderData& data : registry.pointLights)
 	{
-		light->updateShadowMap(_vao);
+		data.light->updateShadowMap(_vao, registry);
 	}
 }
 

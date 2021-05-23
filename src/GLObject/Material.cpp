@@ -13,14 +13,14 @@ Material* Material::_missing;
 Material::Material(std::string name, ResourceManager* resourceManager):
 _name(std::move(name))
 {
-	nlohmann::json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/materials/{}/material.json", _name));
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/materials/{}/material.json", _name));
 	
 	if (!jsonRoot.contains("shader"))
 	{
 		throw std::runtime_error(fmt::format("material.json of material {} doesn't contain a \"shader\" entry.", _name));
 	}
 	
-	_shaderProgram = resourceManager->requestMaterialShaderProgram(jsonRoot["shader"]);
+	_shaderProgram = resourceManager->requestMaterialShaderProgram(jsonRoot["shader"].get<std::string>());
 	
 	for (const auto& [mapName, mapDefinition] : _shaderProgram->getMapDefinitions())
 	{
@@ -43,7 +43,7 @@ _name(std::move(name))
 		if (jsonRoot.contains(mapName))
 		{
 			image = resourceManager->requestImage(
-					fmt::format("materials/{}/{}", _name, static_cast<std::string>(jsonRoot[mapName])),
+					fmt::format("materials/{}/{}", _name, jsonRoot[mapName].get<std::string>()),
 					mapDefinition.type);
 		}
 		

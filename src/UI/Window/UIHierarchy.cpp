@@ -1,17 +1,13 @@
 #include "UIHierarchy.h"
 #include <imgui.h>
-#include <imgui_stdlib.h>
 #include "../../Window.h"
 #include "../../Scene/Scene.h"
-#include "../../Scene/PointLight.h"
-#include "../../Scene/DirectionalLight.h"
-#include "../../Scene/MeshObject.h"
 #include "../../Engine.h"
 #include "UIInspector.h"
 
-std::queue<std::tuple<Transform*, Transform*>> UIHierarchy::_hierarchyOrderChangeQueue;
-std::queue<Transform*> UIHierarchy::_hierarchyDeleteQueue;
-std::queue<ObjectType> UIHierarchy::_hierarchyAddQueue;
+std::optional<std::pair<Transform*, Transform*>> UIHierarchy::_entityToReparent;
+Entity* UIHierarchy::_entityToDelete;
+bool UIHierarchy::_createEntityRequested = false;
 
 void UIHierarchy::show()
 {
@@ -27,28 +23,16 @@ void UIHierarchy::show()
 	// Main context menu to add elements to the scene
 	if (ImGui::BeginPopupContextWindow("HierarchyAction"))
 	{
-		if (ImGui::BeginMenu("Create"))
+		if (ImGui::MenuItem("Create Entity"))
 		{
-			if (ImGui::MenuItem("PointLight"))
-			{
-				_hierarchyAddQueue.push(PointLightType);
-			}
-			if (ImGui::MenuItem("DirectionalLight"))
-			{
-				_hierarchyAddQueue.push(DirectionalLightType);
-			}
-			if (ImGui::MenuItem("MeshObject"))
-			{
-				_hierarchyAddQueue.push(MeshObjectType);
-			}
-			ImGui::EndMenu();
+			_createEntityRequested = true;
 		}
 		
 		std::any selected = UIInspector::getSelected();
 		bool canDelete = selected.has_value() && selected.type() == typeid(Transform*);
-		if (ImGui::MenuItem("Delete", nullptr, false, canDelete))
+		if (ImGui::MenuItem("Delete Entity", nullptr, false, canDelete))
 		{
-			_hierarchyDeleteQueue.push(std::any_cast<Transform*>(selected));
+			_entityToDelete = std::any_cast<Transform*>(selected)->getOwner();
 		}
 		
 		ImGui::EndPopup();
@@ -65,12 +49,12 @@ void UIHierarchy::show()
 
 void UIHierarchy::processHierarchyChanges()
 {
-	while (!_hierarchyOrderChangeQueue.empty())
+	Scene& scene = Engine::getScene();
+	
+	if (_entityToReparent.has_value())
 	{
-		auto [dragged, newParent] = _hierarchyOrderChangeQueue.front();
-		_hierarchyOrderChangeQueue.pop();
+		auto [dragged, newParent] = _entityToReparent.value();
 		
-		// Check if the new parent is not a child of the dragged Transform
 		bool hierarchyLoop = false;
 		Transform* parent = newParent;
 		while ((parent = parent->getParent()) != nullptr)
@@ -81,44 +65,45 @@ void UIHierarchy::processHierarchyChanges()
 				break;
 			}
 		}
-		if (hierarchyLoop) continue;
 		
-		// Check if the new parent is not already the current parent
-		if (newParent == dragged->getParent()) continue;
+		// Check if the new parent is not a child of the dragged Transform
+		if (!hierarchyLoop)
+		{
+			// Check if the new parent is not already the current parent
+			if (newParent != dragged->getParent())
+			{
+				dragged->setParent(newParent);
+			}
+		}
 		
-		dragged->setParent(newParent);
+		_entityToReparent.reset();
 	}
 	
-	while (!_hierarchyDeleteQueue.empty())
+	if (_entityToDelete != nullptr)
 	{
-		SceneObject* sceneObjectToRemove = _hierarchyDeleteQueue.front()->getOwner();
-		_hierarchyDeleteQueue.pop();
-		
 		std::any selected = UIInspector::getSelected();
-		if (selected.has_value() && selected.type() == typeid(Transform*) && std::any_cast<Transform*>(selected) == &sceneObjectToRemove->getTransform())
+		if (selected.has_value() && selected.type() == typeid(Transform*) && std::any_cast<Transform*>(selected) == &_entityToDelete->getTransform())
 		{
 			UIInspector::setSelected(std::any());
 		}
-		Engine::getScene().remove(sceneObjectToRemove);
+		
+		for (auto it = scene.entities_begin(); it != scene.entities_end(); it++)
+		{
+			if (&(*it) == _entityToDelete)
+			{
+				scene.removeEntity(it);
+				break;
+			}
+		}
+		
+		_entityToDelete = nullptr;
 	}
 	
-	while (!_hierarchyAddQueue.empty())
+	if (_createEntityRequested)
 	{
-		ObjectType type = _hierarchyAddQueue.front();
-		_hierarchyAddQueue.pop();
-		
-		switch (type)
-		{
-			case PointLightType:
-				Engine::getScene().add(std::make_unique<PointLight>(Engine::getScene().getRoot(), "PointLight", glm::vec3(0), glm::vec3(0), glm::vec3(1)));
-				break;
-			case DirectionalLightType:
-				Engine::getScene().add(std::make_unique<DirectionalLight>(Engine::getScene().getRoot(), "DirectionalLight", glm::vec3(0), glm::vec3(0), glm::vec3(1)));
-				break;
-			case MeshObjectType:
-				Engine::getScene().add(std::make_unique<MeshObject>(Engine::getScene().getRoot(), Material::getDefault(), nullptr, "MeshObject", glm::vec3(0), glm::vec3(0), glm::vec3(1), glm::vec3(0), glm::vec3(0)));
-				break;
-		}
+		Entity& created = Engine::getScene().addEntity(Engine::getScene().getRoot());
+		UIInspector::setSelected(&created.getTransform());
+		_createEntityRequested = false;
 	}
 }
 
@@ -133,7 +118,7 @@ void UIHierarchy::addRootToTree()
 		if (payload)
 		{
 			Transform* dropped = *static_cast<Transform**>(payload->Data);
-			_hierarchyOrderChangeQueue.emplace(dropped, Engine::getScene().getRoot());
+			_entityToReparent = std::make_optional<std::pair<Transform*, Transform*>>(dropped, &Engine::getScene().getRoot());
 		}
 		ImGui::EndDragDropTarget();
 	}
@@ -141,7 +126,7 @@ void UIHierarchy::addRootToTree()
 	if (open)
 	{
 		//Add root children
-		for (Transform* child : Engine::getScene().getRoot()->getChildren())
+		for (Transform* child : Engine::getScene().getRoot().getChildren())
 		{
 			addObjectToTree(child);
 		}
@@ -183,7 +168,7 @@ void UIHierarchy::addObjectToTree(Transform* transform)
 		if (payload)
 		{
 			Transform* dropped = *static_cast<Transform**>(payload->Data);
-			_hierarchyOrderChangeQueue.emplace(dropped, transform);
+			_entityToReparent = std::make_optional<std::pair<Transform*, Transform*>>(dropped, transform);
 		}
 		ImGui::EndDragDropTarget();
 	}

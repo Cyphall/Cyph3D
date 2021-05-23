@@ -9,7 +9,7 @@ public:
 	PostProcessingPass(std::unordered_map<std::string, Texture*>& textures);
 	
 	void preparePipelineImpl() override;
-	void renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera) override;
+	void renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera) override;
 	void restorePipelineImpl() override;
 	
 private:

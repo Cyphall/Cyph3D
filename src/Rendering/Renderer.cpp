@@ -34,28 +34,6 @@ void Renderer::render()
 	Scene& scene = Engine::getScene();
 	Camera& camera = scene.getCamera();
 	
-	_registry = SceneObjectRegistry();
-	for (std::unique_ptr<SceneObject>& object : Engine::getScene().getObjects())
-	{
-		MeshObject* meshObject = dynamic_cast<MeshObject*>(object.get());
-		if (meshObject != nullptr)
-		{
-			_registry.meshObjects.push_back(meshObject);
-		}
-		
-		DirectionalLight* directionalLight = dynamic_cast<DirectionalLight*>(object.get());
-		if (directionalLight != nullptr)
-		{
-			_registry.directionalLights.push_back(directionalLight);
-		}
-		
-		PointLight* pointLight = dynamic_cast<PointLight*>(object.get());
-		if (pointLight != nullptr)
-		{
-			_registry.pointLights.push_back(pointLight);
-		}
-	}
-	
 	render(_zPrePass, camera);
 	render(_shadowMapPass, camera);
 	
@@ -79,9 +57,9 @@ void Renderer::render()
 	
 }
 
-void Renderer::render(RenderPass& pass, Camera& camera)
+void Renderer::onNewFrame()
 {
-	pass.render(_textures, _registry, camera);
+	_registry = RenderRegistry();
 }
 
 std::unordered_map<std::string, Texture*>& Renderer::getTextures()
@@ -89,12 +67,12 @@ std::unordered_map<std::string, Texture*>& Renderer::getTextures()
 	return _textures;
 }
 
-SceneObjectRegistry& Renderer::getRegistry()
+RenderRegistry& Renderer::getRegistry()
 {
 	return _registry;
 }
 
-MeshObject* Renderer::getClickedMeshObject(glm::dvec2 clickPos)
+Entity* Renderer::getClickedEntity(glm::dvec2 clickPos)
 {
 	int objectIndex;
 	_objectIndexFramebuffer.bindForReading();
@@ -105,8 +83,28 @@ MeshObject* Renderer::getClickedMeshObject(glm::dvec2 clickPos)
 	
 	if (objectIndex != -1)
 	{
-		return Engine::getRenderer().getRegistry().meshObjects[objectIndex];
+		return Engine::getRenderer().getRegistry().meshes[objectIndex].owner;
 	}
 	
 	return nullptr;
+}
+
+void Renderer::render(RenderPass& pass, Camera& camera)
+{
+	pass.render(_textures, _registry, camera);
+}
+
+void Renderer::requestMeshRendering(MeshRenderer::RenderData request)
+{
+	_registry.meshes.push_back(request);
+}
+
+void Renderer::requestLightRendering(DirectionalLight::RenderData data)
+{
+	_registry.directionalLights.push_back(data);
+}
+
+void Renderer::requestLightRendering(PointLight::RenderData data)
+{
+	_registry.pointLights.push_back(data);
 }

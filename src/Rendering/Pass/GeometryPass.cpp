@@ -1,7 +1,6 @@
 #include "GeometryPass.h"
 #include "../../Window.h"
 #include "../../Engine.h"
-#include "../../Scene/MeshObject.h"
 
 GeometryPass::GeometryPass(std::unordered_map<std::string, Texture*>& textures):
 RenderPass(textures, "Geometry pass"),
@@ -74,7 +73,7 @@ void GeometryPass::preparePipelineImpl()
 	glDisable(GL_DITHER);
 }
 
-void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera)
 {
 	_normalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	_colorTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
@@ -91,20 +90,17 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	glm::vec3 pos = camera.getPosition();
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
-	for (int i = 0; i < objects.meshObjects.size(); i++)
+	for (int i = 0; i < registry.meshes.size(); i++)
 	{
-		MeshObject* meshObject = objects.meshObjects[i];
+		MeshRenderer::RenderData data = registry.meshes[i];
 		
-		const Model* model = meshObject->getModel();
-		if (model == nullptr || !model->isResourceReady()) continue;
-		
-		const Buffer<Mesh::VertexData>& vbo = model->getResource().getVBO();
-		const Buffer<GLuint>& ibo = model->getResource().getIBO();
+		const Buffer<Mesh::VertexData>& vbo = data.mesh->getVBO();
+		const Buffer<GLuint>& ibo = data.mesh->getIBO();
 		
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		meshObject->getDrawingMaterial()->bind(meshObject->getTransform().getLocalToWorldMatrix(), vp, pos, i);
+		data.material->bind(data.matrix, vp, pos, i);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

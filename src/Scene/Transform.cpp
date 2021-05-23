@@ -51,6 +51,11 @@ std::vector<Transform*>& Transform::getChildren()
 	return _children;
 }
 
+const std::vector<Transform*>& Transform::getChildren() const
+{
+	return _children;
+}
+
 void Transform::invalidateLocalCache()
 {
 	if (_invalidLocalCache) return;
@@ -199,13 +204,16 @@ Transform::~Transform()
 	if (_parent != nullptr)
 		VectorHelper::removeAll(_parent->_children, this);
 	
-	for (Transform* child : _children)
+	// We iterate over a copy of _children as child->setParent modify _children, which would cause a vector modification while we iterate over it
+	std::vector<Transform*> children = _children;
+
+	for (Transform* child : children)
 	{
 		child->setParent(_parent);
 	}
 }
 
-SceneObject* Transform::getOwner()
+Entity* Transform::getOwner()
 {
 	return _owner;
 }
@@ -215,19 +223,10 @@ std::unique_ptr<Transform> Transform::createSceneRoot()
 	return std::unique_ptr<Transform>(new Transform());
 }
 
-Transform::Transform(SceneObject* owner, Transform* parent, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale) :
-		Transform(owner, parent, position, glm::quat(glm::radians(rotation)), scale)
-{
-
-}
-
-Transform::Transform(SceneObject* owner, Transform* parent, glm::vec3 position, glm::quat rotation, glm::vec3 scale) :
-		_owner(owner)
+Transform::Transform(Entity* owner, Transform* parent) :
+_owner(owner)
 {
 	setParent(parent);
-	setLocalPosition(position);
-	setLocalRotation(rotation);
-	setLocalScale(scale);
 }
 
 glm::vec3 Transform::getForward()

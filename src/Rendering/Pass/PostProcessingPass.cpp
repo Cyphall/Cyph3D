@@ -16,7 +16,7 @@ void PostProcessingPass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
 {
 	Texture* renderTexture = textures["raw_render"];
 	

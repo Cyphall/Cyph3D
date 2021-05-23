@@ -1,8 +1,9 @@
 #include "MaterialShaderProgram.h"
 #include "../ResourceManagement/ResourceManager.h"
-#include <nlohmann/json.hpp>
 #include <fstream>
 #include <fmt/core.h>
+
+#include <nlohmann/json.hpp>
 
 MaterialShaderProgram::MaterialShaderProgram(const std::string& layoutName, ResourceManager* resourceManager)
 {
@@ -13,7 +14,7 @@ MaterialShaderProgram::MaterialShaderProgram(const std::string& layoutName, Reso
 	
 	_shaderProgram = resourceManager->requestShaderProgram(createInfo);
 	
-	nlohmann::json root;
+	nlohmann::ordered_json root;
 	
 	std::ifstream jsonFile(fmt::format("resources/shaders/materialLayout/{}.json", layoutName));
 	jsonFile >> root;
@@ -23,7 +24,7 @@ MaterialShaderProgram::MaterialShaderProgram(const std::string& layoutName, Reso
 	{
 		MapDefinition mapDefinition;
 		
-		nlohmann::json defaultDataJson = definition["default_data"];
+		nlohmann::ordered_json defaultDataJson = definition["default_data"];
 		mapDefinition.defaultData.reserve(defaultDataJson.size());
 		mapDefinition.defaultData.insert(mapDefinition.defaultData.end(), defaultDataJson.begin(), defaultDataJson.end());
 		

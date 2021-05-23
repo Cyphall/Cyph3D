@@ -43,12 +43,6 @@ void UIMisc::show()
 	if (_showDemoWindow)
 		ImGui::ShowDemoWindow();
 	
-	bool showRawQuaternion = UIInspector::getShowRawQuaternion();
-	if (ImGui::Checkbox("Show Raw Quaternion", &showRawQuaternion))
-	{
-		UIInspector::setShowRawQuaternion(showRawQuaternion);
-	}
-	
 	float cameraSpeed = Engine::getScene().getCamera().getSpeed();
 	if (ImGui::SliderFloat("Camera speed", &cameraSpeed, 0, 10))
 	{
@@ -70,10 +64,7 @@ void UIMisc::show()
 			bool selected = &scene == _selectedScene;
 			if (ImGui::Selectable(scene.c_str(), selected))
 			{
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "LocalValueEscapesScope"
 				_selectedScene = &scene;
-#pragma clang diagnostic pop
 			}
 			
 			if (selected)

@@ -12,6 +12,7 @@
 #include "Rendering/Renderer.h"
 #include "Helper/RenderHelper.h"
 #include <fmt/core.h>
+#include "Entity/Entity.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -73,6 +74,7 @@ void Engine::init(bool windowed)
 	Material::initialize();
 	Framebuffer::initDrawToDefault();
 	RenderHelper::initDrawScreenQuad();
+	Entity::initAllocators();
 	
 	_renderer = std::make_unique<Renderer>();
 	
@@ -85,18 +87,19 @@ void Engine::run()
 {
 	while (!_window->shouldClose())
 	{
-		_timer.newFrame();
-		
 		glfwPollEvents();
+		
+		_timer.onNewFrame();
+		_renderer->onNewFrame();
+		UIHelper::onNewFrame();
 		
 		_globalResourceManager->update();
 		_scene->getRM().update();
 		
-		_scene->update();
+		_scene->onUpdate();
 		
+		_scene->onPreRender();
 		_renderer->render();
-		
-		UIHelper::update();
 		UIHelper::render();
 		
 		_window->swapBuffers();

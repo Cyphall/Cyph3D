@@ -30,24 +30,17 @@ void UIHelper::init()
 
 void UIHelper::render()
 {
+	if (Engine::getWindow().isGuiOpen())
+	{
+		UIMisc::show();
+		UIHierarchy::show();
+		UIInspector::show();
+		UIResourceExplorer::show();
+		UIGizmo::show();
+	}
+	
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-
-void UIHelper::update()
-{
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-	ImGuizmo::BeginFrame();
-	
-	if (!Engine::getWindow().isGuiOpen()) return;
-	
-	UIMisc::show();
-	UIHierarchy::show();
-	UIInspector::show();
-	UIResourceExplorer::show();
-	UIGizmo::show();
 }
 
 void UIHelper::shutdown()
@@ -57,4 +50,12 @@ void UIHelper::shutdown()
 	
 	ImGui::DestroyContext(_context);
 	_context = nullptr;
+}
+
+void UIHelper::onNewFrame()
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGuizmo::BeginFrame();
 }

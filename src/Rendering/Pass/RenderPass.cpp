@@ -6,7 +6,7 @@ _name(name)
 
 }
 
-void RenderPass::render(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void RenderPass::render(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
 {
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, _name);
 	

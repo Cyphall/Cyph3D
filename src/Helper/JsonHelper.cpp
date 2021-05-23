@@ -2,9 +2,9 @@
 #include <fstream>
 #include <filesystem>
 
-nlohmann::json JsonHelper::loadJsonFromFile(const std::string& path)
+nlohmann::ordered_json JsonHelper::loadJsonFromFile(const std::string& path)
 {
-	nlohmann::json root;
+	nlohmann::ordered_json root;
 	
 	std::ifstream jsonFile(path);
 	jsonFile >> root;
@@ -13,7 +13,7 @@ nlohmann::json JsonHelper::loadJsonFromFile(const std::string& path)
 	return root;
 }
 
-void JsonHelper::saveJsonToFile(const nlohmann::json& json, const std::string& path, bool beautify)
+void JsonHelper::saveJsonToFile(const nlohmann::ordered_json& json, const std::string& path, bool beautify)
 {
 	std::ofstream jsonFile(path);
 	if (beautify)

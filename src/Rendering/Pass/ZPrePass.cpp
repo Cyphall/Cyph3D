@@ -31,7 +31,7 @@ void ZPrePass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void ZPrePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, SceneObjectRegistry& objects, Camera& camera)
+void ZPrePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera)
 {
 	float clearDepth = 1;
 	_depthTexture.clear(GL_DEPTH_COMPONENT, GL_FLOAT, &clearDepth);
@@ -42,20 +42,17 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, S
 	
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
-	for (int i = 0; i < objects.meshObjects.size(); i++)
+	for (int i = 0; i < registry.meshes.size(); i++)
 	{
-		MeshObject* meshObject = objects.meshObjects[i];
+		MeshRenderer::RenderData data = registry.meshes[i];
 		
-		const Model* model = meshObject->getModel();
-		if (model == nullptr || !model->isResourceReady()) continue;
-		
-		const Buffer<Mesh::VertexData>& vbo = model->getResource().getVBO();
-		const Buffer<GLuint>& ibo = model->getResource().getIBO();
+		const Buffer<Mesh::VertexData>& vbo = data.mesh->getVBO();
+		const Buffer<GLuint>& ibo = data.mesh->getIBO();
 		
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		glm::mat4 mvp = vp * meshObject->getTransform().getLocalToWorldMatrix();
+		glm::mat4 mvp = vp * data.matrix;
 		
 		_shader->setUniform("u_mvp", mvp);
 		
