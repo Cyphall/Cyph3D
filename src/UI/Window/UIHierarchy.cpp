@@ -101,7 +101,7 @@ void UIHierarchy::processHierarchyChanges()
 	
 	if (_createEntityRequested)
 	{
-		Entity& created = Engine::getScene().addEntity(Engine::getScene().getRoot());
+		Entity& created = Engine::getScene().createEntity(Engine::getScene().getRoot());
 		UIInspector::setSelected(&created.getTransform());
 		_createEntityRequested = false;
 	}

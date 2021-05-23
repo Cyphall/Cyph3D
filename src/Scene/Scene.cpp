@@ -42,7 +42,7 @@ void Scene::onPreRender()
 	}
 }
 
-Entity& Scene::addEntity(Transform& parent)
+Entity& Scene::createEntity(Transform& parent)
 {
 	return *_entities.emplace_back(new Entity(parent, *this)).get();
 }
@@ -121,7 +121,7 @@ void Scene::load(const std::string& name)
 
 void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene)
 {
-	Entity& entity = scene.addEntity(parent);
+	Entity& entity = scene.createEntity(parent);
 	EntitySerialization serialization(json["version"].get<int>());
 	serialization.json = json["data"];
 	entity.deserialize(serialization);
@@ -255,7 +255,7 @@ void Scene::parseSceneObject_old(nlohmann::json& jsonObject, Transform* parent, 
 {
 	nlohmann::json& jsonData = jsonObject["data"];
 	
-	Entity& entity = scene.addEntity(*parent);
+	Entity& entity = scene.createEntity(*parent);
 	Transform& transform = entity.getTransform();
 
 	std::vector<float> positionArray = jsonObject["position"].get<std::vector<float>>();

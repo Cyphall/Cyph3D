@@ -18,7 +18,7 @@ public:
 	void onUpdate();
 	void onPreRender();
 	
-	Entity& addEntity(Transform& parent);
+	Entity& createEntity(Transform& parent);
 	EntityIterator removeEntity(EntityIterator where);
 	
 	EntityIterator entities_begin();
