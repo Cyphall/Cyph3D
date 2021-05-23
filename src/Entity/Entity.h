@@ -43,6 +43,9 @@ public:
 	
 	EntitySerialization serialize() const;
 	void deserialize(const EntitySerialization& data);
+	
+	static std::map<std::string, std::function<Component&(Entity&)>>::iterator allocators_begin();
+	static std::map<std::string, std::function<Component&(Entity&)>>::iterator allocators_end();
 
 private:
 	std::string _name = "New Entity";
@@ -50,7 +53,7 @@ private:
 	Scene& _scene;
 	Transform _transform;
 	
-	Component& addComponentByidentifier(const std::string& identifier);
+	Component& addComponentByIdentifier(const std::string& identifier);
 	
 	static std::map<std::string, std::function<Component&(Entity&)>> _allocators;
 	static void initAllocators();

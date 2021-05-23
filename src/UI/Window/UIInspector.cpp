@@ -37,8 +37,8 @@ void UIInspector::show()
 	{
 		if (_selected.type() == typeid(Transform*))
 		{
-			Entity* entity = std::any_cast<Transform*>(_selected)->getOwner();
-			entity->onDrawUi();
+			Entity& entity = *std::any_cast<Transform*>(_selected)->getOwner();
+			entity.onDrawUi();
 			
 			ImGui::Separator();
 			
@@ -46,21 +46,12 @@ void UIInspector::show()
 				ImGui::OpenPopup("add_component");
 			if (ImGui::BeginPopup("add_component"))
 			{
-				if (ImGui::Selectable("MeshRenderer"))
+				for (auto it = Entity::allocators_begin(); it != Entity::allocators_end(); it++)
 				{
-					entity->addComponent<MeshRenderer>();
-				}
-				if (ImGui::Selectable("Animator"))
-				{
-					entity->addComponent<Animator>();
-				}
-				if (ImGui::Selectable("PointLight"))
-				{
-					entity->addComponent<PointLight>();
-				}
-				if (ImGui::Selectable("DirectionalLight"))
-				{
-					entity->addComponent<DirectionalLight>();
+					if (ImGui::Selectable(it->first.c_str()))
+					{
+						it->second(entity);
+					}
 				}
 				ImGui::EndPopup();
 			}

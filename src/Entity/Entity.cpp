@@ -117,7 +117,7 @@ void Entity::deserialize(const EntitySerialization& data)
 	
 	for (const nlohmann::ordered_json& json : data.json["components"])
 	{
-		Component& component = addComponentByidentifier(json["identifier"].get<std::string>());
+		Component& component = addComponentByIdentifier(json["identifier"].get<std::string>());
 		ComponentSerialization serialization(json["version"].get<int>());
 		serialization.json = json["data"];
 		component.deserialize(serialization);
@@ -190,13 +190,23 @@ void Entity::onDrawUi()
 
 void Entity::initAllocators()
 {
-	_allocators[Animator::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<Animator>();};
-	_allocators[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<DirectionalLight>();};
-	_allocators[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<PointLight>();};
 	_allocators[MeshRenderer::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<MeshRenderer>();};
+	_allocators[Animator::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<Animator>();};
+	_allocators[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<PointLight>();};
+	_allocators[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<DirectionalLight>();};
 }
 
-Component& Entity::addComponentByidentifier(const std::string& identifier)
+Component& Entity::addComponentByIdentifier(const std::string& identifier)
 {
 	return _allocators[identifier](*this);
+}
+
+std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::allocators_begin()
+{
+	return _allocators.begin();
+}
+
+std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::allocators_end()
+{
+	return _allocators.end();
 }
