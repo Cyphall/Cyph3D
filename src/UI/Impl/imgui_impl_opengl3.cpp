@@ -1,18 +1,24 @@
-// dear imgui: Renderer for modern OpenGL with shaders / programmatic pipeline
+// dear imgui: Renderer Backend for modern OpenGL with shaders / programmatic pipeline
 // - Desktop GL: 2.x 3.x 4.x
 // - Embedded GL: ES 2.0 (WebGL 1.0), ES 3.0 (WebGL 2.0)
-// This needs to be used along with a Platform Binding (e.g. GLFW, SDL, Win32, custom..)
+// This needs to be used along with a Platform Backend (e.g. GLFW, SDL, Win32, custom..)
 
 // Implemented features:
 //  [X] Renderer: User texture binding. Use 'GLuint' OpenGL texture identifier as void*/ImTextureID. Read the FAQ about ImTextureID!
 //  [x] Renderer: Desktop GL only: Support for large meshes (64k+ vertices) with 16-bit indices.
 
-// You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
-// If you are new to dear imgui, read examples/README.txt and read the documentation at the top of imgui.cpp.
-// https://github.com/ocornut/imgui
+// You can copy and use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
+// If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
+// Read online: https://github.com/ocornut/imgui/tree/master/docs
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2021-05-19: OpenGL: Replaced direct access to ImDrawCmd::TextureId with a call to ImDrawCmd::GetTexID(). (will become a requirement)
+//  2021-04-06: OpenGL: Don't try to read GL_CLIP_ORIGIN unless we're OpenGL 4.5 or greater.
+//  2021-02-18: OpenGL: Change blending equation to preserve alpha in output buffer.
+//  2021-01-03: OpenGL: Backup, setup and restore GL_STENCIL_TEST state.
+//  2020-10-23: OpenGL: Backup, setup and restore GL_PRIMITIVE_RESTART state.
+//  2020-10-15: OpenGL: Use glGetString(GL_VERSION) instead of glGetIntegerv(GL_MAJOR_VERSION, ...) when the later returns zero (e.g. Desktop GL 2.x)
 //  2020-09-17: OpenGL: Fix to avoid compiling/calling glBindSampler() on ES or pre 3.3 context which have the defines set by a loader.
 //  2020-07-10: OpenGL: Added support for glad2 OpenGL loader.
 //  2020-05-08: OpenGL: Made default GLSL version 150 (instead of 130) on OSX.
@@ -39,16 +45,16 @@
 //  2018-07-10: OpenGL: Support for more GLSL versions (based on the GLSL version string). Added error output when shaders fail to compile/link.
 //  2018-06-08: Misc: Extracted imgui_impl_opengl3.cpp/.h away from the old combined GLFW/SDL+OpenGL3 examples.
 //  2018-06-08: OpenGL: Use draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix and clipping rectangle.
-//  2018-05-25: OpenGL: Removed unnecessary backup/restorePipeline of GL_ELEMENT_ARRAY_BUFFER_BINDING since this is part of the VAO state.
+//  2018-05-25: OpenGL: Removed unnecessary backup/restore of GL_ELEMENT_ARRAY_BUFFER_BINDING since this is part of the VAO state.
 //  2018-05-14: OpenGL: Making the call to glBindSampler() optional so 3.2 context won't fail if the function is a NULL pointer.
 //  2018-03-06: OpenGL: Added const char* glsl_version parameter to ImGui_ImplOpenGL3_Init() so user can override the GLSL version e.g. "#version 150".
 //  2018-02-23: OpenGL: Create the VAO in the render function so the setup can more easily be used with multiple shared GL context.
 //  2018-02-16: Misc: Obsoleted the io.RenderDrawListsFn callback and exposed ImGui_ImplSdlGL3_RenderDrawData() in the .h file so you can call it yourself.
 //  2018-01-07: OpenGL: Changed GLSL shader version from 330 to 150.
-//  2017-09-01: OpenGL: Save and restore current bound sampler. Save and restorePipeline current polygon mode.
-//  2017-05-01: OpenGL: Fixed save and restorePipeline of current blend func state.
-//  2017-05-01: OpenGL: Fixed save and restorePipeline of current GL_ACTIVE_TEXTURE.
-//  2016-09-05: OpenGL: Fixed save and restorePipeline of current scissor rectangle.
+//  2017-09-01: OpenGL: Save and restore current bound sampler. Save and restore current polygon mode.
+//  2017-05-01: OpenGL: Fixed save and restore of current blend func state.
+//  2017-05-01: OpenGL: Fixed save and restore of current GL_ACTIVE_TEXTURE.
+//  2016-09-05: OpenGL: Fixed save and restore of current scissor rectangle.
 //  2016-07-29: OpenGL: Explicitly setting GL_UNPACK_ROW_LENGTH to reduce issues because SDL changes it. (#752)
 
 //----------------------------------------
@@ -133,6 +139,11 @@ using namespace gl;
 #define IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
 #endif
 
+// Desktop GL 3.1+ has GL_PRIMITIVE_RESTART state
+#if !defined(IMGUI_IMPL_OPENGL_ES2) && !defined(IMGUI_IMPL_OPENGL_ES3) && defined(GL_VERSION_3_1)
+#define IMGUI_IMPL_OPENGL_MAY_HAVE_PRIMITIVE_RESTART
+#endif
+
 // OpenGL Data
 static GLuint       g_GlVersion = 0;                // Extracted at runtime using GL_MAJOR_VERSION, GL_MINOR_VERSION queries (e.g. 320 for GL 3.2)
 static char         g_GlslVersionString[32] = "";   // Specified by user or detected based on compile time GL settings.
@@ -147,15 +158,22 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
 {
     // Query for GL version (e.g. 320 for GL 3.2)
 #if !defined(IMGUI_IMPL_OPENGL_ES2)
-    GLint major, minor;
+    GLint major = 0;
+    GLint minor = 0;
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
+    if (major == 0 && minor == 0)
+    {
+        // Query GL_VERSION in desktop GL 2.x, the string will start with "<major>.<minor>"
+        const char* gl_version = (const char*)glGetString(GL_VERSION);
+        sscanf(gl_version, "%d.%d", &major, &minor);
+    }
     g_GlVersion = (GLuint)(major * 100 + minor * 10);
 #else
     g_GlVersion = 200; // GLES 2
 #endif
 
-    // Setup back-end capabilities flags
+    // Setup backend capabilities flags
     ImGuiIO& io = ImGui::GetIO();
     io.BackendRendererName = "imgui_impl_opengl3";
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_VTX_OFFSET
@@ -232,20 +250,28 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
+#ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_PRIMITIVE_RESTART
+    if (g_GlVersion >= 310)
+        glDisable(GL_PRIMITIVE_RESTART);
+#endif
 #ifdef GL_POLYGON_MODE
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 #endif
 
     // Support for GL 4.5 rarely used glClipControl(GL_UPPER_LEFT)
+#if defined(GL_CLIP_ORIGIN)
     bool clip_origin_lower_left = true;
-#if defined(GL_CLIP_ORIGIN) && !defined(__APPLE__)
-    GLenum current_clip_origin = 0; glGetIntegerv(GL_CLIP_ORIGIN, (GLint*)&current_clip_origin);
-    if (current_clip_origin == GL_UPPER_LEFT)
-        clip_origin_lower_left = false;
+    if (g_GlVersion >= 450)
+    {
+        GLenum current_clip_origin = 0; glGetIntegerv(GL_CLIP_ORIGIN, (GLint*)&current_clip_origin);
+        if (current_clip_origin == GL_UPPER_LEFT)
+            clip_origin_lower_left = false;
+    }
 #endif
 
     // Setup viewport, orthographic projection matrix
@@ -255,7 +281,9 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
     float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
     float T = draw_data->DisplayPos.y;
     float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+#if defined(GL_CLIP_ORIGIN)
     if (!clip_origin_lower_left) { float tmp = T; T = B; B = tmp; } // Swap top and bottom if origin is upper left
+#endif
     const float ortho_projection[4][4] =
     {
         { 2.0f/(R-L),   0.0f,         0.0f,   0.0f },
@@ -266,12 +294,12 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
     glUseProgram(g_ShaderHandle);
     glUniform1i(g_AttribLocationTex, 0);
     glUniformMatrix4fv(g_AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]);
-    
+
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
     if (g_GlVersion >= 330)
         glBindSampler(0, 0); // We use combined texture/sampler state. Applications using GL 3.3 may set that otherwise.
 #endif
-    
+
     (void)vertex_array_object;
 #ifndef IMGUI_IMPL_OPENGL_ES2
     glBindVertexArray(vertex_array_object);
@@ -289,8 +317,8 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
 }
 
 // OpenGL3 Render function.
-// (this used to be set in io.RenderDrawListsFn and called by ImGui::Render(), but you can now call this directly from your main loop)
-// Note that this implementation is little overcomplicated because we are saving/setting up/restoring every OpenGL state explicitly, in order to be able to run within any OpenGL engine that doesn't do so.
+// Note that this implementation is little overcomplicated because we are saving/setting up/restoring every OpenGL state explicitly.
+// This is in order to be able to run within an OpenGL engine that doesn't do so.
 void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
@@ -325,7 +353,11 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
     GLboolean last_enable_blend = glIsEnabled(GL_BLEND);
     GLboolean last_enable_cull_face = glIsEnabled(GL_CULL_FACE);
     GLboolean last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
+    GLboolean last_enable_stencil_test = glIsEnabled(GL_STENCIL_TEST);
     GLboolean last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+#ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_PRIMITIVE_RESTART
+    GLboolean last_enable_primitive_restart = (g_GlVersion >= 310) ? glIsEnabled(GL_PRIMITIVE_RESTART) : GL_FALSE;
+#endif
 
     // Setup desired GL state
     // Recreate the VAO every time (this is to easily allow multiple GL contexts to be rendered to. VAO are not shared among GL contexts)
@@ -376,7 +408,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                     glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
 
                     // Bind texture, Draw
-                    glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
+                    glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID());
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_VTX_OFFSET
                     if (g_GlVersion >= 320)
                         glDrawElementsBaseVertex(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx)), (GLint)pcmd->VtxOffset);
@@ -410,7 +442,12 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
     if (last_enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
     if (last_enable_cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
     if (last_enable_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+    if (last_enable_stencil_test) glEnable(GL_STENCIL_TEST); else glDisable(GL_STENCIL_TEST);
     if (last_enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+#ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_PRIMITIVE_RESTART
+    if (g_GlVersion >= 310) { if (last_enable_primitive_restart) glEnable(GL_PRIMITIVE_RESTART); else glDisable(GL_PRIMITIVE_RESTART); }
+#endif
+
 #ifdef GL_POLYGON_MODE
     glPolygonMode(GL_FRONT_AND_BACK, (GLenum)last_polygon_mode[0]);
 #endif
@@ -439,7 +476,7 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
     // Store our identifier
-    io.Fonts->TexID = (ImTextureID)(intptr_t)g_FontTexture;
+    io.Fonts->SetTexID((ImTextureID)(intptr_t)g_FontTexture);
 
     // Restore state
     glBindTexture(GL_TEXTURE_2D, last_texture);
@@ -453,7 +490,7 @@ void ImGui_ImplOpenGL3_DestroyFontsTexture()
     {
         ImGuiIO& io = ImGui::GetIO();
         glDeleteTextures(1, &g_FontTexture);
-        io.Fonts->TexID = 0;
+        io.Fonts->SetTexID(0);
         g_FontTexture = 0;
     }
 }
