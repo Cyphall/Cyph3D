@@ -2,37 +2,37 @@
 #include "../../Window.h"
 #include "../../Engine.h"
 
-GeometryPass::GeometryPass(std::unordered_map<std::string, Texture*>& textures):
-RenderPass(textures, "Geometry pass"),
-_gbuffer(Engine::getWindow().getSize()),
+GeometryPass::GeometryPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+RenderPass(textures, size, "Geometry pass"),
+_gbuffer(size),
 _normalTexture(TextureCreateInfo
 {
-   .size = _gbuffer.getSize(),
+   .size = size,
    .internalFormat = GL_RGB16F
 }),
 _colorTexture(TextureCreateInfo
 {
-  .size = _gbuffer.getSize(),
+  .size = size,
   .internalFormat = GL_RGB16F
 }),
 _materialTexture(TextureCreateInfo
  {
-     .size = _gbuffer.getSize(),
+     .size = size,
      .internalFormat = GL_RGBA8
  }),
 _geometryNormalTexture(TextureCreateInfo
 {
-   .size = _gbuffer.getSize(),
+   .size = size,
    .internalFormat = GL_RGB16F
 }),
 _objectIndexTexture(TextureCreateInfo
 {
-  .size = _gbuffer.getSize(),
+  .size = size,
   .internalFormat = GL_R32I
 }),
 _positionTexture(TextureCreateInfo
 {
-	.size = _gbuffer.getSize(),
+	.size = size,
 	.internalFormat = GL_RGB32F
 })
 {

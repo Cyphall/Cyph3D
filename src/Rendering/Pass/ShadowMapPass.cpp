@@ -2,8 +2,8 @@
 #include "../../Window.h"
 #include "../../Engine.h"
 
-ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, Texture*>& textures):
-RenderPass(textures, "Shadow map pass")
+ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+RenderPass(textures, size, "Shadow map pass")
 {
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
 }
@@ -36,6 +36,6 @@ void ShadowMapPass::restorePipelineImpl()
 	glDisable(GL_CULL_FACE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	
-	glm::ivec2 size = Engine::getWindow().getSize();
+	glm::ivec2 size = getSize();
 	glViewport(0, 0, size.x, size.y);
 }

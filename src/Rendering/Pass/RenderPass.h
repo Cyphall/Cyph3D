@@ -9,7 +9,9 @@ class RenderPass
 {
 public:
 	RenderPass() = delete;
-	RenderPass(std::unordered_map<std::string, Texture*>& textures, const char* name);
+	RenderPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size, const char* name);
+	
+	glm::ivec2 getSize() const;
 	
 	void render(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera);
 
@@ -20,4 +22,5 @@ protected:
 	
 private:
 	const char* _name;
+	glm::ivec2 _size;
 };

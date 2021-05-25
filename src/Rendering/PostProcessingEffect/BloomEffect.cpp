@@ -5,18 +5,18 @@
 #include "../../Engine.h"
 #include "../../Helper/RenderHelper.h"
 
-BloomEffect::BloomEffect():
-PostProcessingEffect("Bloom"),
-_extractBrightFramebuffer(Engine::getWindow().getSize()),
+BloomEffect::BloomEffect(glm::ivec2 size):
+PostProcessingEffect("Bloom", size),
+_extractBrightFramebuffer(size),
 _nonBrightTexture(TextureCreateInfo
 {
-	.size = Engine::getWindow().getSize(),
+	.size = size,
 	.internalFormat = GL_RGB16F
 }),
 _blurTextures{
 	Texture(TextureCreateInfo
 	{
-		.size = Engine::getWindow().getSize(),
+		.size = size,
 		.internalFormat = GL_RGB16F,
 		.minFilter = GL_NEAREST_MIPMAP_NEAREST,
 		.magFilter = GL_NEAREST,
@@ -27,7 +27,7 @@ _blurTextures{
 	}),
 	Texture(TextureCreateInfo
 	{
-		.size = Engine::getWindow().getSize(),
+		.size = size,
 		.internalFormat = GL_RGB16F,
 		.minFilter = GL_NEAREST_MIPMAP_NEAREST,
 		.magFilter = GL_NEAREST,
@@ -45,10 +45,10 @@ _blurFramebuffers{
 	Framebuffer(_blurTextures[0].getSize(4)),
 	Framebuffer(_blurTextures[0].getSize(5))
 },
-_combineFramebuffer(Engine::getWindow().getSize()),
+_combineFramebuffer(size),
 _outputTexture(TextureCreateInfo
 {
-	.size = Engine::getWindow().getSize(),
+	.size = size,
 	.internalFormat = GL_RGB16F
 })
 {

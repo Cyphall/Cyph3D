@@ -5,15 +5,15 @@
 #include "../Scene/Scene.h"
 #include "../Engine.h"
 
-Renderer::Renderer():
-_zPrePass(_textures),
-_shadowMapPass(_textures),
-_geometryPass(_textures),
-_gBufferDebugPass(_textures),
-_skyboxPass(_textures),
-_lightingPass(_textures),
-_postProcessingPass(_textures),
-_objectIndexFramebuffer(Engine::getWindow().getSize())
+Renderer::Renderer(glm::ivec2 size):
+_zPrePass(_textures, size),
+_shadowMapPass(_textures, size),
+_geometryPass(_textures, size),
+_gBufferDebugPass(_textures, size),
+_skyboxPass(_textures, size),
+_lightingPass(_textures, size),
+_postProcessingPass(_textures, size),
+_objectIndexFramebuffer(size)
 {
 	_objectIndexFramebuffer.attachColor(0, *_textures["gbuffer_objectIndex"]);
 	_objectIndexFramebuffer.setReadBuffer(0);

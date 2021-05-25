@@ -3,12 +3,12 @@
 #include "../PostProcessingEffect/ExposureEffect.h"
 #include "../PostProcessingEffect/BloomEffect.h"
 
-PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures):
-RenderPass(textures, "Post-processing pass")
+PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+RenderPass(textures, size, "Post-processing pass")
 {
-	_effects.push_back(std::make_unique<ExposureEffect>());
-	_effects.push_back(std::make_unique<BloomEffect>());
-	_effects.push_back(std::make_unique<ToneMappingEffect>());
+	_effects.push_back(std::make_unique<ExposureEffect>(size));
+	_effects.push_back(std::make_unique<BloomEffect>(size));
+	_effects.push_back(std::make_unique<ToneMappingEffect>(size));
 }
 
 void PostProcessingPass::preparePipelineImpl()

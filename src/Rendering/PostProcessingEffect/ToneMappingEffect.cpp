@@ -4,12 +4,12 @@
 #include "../../Engine.h"
 #include "../../Helper/RenderHelper.h"
 
-ToneMappingEffect::ToneMappingEffect():
-PostProcessingEffect("Tonemapping"),
-_framebuffer(Engine::getWindow().getSize()),
+ToneMappingEffect::ToneMappingEffect(glm::ivec2 size):
+PostProcessingEffect("Tonemapping", size),
+_framebuffer(size),
 _outputTexture(TextureCreateInfo
 {
-	.size = _framebuffer.getSize(),
+	.size = size,
 	.internalFormat = GL_RGB8
 })
 {

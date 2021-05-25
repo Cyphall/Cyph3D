@@ -1,7 +1,7 @@
 #include "RenderPass.h"
 
-RenderPass::RenderPass(std::unordered_map<std::string, Texture*>& textures, const char* name):
-_name(name)
+RenderPass::RenderPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size, const char* name):
+_name(name), _size(size)
 {
 
 }
@@ -23,4 +23,9 @@ void RenderPass::render(std::unordered_map<std::string, Texture*>& textures, Ren
 	glPopDebugGroup();
 	
 	glPopDebugGroup();
+}
+
+glm::ivec2 RenderPass::getSize() const
+{
+	return _size;
 }

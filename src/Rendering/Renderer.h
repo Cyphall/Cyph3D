@@ -15,7 +15,7 @@
 class Renderer
 {
 public:
-	Renderer();
+	Renderer(glm::ivec2 size);
 	
 	bool getDebug() const;
 	void setDebug(bool debug);

@@ -69,7 +69,7 @@ void Engine::init()
 	RenderHelper::initDrawScreenQuad();
 	Entity::initAllocators();
 	
-	_renderer = std::make_unique<Renderer>();
+	_renderer = std::make_unique<Renderer>(_window->getSize());
 	
 	_scene = std::make_unique<Scene>();
 	

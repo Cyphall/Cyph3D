@@ -4,12 +4,12 @@
 #include "../../Engine.h"
 #include "../../Helper/RenderHelper.h"
 
-GBufferDebugPass::GBufferDebugPass(std::unordered_map<std::string, Texture*>& textures) :
-RenderPass(textures, "GBuffer Debug pass"),
-_framebuffer(Engine::getWindow().getSize()),
+GBufferDebugPass::GBufferDebugPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size) :
+RenderPass(textures, size, "GBuffer Debug pass"),
+_framebuffer(size),
 _debugTexture(TextureCreateInfo
 {
-	.size = _framebuffer.getSize(),
+	.size = size,
 	.internalFormat = GL_RGBA8
 })
 {

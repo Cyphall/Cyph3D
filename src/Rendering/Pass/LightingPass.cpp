@@ -5,14 +5,14 @@
 #include "../../ResourceManagement/ResourceManager.h"
 #include "../../Engine.h"
 
-LightingPass::LightingPass(std::unordered_map<std::string, Texture*>& textures):
-RenderPass(textures, "Lighting pass"),
-_framebuffer(Engine::getWindow().getSize()),
+LightingPass::LightingPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+RenderPass(textures, size, "Lighting pass"),
+_framebuffer(size),
 _rawRenderTexture(TextureCreateInfo
- {
-         .size = _framebuffer.getSize(),
-         .internalFormat = GL_RGB16F
- })
+{
+ .size = size,
+ .internalFormat = GL_RGB16F
+})
 {
 	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
 	lightingShaderProgramCreateInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/lighting/lighting");

@@ -1,7 +1,7 @@
 #include "PostProcessingEffect.h"
 
-PostProcessingEffect::PostProcessingEffect(const char* name):
-_name(name)
+PostProcessingEffect::PostProcessingEffect(const char* name, glm::ivec2 size):
+_name(name), _size(size)
 {
 
 }
@@ -13,4 +13,9 @@ Texture* PostProcessingEffect::render(Texture* currentRenderTexture, std::unorde
 	glPopDebugGroup();
 	
 	return output;
+}
+
+glm::ivec2 PostProcessingEffect::getSize() const
+{
+	return _size;
 }

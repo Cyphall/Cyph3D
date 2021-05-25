@@ -5,7 +5,7 @@
 class GBufferDebugPass : public RenderPass
 {
 public:
-	GBufferDebugPass(std::unordered_map<std::string, Texture*>& textures);
+	GBufferDebugPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size);
 	
 	void preparePipelineImpl() override;
 	void renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera) override;

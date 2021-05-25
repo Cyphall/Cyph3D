@@ -5,9 +5,9 @@
 #include "../../Scene/Scene.h"
 #include <glm/gtx/transform.hpp>
 
-SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures):
-RenderPass(textures, "Skybox pass"),
-_framebuffer(Engine::getWindow().getSize()),
+SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+RenderPass(textures, size, "Skybox pass"),
+_framebuffer(size),
 _vao(),
 _vbo(36, GL_DYNAMIC_STORAGE_BIT)
 {

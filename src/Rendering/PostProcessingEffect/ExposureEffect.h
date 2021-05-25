@@ -6,7 +6,7 @@
 class ExposureEffect : public PostProcessingEffect
 {
 public:
-	ExposureEffect();
+	ExposureEffect(glm::ivec2 size);
 	
 	Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
 

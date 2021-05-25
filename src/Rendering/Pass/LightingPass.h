@@ -6,7 +6,7 @@
 class LightingPass : public RenderPass
 {
 public:
-	LightingPass(std::unordered_map<std::string, Texture*>& textures);
+	LightingPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size);
 	
 	void preparePipelineImpl() override;
 	void renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera) override;

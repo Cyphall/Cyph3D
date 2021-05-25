@@ -3,12 +3,12 @@
 #include "../../ResourceManagement/ResourceManager.h"
 #include "../../Engine.h"
 
-ZPrePass::ZPrePass(std::unordered_map<std::string, Texture*>& textures) :
-RenderPass(textures, "Z prepass"),
-_framebuffer(Engine::getWindow().getSize()),
+ZPrePass::ZPrePass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size) :
+RenderPass(textures, size, "Z prepass"),
+_framebuffer(size),
 _depthTexture(TextureCreateInfo
 {
-	.size = _framebuffer.getSize(),
+	.size = size,
 	.internalFormat = GL_DEPTH_COMPONENT24
 })
 {

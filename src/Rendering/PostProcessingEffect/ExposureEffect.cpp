@@ -4,12 +4,12 @@
 #include "../../Engine.h"
 #include "../../Helper/RenderHelper.h"
 
-ExposureEffect::ExposureEffect():
-PostProcessingEffect("Exposure"),
-_framebuffer(Engine::getWindow().getSize()),
+ExposureEffect::ExposureEffect(glm::ivec2 size):
+PostProcessingEffect("Exposure", size),
+_framebuffer(size),
 _outputTexture(TextureCreateInfo
 {
-	.size = _framebuffer.getSize(),
+	.size = size,
 	.internalFormat = GL_RGB16F
 })
 {
