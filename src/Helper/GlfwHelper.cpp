@@ -17,19 +17,11 @@ void GlfwHelper::Init()
 	});
 	
 	EnsureGpuIsCompatible();
-	
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_DEPTH_BITS, 0);
-	glfwWindowHint(GLFW_STENCIL_BITS, 0);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#if _DEBUG
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-#endif
 }
 
 void GlfwHelper::EnsureGpuIsCompatible()
 {
+	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_VISIBLE, false);
 	
 	GLFWwindow* window = glfwCreateWindow(1, 1, "CompatibilityQuery", nullptr, nullptr);

@@ -20,15 +20,7 @@ void KeyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, uint
 
 Window::Window(std::optional<glm::ivec2> size)
 {
-	glfwInit();
-	
-	glfwSetErrorCallback(
-			[](int code, const char *message)
-			{
-				Logger::Error(message, "GLFW");
-			}
-	);
-	
+	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_DEPTH_BITS, 0);
