@@ -51,6 +51,7 @@ void Engine::init()
 //	Logger::SetLogLevel(Logger::LogLevel::Warning);
 	
 	_window = std::make_unique<Window>(glm::ivec2(1600, 900));
+	_window->resizeEvent() += onWindowResize;
 	
 	_globalResourceManager = std::make_unique<ResourceManager>(1);
 	
@@ -133,4 +134,10 @@ Renderer& Engine::getRenderer()
 Timer& Engine::getTimer()
 {
 	return _timer;
+}
+
+void Engine::onWindowResize(glm::ivec2 size)
+{
+	_renderer = std::make_unique<Renderer>(size);
+	_scene->getCamera().aspectRatioChanged();
 }

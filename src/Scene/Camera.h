@@ -27,6 +27,8 @@ public:
 	
 	float getFov() const;
 	void setFov(float fov);
+	
+	void aspectRatioChanged();
 
 private:
 	bool _orientationChanged = true;

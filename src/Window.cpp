@@ -1,6 +1,6 @@
 #include "Window.h"
 
-void KeyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, uint32_t mods)
+void keyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
 {
 	Window& window = *(Window*)glfwGetWindowUserPointer(glfwWindow);
 	if (action == GLFW_PRESS)
@@ -16,6 +16,12 @@ void KeyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, uint
 				break;
 		}
 	}
+}
+
+void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height)
+{
+	Window& window = *(Window*)glfwGetWindowUserPointer(glfwWindow);
+	window.resizeEvent().invoke(glm::ivec2(width, height));
 }
 
 Window::Window(std::optional<glm::ivec2> size)
@@ -58,7 +64,8 @@ Window::Window(std::optional<glm::ivec2> size)
 
 void Window::setCallbacks()
 {
-	glfwSetKeyCallback(_glfwWindow, reinterpret_cast<GLFWkeyfun>(KeyCallback));
+	glfwSetKeyCallback(_glfwWindow, keyCallback);
+	glfwSetWindowSizeCallback(_glfwWindow, windowResizeCallback);
 }
 
 glm::ivec2 Window::getSize()
@@ -128,4 +135,9 @@ void Window::swapBuffers()
 GLFWwindow* Window::getHandle()
 {
 	return _glfwWindow;
+}
+
+Event<glm::ivec2>& Window::resizeEvent()
+{
+	return _resizeEvent;
 }

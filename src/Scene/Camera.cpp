@@ -164,7 +164,12 @@ void Camera::recalculateProjection()
 {
 	glm::ivec2 windowSize = Engine::getWindow().getSize();
 	float aspect = (float)windowSize.x / windowSize.y;
-	_projection = glm::perspective(MathHelper::fovXtoY(_fov, aspect), aspect, 0.02f, 1000.0f);
+	_projection = glm::perspective(MathHelper::fovXtoY(_fov, 16.0 / 9.0), aspect, 0.02f, 1000.0f);
 	
 	_projectionChanged = false;
+}
+
+void Camera::aspectRatioChanged()
+{
+	_projectionChanged = true;
 }

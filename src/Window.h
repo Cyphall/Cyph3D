@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/ext.hpp>
 #include <optional>
+#include "Event.h"
 
 class Window
 {
@@ -28,9 +29,13 @@ public:
 	int getKey(int key);
 	int getMouseButton(int button);
 	
+	Event<glm::ivec2>& resizeEvent();
+	
 	GLFWwindow* getHandle();
 
 private:
 	GLFWwindow* _glfwWindow;
 	bool _guiOpen = false;
+	
+	Event<glm::ivec2> _resizeEvent;
 };

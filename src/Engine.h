@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 class Window;
 class ResourceManager;
 class Scene;
@@ -29,4 +31,6 @@ private:
 	static std::unique_ptr<Renderer> _renderer;
 	
 	static Timer _timer;
+	
+	static void onWindowResize(glm::ivec2 size);
 };
