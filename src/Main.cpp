@@ -8,7 +8,7 @@ int main(int argc, char** argv)
 	try
 	{
 		Logger::Init();
-		Engine::init(argc == 2 && strcmp(argv[1], "--windowed") == 0 || IsDebuggerPresent());
+		Engine::init();
 		Engine::run();
 		Engine::shutdown();
 	}
