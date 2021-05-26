@@ -71,31 +71,32 @@ void Camera::setExposure(float exposure)
 	_exposure = exposure;
 }
 
-float Camera::getFov() const
+float Camera::getVerticalFov() const
 {
-	return _fov;
+	return _verticalFov;
 }
 
-void Camera::setFov(float fov)
+void Camera::setVerticalFov(float vfov)
 {
-	_fov = fov;
+	_verticalFov = vfov;
+	_projectionChanged = true;
+}
+
+void Camera::setHorizontalFov(float hfov, float referenceAspectRatio)
+{
+	_verticalFov = MathHelper::fovXtoY(hfov, referenceAspectRatio);
 	_projectionChanged = true;
 }
 
 Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
-_position(position), _sphericalCoords(sphericalCoords), _previousMousePos(Engine::getWindow().getCursorPos())
+_position(position), _sphericalCoords(sphericalCoords)
 {
-	setFov(100);
+	setHorizontalFov(100, 16.0/9.0);
+	setAspectRatio(16.0/9.0);
 }
 
-void Camera::update()
+void Camera::update(glm::vec2 mousePosDelta)
 {
-	if (Engine::getWindow().isGuiOpen())
-	{
-		_previousMousePos = Engine::getWindow().getCursorPos();
-		return;
-	}
-	
 	float ratio = (float)Engine::getTimer().deltaTime() * _speed;
 	
 	if (Engine::getWindow().getKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
@@ -124,12 +125,7 @@ void Camera::update()
 		setPosition(getPosition() - getSideOrientation() * ratio);
 	}
 	
-	glm::vec2 currentMousePos = Engine::getWindow().getCursorPos();
-	
-	glm::vec2 mouseOffset = currentMousePos - _previousMousePos;
-	setSphericalCoords(getSphericalCoords() - mouseOffset / 12.0f);
-	
-	_previousMousePos = currentMousePos;
+	setSphericalCoords(getSphericalCoords() - mousePosDelta / 12.0f);
 }
 
 void Camera::recalculateOrientation()
@@ -162,14 +158,18 @@ void Camera::recalculateView()
 
 void Camera::recalculateProjection()
 {
-	glm::ivec2 windowSize = Engine::getWindow().getSize();
-	float aspect = (float)windowSize.x / windowSize.y;
-	_projection = glm::perspective(MathHelper::fovXtoY(_fov, 16.0 / 9.0), aspect, 0.02f, 1000.0f);
+	_projection = glm::perspective(_verticalFov, _aspectRatio, 0.02f, 1000.0f);
 	
 	_projectionChanged = false;
 }
 
-void Camera::aspectRatioChanged()
+float Camera::getAspectRatio() const
 {
+	return _aspectRatio;
+}
+
+void Camera::setAspectRatio(float aspectRatio)
+{
+	_aspectRatio = aspectRatio;
 	_projectionChanged = true;
 }

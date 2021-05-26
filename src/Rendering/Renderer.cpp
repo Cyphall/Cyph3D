@@ -29,10 +29,9 @@ void Renderer::setDebug(bool debug)
 	_debug = debug;
 }
 
-void Renderer::render()
+Texture& Renderer::render(Camera& camera)
 {
 	Scene& scene = Engine::getScene();
-	Camera& camera = scene.getCamera();
 	
 	render(_zPrePass, camera);
 	render(_shadowMapPass, camera);
@@ -42,8 +41,7 @@ void Renderer::render()
 	if (_debug)
 	{
 		render(_gBufferDebugPass, camera);
-		Framebuffer::drawToDefault(*_textures["gbuffer_debug"], true);
-		return;
+		return *_textures["gbuffer_debug"];
 	}
 	
 	if (scene.getSkybox() != nullptr && scene.getSkybox()->isResourceReady())
@@ -53,8 +51,9 @@ void Renderer::render()
 	
 	render(_postProcessingPass, camera);
 	
-	Framebuffer::drawToDefault(*_textures["final"], true);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
+	return *_textures["final"];
 }
 
 void Renderer::onNewFrame()
@@ -72,7 +71,7 @@ RenderRegistry& Renderer::getRegistry()
 	return _registry;
 }
 
-Entity* Renderer::getClickedEntity(glm::dvec2 clickPos)
+Entity* Renderer::getClickedEntity(glm::ivec2 clickPos)
 {
 	int objectIndex;
 	_objectIndexFramebuffer.bindForReading();
@@ -83,7 +82,7 @@ Entity* Renderer::getClickedEntity(glm::dvec2 clickPos)
 	
 	if (objectIndex != -1)
 	{
-		return Engine::getRenderer().getRegistry().meshes[objectIndex].owner;
+		return _registry.meshes[objectIndex].owner;
 	}
 	
 	return nullptr;

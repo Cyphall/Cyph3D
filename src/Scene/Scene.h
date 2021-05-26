@@ -9,14 +9,16 @@
 
 #include <nlohmann/json.hpp>
 
+class Renderer;
+
 class Scene
 {
 public:
-	Scene(Camera camera = Camera(), std::string name = "Untitled Scene");
+	Scene(std::string name = "Untitled Scene");
 	~Scene();
 	
 	void onUpdate();
-	void onPreRender();
+	void onPreRender(RenderContext& context);
 	
 	Entity& createEntity(Transform& parent);
 	EntityIterator removeEntity(EntityIterator where);
@@ -27,8 +29,6 @@ public:
 	EntityConstIterator entities_cend() const;
 	
 	Transform& getRoot();
-	
-	Camera& getCamera();
 	
 	Skybox* getSkybox();
 	void setSkybox(Skybox* skybox);
@@ -43,7 +43,6 @@ public:
 private:
 	std::unique_ptr<Transform> _root;
 	std::list<std::unique_ptr<Entity>> _entities;
-	Camera _camera;
 	std::string _name;
 	Skybox* _skybox = nullptr;
 	ResourceManager _resourceManager;

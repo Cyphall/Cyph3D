@@ -32,7 +32,7 @@ public:
 	
 	void updateShadowMap(VertexArray& vao, RenderRegistry& registry);
 	
-	void onPreRender() override;
+	void onPreRender(RenderContext& context) override;
 	void onDrawUi() override;
 	
 	static const char* identifier;

@@ -1,70 +1,37 @@
 #include "Window.h"
 
-void keyCallback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
-{
-	Window& window = *(Window*)glfwGetWindowUserPointer(glfwWindow);
-	if (action == GLFW_PRESS)
-	{
-		switch (key)
-		{
-			case GLFW_KEY_ESCAPE:
-				window.setGuiOpen(!window.isGuiOpen());
-				break;
-			case GLFW_KEY_X:
-				if (mods & GLFW_MOD_CONTROL)
-					window.setShouldClose(true);
-				break;
-		}
-	}
-}
-
 void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height)
 {
 	Window& window = *(Window*)glfwGetWindowUserPointer(glfwWindow);
 	window.resizeEvent().invoke(glm::ivec2(width, height));
 }
 
-Window::Window(std::optional<glm::ivec2> size)
+Window::Window()
 {
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_DEPTH_BITS, 0);
 	glfwWindowHint(GLFW_STENCIL_BITS, 0);
+	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef _DEBUG
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
 	
-	if (size.has_value())
-	{
-		_glfwWindow = glfwCreateWindow(size->x, size->y, "Cyph3D", nullptr, nullptr);
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-		glfwSetWindowPos(_glfwWindow, (mode->width - size->x) / 2, (mode->height- size->y) / 2);
-	}
-	else
-	{
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-		_glfwWindow = glfwCreateWindow(mode->width, mode->height, "Cyph3D", monitor, nullptr);
-	}
+	_glfwWindow = glfwCreateWindow(800, 600, "Cyph3D", nullptr, nullptr);
 	
 	glfwSetWindowUserPointer(_glfwWindow, this);
 	
 	glfwMakeContextCurrent(_glfwWindow);
-	setGuiOpen(false);
 	
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
 	
 	setCallbacks();
-	
-	setGuiOpen(true);
 }
 
 void Window::setCallbacks()
 {
-	glfwSetKeyCallback(_glfwWindow, keyCallback);
 	glfwSetWindowSizeCallback(_glfwWindow, windowResizeCallback);
 }
 
@@ -97,26 +64,6 @@ void Window::setShouldClose(bool value)
 	glfwSetWindowShouldClose(_glfwWindow, value);
 }
 
-bool Window::isGuiOpen() const
-{
-	return _guiOpen;
-}
-
-void Window::setGuiOpen(bool value)
-{
-	_guiOpen = value;
-	
-	if (value)
-	{
-		glfwSetInputMode(_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		setCursorPos(getSize() / 2);
-	}
-	else
-	{
-		glfwSetInputMode(_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	}
-}
-
 int Window::getKey(int key)
 {
 	return glfwGetKey(_glfwWindow, key);
@@ -140,4 +87,14 @@ GLFWwindow* Window::getHandle()
 Event<glm::ivec2>& Window::resizeEvent()
 {
 	return _resizeEvent;
+}
+
+int Window::getInputMode() const
+{
+	return glfwGetInputMode(_glfwWindow, GLFW_CURSOR);
+}
+
+void Window::setInputMode(int inputMode)
+{
+	glfwSetInputMode(_glfwWindow, GLFW_CURSOR, inputMode);
 }

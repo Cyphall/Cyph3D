@@ -95,7 +95,7 @@ Material* MeshRenderer::getDrawingMaterial()
 	return _material != nullptr ? _material : Material::getMissing();
 }
 
-void MeshRenderer::onPreRender()
+void MeshRenderer::onPreRender(RenderContext& context)
 {
 	Model* model = getModel();
 	
@@ -109,7 +109,7 @@ void MeshRenderer::onPreRender()
 	data.contributeShadows = getContributeShadows();
 	data.matrix = getTransform().getLocalToWorldMatrix();
 	
-	Engine::getRenderer().requestMeshRendering(data);
+	context.renderer.requestMeshRendering(data);
 }
 
 void MeshRenderer::onDrawUi()

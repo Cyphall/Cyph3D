@@ -9,8 +9,6 @@
 #include "../../Entity/Component/Animator.h"
 
 std::any UIInspector::_selected;
-bool UIInspector::_currentlyClicking = false;
-glm::dvec2 UIInspector::_clickPos;
 
 std::any UIInspector::getSelected()
 {
@@ -24,10 +22,7 @@ void UIInspector::setSelected(std::any selected)
 
 void UIInspector::show()
 {
-	ImGui::SetNextWindowSize(glm::vec2(400, Engine::getWindow().getSize().y - Engine::getWindow().getSize().y / 2));
-	ImGui::SetNextWindowPos(glm::vec2(0, Engine::getWindow().getSize().y / 2));
-	
-	if (!ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+	if (!ImGui::Begin("Inspector", nullptr))
 	{
 		ImGui::End();
 		return;
@@ -59,20 +54,4 @@ void UIInspector::show()
 	}
 	
 	ImGui::End();
-	
-	if (!_currentlyClicking && Engine::getWindow().getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !ImGui::GetIO().WantCaptureMouse)
-	{
-		_currentlyClicking = true;
-		_clickPos = Engine::getWindow().getCursorPos();
-	}
-	
-	if (_currentlyClicking && Engine::getWindow().getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
-	{
-		_currentlyClicking = false;
-		if (glm::distance(_clickPos, Engine::getWindow().getCursorPos()) < 5)
-		{
-			Entity* entity = Engine::getRenderer().getClickedEntity(_clickPos);
-			setSelected(entity ? &entity->getTransform() : std::any());
-		}
-	}
 }

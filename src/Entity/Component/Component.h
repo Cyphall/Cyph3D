@@ -2,8 +2,10 @@
 
 #include "../ComponentSerialization.h"
 #include "../../Scene/Transform.h"
+#include "../../RenderContext.h"
 
 class Entity;
+class Renderer;
 
 class Component
 {
@@ -14,7 +16,7 @@ public:
 	Transform& getTransform() const;
 	
 	virtual void onUpdate();
-	virtual void onPreRender();
+	virtual void onPreRender(RenderContext& context);
 	virtual void onDrawUi();
 	
 	virtual const char* getIdentifier() const = 0;

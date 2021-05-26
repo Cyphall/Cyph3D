@@ -127,15 +127,15 @@ void DirectionalLight::deserialize(const ComponentSerialization& data)
 	setResolution(data.json["shadow_resolution"].get<int>());
 }
 
-void DirectionalLight::onPreRender()
+void DirectionalLight::onPreRender(RenderContext& context)
 {
 	if (getCastShadows())
 	{
 		Scene& scene = getEntity().getScene();
 		_viewProjection = _projection *
 						  glm::lookAt(
-							  scene.getCamera().getPosition(),
-							  scene.getCamera().getPosition() + getLightDirection(),
+							  context.camera.getPosition(),
+							  context.camera.getPosition() + getLightDirection(),
 							  glm::vec3(0, 1, 0));
 	}
 	
@@ -153,7 +153,7 @@ void DirectionalLight::onPreRender()
 	};
 	data.light = this;
 	
-	Engine::getRenderer().requestLightRendering(data);
+	context.renderer.requestLightRendering(data);
 }
 
 void DirectionalLight::onDrawUi()

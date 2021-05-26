@@ -20,7 +20,6 @@
 std::unique_ptr<Window> Engine::_window;
 std::unique_ptr<ResourceManager> Engine::_globalResourceManager;
 std::unique_ptr<Scene> Engine::_scene;
-std::unique_ptr<Renderer> Engine::_renderer;
 
 Timer Engine::_timer;
 
@@ -50,8 +49,7 @@ void Engine::init()
 	
 //	Logger::SetLogLevel(Logger::LogLevel::Warning);
 	
-	_window = std::make_unique<Window>(glm::ivec2(1600, 900));
-	_window->resizeEvent() += onWindowResize;
+	_window = std::make_unique<Window>();
 	
 	_globalResourceManager = std::make_unique<ResourceManager>(1);
 	
@@ -70,8 +68,6 @@ void Engine::init()
 	RenderHelper::initDrawScreenQuad();
 	Entity::initAllocators();
 	
-	_renderer = std::make_unique<Renderer>(_window->getSize());
-	
 	_scene = std::make_unique<Scene>();
 	
 	UIHelper::init();
@@ -84,7 +80,6 @@ void Engine::run()
 		glfwPollEvents();
 		
 		_timer.onNewFrame();
-		_renderer->onNewFrame();
 		UIHelper::onNewFrame();
 		
 		_globalResourceManager->update();
@@ -92,8 +87,6 @@ void Engine::run()
 		
 		_scene->onUpdate();
 		
-		_scene->onPreRender();
-		_renderer->render();
 		UIHelper::render();
 		
 		_window->swapBuffers();
@@ -126,18 +119,7 @@ void Engine::setScene(std::unique_ptr<Scene>&& scene)
 	_scene = std::move(scene);
 }
 
-Renderer& Engine::getRenderer()
-{
-	return *_renderer;
-}
-
 Timer& Engine::getTimer()
 {
 	return _timer;
-}
-
-void Engine::onWindowResize(glm::ivec2 size)
-{
-	_renderer = std::make_unique<Renderer>(size);
-	_scene->getCamera().aspectRatioChanged();
 }

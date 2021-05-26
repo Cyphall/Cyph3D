@@ -8,6 +8,7 @@
 #include "../../GLObject/VertexArray.h"
 
 class RenderRegistry;
+class Renderer;
 
 class DirectionalLight : public LightBase
 {
@@ -34,7 +35,7 @@ public:
 	
 	void updateShadowMap(VertexArray& vao, RenderRegistry& registry);
 	
-	void onPreRender() override;
+	void onPreRender(RenderContext& context) override;
 	void onDrawUi() override;
 	
 	static const char* identifier;

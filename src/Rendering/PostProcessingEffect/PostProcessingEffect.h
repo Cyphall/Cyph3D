@@ -3,6 +3,8 @@
 #include "../../GLObject/Texture.h"
 #include <unordered_map>
 
+class Camera;
+
 class PostProcessingEffect
 {
 public:
@@ -11,10 +13,10 @@ public:
 	
 	glm::ivec2 getSize() const;
 	
-	Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures);
+	Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera);
 
 protected:
-	virtual Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) = 0;
+	virtual Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera) = 0;
 
 private:
 	const char* _name;

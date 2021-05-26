@@ -10,7 +10,7 @@
 class Window
 {
 public:
-	explicit Window(std::optional<glm::ivec2> size = std::nullopt);
+	explicit Window();
 	void setCallbacks();
 	
 	glm::ivec2 getSize();
@@ -21,10 +21,10 @@ public:
 	bool shouldClose() const;
 	void setShouldClose(bool value);
 	
-	bool isGuiOpen() const;
-	void setGuiOpen(bool value);
-	
 	void swapBuffers();
+	
+	int getInputMode() const;
+	void setInputMode(int inputMode);
 	
 	int getKey(int key);
 	int getMouseButton(int button);
@@ -35,7 +35,6 @@ public:
 
 private:
 	GLFWwindow* _glfwWindow;
-	bool _guiOpen = false;
 	
 	Event<glm::ivec2> _resizeEvent;
 };

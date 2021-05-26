@@ -1,6 +1,9 @@
 #pragma once
 
+#include <imgui.h>
+
 struct ImGuiContext;
+class Scene;
 
 class UIHelper
 {
@@ -12,4 +15,7 @@ public:
 
 private:
 	static ImGuiContext* _context;
+	
+	static bool _dockingLayoutInitialized;
+	static void initDockingLayout(ImGuiID dockspaceId);
 };

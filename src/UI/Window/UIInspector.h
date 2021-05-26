@@ -13,6 +13,4 @@ public:
 
 private:
 	static std::any _selected;
-	static bool _currentlyClicking;
-	static glm::dvec2 _clickPos;
 };

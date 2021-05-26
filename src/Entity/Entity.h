@@ -12,6 +12,7 @@
 #include <nlohmann/json.hpp>
 
 class Scene;
+class Renderer;
 
 class Entity
 {
@@ -37,7 +38,7 @@ public:
 	
 	void onDrawUi();
 	void onUpdate();
-	void onPreRender();
+	void onPreRender(RenderContext& context);
 	
 	Scene& getScene() const;
 	

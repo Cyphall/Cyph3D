@@ -8,7 +8,7 @@ class ToneMappingEffect : public PostProcessingEffect
 public:
 	ToneMappingEffect(glm::ivec2 size);
 	
-	Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures) override;
+	Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera) override;
 
 private:
 	Framebuffer _framebuffer;

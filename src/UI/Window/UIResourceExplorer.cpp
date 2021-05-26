@@ -21,10 +21,7 @@ void UIResourceExplorer::init()
 
 void UIResourceExplorer::show()
 {
-	ImGui::SetNextWindowSize(glm::vec2(500, 300));
-	ImGui::SetNextWindowPos(glm::vec2(400, Engine::getWindow().getSize().y - 300));
-	
-	if (!ImGui::Begin("Resources", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+	if (!ImGui::Begin("Resources", nullptr))
 	{
 		ImGui::End();
 		return;

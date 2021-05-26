@@ -64,11 +64,11 @@ void Entity::onUpdate()
 	}
 }
 
-void Entity::onPreRender()
+void Entity::onPreRender(RenderContext& context)
 {
 	for (auto it = components_begin(); it != components_end(); it++)
 	{
-		it->onPreRender();
+		it->onPreRender(context);
 	}
 }
 

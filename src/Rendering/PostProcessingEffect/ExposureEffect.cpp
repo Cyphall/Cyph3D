@@ -22,10 +22,10 @@ _outputTexture(TextureCreateInfo
 	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
 
-Texture* ExposureEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures)
+Texture* ExposureEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera)
 {
 	_shaderProgram->setUniform("u_colorTexture", currentRenderTexture);
-	_shaderProgram->setUniform("u_exposure", Engine::getScene().getCamera().getExposure());
+	_shaderProgram->setUniform("u_exposure", camera.getExposure());
 	
 	_framebuffer.bindForDrawing();
 	_shaderProgram->bind();

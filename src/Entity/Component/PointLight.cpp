@@ -137,7 +137,7 @@ void PointLight::deserialize(const ComponentSerialization& data)
 	setResolution(data.json["shadow_resolution"].get<int>());
 }
 
-void PointLight::onPreRender()
+void PointLight::onPreRender(RenderContext& context)
 {
 	RenderData data;
 	data.nativeData = NativeData
@@ -152,7 +152,7 @@ void PointLight::onPreRender()
 	};
 	data.light = this;
 	
-	Engine::getRenderer().requestLightRendering(data);
+	context.renderer.requestLightRendering(data);
 }
 
 void PointLight::onDrawUi()

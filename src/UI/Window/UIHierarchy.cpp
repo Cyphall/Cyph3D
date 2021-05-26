@@ -12,10 +12,7 @@ bool UIHierarchy::_createEntityRequested = false;
 
 void UIHierarchy::show()
 {
-	ImGui::SetNextWindowSize(glm::vec2(400, Engine::getWindow().getSize().y / 2));
-	ImGui::SetNextWindowPos(glm::vec2(0));
-	
-	if (!ImGui::Begin("Hierarchy", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+	if (!ImGui::Begin("Hierarchy", nullptr))
 	{
 		ImGui::End();
 		return;

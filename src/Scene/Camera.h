@@ -7,7 +7,7 @@ class Camera
 public:
 	Camera(glm::vec3 position = glm::vec3(0), glm::vec2 sphericalCoords = glm::vec2(0));
 	
-	void update();
+	void update(glm::vec2 mousePos);
 	
 	glm::mat4 getView();
 	
@@ -25,10 +25,12 @@ public:
 	float getExposure() const;
 	void setExposure(float exposure);
 	
-	float getFov() const;
-	void setFov(float fov);
+	float getVerticalFov() const;
+	void setVerticalFov(float vfov);
+	void setHorizontalFov(float hfov, float referenceAspectRatio);
 	
-	void aspectRatioChanged();
+	float getAspectRatio() const;
+	void setAspectRatio(float aspectRatio);
 
 private:
 	bool _orientationChanged = true;
@@ -47,11 +49,11 @@ private:
 	// y: theta (vertical) -89 to 89
 	glm::vec2 _sphericalCoords;
 	
-	glm::vec2 _previousMousePos;
-	
 	float _speed = 2;
 	float _exposure = 0;
-	float _fov;
+	
+	float _verticalFov;
+	float _aspectRatio;
 	
 	glm::vec3 getOrientation();
 	glm::vec3 getSideOrientation();

@@ -8,9 +8,11 @@
 #include "../Engine.h"
 #include "Scene.h"
 #include "../UI/Window/UIInspector.h"
+#include "Camera.h"
+#include "../UI/Window/UIViewport.h"
 
-Scene::Scene(Camera camera, std::string name):
-_camera(camera), _root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::thread::hardware_concurrency() - 1)
+Scene::Scene(std::string name):
+_root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::thread::hardware_concurrency() - 1)
 {
 
 }
@@ -22,19 +24,17 @@ Transform& Scene::getRoot()
 
 void Scene::onUpdate()
 {
-	_camera.update();
-	
 	for (auto it = entities_begin(); it != entities_end(); it++)
 	{
 		(*it).onUpdate();
 	}
 }
 
-void Scene::onPreRender()
+void Scene::onPreRender(RenderContext& context)
 {
 	for (auto it = entities_begin(); it != entities_end(); it++)
 	{
-		(*it).onPreRender();
+		(*it).onPreRender(context);
 	}
 }
 
@@ -61,11 +61,6 @@ EntityIterator Scene::removeEntity(EntityIterator where)
 	return EntityIterator(_entities.erase(where.getUnderlyingIterator()));
 }
 
-Camera& Scene::getCamera()
-{
-	return _camera;
-}
-
 Skybox* Scene::getSkybox()
 {
 	return _skybox;
@@ -89,13 +84,15 @@ void Scene::load(const std::string& name)
 
 	int version = jsonRoot["version"].get<int>();
 	
+	Engine::setScene(std::make_unique<Scene>(name));
+	Scene& scene = Engine::getScene();
+	
 	Camera camera(glm::make_vec3(jsonRoot["camera"]["position"].get<std::vector<float>>().data()),
 		glm::make_vec2(jsonRoot["camera"]["spherical_coords"].get<std::vector<float>>().data()));
 
 	camera.setExposure(jsonRoot["camera"]["exposure"].get<float>());
-
-	Engine::setScene(std::make_unique<Scene>(camera, name));
-	Scene& scene = Engine::getScene();
+	
+	UIViewport::setCamera(camera);
 
 	if (!jsonRoot["skybox"].is_null())
 	{
@@ -129,12 +126,13 @@ void Scene::save()
 	jsonRoot["version"] = 1;
 	
 	
+	const Camera& camera = UIViewport::getCamera();
 	nlohmann::ordered_json jsonCamera;
-	glm::vec3 cameraPosition = _camera.getPosition();
+	glm::vec3 cameraPosition = camera.getPosition();
 	jsonCamera["position"] = {cameraPosition.x, cameraPosition.y, cameraPosition.z};
-	glm::vec2 cameraRotation = _camera.getSphericalCoords();
+	glm::vec2 cameraRotation = camera.getSphericalCoords();
 	jsonCamera["spherical_coords"] = {cameraRotation.x, cameraRotation.y};
-	jsonCamera["exposure"] = _camera.getExposure();
+	jsonCamera["exposure"] = camera.getExposure();
 	
 	jsonRoot["camera"] = jsonCamera;
 	

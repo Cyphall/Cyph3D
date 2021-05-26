@@ -20,7 +20,7 @@ public:
 	bool getDebug() const;
 	void setDebug(bool debug);
 	
-	void render();
+	Texture& render(Camera& camera);
 	
 	void onNewFrame();
 	
@@ -28,7 +28,7 @@ public:
 	void requestLightRendering(DirectionalLight::RenderData data);
 	void requestLightRendering(PointLight::RenderData data);
 	
-	Entity* getClickedEntity(glm::dvec2 clickPos);
+	Entity* getClickedEntity(glm::ivec2 clickPos);
 	
 	std::unordered_map<std::string, Texture*>& getTextures();
 	RenderRegistry& getRegistry();

@@ -7,9 +7,9 @@
 #include "../../Scene/Scene.h"
 #include "../../Helper/FileHelper.h"
 #include "UIInspector.h"
+#include "UIViewport.h"
 #include <filesystem>
 
-bool UIMisc::_showDemoWindow = false;
 std::vector<std::string> UIMisc::_scenes;
 const std::string* UIMisc::_selectedScene = nullptr;
 
@@ -20,10 +20,7 @@ void UIMisc::init()
 
 void UIMisc::show()
 {
-	ImGui::SetNextWindowSize(glm::vec2(400, 300));
-	ImGui::SetNextWindowPos(glm::vec2(Engine::getWindow().getSize().x - 400, 0));
-	
-	if (!ImGui::Begin("Misc", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+	if (!ImGui::Begin("Misc", nullptr))
 	{
 		ImGui::End();
 		return;
@@ -32,27 +29,16 @@ void UIMisc::show()
 	int fps = 1 / Engine::getTimer().deltaTime();
 	ImGui::Text("FPS: %d", fps);
 	
-	bool gbufferDebug = Engine::getRenderer().getDebug();
-	if (ImGui::Checkbox("GBuffer Debug View", &gbufferDebug))
-	{
-		Engine::getRenderer().setDebug(gbufferDebug);
-	}
-	
-	ImGui::Checkbox("Show Demo Window", &_showDemoWindow);
-	
-	if (_showDemoWindow)
-		ImGui::ShowDemoWindow();
-	
-	float cameraSpeed = Engine::getScene().getCamera().getSpeed();
+	float cameraSpeed = UIViewport::getCamera().getSpeed();;
 	if (ImGui::SliderFloat("Camera speed", &cameraSpeed, 0, 10))
 	{
-		Engine::getScene().getCamera().setSpeed(cameraSpeed);
+		UIViewport::getCamera().setSpeed(cameraSpeed);
 	}
 	
-	float exposure = Engine::getScene().getCamera().getExposure();
+	float exposure = UIViewport::getCamera().getExposure();
 	if (ImGui::SliderFloat("Exposure", &exposure, -10, 10))
 	{
-		Engine::getScene().getCamera().setExposure(exposure);
+		UIViewport::getCamera().setExposure(exposure);
 	}
 	
 	ImGui::Separator();

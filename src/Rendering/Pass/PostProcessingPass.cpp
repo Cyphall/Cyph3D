@@ -22,7 +22,7 @@ void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& t
 	
 	for (auto& effect : _effects)
 	{
-		renderTexture = effect->render(renderTexture, textures);
+		renderTexture = effect->render(renderTexture, textures, camera);
 	}
 	
 	textures["final"] = renderTexture;

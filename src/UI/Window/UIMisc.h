@@ -11,8 +11,6 @@ public:
 	static void rescanFiles();
 
 private:
-	static bool _showDemoWindow;
-
 	static std::vector<std::string> _scenes;
 	static const std::string* _selectedScene;
 };

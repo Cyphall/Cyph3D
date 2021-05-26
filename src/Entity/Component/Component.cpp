@@ -13,7 +13,7 @@ Entity& Component::getEntity() const
 void Component::onUpdate()
 {}
 
-void Component::onPreRender()
+void Component::onPreRender(RenderContext& context)
 {}
 
 void Component::onDrawUi()
