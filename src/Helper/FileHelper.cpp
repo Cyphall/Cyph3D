@@ -1,7 +1,7 @@
 #include "FileHelper.h"
 #include <fstream>
 #include <ios>
-#include <fmt/core.h>
+#include <format>
 
 std::string FileHelper::readAllText(const std::string &path)
 {
@@ -16,5 +16,5 @@ std::string FileHelper::readAllText(const std::string &path)
 		in.close();
 		return contents;
 	}
-	throw std::ios_base::failure(fmt::format("Could not find file \"{}\"", path));
+	throw std::ios_base::failure(std::format("Could not find file \"{}\"", path));
 }

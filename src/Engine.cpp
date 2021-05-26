@@ -11,7 +11,7 @@
 #include "Scene/Scene.h"
 #include "Rendering/Renderer.h"
 #include "Helper/RenderHelper.h"
-#include <fmt/core.h>
+#include <format>
 #include "Entity/Entity.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -61,9 +61,9 @@ void Engine::init(bool windowed)
 	
 	_globalResourceManager = std::make_unique<ResourceManager>(1);
 	
-	Logger::Info(fmt::format("GLFW Version: {}", glfwGetVersionString()), "GLFW");
-	Logger::Info(fmt::format("OpenGL Version: {}", glGetString(GL_VERSION)), "OPGL");
-	Logger::Info(fmt::format("GPU: {}", glGetString(GL_RENDERER)), "OPGL");
+	Logger::Info(std::format("GLFW Version: {}", glfwGetVersionString()), "GLFW");
+	Logger::Info(std::format("OpenGL Version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION))), "OPGL");
+	Logger::Info(std::format("GPU: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER))), "OPGL");
 	
 	glEnable(GL_DEBUG_OUTPUT);
 	if (IsDebuggerPresent())

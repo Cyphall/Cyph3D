@@ -1,7 +1,7 @@
 #include "Skybox.h"
 #include "../Helper/JsonHelper.h"
 #include "../Helper/TextureHelper.h"
-#include <fmt/core.h>
+#include <format>
 
 void Skybox::finishLoading(const SkyboxLoadingData& data)
 {
@@ -23,18 +23,18 @@ void Skybox::finishLoading(const SkyboxLoadingData& data)
 
 SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 {
-	std::string path = fmt::format("resources/skyboxes/{}", name);
+	std::string path = std::format("resources/skyboxes/{}", name);
 	
-	nlohmann::ordered_json root = JsonHelper::loadJsonFromFile(fmt::format("{}/skybox.json", path));
+	nlohmann::ordered_json root = JsonHelper::loadJsonFromFile(std::format("{}/skybox.json", path));
 	
 	std::string facePaths[6] =
 	{
-		fmt::format("{}/{}", path, root["right"].get<std::string>()),
-		fmt::format("{}/{}", path, root["left"].get<std::string>()),
-		fmt::format("{}/{}", path, root["down"].get<std::string>()),
-		fmt::format("{}/{}", path, root["up"].get<std::string>()),
-		fmt::format("{}/{}", path, root["front"].get<std::string>()),
-		fmt::format("{}/{}", path, root["back"].get<std::string>())
+		std::format("{}/{}", path, root["right"].get<std::string>()),
+		std::format("{}/{}", path, root["left"].get<std::string>()),
+		std::format("{}/{}", path, root["down"].get<std::string>()),
+		std::format("{}/{}", path, root["up"].get<std::string>()),
+		std::format("{}/{}", path, root["front"].get<std::string>()),
+		std::format("{}/{}", path, root["back"].get<std::string>())
 	};
 	
 	SkyboxLoadingData skyboxData{};
@@ -49,7 +49,7 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 		
 		if (!skyboxData.data[i].isValid())
 		{
-			throw std::runtime_error(fmt::format("Unable to load image {} from disk", path));
+			throw std::runtime_error(std::format("Unable to load image {} from disk", path));
 		}
 		
 		if (firstIteration)
@@ -61,7 +61,7 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 		
 		if (skyboxData.data[i].getChannelCount() != skyboxComp || skyboxData.data[i].getSize() != skyboxSize)
 		{
-			throw std::runtime_error(fmt::format("Skybox {} have images with different formats", name));
+			throw std::runtime_error(std::format("Skybox {} have images with different formats", name));
 		}
 	}
 	

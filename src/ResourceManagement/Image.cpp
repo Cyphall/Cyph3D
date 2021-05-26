@@ -1,7 +1,7 @@
 #include "Image.h"
 #include <stdexcept>
 #include "../Helper/TextureHelper.h"
-#include <fmt/core.h>
+#include <format>
 
 void Image::finishLoading(const ImageLoadingData& data)
 {
@@ -21,7 +21,7 @@ void Image::finishLoading(const ImageLoadingData& data)
 
 ImageLoadingData Image::loadFromFile(const std::string& name, ImageType type)
 {
-	std::string path = fmt::format("resources/{}", name);
+	std::string path = std::format("resources/{}", name);
 	
 	ImageLoadingData imageData{};
 	
@@ -29,7 +29,7 @@ ImageLoadingData Image::loadFromFile(const std::string& name, ImageType type)
 	
 	if (!imageData.data.isValid())
 	{
-		throw std::runtime_error(fmt::format("Unable to load image {} from disk", path));
+		throw std::runtime_error(std::format("Unable to load image {} from disk", path));
 	}
 	
 	TextureProperties properties = TextureHelper::getTextureProperties(type);

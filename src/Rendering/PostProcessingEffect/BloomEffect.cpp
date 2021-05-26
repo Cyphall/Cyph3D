@@ -1,4 +1,4 @@
-#include <fmt/core.h>
+#include <format>
 #include "BloomEffect.h"
 #include "../../Window.h"
 #include "../../Scene/Scene.h"
@@ -113,11 +113,11 @@ Texture* BloomEffect::renderImpl(Texture* currentRenderTexture, std::unordered_m
 	
 	for (int i = 5; i > 0; i--)
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, fmt::format("blur({})", i).c_str());
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, std::format("blur({})", i).c_str());
 		blur(i);
 		glPopDebugGroup();
 		
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, fmt::format("combineWithNextLevel({})", i).c_str());
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, std::format("combineWithNextLevel({})", i).c_str());
 		combineWithNextLevel(i);
 		glPopDebugGroup();
 	}

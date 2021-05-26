@@ -4,7 +4,7 @@
 #include "../Helper/MathHelper.h"
 #include "../Engine.h"
 #include "../ResourceManagement/ResourceManager.h"
-#include <fmt/core.h>
+#include <format>
 #include "../Helper/RenderHelper.h"
 
 Framebuffer::Framebuffer(glm::ivec2 size):
@@ -51,7 +51,7 @@ void Framebuffer::checkDrawCompleteness()
 	GLenum state = glCheckNamedFramebufferStatus(_handle, GL_DRAW_FRAMEBUFFER);
 	if (state != GL_FRAMEBUFFER_COMPLETE)
 	{
-		throw std::runtime_error(fmt::format("Framebuffer is incomplete for drawing: {}", state));
+		throw std::runtime_error(std::format("Framebuffer is incomplete for drawing: {}", state));
 	}
 }
 
@@ -60,7 +60,7 @@ void Framebuffer::checkReadCompleteness()
 	GLenum state = glCheckNamedFramebufferStatus(_handle, GL_READ_FRAMEBUFFER);
 	if (state != GL_FRAMEBUFFER_COMPLETE)
 	{
-		throw std::runtime_error(fmt::format("Framebuffer is incomplete for reading: {}", state));
+		throw std::runtime_error(std::format("Framebuffer is incomplete for reading: {}", state));
 	}
 }
 
@@ -68,7 +68,7 @@ void Framebuffer::verifySize(glm::ivec2 size)
 {
 	if (size != _size)
 	{
-		throw std::runtime_error(fmt::format("The texture size ({}x{}) does not match the framebuffer size ({}x{})", size.x, size.y, _size.x, _size.y));
+		throw std::runtime_error(std::format("The texture size ({}x{}) does not match the framebuffer size ({}x{})", size.x, size.y, _size.x, _size.y));
 	}
 }
 
@@ -88,7 +88,7 @@ void Framebuffer::verifyDrawBufferCount()
 
 	if (drawBufferCount > maxDrawBuffers)
 	{
-		throw std::runtime_error(fmt::format("The number of draw buffers ({}) is higher than the maximum number of draw buffers ({})", drawBufferCount, maxDrawBuffers));
+		throw std::runtime_error(std::format("The number of draw buffers ({}) is higher than the maximum number of draw buffers ({})", drawBufferCount, maxDrawBuffers));
 	}
 }
 
@@ -102,7 +102,7 @@ void Framebuffer::verifyColorAttachmentSlots()
 		const std::optional<int>& attachment = _colorAttachments[i];
 		if (attachment.has_value())
 		{
-			throw std::runtime_error(fmt::format("The color attachment slot {} is above the highest available slot ({})", i, maxColorAttachments));
+			throw std::runtime_error(std::format("The color attachment slot {} is above the highest available slot ({})", i, maxColorAttachments));
 		}
 	}
 }
@@ -111,7 +111,7 @@ void Framebuffer::verifyFace(int face)
 {
 	if (!MathHelper::between(face, 0, 5))
 	{
-		throw std::runtime_error(fmt::format("The face index ({}) is not in the interval [0,5]", face));
+		throw std::runtime_error(std::format("The face index ({}) is not in the interval [0,5]", face));
 	}
 }
 

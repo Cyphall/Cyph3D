@@ -15,7 +15,6 @@ target_compile_features(Cyph3D PRIVATE cxx_std_20)
 
 find_path(STB_INCLUDE_DIRS "stb.h")
 find_package(assimp CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
@@ -31,7 +30,6 @@ target_include_directories(Cyph3D PRIVATE
 
 target_link_libraries(Cyph3D PRIVATE
 		assimp::assimp
-		fmt::fmt
 		glfw
 		glm::glm
 		magic_enum::magic_enum

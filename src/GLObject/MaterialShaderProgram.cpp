@@ -1,7 +1,7 @@
 #include "MaterialShaderProgram.h"
 #include "../ResourceManagement/ResourceManager.h"
 #include <fstream>
-#include <fmt/core.h>
+#include <format>
 
 #include <nlohmann/json.hpp>
 
@@ -10,13 +10,13 @@ MaterialShaderProgram::MaterialShaderProgram(const std::string& layoutName, Reso
 	ShaderProgramCreateInfo createInfo;
 	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
 	createInfo.shadersFiles[GL_GEOMETRY_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back(fmt::format("materialLayout/{}", layoutName));
+	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back(std::format("materialLayout/{}", layoutName));
 	
 	_shaderProgram = resourceManager->requestShaderProgram(createInfo);
 	
 	nlohmann::ordered_json root;
 	
-	std::ifstream jsonFile(fmt::format("resources/shaders/materialLayout/{}.json", layoutName));
+	std::ifstream jsonFile(std::format("resources/shaders/materialLayout/{}.json", layoutName));
 	jsonFile >> root;
 	jsonFile.close();
 	

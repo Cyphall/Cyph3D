@@ -5,7 +5,7 @@
 #include "../ResourceManagement/ResourceManager.h"
 #include "../Logger.h"
 #include <glm/gtc/matrix_inverse.hpp>
-#include <fmt/core.h>
+#include <format>
 
 Material* Material::_default;
 Material* Material::_missing;
@@ -13,11 +13,11 @@ Material* Material::_missing;
 Material::Material(std::string name, ResourceManager* resourceManager):
 _name(std::move(name))
 {
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/materials/{}/material.json", _name));
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(std::format("resources/materials/{}/material.json", _name));
 	
 	if (!jsonRoot.contains("shader"))
 	{
-		throw std::runtime_error(fmt::format("material.json of material {} doesn't contain a \"shader\" entry.", _name));
+		throw std::runtime_error(std::format("material.json of material {} doesn't contain a \"shader\" entry.", _name));
 	}
 	
 	_shaderProgram = resourceManager->requestMaterialShaderProgram(jsonRoot["shader"].get<std::string>());
@@ -43,7 +43,7 @@ _name(std::move(name))
 		if (jsonRoot.contains(mapName))
 		{
 			image = resourceManager->requestImage(
-					fmt::format("materials/{}/{}", _name, jsonRoot[mapName].get<std::string>()),
+					std::format("materials/{}/{}", _name, jsonRoot[mapName].get<std::string>()),
 					mapDefinition.type);
 		}
 		
@@ -74,17 +74,17 @@ void Material::bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3
 		
 		if (image != nullptr && image->isResourceReady())
 		{
-			_shaderProgram->getShaderProgram()->setUniform(fmt::format("u_{}", name).c_str(), &image->getResource());
+			_shaderProgram->getShaderProgram()->setUniform(std::format("u_{}", name).c_str(), &image->getResource());
 		}
 		else
 		{
-			_shaderProgram->getShaderProgram()->setUniform(fmt::format("u_{}", name).c_str(), texture.get());
+			_shaderProgram->getShaderProgram()->setUniform(std::format("u_{}", name).c_str(), texture.get());
 		}
 	}
 	
 	if (!_loaded && allImagesAreReady)
 	{
-		Logger::Info(fmt::format("Material \"{}\" loaded", _name));
+		Logger::Info(std::format("Material \"{}\" loaded", _name));
 		_loaded = true;
 	}
 	

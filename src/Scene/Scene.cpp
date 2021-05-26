@@ -2,7 +2,7 @@
 #include "../Helper/VectorHelper.h"
 #include "../Entity/Entity.h"
 #include "../Helper/JsonHelper.h"
-#include <fmt/core.h>
+#include <format>
 #include <glm/gtc/type_ptr.hpp>
 #include "../Logger.h"
 #include "../Engine.h"
@@ -85,7 +85,7 @@ void Scene::load(const std::string& name)
 {
 	UIInspector::setSelected(std::any());
 	
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(fmt::format("resources/scenes/{}.json", name));
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(std::format("resources/scenes/{}.json", name));
 
 	int version = jsonRoot["version"].get<int>();
 	
@@ -155,7 +155,7 @@ void Scene::save()
 	
 	jsonRoot["entities"] = entities;
 	
-	JsonHelper::saveJsonToFile(jsonRoot, fmt::format("resources/scenes/{}.json", _name));
+	JsonHelper::saveJsonToFile(jsonRoot, std::format("resources/scenes/{}.json", _name));
 }
 
 nlohmann::ordered_json Scene::serializeEntity(const Entity& entity)

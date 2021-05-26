@@ -1,6 +1,6 @@
 #include "ResourceManager.h"
 #include "../Logger.h"
-#include <fmt/core.h>
+#include <format>
 
 ResourceManager::ResourceManager(int threadCount):
 _threadPool(threadCount)
@@ -33,7 +33,7 @@ Model* ResourceManager::requestModel(const std::string& name)
 
 void ResourceManager::loadModel(Model* model, const std::string& name)
 {
-	Logger::Info(fmt::format("Loading model \"{}\"", name));
+	Logger::Info(std::format("Loading model \"{}\"", name));
 	
 	_threadPool.submit([&, model, name]{
 		ModelLoadingData modelData = Model::loadFromFile(name);
@@ -49,7 +49,7 @@ void ResourceManager::finishModelLoading()
 		auto& [model, modelData] = data;
 		
 		model->finishLoading(modelData);
-		Logger::Info(fmt::format("Model \"{}\" loaded", model->getName()));
+		Logger::Info(std::format("Model \"{}\" loaded", model->getName()));
 	}
 }
 
@@ -66,7 +66,7 @@ Image* ResourceManager::requestImage(const std::string& name, ImageType type)
 
 void ResourceManager::loadImage(Image* image, const std::string& name, ImageType type)
 {
-	Logger::Info(fmt::format("Loading image \"{}\"", name));
+	Logger::Info(std::format("Loading image \"{}\"", name));
 	
 	_threadPool.submit([&, image, name, type]
 	{
@@ -84,7 +84,7 @@ void ResourceManager::finishImageLoading()
 		
 		image->finishLoading(imageData);
 		
-		Logger::Info(fmt::format("Image \"{}\" loaded", image->getName()));
+		Logger::Info(std::format("Image \"{}\" loaded", image->getName()));
 	}
 }
 
@@ -101,7 +101,7 @@ Skybox* ResourceManager::requestSkybox(const std::string& name)
 
 void ResourceManager::loadSkybox(Skybox* skybox, const std::string& name)
 {
-	Logger::Info(fmt::format("Loading skybox \"{}\"", name));
+	Logger::Info(std::format("Loading skybox \"{}\"", name));
 	
 	_threadPool.submit([&, skybox, name]
 	{
@@ -119,7 +119,7 @@ void ResourceManager::finishSkyboxLoading()
 		
 		skybox->finishLoading(skyboxData);
 		
-		Logger::Info(fmt::format("Skybox \"{}\" loaded", skybox->getName()));
+		Logger::Info(std::format("Skybox \"{}\" loaded", skybox->getName()));
 	}
 }
 
@@ -129,7 +129,7 @@ ShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateIn
 	{
 		Logger::Info("Loading shader program");
 		_shaderPrograms[createInfo] = std::make_unique<ShaderProgram>(createInfo);
-		Logger::Info(fmt::format("Shader program loaded (id: {})", _shaderPrograms[createInfo]->getHandle()));
+		Logger::Info(std::format("Shader program loaded (id: {})", _shaderPrograms[createInfo]->getHandle()));
 	}
 	
 	return _shaderPrograms[createInfo].get();
@@ -149,7 +149,7 @@ Material* ResourceManager::requestMaterial(const std::string& name)
 {
 	if (!_materials.contains(name))
 	{
-		Logger::Info(fmt::format("Loading material \"{}\"", name));
+		Logger::Info(std::format("Loading material \"{}\"", name));
 		_materials[name] = std::unique_ptr<Material>(new Material(name, this));
 	}
 	

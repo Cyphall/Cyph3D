@@ -1,6 +1,6 @@
 #include "TextureHelper.h"
 #include <stdexcept>
-#include <fmt/core.h>
+#include <format>
 
 TextureProperties TextureHelper::getTextureProperties(ImageType type)
 {
@@ -25,7 +25,7 @@ TextureProperties TextureHelper::getTextureProperties(ImageType type)
 					.swizzle = {GL_RED, GL_RED, GL_RED, GL_ONE}
 			};
 		default:
-			throw std::runtime_error(fmt::format("Unknown ImageType value: {}", type));
+			throw std::runtime_error(std::format("Unknown ImageType value: {}", static_cast<int>(type)));
 	}
 }
 

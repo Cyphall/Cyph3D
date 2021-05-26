@@ -6,7 +6,7 @@
 #include "../Helper/FileHelper.h"
 #include "../Helper/StringHelper.h"
 #include "../Logger.h"
-#include <fmt/core.h>
+#include <format>
 
 ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 {
@@ -45,7 +45,7 @@ ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 		error.resize(length - 1);
 		glGetProgramInfoLog(_handle, length, nullptr, error.data());
 		
-		throw std::runtime_error(fmt::format("Error while linking shaders to program: {}", error));
+		throw std::runtime_error(std::format("Error while linking shaders to program: {}", error));
 	}
 	
 	int uniformCount;
@@ -77,7 +77,7 @@ ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 			
 			for (int j = 0; j < values[1]; j++)
 			{
-				std::string fullName = fmt::format("{}[{}]", name, j);
+				std::string fullName = std::format("{}[{}]", name, j);
 				
 				_uniforms[fullName] = glGetUniformLocation(_handle, fullName.c_str());
 			}
@@ -116,11 +116,11 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 	{
 		try
 		{
-			source += FileHelper::readAllText(fmt::format("resources/shaders/{}.{}", file, extension));
+			source += FileHelper::readAllText(std::format("resources/shaders/{}.{}", file, extension));
 		}
 		catch (const std::ios_base::failure& e)
 		{
-			Logger::Error(fmt::format("Unable to open shader file \"{}.{}\"", file, extension));
+			Logger::Error(std::format("Unable to open shader file \"{}.{}\"", file, extension));
 			throw e;
 		}
 	}
@@ -141,7 +141,7 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 		error.resize(length - 1);
 		glGetShaderInfoLog(shader, length, nullptr, error.data());
 		
-		throw std::runtime_error(fmt::format("Error while compiling shader: {}", error));
+		throw std::runtime_error(std::format("Error while compiling shader: {}", error));
 	}
 	
 	return shader;

@@ -2,7 +2,7 @@
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
-#include <fmt/core.h>
+#include <format>
 
 void Model::finishLoading(const ModelLoadingData& data)
 {
@@ -11,7 +11,7 @@ void Model::finishLoading(const ModelLoadingData& data)
 
 ModelLoadingData Model::loadFromFile(const std::string& name)
 {
-	std::string path = fmt::format("resources/meshes/{}.obj", name);
+	std::string path = std::format("resources/meshes/{}.obj", name);
 	
 	Assimp::Importer importer;
 	
