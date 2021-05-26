@@ -12,7 +12,6 @@ add_executable(Cyph3D vendor/imguizmo-f7bbbe3/src/ImCurveEdit.cpp vendor/imguizm
 set_property(TARGET Cyph3D PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 target_compile_features(Cyph3D PRIVATE cxx_std_20)
-target_compile_options(Cyph3D PRIVATE "$<$<CONFIG:Release>:-O2>")
 
 find_path(STB_INCLUDE_DIRS "stb.h")
 find_package(assimp CONFIG REQUIRED)
