@@ -50,7 +50,7 @@ void UIMisc::show()
 	}
 	
 	float exposure = Engine::getScene().getCamera().getExposure();
-	if (ImGui::SliderFloat("Exposure", &exposure, 0, 10))
+	if (ImGui::SliderFloat("Exposure", &exposure, -10, 10))
 	{
 		Engine::getScene().getCamera().setExposure(exposure);
 	}
