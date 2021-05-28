@@ -176,17 +176,17 @@ void DirectionalLight::onDrawUi()
 		setCastShadows(castShadows);
 	}
 	
-	const char* resolutions[] = {"256", "512", "1024", "2048", "4096", "8192"};
-	int currIndex = glm::log2(getResolution() / 256);
+	std::array<const char*, 8> resolutions = {"64", "128", "256", "512", "1024", "2048", "4096", "8192"};
+	int currIndex = glm::log2(getResolution() / 64);
 	if (ImGui::BeginCombo("Shadow Resolution", resolutions[currIndex]))
 	{
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < resolutions.size(); i++)
 		{
 			bool selected = i == currIndex;
 			if (ImGui::Selectable(resolutions[i], selected))
 			{
 				currIndex = i;
-				setResolution(256 * glm::pow(2, i));
+				setResolution(64 * glm::pow(2, i));
 			}
 			
 			if (selected)
