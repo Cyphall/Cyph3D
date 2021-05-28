@@ -48,7 +48,7 @@ private:
 	glm::vec2 _previousMousePos;
 	
 	float _speed = 2;
-	float _exposure = 1;
+	float _exposure = 0;
 	float _fov;
 	
 	glm::vec3 getOrientation();
