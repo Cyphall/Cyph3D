@@ -1,0 +1,7 @@
+{
+	"shader": "basicPBR",
+	"colorMap": "vd3lecfs_2K_Albedo.jpg",
+	"normalMap": "vd3lecfs_2K_Normal.jpg",
+	"roughnessMap": "vd3lecfs_2K_Roughness.jpg",
+	"displacementMap": "vd3lecfs_2K_Displacement.jpg"
+}
