@@ -7,6 +7,7 @@
 #include "../Helper/StringHelper.h"
 #include "../Logger.h"
 #include <format>
+#include <numeric>
 
 ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 {
@@ -45,7 +46,15 @@ ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 		error.resize(length - 1);
 		glGetProgramInfoLog(_handle, length, nullptr, error.data());
 		
-		throw std::runtime_error(std::format("Error while linking shaders to program: {}", error));
+		std::string formattedFiles;
+		for (const std::pair<GLenum, std::vector<std::string>>& files : createInfo.shadersFiles)
+		{
+			std::string extension = ShaderHelper::shaderTypeToExtension(files.first);
+			for (const std::string& file : files.second)
+				formattedFiles += std::format("{}.{}\n", file, extension);
+		}
+		
+		throw std::runtime_error(std::format("Error while linking shaders:\n{}{}", formattedFiles, error));
 	}
 	
 	int uniformCount;
@@ -141,7 +150,11 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 		error.resize(length - 1);
 		glGetShaderInfoLog(shader, length, nullptr, error.data());
 		
-		throw std::runtime_error(std::format("Error while compiling shader: {}", error));
+		std::string formattedFiles;
+		for (const std::string& file : files)
+			formattedFiles += std::format("{}.{}\n", file, extension);
+		
+		throw std::runtime_error(std::format("Error while compiling shaders:\n{}{}", formattedFiles, error));
 	}
 	
 	return shader;
