@@ -12,25 +12,25 @@ in V2F {
 } v2f;
 
 /* ------ data structures ------ */
-layout(bindless_sampler) struct PointLight
+struct PointLight
 {
 	vec3  pos;
 	float intensity;
 	vec3  color;
 	bool  castShadows;
-	samplerCube shadowMap;
+	layout(bindless_sampler) samplerCube shadowMap;
 	float far;
 	float maxTexelSizeAtUnitDistance;
 };
 
-layout(bindless_sampler) struct DirectionalLight
+struct DirectionalLight
 {
 	vec3  fragToLightDirection;
 	float intensity;
 	vec3  color;
 	bool  castShadows;
 	mat4  lightViewProjection;
-	sampler2D shadowMap;
+	layout(bindless_sampler) sampler2D shadowMap;
 	float mapSize;
 	float mapDepth;
 };
