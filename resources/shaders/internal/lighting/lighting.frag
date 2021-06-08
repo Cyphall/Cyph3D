@@ -271,7 +271,7 @@ float isInPointShadow(int lightIndex)
 	
 	float shadow = 0.0;
 	
-	const int sampleCount = 128;
+	const int sampleCount = 16;
 	for (int i = 0; i < sampleCount; i++)
 	{
 		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
