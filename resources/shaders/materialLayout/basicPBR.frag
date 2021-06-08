@@ -43,7 +43,7 @@ void main()
 	o_color = texture(u_colorMap, texCoords).rgb;
 	
 	o_normal.xy = texture(u_normalMap, texCoords).rg * 2.0 - 1.0;
-	o_normal.z = sqrt(1 - dot(o_normal.xy, o_normal.xy));
+	o_normal.z = sqrt(1 - min(dot(o_normal.xy, o_normal.xy), 1));
 	o_normal = tangentToWorld * o_normal;
 	o_normal = (o_normal + 1) * 0.5;
 	
