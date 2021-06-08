@@ -1,4 +1,4 @@
-﻿#version 460 core
+#version 460 core
 #extension GL_ARB_bindless_texture : enable
 
 in V2F
