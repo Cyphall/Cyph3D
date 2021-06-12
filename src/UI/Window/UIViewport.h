@@ -19,7 +19,7 @@ public:
 private:
 	static std::unique_ptr<Renderer> _renderer;
 	static Camera _camera;
-	static glm::vec2 _lastViewportSize;
+	static glm::vec2 _previousViewportSize;
 	static bool _currentlyClicking;
 	static glm::vec2 _clickPos;
 	static bool _cameraFocused;
@@ -31,5 +31,5 @@ private:
 	static void onWindowSizeChanged(glm::vec2 newSize);
 	
 	static void drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize);
-	static void drawGizmoWindow();
+	static void drawHeader();
 };

@@ -4,12 +4,13 @@
 #include "../../Window.h"
 #include "../../Engine.h"
 #include "UIInspector.h"
+#include <imgui_internal.h>
 
 std::unique_ptr<Renderer> UIViewport::_renderer;
 Camera UIViewport::_camera;
 bool UIViewport::_cameraFocused = false;
 glm::dvec2 UIViewport::_lockedCursorPos;
-glm::vec2 UIViewport::_lastViewportSize(0);
+glm::vec2 UIViewport::_previousViewportSize(0);
 bool UIViewport::_currentlyClicking = false;
 glm::vec2 UIViewport::_clickPos;
 
@@ -20,29 +21,37 @@ void UIViewport::show()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	
-	if (!ImGui::Begin("Viewport"))
+	bool open = ImGui::Begin("Viewport");
+	
+	ImGui::PopStyleVar();
+	
+	if (!open)
 	{
 		ImGui::End();
-		ImGui::PopStyleVar();
 		return;
 	}
 	
-	drawGizmoWindow();
+	drawHeader();
 	
 	glm::vec2 viewportStartLocal = ImGui::GetCursorPos();
 	glm::vec2 viewportEndLocal = ImGui::GetWindowContentRegionMax();
+	
 	glm::vec2 viewportSize = viewportEndLocal - viewportStartLocal;
-	if (viewportSize != _lastViewportSize)
+	
+	glm::vec2 viewportStartGlobal = ImGui::GetCursorScreenPos();
+	glm::vec2 viewportEndGlobal = viewportStartGlobal + viewportSize;
+	
+	if (viewportSize != _previousViewportSize)
 	{
 		if (viewportSize.x <= 0 || viewportSize.y <= 0)
 		{
 			ImGui::End();
-			ImGui::PopStyleVar();
 			return;
 		}
 		onWindowSizeChanged(viewportSize);
+		_previousViewportSize = viewportSize;
 	}
-	glm::vec2 viewportStartGlobal = ImGui::GetCursorScreenPos();
+	
 	glm::vec2 viewportCursorPos = glm::vec2(ImGui::GetIO().MousePos) - viewportStartGlobal;
 	
 	if (Engine::getWindow().getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
@@ -97,15 +106,12 @@ void UIViewport::show()
 	drawGizmo(viewportStartGlobal, viewportSize);
 	
 	ImGui::End();
-	ImGui::PopStyleVar();
 }
 
 void UIViewport::onWindowSizeChanged(glm::vec2 newSize)
 {
 	_renderer = std::make_unique<Renderer>(newSize);
 	_camera.setAspectRatio(newSize.x / newSize.y);
-	
-	_lastViewportSize = newSize;
 }
 
 Camera& UIViewport::getCamera()
@@ -169,23 +175,29 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 	}
 }
 
-void UIViewport::drawGizmoWindow()
+void UIViewport::drawHeader()
 {
+	ImGui::BeginChild("ViewportHeader", ImVec2(0, 30), false, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoScrollbar);
+	
+	ImGui::GetCurrentContext()->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
+	
+	// gizmos
 	if (ImGui::Button("T"))
 	{
 		_gizmoMode = ImGuizmo::TRANSLATE;
 	}
-	ImGui::SameLine();
+	
 	if (ImGui::Button("R"))
 	{
 		_gizmoMode = ImGuizmo::ROTATE;
 	}
-	ImGui::SameLine();
+	
 	if (ImGui::Button("S"))
 	{
 		_gizmoMode = ImGuizmo::SCALE;
 	}
-	ImGui::SameLine(0, 30);
+	
+	ImGui::Dummy(glm::vec2(20, 0));
 	
 	if (ImGui::Button(_gizmoSpace == ImGuizmo::LOCAL ? "Local" : "Global"))
 	{
@@ -198,4 +210,6 @@ void UIViewport::drawGizmoWindow()
 			_gizmoSpace = ImGuizmo::LOCAL;
 		}
 	}
+	
+	ImGui::EndChild();
 }
