@@ -86,13 +86,13 @@ void UIHelper::initDockingLayout(ImGuiID dockspaceId)
 	ImGui::DockBuilderDockWindow("Inspector", inspectorId);
 	ImGui::DockBuilderDockWindow("Misc", miscId);
 	
-	ImGuiID resourcesId;
-	ImGui::DockBuilderSplitNode(remainingId, ImGuiDir_Down, 0.35f, &resourcesId, &remainingId);
-	ImGui::DockBuilderDockWindow("Resources", resourcesId);
-	
 	ImGuiID hierarchyId;
 	ImGui::DockBuilderSplitNode(remainingId, ImGuiDir_Left, 0.25f, &hierarchyId, &remainingId);
 	ImGui::DockBuilderDockWindow("Hierarchy", hierarchyId);
+	
+	ImGuiID resourcesId;
+	ImGui::DockBuilderSplitNode(remainingId, ImGuiDir_Down, 0.3f, &resourcesId, &remainingId);
+	ImGui::DockBuilderDockWindow("Resources", resourcesId);
 	
 	ImGui::DockBuilderDockWindow("Viewport", remainingId);
 	
