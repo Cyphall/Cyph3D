@@ -91,7 +91,7 @@ void Camera::setHorizontalFov(float hfov, float referenceAspectRatio)
 Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
 _position(position), _sphericalCoords(sphericalCoords)
 {
-	setHorizontalFov(100, 16.0/9.0);
+	setHorizontalFov(80, 16.0/9.0);
 	setAspectRatio(16.0/9.0);
 }
 
