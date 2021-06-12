@@ -94,10 +94,10 @@ void UIViewport::show()
 		}
 	}
 	
+	drawGizmo(viewportStartGlobal, viewportSize);
+	
 	ImGui::End();
 	ImGui::PopStyleVar();
-	
-	drawGizmo(viewportStartGlobal, viewportSize);
 }
 
 void UIViewport::onWindowSizeChanged(glm::vec2 newSize)
@@ -132,12 +132,17 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 	glm::mat4 view = _camera.getView();
 	glm::mat4 projection = _camera.getProjection();
 	
+	ImGui::PushClipRect(viewportStart, viewportStart + viewportSize, false);
+	
+	ImGuizmo::SetDrawlist();
 	bool changed = ImGuizmo::Manipulate(
 		glm::value_ptr(view),
 		glm::value_ptr(projection),
 		_gizmoMode,
 		_gizmoSpace,
 		glm::value_ptr(worldModel));
+	
+	ImGui::PopClipRect();
 	
 	if (changed)
 	{
