@@ -19,17 +19,7 @@ _objectIndexFramebuffer(size)
 	_objectIndexFramebuffer.setReadBuffer(0);
 }
 
-bool Renderer::getDebug() const
-{
-	return _debug;
-}
-
-void Renderer::setDebug(bool debug)
-{
-	_debug = debug;
-}
-
-Texture& Renderer::render(Camera& camera)
+Texture& Renderer::render(Camera& camera, bool debugView)
 {
 	Scene& scene = Engine::getScene();
 	
@@ -38,9 +28,10 @@ Texture& Renderer::render(Camera& camera)
 	
 	render(_geometryPass, camera);
 	
-	if (_debug)
+	if (debugView)
 	{
 		render(_gBufferDebugPass, camera);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		return *_textures["gbuffer_debug"];
 	}
 	

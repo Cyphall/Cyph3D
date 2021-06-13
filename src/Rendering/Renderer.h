@@ -17,10 +17,7 @@ class Renderer
 public:
 	Renderer(glm::ivec2 size);
 	
-	bool getDebug() const;
-	void setDebug(bool debug);
-	
-	Texture& render(Camera& camera);
+	Texture& render(Camera& camera, bool debugView);
 	
 	void onNewFrame();
 	
@@ -34,9 +31,6 @@ public:
 	RenderRegistry& getRegistry();
 
 private:
-	// GBuffer
-	bool _debug = false;
-	
 	std::unordered_map<std::string, Texture*> _textures;
 	RenderRegistry _registry;
 	

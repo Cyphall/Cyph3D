@@ -24,6 +24,7 @@ private:
 	static glm::vec2 _clickPos;
 	static bool _cameraFocused;
 	static glm::dvec2 _lockedCursorPos;
+	static bool _gbufferDebugView;
 	
 	static ImGuizmo::OPERATION _gizmoMode;
 	static ImGuizmo::MODE _gizmoSpace;

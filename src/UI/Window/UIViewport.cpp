@@ -13,6 +13,7 @@ glm::dvec2 UIViewport::_lockedCursorPos;
 glm::vec2 UIViewport::_previousViewportSize(0);
 bool UIViewport::_currentlyClicking = false;
 glm::vec2 UIViewport::_clickPos;
+bool UIViewport::_gbufferDebugView = false;
 
 ImGuizmo::OPERATION UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
 ImGuizmo::MODE UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
@@ -76,7 +77,7 @@ void UIViewport::show()
 	};
 	Engine::getScene().onPreRender(context);
 	
-	Texture& texture = _renderer->render(_camera);
+	Texture& texture = _renderer->render(_camera, _gbufferDebugView);
 	
 	ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.getHandle())), glm::vec2(texture.getSize()), ImVec2(0, 1), ImVec2(1, 0));
 	
@@ -210,6 +211,10 @@ void UIViewport::drawHeader()
 			_gizmoSpace = ImGuizmo::LOCAL;
 		}
 	}
+	
+	ImGui::Separator();
+	
+	ImGui::Checkbox("GBuffer Debug View", &_gbufferDebugView);
 	
 	ImGui::EndChild();
 }
