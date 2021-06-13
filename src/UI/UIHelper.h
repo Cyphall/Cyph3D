@@ -18,4 +18,5 @@ private:
 	
 	static bool _dockingLayoutInitialized;
 	static void initDockingLayout(ImGuiID dockspaceId);
+	static void initStyles();
 };

@@ -27,7 +27,7 @@ void UIHelper::init()
 	ImGui_ImplGlfw_InitForOpenGL(Engine::getWindow().getHandle(), true);
 	ImGui_ImplOpenGL3_Init("#version 460 core");
 	
-	ImGui::StyleColorsDark();
+	initStyles();
 	
 	UIMisc::init();
 	UIResourceExplorer::init();
@@ -97,4 +97,53 @@ void UIHelper::initDockingLayout(ImGuiID dockspaceId)
 	ImGui::DockBuilderDockWindow("Viewport", remainingId);
 	
 	ImGui::DockBuilderFinish(dockspaceId);
+}
+
+ImVec4 normalizeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+	return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+}
+
+void UIHelper::initStyles()
+{
+	ImGui::StyleColorsDark();
+	
+	ImGuiStyle& style = ImGui::GetStyle();
+	
+	style.FrameBorderSize = 1;
+	
+	style.FrameRounding = 2;
+	style.WindowRounding = 3;
+	style.GrabRounding = 3;
+	
+	style.WindowMenuButtonPosition = ImGuiDir_None;
+	
+	style.Colors[ImGuiCol_WindowBg] = normalizeColor(56, 56, 56, 255);
+	
+	style.Colors[ImGuiCol_FrameBg] = normalizeColor(42, 42, 42, 255);
+	style.Colors[ImGuiCol_FrameBgHovered] = normalizeColor(55, 55, 55, 255);
+	style.Colors[ImGuiCol_FrameBgActive] = normalizeColor(65, 65, 65, 255);
+	
+	style.Colors[ImGuiCol_Border] = normalizeColor(30, 30, 30, 255);
+	
+	style.Colors[ImGuiCol_TitleBg] = normalizeColor(40, 40, 40, 255);
+	style.Colors[ImGuiCol_TitleBgActive] = normalizeColor(40, 40, 40, 255);
+	
+	style.Colors[ImGuiCol_CheckMark] = normalizeColor(230, 230, 230, 255);
+	
+	style.Colors[ImGuiCol_Button] = normalizeColor(88, 88, 88, 255);
+	style.Colors[ImGuiCol_ButtonHovered] = normalizeColor(110, 110, 110, 255);
+	style.Colors[ImGuiCol_ButtonActive] = normalizeColor(53, 53, 53, 255);
+	
+	style.Colors[ImGuiCol_Header] = normalizeColor(70, 70, 70, 255);
+	style.Colors[ImGuiCol_HeaderHovered] = normalizeColor(75, 75, 75, 255);
+	style.Colors[ImGuiCol_HeaderActive] = normalizeColor(62, 62, 62, 255);
+	
+	style.Colors[ImGuiCol_ResizeGrip] = normalizeColor(50, 50, 50, 255);
+	style.Colors[ImGuiCol_ResizeGripHovered] = normalizeColor(40, 40, 40, 255);
+	style.Colors[ImGuiCol_ResizeGripActive] = normalizeColor(45, 45, 45, 255);
+	
+	style.Colors[ImGuiCol_Separator] = normalizeColor(90, 90, 90, 255);
+	style.Colors[ImGuiCol_SeparatorHovered] = normalizeColor(110, 110, 110, 255);
+	style.Colors[ImGuiCol_SeparatorActive] = normalizeColor(140, 140, 140, 255);
 }
