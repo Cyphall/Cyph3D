@@ -2,7 +2,9 @@
 #include "../../Engine.h"
 #include "../../Scene/Scene.h"
 #include "../../Rendering/Renderer.h"
+#include "../../Helper/FileHelper.h"
 #include <imgui.h>
+#include <filesystem>
 
 bool UIMenuBar::_showDemoWindow = false;
 
@@ -19,7 +21,17 @@ void UIMenuBar::show()
 			
 			if (ImGui::MenuItem("Open Scene"))
 			{
-				Scene::load("Test Scene");
+				std::optional<std::string> filePath = FileHelper::fileDialogOpen({
+					FileDialogFilter{
+						.fileTypeDisplayName = L"Cyph3D Scene",
+						.fileTypeExtensions = L"*.json"
+					}
+				});
+				
+				if (filePath.has_value())
+				{
+					Scene::load(std::filesystem::path(filePath.value()).filename().replace_extension().generic_string());
+				}
 			}
 			
 			if (ImGui::MenuItem("Save Scene"))
