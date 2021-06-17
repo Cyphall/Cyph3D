@@ -16,7 +16,7 @@ void UIMenuBar::show()
 		{
 			if (ImGui::MenuItem("New Scene"))
 			{
-			
+				Engine::setScene(std::make_unique<Scene>());
 			}
 			
 			if (ImGui::MenuItem("Open Scene"))
