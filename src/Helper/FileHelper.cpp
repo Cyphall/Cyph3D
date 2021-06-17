@@ -22,9 +22,9 @@ std::string FileHelper::readAllText(const std::string& path)
 	throw std::ios_base::failure(std::format("Could not find file \"{}\"", path));
 }
 
-std::optional<std::string> FileHelper::fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultDirectory)
+std::optional<std::filesystem::path> FileHelper::fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes, const std::filesystem::path& defaultFolder)
 {
-	std::optional<std::string> res;
+	std::optional<std::filesystem::path> res;
 	
 	IFileOpenDialog* pfd;
 	
@@ -48,13 +48,12 @@ std::optional<std::string> FileHelper::fileDialogOpen(std::vector<FileDialogFilt
 		
 		if (SUCCEEDED(hr))
 		{
-			IShellItem* defaultFolder;
-			std::filesystem::path defaultFolderPath(defaultDirectory);
-			hr = SHCreateItemFromParsingName(absolute(defaultFolderPath).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFolder));
+			IShellItem* defaultFolderItem;
+			hr = SHCreateItemFromParsingName(absolute(defaultFolder).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFolderItem));
 			
 			if (SUCCEEDED(hr))
 			{
-				hr = pfd->SetDefaultFolder(defaultFolder);
+				hr = pfd->SetDefaultFolder(defaultFolderItem);
 				
 				if (SUCCEEDED(hr))
 				{
@@ -71,14 +70,12 @@ std::optional<std::string> FileHelper::fileDialogOpen(std::vector<FileDialogFilt
 							item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
 							item->Release();
 							
-							std::filesystem::path filePath(filePathStrRaw);
+							res = filePathStrRaw;
 							CoTaskMemFree(filePathStrRaw);
-							
-							res = filePath.generic_string();
 						}
 					}
 				}
-				defaultFolder->Release();
+				defaultFolderItem->Release();
 			}
 		}
 		pfd->Release();
@@ -87,9 +84,9 @@ std::optional<std::string> FileHelper::fileDialogOpen(std::vector<FileDialogFilt
 	return res;
 }
 
-std::optional<std::string> FileHelper::fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultDirectory, const std::string& defaultName)
+std::optional<std::filesystem::path> FileHelper::fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName)
 {
-	std::optional<std::string> res;
+	std::optional<std::filesystem::path> res;
 	
 	IFileSaveDialog* pfd;
 	
@@ -113,17 +110,15 @@ std::optional<std::string> FileHelper::fileDialogSave(std::vector<FileDialogFilt
 		
 		if (SUCCEEDED(hr))
 		{
-			IShellItem* defaultFolder;
-			std::filesystem::path defaultFolderPath(defaultDirectory);
-			hr = SHCreateItemFromParsingName(absolute(defaultFolderPath).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFolder));
+			IShellItem* defaultFolderItem;
+			hr = SHCreateItemFromParsingName(absolute(defaultFolder).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFolderItem));
 			
 			if (SUCCEEDED(hr))
 			{
-				hr = pfd->SetDefaultFolder(defaultFolder);
+				hr = pfd->SetDefaultFolder(defaultFolderItem);
 				
 				if (SUCCEEDED(hr))
 				{
-					
 					std::filesystem::path defaultFileName(std::format("{}.json", defaultName));
 					hr = pfd->SetFileName(defaultFileName.wstring().c_str());
 					
@@ -140,19 +135,15 @@ std::optional<std::string> FileHelper::fileDialogSave(std::vector<FileDialogFilt
 							{
 								LPWSTR filePathStrRaw;
 								item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
-								
 								item->Release();
-								pfd->Release();
 								
-								std::filesystem::path filePath(filePathStrRaw);
+								res = filePathStrRaw;
 								CoTaskMemFree(filePathStrRaw);
-								
-								res = filePath.generic_string();
 							}
 						}
 					}
 				}
-				defaultFolder->Release();
+				defaultFolderItem->Release();
 			}
 		}
 		pfd->Release();

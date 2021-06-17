@@ -21,7 +21,7 @@ void UIMenuBar::show()
 			
 			if (ImGui::MenuItem("Open Scene"))
 			{
-				std::optional<std::string> filePath = FileHelper::fileDialogOpen({
+				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogOpen({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",
 						.fileTypeExtensions = L"*.json"
@@ -30,14 +30,14 @@ void UIMenuBar::show()
 				
 				if (filePath.has_value())
 				{
-					Scene::load(std::filesystem::path(filePath.value()).filename().replace_extension().generic_string());
+					Scene::load(filePath.value().filename().replace_extension().generic_string());
 				}
 			}
 			
 			if (ImGui::MenuItem("Save Scene"))
 			{
 				const Scene& scene = Engine::getScene();
-				std::optional<std::string> filePath = FileHelper::fileDialogSave({
+				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",
 						.fileTypeExtensions = L"*.json"
@@ -46,7 +46,7 @@ void UIMenuBar::show()
 				
 				if (filePath.has_value())
 				{
-					scene.save(std::filesystem::path(filePath.value()).filename().replace_extension().generic_string());
+					scene.save(filePath.value().filename().replace_extension().generic_string());
 				}
 			}
 			
