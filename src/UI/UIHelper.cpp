@@ -29,7 +29,6 @@ void UIHelper::init()
 	
 	initStyles();
 	
-	UIMisc::init();
 	UIResourceExplorer::init();
 }
 

@@ -119,7 +119,7 @@ void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& par
 	}
 }
 
-void Scene::save()
+void Scene::save(const std::string& name) const
 {
 	nlohmann::ordered_json jsonRoot;
 	
@@ -153,10 +153,10 @@ void Scene::save()
 	
 	jsonRoot["entities"] = entities;
 	
-	JsonHelper::saveJsonToFile(jsonRoot, std::format("resources/scenes/{}.json", _name));
+	JsonHelper::saveJsonToFile(jsonRoot, std::format("resources/scenes/{}.json", name));
 }
 
-nlohmann::ordered_json Scene::serializeEntity(const Entity& entity)
+nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const
 {
 	nlohmann::ordered_json jsonData;
 	

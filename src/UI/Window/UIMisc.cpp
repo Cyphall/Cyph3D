@@ -5,18 +5,11 @@
 #include "../../Engine.h"
 #include "../../Window.h"
 #include "../../Scene/Scene.h"
-#include "../../Helper/FileHelper.h"
 #include "UIInspector.h"
 #include "UIViewport.h"
-#include <filesystem>
 
 std::vector<std::string> UIMisc::_scenes;
 const std::string* UIMisc::_selectedScene = nullptr;
-
-void UIMisc::init()
-{
-	rescanFiles();
-}
 
 void UIMisc::show()
 {
@@ -39,47 +32,6 @@ void UIMisc::show()
 	if (ImGui::SliderFloat("Exposure", &exposure, -10, 10))
 	{
 		UIViewport::getCamera().setExposure(exposure);
-	}
-	
-	ImGui::Separator();
-	
-	if (ImGui::BeginCombo("Scene", _selectedScene != nullptr ? _selectedScene->c_str() : ""))
-	{
-		for (const std::string& scene : _scenes)
-		{
-			bool selected = &scene == _selectedScene;
-			if (ImGui::Selectable(scene.c_str(), selected))
-			{
-				_selectedScene = &scene;
-			}
-			
-			if (selected)
-			{
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		
-		ImGui::EndCombo();
-	}
-	
-	ImGui::SameLine();
-	
-	if (ImGui::Button("Refresh"))
-	{
-		rescanFiles();
-	}
-	
-	if (ImGui::Button("Load scene"))
-	{
-		if (_selectedScene != nullptr)
-			Scene::load(*_selectedScene);
-	}
-	
-	ImGui::SameLine();
-	
-	if (ImGui::Button("Save scene"))
-	{
-		Engine::getScene().save();
 	}
 	
 	ImGui::Separator();
@@ -110,18 +62,4 @@ void UIMisc::show()
 	
 	
 	ImGui::End();
-}
-
-void UIMisc::rescanFiles()
-{
-	_scenes.clear();
-	
-	for (const auto& entry : std::filesystem::directory_iterator("resources/scenes"))
-	{
-		if (entry.is_directory()) continue;
-		
-		_scenes.push_back(entry.path().stem().generic_string());
-	}
-	
-	_selectedScene = !_scenes.empty() ? &_scenes.front() : nullptr;
 }

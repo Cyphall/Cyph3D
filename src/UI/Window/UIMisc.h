@@ -6,9 +6,7 @@
 class UIMisc
 {
 public:
-	static void init();
 	static void show();
-	static void rescanFiles();
 
 private:
 	static std::vector<std::string> _scenes;

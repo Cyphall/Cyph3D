@@ -15,4 +15,5 @@ class FileHelper
 public:
 	static std::string readAllText(const std::string& path);
 	static std::optional<std::string> fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes);
+	static std::optional<std::string> fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultName);
 };

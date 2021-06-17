@@ -36,7 +36,18 @@ void UIMenuBar::show()
 			
 			if (ImGui::MenuItem("Save Scene"))
 			{
-			
+				const Scene& scene = Engine::getScene();
+				std::optional<std::string> filePath = FileHelper::fileDialogSave({
+					FileDialogFilter{
+						.fileTypeDisplayName = L"Cyph3D Scene",
+						.fileTypeExtensions = L"*.json"
+					}
+				}, scene.getName());
+				
+				if (filePath.has_value())
+				{
+					scene.save(std::filesystem::path(filePath.value()).filename().replace_extension().generic_string());
+				}
 			}
 			
 			ImGui::EndMenu();
