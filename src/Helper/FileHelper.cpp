@@ -22,8 +22,10 @@ std::string FileHelper::readAllText(const std::string& path)
 	throw std::ios_base::failure(std::format("Could not find file \"{}\"", path));
 }
 
-std::optional<std::string> FileHelper::fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes)
+std::optional<std::string> FileHelper::fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultDirectory)
 {
+	std::optional<std::string> res;
+	
 	IFileOpenDialog* pfd;
 	
 	HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog,
@@ -31,74 +33,64 @@ std::optional<std::string> FileHelper::fileDialogOpen(std::vector<FileDialogFilt
 		CLSCTX_INPROC_SERVER,
 		IID_PPV_ARGS(&pfd));
 	
-	if (!SUCCEEDED(hr))
-		return std::nullopt;
-	
-	std::vector<COMDLG_FILTERSPEC> fileTypes;
-	fileTypes.reserve(allowedFileTypes.size());
-	for (const FileDialogFilter& fileType : allowedFileTypes)
+	if (SUCCEEDED(hr))
 	{
-		COMDLG_FILTERSPEC& filter = fileTypes.emplace_back();
-		filter.pszName = fileType.fileTypeDisplayName;
-		filter.pszSpec = fileType.fileTypeExtensions;
-	}
-	
-	hr = pfd->SetFileTypes(fileTypes.size(), fileTypes.data());
-	
-	if (!SUCCEEDED(hr))
-	{
+		std::vector<COMDLG_FILTERSPEC> fileTypes;
+		fileTypes.reserve(allowedFileTypes.size());
+		for (const FileDialogFilter& fileType : allowedFileTypes)
+		{
+			COMDLG_FILTERSPEC& filter = fileTypes.emplace_back();
+			filter.pszName = fileType.fileTypeDisplayName;
+			filter.pszSpec = fileType.fileTypeExtensions;
+		}
+		
+		hr = pfd->SetFileTypes(fileTypes.size(), fileTypes.data());
+		
+		if (SUCCEEDED(hr))
+		{
+			IShellItem* defaultFolder;
+			std::filesystem::path defaultFolderPath(defaultDirectory);
+			hr = SHCreateItemFromParsingName(absolute(defaultFolderPath).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFolder));
+			
+			if (SUCCEEDED(hr))
+			{
+				hr = pfd->SetDefaultFolder(defaultFolder);
+				
+				if (SUCCEEDED(hr))
+				{
+					hr = pfd->Show(NULL);
+					
+					if (SUCCEEDED(hr))
+					{
+						IShellItem* item;
+						hr = pfd->GetResult(&item);
+						
+						if (SUCCEEDED(hr))
+						{
+							LPWSTR filePathStrRaw;
+							item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
+							item->Release();
+							
+							std::filesystem::path filePath(filePathStrRaw);
+							CoTaskMemFree(filePathStrRaw);
+							
+							res = filePath.generic_string();
+						}
+					}
+				}
+				defaultFolder->Release();
+			}
+		}
 		pfd->Release();
-		return std::nullopt;
 	}
 	
-	IShellItem* scenesFolder;
-	std::filesystem::path scenesFolderPath("resources/scenes");
-	hr = SHCreateItemFromParsingName(absolute(scenesFolderPath).wstring().c_str(), nullptr, IID_PPV_ARGS(&scenesFolder));
-	
-	if (!SUCCEEDED(hr))
-	{
-		pfd->Release();
-		return std::nullopt;
-	}
-	
-	hr = pfd->SetDefaultFolder(scenesFolder);
-	scenesFolder->Release();
-	
-	if (!SUCCEEDED(hr))
-	{
-		pfd->Release();
-		return std::nullopt;
-	}
-	
-	hr = pfd->Show(NULL);
-	
-	if (!SUCCEEDED(hr))
-	{
-		pfd->Release();
-		return std::nullopt;
-	}
-	
-	IShellItem* item;
-	hr = pfd->GetResult(&item);
-	
-	if (!SUCCEEDED(hr))
-	{
-		pfd->Release();
-		return std::nullopt;
-	}
-	
-	LPWSTR filePathStrRaw;
-	item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
-	pfd->Release();
-	
-	std::filesystem::path filePath(filePathStrRaw);
-	CoTaskMemFree(filePathStrRaw);
-	
-	return filePath.generic_string();
+	return res;
 }
 
-std::optional<std::string> FileHelper::fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultName)
+std::optional<std::string> FileHelper::fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultDirectory, const std::string& defaultName)
 {
+	std::optional<std::string> res;
+	
 	IFileSaveDialog* pfd;
 	
 	HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog,
@@ -106,68 +98,65 @@ std::optional<std::string> FileHelper::fileDialogSave(std::vector<FileDialogFilt
 		CLSCTX_INPROC_SERVER,
 		IID_PPV_ARGS(&pfd));
 	
-	if (!SUCCEEDED(hr))
-		return std::nullopt;
-	
-	std::vector<COMDLG_FILTERSPEC> fileTypes;
-	fileTypes.reserve(allowedFileTypes.size());
-	for (const FileDialogFilter& fileType : allowedFileTypes)
+	if (SUCCEEDED(hr))
 	{
-		COMDLG_FILTERSPEC& filter = fileTypes.emplace_back();
-		filter.pszName = fileType.fileTypeDisplayName;
-		filter.pszSpec = fileType.fileTypeExtensions;
-	}
-	
-	hr = pfd->SetFileTypes(fileTypes.size(), fileTypes.data());
-	
-	if (!SUCCEEDED(hr))
-	{
+		std::vector<COMDLG_FILTERSPEC> fileTypes;
+		fileTypes.reserve(allowedFileTypes.size());
+		for (const FileDialogFilter& fileType : allowedFileTypes)
+		{
+			COMDLG_FILTERSPEC& filter = fileTypes.emplace_back();
+			filter.pszName = fileType.fileTypeDisplayName;
+			filter.pszSpec = fileType.fileTypeExtensions;
+		}
+		
+		hr = pfd->SetFileTypes(fileTypes.size(), fileTypes.data());
+		
+		if (SUCCEEDED(hr))
+		{
+			IShellItem* defaultFolder;
+			std::filesystem::path defaultFolderPath(defaultDirectory);
+			hr = SHCreateItemFromParsingName(absolute(defaultFolderPath).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFolder));
+			
+			if (SUCCEEDED(hr))
+			{
+				hr = pfd->SetDefaultFolder(defaultFolder);
+				
+				if (SUCCEEDED(hr))
+				{
+					
+					std::filesystem::path defaultFileName(std::format("{}.json", defaultName));
+					hr = pfd->SetFileName(defaultFileName.wstring().c_str());
+					
+					if (SUCCEEDED(hr))
+					{
+						hr = pfd->Show(NULL);
+						
+						if (SUCCEEDED(hr))
+						{
+							IShellItem* item;
+							hr = pfd->GetResult(&item);
+							
+							if (SUCCEEDED(hr))
+							{
+								LPWSTR filePathStrRaw;
+								item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
+								
+								item->Release();
+								pfd->Release();
+								
+								std::filesystem::path filePath(filePathStrRaw);
+								CoTaskMemFree(filePathStrRaw);
+								
+								res = filePath.generic_string();
+							}
+						}
+					}
+				}
+				defaultFolder->Release();
+			}
+		}
 		pfd->Release();
-		return std::nullopt;
 	}
 	
-	IShellItem* defaultFile;
-	std::filesystem::path defaultFilePath(std::format("resources/scenes/{}.json", defaultName));
-	hr = SHCreateItemFromParsingName(absolute(defaultFilePath).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFile));
-	
-	if (!SUCCEEDED(hr))
-	{
-		pfd->Release();
-		return std::nullopt;
-	}
-	
-	hr = pfd->SetSaveAsItem(defaultFile);
-	defaultFile->Release();
-	
-	if (!SUCCEEDED(hr))
-	{
-		pfd->Release();
-		return std::nullopt;
-	}
-	
-	hr = pfd->Show(NULL);
-	
-	if (!SUCCEEDED(hr))
-	{
-		pfd->Release();
-		return std::nullopt;
-	}
-	
-	IShellItem* item;
-	hr = pfd->GetResult(&item);
-	
-	if (!SUCCEEDED(hr))
-	{
-		pfd->Release();
-		return std::nullopt;
-	}
-	
-	LPWSTR filePathStrRaw;
-	item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
-	pfd->Release();
-	
-	std::filesystem::path filePath(filePathStrRaw);
-	CoTaskMemFree(filePathStrRaw);
-	
-	return filePath.generic_string();
+	return res;
 }

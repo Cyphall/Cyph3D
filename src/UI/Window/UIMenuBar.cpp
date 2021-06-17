@@ -26,7 +26,7 @@ void UIMenuBar::show()
 						.fileTypeDisplayName = L"Cyph3D Scene",
 						.fileTypeExtensions = L"*.json"
 					}
-				});
+				}, "resources/scenes");
 				
 				if (filePath.has_value())
 				{
@@ -42,7 +42,7 @@ void UIMenuBar::show()
 						.fileTypeDisplayName = L"Cyph3D Scene",
 						.fileTypeExtensions = L"*.json"
 					}
-				}, scene.getName());
+				}, "resources/scenes", scene.getName());
 				
 				if (filePath.has_value())
 				{

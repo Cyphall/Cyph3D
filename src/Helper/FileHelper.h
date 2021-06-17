@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <filesystem>
 
 struct FileDialogFilter
 {
@@ -14,6 +15,6 @@ class FileHelper
 {
 public:
 	static std::string readAllText(const std::string& path);
-	static std::optional<std::string> fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes);
-	static std::optional<std::string> fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultName);
+	static std::optional<std::string> fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultDirectory);
+	static std::optional<std::string> fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::string& defaultDirectory, const std::string& defaultName);
 };
