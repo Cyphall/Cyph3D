@@ -24,7 +24,7 @@ void UIMenuBar::show()
 				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogOpen({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",
-						.fileTypeExtensions = L"*.json"
+						.fileTypeExtensions = L"*.c3ds"
 					}
 				}, "resources/scenes");
 				
@@ -40,7 +40,7 @@ void UIMenuBar::show()
 				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",
-						.fileTypeExtensions = L"*.json"
+						.fileTypeExtensions = L"*.c3ds"
 					}
 				}, "resources/scenes", scene.getName());
 				

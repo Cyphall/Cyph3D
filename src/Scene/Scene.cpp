@@ -80,7 +80,7 @@ void Scene::load(const std::string& name)
 {
 	UIInspector::setSelected(std::any());
 	
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(std::format("resources/scenes/{}.json", name));
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(std::format("resources/scenes/{}.c3ds", name));
 
 	int version = jsonRoot["version"].get<int>();
 	
@@ -153,7 +153,7 @@ void Scene::save(const std::string& name) const
 	
 	jsonRoot["entities"] = entities;
 	
-	JsonHelper::saveJsonToFile(jsonRoot, std::format("resources/scenes/{}.json", name));
+	JsonHelper::saveJsonToFile(jsonRoot, std::format("resources/scenes/{}.c3ds", name));
 }
 
 nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const
