@@ -3,20 +3,19 @@
 This is a simple 3D engine which aims to implement modern photorealistic features.<br/>
 This project is a full C++ rewrite of my [original C# rendering engine](https://github.com/Cyphall/Cyph3D-legacy)
 
-## Controls
+## Viewport Controls
 
-ZQSD: Moving around<br/>
-ESC: Toggle UI<br/>
-CTRL X: Quit
+Hold right click to control the camera and use ZQSD to move
 
 ## Features
 
-#### Core
+### Core
 
 - [x] Deferred Lighting
 - [x] Scene Architecture
+- [x] Entity-Component architecture
 
-#### Shader & Rendering
+### Shaders & Rendering
 
 - [x] PBR Lighting
 - [x] Parallax Occlusion Mapping
@@ -27,21 +26,35 @@ CTRL X: Quit
 - [x] Directional Light Shadows
 - [ ] Cascade Shadow Mapping
 - [x] Anisotropic Filtering
+- [x] Post-processing pipeline
 
-#### UI
+#### Post-processing
+- [x] Exposure
+- [x] ACES Tone mapping
+- [x] Bloom
 
+### UI
+
+- [x] Docking-based UI
+- [x] Gizmos
+  
+#### Windows
+- [x] Viewport
 - [x] Scene Hirarchy
-- [x] Object Inspector
+- [x] Entity Inspector
 - [x] Resources Viewer
-- [ ] Gizmos
+
+#### Viewport gizmos
+- [x] Transform
 
 ## Screenshots
 
 ![](screenshots/01.jpg?raw=true "Dungeon Scene")
 ![](screenshots/02.jpg?raw=true "Spaceship Scene")
-![](screenshots/03.jpg?raw=true "ImGui Interface")
+![](screenshots/03.jpg?raw=true "Cyph3D Interface")
 ![](screenshots/04.jpg?raw=true "Alien Alter Scene #1")
 ![](screenshots/05.jpg?raw=true "Alien Alter Scene #2")
+![](screenshots/06.jpg?raw=true "Egyptian Temple Scene")
 
 ## License
 
