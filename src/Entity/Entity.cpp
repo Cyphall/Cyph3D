@@ -140,7 +140,9 @@ void Entity::onDrawUi()
 	ImGui::PushID(this);
 	ImGui::InputText("Name", &_name);
 	
+	ImGui::Spacing();
 	ImGui::Separator();
+	ImGui::Spacing();
 	
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -165,8 +167,11 @@ void Entity::onDrawUi()
 	
 	for (auto it = components_begin(); it != components_end();)
 	{
-		ImGui::PushID(&(*it));
+		ImGui::Spacing();
 		ImGui::Separator();
+		ImGui::Spacing();
+		
+		ImGui::PushID(&(*it));
 
 		bool keep = true;
 		if (ImGui::CollapsingHeader(it->getIdentifier(), &keep, ImGuiTreeNodeFlags_DefaultOpen))

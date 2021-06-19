@@ -79,14 +79,19 @@ void UIHelper::initDockingLayout(ImGuiID dockspaceId)
 	ImGuiID remainingId;
 	
 	ImGuiID inspectorId;
-	ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, 0.2f, &inspectorId, &remainingId);
+	float remainingWidth = 1920;
+	float panelWidth = 380;
+	ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, panelWidth / remainingWidth, &inspectorId, &remainingId);
+	remainingWidth -= panelWidth;
+	
 	ImGuiID miscId;
-	ImGui::DockBuilderSplitNode(inspectorId, ImGuiDir_Up, 0.25f, &miscId, &inspectorId);
+	ImGui::DockBuilderSplitNode(inspectorId, ImGuiDir_Up, 0.16f, &miscId, &inspectorId);
 	ImGui::DockBuilderDockWindow("Inspector", inspectorId);
 	ImGui::DockBuilderDockWindow("Misc", miscId);
 	
 	ImGuiID hierarchyId;
-	ImGui::DockBuilderSplitNode(remainingId, ImGuiDir_Left, 0.25f, &hierarchyId, &remainingId);
+	ImGui::DockBuilderSplitNode(remainingId, ImGuiDir_Left, panelWidth / remainingWidth, &hierarchyId, &remainingId);
+	remainingWidth -= panelWidth;
 	ImGui::DockBuilderDockWindow("Hierarchy", hierarchyId);
 	
 	ImGuiID resourcesId;
@@ -111,6 +116,8 @@ void UIHelper::initStyles()
 	
 	style.FrameBorderSize = 1;
 	
+	style.FramePadding = ImVec2(5, 4);
+	
 	style.FrameRounding = 2;
 	style.WindowRounding = 3;
 	style.GrabRounding = 3;
@@ -134,15 +141,15 @@ void UIHelper::initStyles()
 	style.Colors[ImGuiCol_ButtonHovered] = normalizeColor(110, 110, 110, 255);
 	style.Colors[ImGuiCol_ButtonActive] = normalizeColor(53, 53, 53, 255);
 	
-	style.Colors[ImGuiCol_Header] = normalizeColor(70, 70, 70, 255);
-	style.Colors[ImGuiCol_HeaderHovered] = normalizeColor(75, 75, 75, 255);
-	style.Colors[ImGuiCol_HeaderActive] = normalizeColor(62, 62, 62, 255);
+	style.Colors[ImGuiCol_Header] = normalizeColor(90, 90, 90, 255);
+	style.Colors[ImGuiCol_HeaderHovered] = normalizeColor(100, 100, 100, 255);
+	style.Colors[ImGuiCol_HeaderActive] = normalizeColor(70, 70, 70, 255);
 	
 	style.Colors[ImGuiCol_ResizeGrip] = normalizeColor(50, 50, 50, 255);
 	style.Colors[ImGuiCol_ResizeGripHovered] = normalizeColor(40, 40, 40, 255);
 	style.Colors[ImGuiCol_ResizeGripActive] = normalizeColor(45, 45, 45, 255);
 	
-	style.Colors[ImGuiCol_Separator] = normalizeColor(90, 90, 90, 255);
-	style.Colors[ImGuiCol_SeparatorHovered] = normalizeColor(110, 110, 110, 255);
-	style.Colors[ImGuiCol_SeparatorActive] = normalizeColor(140, 140, 140, 255);
+	style.Colors[ImGuiCol_Separator] = normalizeColor(110, 110, 110, 255);
+	style.Colors[ImGuiCol_SeparatorHovered] = normalizeColor(130, 130, 130, 255);
+	style.Colors[ImGuiCol_SeparatorActive] = normalizeColor(160, 160, 160, 255);
 }
