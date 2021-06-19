@@ -1,10 +1,14 @@
 #include "FileHelper.h"
+#include "../Window.h"
+#include "../Engine.h"
 #include <fstream>
 #include <ios>
 #include <format>
 #include <shobjidl_core.h>
 #include <stdlib.h>
 #include <filesystem>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 std::string FileHelper::readAllText(const std::string& path)
 {
@@ -57,7 +61,7 @@ std::optional<std::filesystem::path> FileHelper::fileDialogOpen(std::vector<File
 				
 				if (SUCCEEDED(hr))
 				{
-					hr = pfd->Show(NULL);
+					hr = pfd->Show(glfwGetWin32Window(Engine::getWindow().getHandle()));
 					
 					if (SUCCEEDED(hr))
 					{
@@ -124,7 +128,7 @@ std::optional<std::filesystem::path> FileHelper::fileDialogSave(std::vector<File
 					
 					if (SUCCEEDED(hr))
 					{
-						hr = pfd->Show(NULL);
+						hr = pfd->Show(glfwGetWin32Window(Engine::getWindow().getHandle()));
 						
 						if (SUCCEEDED(hr))
 						{
