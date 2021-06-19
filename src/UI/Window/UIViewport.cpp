@@ -124,6 +124,7 @@ Camera& UIViewport::getCamera()
 void UIViewport::setCamera(Camera camera)
 {
 	_camera = camera;
+	_previousViewportSize = glm::vec2(0);
 }
 
 void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
