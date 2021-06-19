@@ -15,6 +15,8 @@ public:
 	
 	static Camera& getCamera();
 	static void setCamera(Camera camera);
+	
+	static bool isFullscreen();
 
 private:
 	static std::unique_ptr<Renderer> _renderer;
@@ -25,6 +27,7 @@ private:
 	static bool _cameraFocused;
 	static glm::dvec2 _lockedCursorPos;
 	static bool _gbufferDebugView;
+	static bool _fullscreen;
 	
 	static ImGuizmo::OPERATION _gizmoMode;
 	static ImGuizmo::MODE _gizmoSpace;

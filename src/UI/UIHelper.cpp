@@ -44,10 +44,13 @@ void UIHelper::render()
 	
 	UIViewport::show();
 	UIMenuBar::show();
-	UIMisc::show();
-	UIHierarchy::show();
-	UIInspector::show();
-	UIResourceExplorer::show();
+	if (!UIViewport::isFullscreen())
+	{
+		UIMisc::show();
+		UIHierarchy::show();
+		UIInspector::show();
+		UIResourceExplorer::show();
+	}
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -14,6 +14,7 @@ glm::vec2 UIViewport::_previousViewportSize(0);
 bool UIViewport::_currentlyClicking = false;
 glm::vec2 UIViewport::_clickPos;
 bool UIViewport::_gbufferDebugView = false;
+bool UIViewport::_fullscreen = false;
 
 ImGuizmo::OPERATION UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
 ImGuizmo::MODE UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
@@ -216,5 +217,14 @@ void UIViewport::drawHeader()
 	
 	ImGui::Checkbox("GBuffer Debug View", &_gbufferDebugView);
 	
+	ImGui::Separator();
+	
+	ImGui::Checkbox("Fullscreen", &_fullscreen);
+	
 	ImGui::EndChild();
+}
+
+bool UIViewport::isFullscreen()
+{
+	return _fullscreen;
 }
