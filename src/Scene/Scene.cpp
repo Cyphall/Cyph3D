@@ -10,9 +10,10 @@
 #include "../UI/Window/UIInspector.h"
 #include "Camera.h"
 #include "../UI/Window/UIViewport.h"
+#include "../Helper/ThreadHelper.h"
 
 Scene::Scene(std::string name):
-_root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::thread::hardware_concurrency() - 1)
+_root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::max(ThreadHelper::getPhysicalCoreCount() - 2, 1))
 {
 
 }
