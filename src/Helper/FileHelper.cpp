@@ -123,26 +123,31 @@ std::optional<std::filesystem::path> FileHelper::fileDialogSave(std::vector<File
 				
 				if (SUCCEEDED(hr))
 				{
-					std::filesystem::path defaultFileName(std::format("{}.json", defaultName));
-					hr = pfd->SetFileName(defaultFileName.wstring().c_str());
+					hr = pfd->SetDefaultExtension(fileTypes[0].pszName);
 					
 					if (SUCCEEDED(hr))
 					{
-						hr = pfd->Show(glfwGetWin32Window(Engine::getWindow().getHandle()));
+						std::filesystem::path defaultFileName(defaultName);
+						hr = pfd->SetFileName(defaultFileName.wstring().c_str());
 						
 						if (SUCCEEDED(hr))
 						{
-							IShellItem* item;
-							hr = pfd->GetResult(&item);
+							hr = pfd->Show(glfwGetWin32Window(Engine::getWindow().getHandle()));
 							
 							if (SUCCEEDED(hr))
 							{
-								LPWSTR filePathStrRaw;
-								item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
-								item->Release();
+								IShellItem* item;
+								hr = pfd->GetResult(&item);
 								
-								res = filePathStrRaw;
-								CoTaskMemFree(filePathStrRaw);
+								if (SUCCEEDED(hr))
+								{
+									LPWSTR filePathStrRaw;
+									item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
+									item->Release();
+									
+									res = filePathStrRaw;
+									CoTaskMemFree(filePathStrRaw);
+								}
 							}
 						}
 					}

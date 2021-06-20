@@ -8,6 +8,7 @@
 #include "../Iterator/EntityConstIterator.h"
 
 #include <nlohmann/json.hpp>
+#include <filesystem>
 
 class Renderer;
 
@@ -35,8 +36,8 @@ public:
 	
 	ResourceManager& getRM();
 	
-	static void load(const std::string& name);
-	void save(const std::string& name) const;
+	static void load(const std::filesystem::path& path);
+	void save(const std::filesystem::path& path) const;
 	
 	const std::string& getName() const;
 

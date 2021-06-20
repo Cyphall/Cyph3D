@@ -77,15 +77,15 @@ ResourceManager& Scene::getRM()
 	return _resourceManager;
 }
 
-void Scene::load(const std::string& name)
+void Scene::load(const std::filesystem::path& path)
 {
 	UIInspector::setSelected(std::any());
 	
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(std::format("resources/scenes/{}.c3ds", name));
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(path.generic_string());
 
 	int version = jsonRoot["version"].get<int>();
 	
-	Engine::setScene(std::make_unique<Scene>(name));
+	Engine::setScene(std::make_unique<Scene>(path.filename().replace_extension().generic_string()));
 	Scene& scene = Engine::getScene();
 	
 	Camera camera(glm::make_vec3(jsonRoot["camera"]["position"].get<std::vector<float>>().data()),
@@ -120,7 +120,7 @@ void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& par
 	}
 }
 
-void Scene::save(const std::string& name) const
+void Scene::save(const std::filesystem::path& path) const
 {
 	nlohmann::ordered_json jsonRoot;
 	
@@ -154,7 +154,7 @@ void Scene::save(const std::string& name) const
 	
 	jsonRoot["entities"] = entities;
 	
-	JsonHelper::saveJsonToFile(jsonRoot, std::format("resources/scenes/{}.c3ds", name));
+	JsonHelper::saveJsonToFile(jsonRoot, path.generic_string());
 }
 
 nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const

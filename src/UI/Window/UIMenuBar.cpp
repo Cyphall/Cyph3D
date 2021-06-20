@@ -30,7 +30,7 @@ void UIMenuBar::show()
 				
 				if (filePath.has_value())
 				{
-					Scene::load(filePath.value().filename().replace_extension().generic_string());
+					Scene::load(filePath.value());
 				}
 			}
 			
@@ -46,7 +46,7 @@ void UIMenuBar::show()
 				
 				if (filePath.has_value())
 				{
-					scene.save(filePath.value().filename().replace_extension().generic_string());
+					scene.save(filePath.value());
 				}
 			}
 			
