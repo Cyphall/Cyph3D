@@ -8,14 +8,7 @@
 #include <optional>
 #include <array>
 
-struct SkyboxLoadingData
-{
-	GLenum internalFormat;
-	std::array<StbImage, 6> data;
-	std::array<GLint, 4> swizzle;
-};
-
-class Skybox : public Resource<Cubemap, SkyboxLoadingData>
+class Skybox : public Resource<Cubemap>
 {
 public:
 	using Resource::Resource;
@@ -26,11 +19,8 @@ public:
 
 private:
 	float _rotation = 0;
-	void finishLoading(const SkyboxLoadingData& data) override;
 	
-	static SkyboxLoadingData loadFromFile(const std::string& name);
-	
-	friend class ResourceManager;
+	void loadResourceImpl() override;
 };
 
 

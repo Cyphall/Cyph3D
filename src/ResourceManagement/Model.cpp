@@ -3,15 +3,11 @@
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include <format>
+#include <chrono>
 
-void Model::finishLoading(const ModelLoadingData& data)
+void Model::loadResourceImpl()
 {
-	_resource = std::make_unique<Mesh>(data.vertexData, data.indices);
-}
-
-ModelLoadingData Model::loadFromFile(const std::string& name)
-{
-	std::string path = std::format("resources/meshes/{}.obj", name);
+	std::string path = std::format("resources/meshes/{}.obj", _name);
 	
 	Assimp::Importer importer;
 	
@@ -45,5 +41,9 @@ ModelLoadingData Model::loadFromFile(const std::string& name)
 		indices.push_back(mesh->mFaces[i].mIndices[2]);
 	}
 	
-	return ModelLoadingData{vertexData, indices};
+	_resource = std::make_unique<Mesh>(vertexData, indices);
+	
+	GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	auto timeout = std::chrono::seconds(10);
+	glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, std::chrono::duration_cast<std::chrono::nanoseconds>(timeout).count());
 }

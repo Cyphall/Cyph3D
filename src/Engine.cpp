@@ -82,9 +82,6 @@ void Engine::run()
 		_timer.onNewFrame();
 		UIHelper::onNewFrame();
 		
-		_globalResourceManager->update();
-		_scene->getRM().update();
-		
 		_scene->onUpdate();
 		
 		UIHelper::render();
@@ -96,6 +93,9 @@ void Engine::run()
 void Engine::shutdown()
 {
 	UIHelper::shutdown();
+	_scene.reset();
+	_globalResourceManager.reset();
+	_window.reset();
 	glfwTerminate();
 }
 

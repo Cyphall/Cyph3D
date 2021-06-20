@@ -1,23 +1,14 @@
 #include "ResourceManager.h"
 #include "../Logger.h"
+#include "../Window.h"
+#include "../Engine.h"
 #include <format>
+#include <GLFW/glfw3.h>
 
 ResourceManager::ResourceManager(int threadCount):
-_threadPool(threadCount)
+_threadPool(threadCount, Engine::getWindow().getHandle())
 {
-	_threadPool.init();
-}
 
-ResourceManager::~ResourceManager()
-{
-	_threadPool.shutdown();
-}
-
-void ResourceManager::update()
-{
-	finishModelLoading();
-	finishImageLoading();
-	finishSkyboxLoading();
 }
 
 Model* ResourceManager::requestModel(const std::string& name)
@@ -25,32 +16,18 @@ Model* ResourceManager::requestModel(const std::string& name)
 	if (!_models.contains(name))
 	{
 		_models[name] = std::make_unique<Model>(name);
-		loadModel(_models[name].get(), name);
+		
+		Model* model = _models[name].get();
+		
+		_threadPool.push_task([](Model* model)
+		{
+			Logger::Info(std::format("Loading model \"{}\"", model->getName()));
+			model->loadResource();
+			Logger::Info(std::format("Model \"{}\" loaded", model->getName()));
+		}, model);
 	}
 	
 	return _models[name].get();
-}
-
-void ResourceManager::loadModel(Model* model, const std::string& name)
-{
-	Logger::Info(std::format("Loading model \"{}\"", name));
-	
-	_threadPool.submit([&, model, name]{
-		ModelLoadingData modelData = Model::loadFromFile(name);
-		_modelLoadingQueue.enqueue(std::make_pair(model, std::move(modelData)));
-	});
-}
-
-void ResourceManager::finishModelLoading()
-{
-	std::pair<Model*, ModelLoadingData> data;
-	while (_modelLoadingQueue.try_dequeue(data))
-	{
-		auto& [model, modelData] = data;
-		
-		model->finishLoading(modelData);
-		Logger::Info(std::format("Model \"{}\" loaded", model->getName()));
-	}
 }
 
 Image* ResourceManager::requestImage(const std::string& name, ImageType type)
@@ -58,34 +35,18 @@ Image* ResourceManager::requestImage(const std::string& name, ImageType type)
 	if (!_images.contains(name))
 	{
 		_images[name] = std::make_unique<Image>(name);
-		loadImage(_images[name].get(), name, type);
+		
+		Image* image = _images[name].get();
+		
+		_threadPool.push_task([](Image* image, ImageType type)
+		{
+			Logger::Info(std::format("Loading image \"{}\"", image->getName()));
+			image->loadResource(type);
+			Logger::Info(std::format("Image \"{}\" loaded", image->getName()));
+		}, image, type);
 	}
 	
 	return _images[name].get();
-}
-
-void ResourceManager::loadImage(Image* image, const std::string& name, ImageType type)
-{
-	Logger::Info(std::format("Loading image \"{}\"", name));
-	
-	_threadPool.submit([&, image, name, type]
-	{
-		ImageLoadingData imageData = Image::loadFromFile(name, type);
-		_imageLoadingQueue.enqueue(std::make_pair(image, std::move(imageData)));
-	});
-}
-
-void ResourceManager::finishImageLoading()
-{
-	std::pair<Image*, ImageLoadingData> data;
-	while (_imageLoadingQueue.try_dequeue(data))
-	{
-		auto& [image, imageData] = data;
-		
-		image->finishLoading(imageData);
-		
-		Logger::Info(std::format("Image \"{}\" loaded", image->getName()));
-	}
 }
 
 Skybox* ResourceManager::requestSkybox(const std::string& name)
@@ -93,34 +54,18 @@ Skybox* ResourceManager::requestSkybox(const std::string& name)
 	if (!_skyboxes.contains(name))
 	{
 		_skyboxes[name] = std::make_unique<Skybox>(name);
-		loadSkybox(_skyboxes[name].get(), name);
+		
+		Skybox* skybox = _skyboxes[name].get();
+		
+		_threadPool.push_task([](Skybox* skybox)
+		{
+			Logger::Info(std::format("Loading skybox \"{}\"", skybox->getName()));
+			skybox->loadResource();
+			Logger::Info(std::format("Skybox \"{}\" loaded", skybox->getName()));
+		}, skybox);
 	}
 	
 	return _skyboxes[name].get();
-}
-
-void ResourceManager::loadSkybox(Skybox* skybox, const std::string& name)
-{
-	Logger::Info(std::format("Loading skybox \"{}\"", name));
-	
-	_threadPool.submit([&, skybox, name]
-	{
-		SkyboxLoadingData skyboxData = Skybox::loadFromFile(name);
-		_skyboxLoadingQueue.enqueue(std::make_pair(skybox, std::move(skyboxData)));
-	});
-}
-
-void ResourceManager::finishSkyboxLoading()
-{
-	std::pair<Skybox*, SkyboxLoadingData> data;
-	while (_skyboxLoadingQueue.try_dequeue(data))
-	{
-		auto& [skybox, skyboxData] = data;
-		
-		skybox->finishLoading(skyboxData);
-		
-		Logger::Info(std::format("Skybox \"{}\" loaded", skybox->getName()));
-	}
 }
 
 ShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateInfo& createInfo)

@@ -9,7 +9,7 @@
 #include "../GLObject/ShaderProgram.h"
 #include "../GLObject/MaterialShaderProgram.h"
 #include "../GLObject/Material.h"
-#include <ThreadPool.h>
+#include <thread_pool.hpp>
 
 namespace std
 {
@@ -39,9 +39,6 @@ class ResourceManager
 {
 public:
 	explicit ResourceManager(int threadCount);
-	~ResourceManager();
-	
-	void update();
 	
 	Model* requestModel(const std::string& name);
 	Image* requestImage(const std::string& name, ImageType type);
@@ -52,19 +49,10 @@ public:
 	
 private:
 	std::map<std::string, std::unique_ptr<Model>> _models;
-	SafeQueue<std::pair<Model*, ModelLoadingData>> _modelLoadingQueue;
-	void loadModel(Model* model, const std::string& name);
-	void finishModelLoading();
 	
 	std::map<std::string, std::unique_ptr<Image>> _images;
-	SafeQueue<std::pair<Image*, ImageLoadingData>> _imageLoadingQueue;
-	void loadImage(Image* image, const std::string& name, ImageType type);
-	void finishImageLoading();
 	
 	std::map<std::string, std::unique_ptr<Skybox>> _skyboxes;
-	SafeQueue<std::pair<Skybox*, SkyboxLoadingData>> _skyboxLoadingQueue;
-	void loadSkybox(Skybox* skybox, const std::string& name);
-	void finishSkyboxLoading();
 	
 	std::unordered_map<ShaderProgramCreateInfo, std::unique_ptr<ShaderProgram>> _shaderPrograms;
 	
@@ -72,5 +60,5 @@ private:
 	
 	std::map<std::string, std::unique_ptr<Material>> _materials;
 	
-	ThreadPool _threadPool;
+	thread_pool _threadPool;
 };

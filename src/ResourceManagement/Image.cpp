@@ -2,40 +2,35 @@
 #include <stdexcept>
 #include "../Helper/TextureHelper.h"
 #include <format>
+#include <chrono>
 
-void Image::finishLoading(const ImageLoadingData& data)
+void Image::loadResourceImpl(ImageType type)
 {
-	TextureCreateInfo createInfo;
-	createInfo.size = data.data.getSize();
-	createInfo.internalFormat = data.internalFormat;
-	createInfo.minFilter = GL_LINEAR_MIPMAP_LINEAR;
-	createInfo.magFilter = GL_LINEAR;
-	createInfo.anisotropicFiltering = true;
-	createInfo.swizzle = data.swizzle;
+	std::string path = std::format("resources/{}", _name);
 	
-	_resource = std::make_unique<Texture>(createInfo);
+	StbImage data = StbImage(path);
 	
-	PixelProperties properties = TextureHelper::getPixelProperties(data.data.getChannelCount(), data.data.getBitPerChannel());
-	_resource->setData(data.data.getPtr(), properties.format, properties.type);
-}
-
-ImageLoadingData Image::loadFromFile(const std::string& name, ImageType type)
-{
-	std::string path = std::format("resources/{}", name);
-	
-	ImageLoadingData imageData{};
-	
-	imageData.data = StbImage(path);
-	
-	if (!imageData.data.isValid())
+	if (!data.isValid())
 	{
 		throw std::runtime_error(std::format("Unable to load image {} from disk", path));
 	}
 	
-	TextureProperties properties = TextureHelper::getTextureProperties(type);
+	TextureProperties textureProperties = TextureHelper::getTextureProperties(type);
 	
-	imageData.internalFormat = properties.internalFormat;
-	imageData.swizzle = properties.swizzle;
+	TextureCreateInfo createInfo;
+	createInfo.size = data.getSize();
+	createInfo.internalFormat = textureProperties.internalFormat;
+	createInfo.minFilter = GL_LINEAR_MIPMAP_LINEAR;
+	createInfo.magFilter = GL_LINEAR;
+	createInfo.anisotropicFiltering = true;
+	createInfo.swizzle = textureProperties.swizzle;
 	
-	return imageData;
+	_resource = std::make_unique<Texture>(createInfo);
+	
+	PixelProperties pixelProperties = TextureHelper::getPixelProperties(data.getChannelCount(), data.getBitPerChannel());
+	_resource->setData(data.getPtr(), pixelProperties.format, pixelProperties.type);
+	
+	GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	auto timeout = std::chrono::seconds(10);
+	glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, std::chrono::duration_cast<std::chrono::nanoseconds>(timeout).count());
 }

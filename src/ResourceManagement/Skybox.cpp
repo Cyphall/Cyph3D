@@ -2,28 +2,21 @@
 #include "../Helper/JsonHelper.h"
 #include "../Helper/TextureHelper.h"
 #include <format>
+#include <chrono>
 
-void Skybox::finishLoading(const SkyboxLoadingData& data)
+float Skybox::getRotation() const
 {
-	CubemapCreateInfo createInfo;
-	createInfo.size = data.data[0].getSize();
-	createInfo.internalFormat = data.internalFormat;
-	createInfo.textureFiltering = GL_LINEAR;
-	createInfo.swizzle = data.swizzle;
-	
-	_resource = std::make_unique<Cubemap>(createInfo);
-	
-	for (int i = 0; i < data.data.size(); ++i)
-	{
-		PixelProperties properties = TextureHelper::getPixelProperties(data.data[i].getChannelCount(), data.data[i].getBitPerChannel());
-		
-		_resource->setData(data.data[i].getPtr(), i, properties.format, properties.type);
-	}
+	return _rotation;
 }
 
-SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
+void Skybox::setRotation(float rotation)
 {
-	std::string path = std::format("resources/skyboxes/{}", name);
+	_rotation = rotation;
+}
+
+void Skybox::loadResourceImpl()
+{
+	std::string path = std::format("resources/skyboxes/{}", _name);
 	
 	nlohmann::ordered_json root = JsonHelper::loadJsonFromFile(std::format("{}/skybox.json", path));
 	
@@ -37,48 +30,51 @@ SkyboxLoadingData Skybox::loadFromFile(const std::string& name)
 		std::format("{}/{}", path, root["back"].get<std::string>())
 	};
 	
-	SkyboxLoadingData skyboxData{};
-	
+	std::array<StbImage, 6> data;
 	int skyboxComp;
 	glm::ivec2 skyboxSize;
 	
 	bool firstIteration = true;
 	for (int i = 0; i < 6; ++i)
 	{
-		skyboxData.data[i] = StbImage(facePaths[i].c_str());
+		data[i] = StbImage(facePaths[i].c_str());
 		
-		if (!skyboxData.data[i].isValid())
+		if (!data[i].isValid())
 		{
 			throw std::runtime_error(std::format("Unable to load image {} from disk", path));
 		}
 		
 		if (firstIteration)
 		{
-			skyboxComp = skyboxData.data[i].getChannelCount();
-			skyboxSize = skyboxData.data[i].getSize();
+			skyboxComp = data[i].getChannelCount();
+			skyboxSize = data[i].getSize();
 			firstIteration = false;
 		}
 		
-		if (skyboxData.data[i].getChannelCount() != skyboxComp || skyboxData.data[i].getSize() != skyboxSize)
+		if (data[i].getChannelCount() != skyboxComp || data[i].getSize() != skyboxSize)
 		{
-			throw std::runtime_error(std::format("Skybox {} have images with different formats", name));
+			throw std::runtime_error(std::format("Skybox {} have images with different formats", _name));
 		}
 	}
 	
-	TextureProperties properties = TextureHelper::getTextureProperties(COLOR_SRGB);
+	TextureProperties textureProperties = TextureHelper::getTextureProperties(COLOR_SRGB);
 	
-	skyboxData.internalFormat = properties.internalFormat;
-	skyboxData.swizzle = properties.swizzle;
+	CubemapCreateInfo createInfo;
+	createInfo.size = data[0].getSize();
+	createInfo.internalFormat = textureProperties.internalFormat;
+	createInfo.textureFiltering = GL_LINEAR;
+	createInfo.swizzle = textureProperties.swizzle;
 	
-	return skyboxData;
-}
-
-float Skybox::getRotation() const
-{
-	return _rotation;
-}
-
-void Skybox::setRotation(float rotation)
-{
-	_rotation = rotation;
+	_resource = std::make_unique<Cubemap>(createInfo);
+	
+	for (int i = 0; i < data.size(); i++)
+	{
+		PixelProperties pixelProperties = TextureHelper::getPixelProperties(data[i].getChannelCount(), data[i].getBitPerChannel());
+		
+		_resource->setData(data[i].getPtr(), i, pixelProperties.format, pixelProperties.type);
+	}
+	
+	GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	auto timeout = std::chrono::seconds(10);
+	glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, std::chrono::duration_cast<std::chrono::nanoseconds>(timeout).count());
 }
