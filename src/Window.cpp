@@ -30,6 +30,11 @@ Window::Window()
 	setCallbacks();
 }
 
+Window::~Window()
+{
+	glfwDestroyWindow(_glfwWindow);
+}
+
 void Window::setCallbacks()
 {
 	glfwSetWindowSizeCallback(_glfwWindow, windowResizeCallback);

@@ -11,6 +11,8 @@ class Window
 {
 public:
 	explicit Window();
+	~Window();
+	
 	void setCallbacks();
 	
 	glm::ivec2 getSize();
