@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include "CreateInfo/CubemapCreateInfo.h"
 #include "BufferBase.h"
+#include "Sampler.h"
 
 class Cubemap : public BufferBase
 {
@@ -15,6 +16,7 @@ public:
 	~Cubemap() override;
 	
 	GLuint64 getBindlessHandle() const;
+	GLuint64 getBindlessHandle(const Sampler* sampler) const;
 	void setData(void* data, int face, GLenum format, GLenum type);
 	void bind(GLuint unit);
 	glm::ivec2 getSize() const;

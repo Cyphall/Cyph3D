@@ -19,9 +19,6 @@ _size(settings.size)
 	
 	
 	glTextureStorage2D(_handle, 1, settings.internalFormat, _size.x, _size.y);
-	
-	_bindlessHandle = glGetTextureHandleARB(_handle);
-	glMakeTextureHandleResidentARB(_bindlessHandle);
 }
 
 Cubemap::~Cubemap()
@@ -31,7 +28,22 @@ Cubemap::~Cubemap()
 
 GLuint64 Cubemap::getBindlessHandle() const
 {
-	return _bindlessHandle;
+	GLuint64 bindlessHandle = glGetTextureHandleARB(_handle);
+	if (!glIsTextureHandleResidentARB(bindlessHandle))
+	{
+		glMakeTextureHandleResidentARB(bindlessHandle);
+	}
+	return bindlessHandle;
+}
+
+GLuint64 Cubemap::getBindlessHandle(const Sampler* sampler) const
+{
+	GLuint64 bindlessHandle = glGetTextureSamplerHandleARB(_handle, sampler->getHandle());
+	if (!glIsTextureHandleResidentARB(bindlessHandle))
+	{
+		glMakeTextureHandleResidentARB(bindlessHandle);
+	}
+	return bindlessHandle;
 }
 
 void Cubemap::setData(void* data, int face, GLenum format, GLenum type)
