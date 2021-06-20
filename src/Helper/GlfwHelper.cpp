@@ -1,10 +1,10 @@
 #include "GlfwHelper.h"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "../Logger.h"
 #include "../Exception/OpenGLException.h"
 #include <sstream>
+#include <windows.h>
 
 #define VERSION(major, minor, revision) (major * 100 + minor * 10 + revision)
 
@@ -14,6 +14,8 @@ void GlfwHelper::Init()
 	
 	glfwSetErrorCallback([](int code, const char* message) {
 		Logger::Error(message, "GLFW");
+		if (IsDebuggerPresent())
+			__debugbreak();
 	});
 	
 	EnsureGpuIsCompatible();
