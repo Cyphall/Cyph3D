@@ -37,7 +37,7 @@ public:
 	ResourceManager& getRM();
 	
 	static void load(const std::filesystem::path& path);
-	void save(const std::filesystem::path& path) const;
+	void save(const std::filesystem::path& path);
 	
 	const std::string& getName() const;
 

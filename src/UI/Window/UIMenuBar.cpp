@@ -36,7 +36,7 @@ void UIMenuBar::show()
 			
 			if (ImGui::MenuItem("Save Scene"))
 			{
-				const Scene& scene = Engine::getScene();
+				Scene& scene = Engine::getScene();
 				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",

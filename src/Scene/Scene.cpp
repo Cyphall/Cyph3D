@@ -120,12 +120,13 @@ void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& par
 	}
 }
 
-void Scene::save(const std::filesystem::path& path) const
+void Scene::save(const std::filesystem::path& path)
 {
+	_name = path.filename().replace_extension().generic_string();
+	
 	nlohmann::ordered_json jsonRoot;
 	
 	jsonRoot["version"] = 1;
-	
 	
 	const Camera& camera = UIViewport::getCamera();
 	nlohmann::ordered_json jsonCamera;
