@@ -162,12 +162,6 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 
 int ShaderProgram::getUniformLocation(const char* name)
 {
-	try
-	{
-		return _uniforms.at(name);
-	}
-	catch (const std::out_of_range& e)
-	{
-		return -1;
-	}
+	auto it = _uniforms.find(name);
+	return it != _uniforms.end() ? it->second : -1;
 }
