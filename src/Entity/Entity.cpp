@@ -74,9 +74,9 @@ void Entity::onPreRender(RenderContext& context)
 
 EntitySerialization Entity::serialize() const
 {
-	EntitySerialization data(1);
+	EntitySerialization entitySerialization(1);
 	
-	data.json["name"] = getName();
+	entitySerialization.data["name"] = getName();
 	
 	const Transform& transform = getTransform();
 	nlohmann::ordered_json transformData;
@@ -88,40 +88,40 @@ EntitySerialization Entity::serialize() const
 	glm::vec3 scale = transform.getLocalScale();
 	transformData["scale"] = {scale.x, scale.y, scale.z};
 	
-	data.json["transform"] = transformData;
+	entitySerialization.data["transform"] = transformData;
 	
 	std::vector<nlohmann::ordered_json> components(_components.size());
 	
 	auto it = components_cbegin();
 	for (int i = 0; it != components_cend(); i++, it++)
 	{
-		ComponentSerialization serialization = it->serialize();
+		ComponentSerialization componentSerialization = it->serialize();
 		components[i]["identifier"] = std::string(it->getIdentifier());
-		components[i]["version"] = serialization.version;
-		components[i]["data"] = serialization.data;
+		components[i]["version"] = componentSerialization.version;
+		components[i]["data"] = componentSerialization.data;
 	}
 	
-	data.json["components"] = components;
+	entitySerialization.data["components"] = components;
 	
-	return data;
+	return entitySerialization;
 }
 
-void Entity::deserialize(const EntitySerialization& data)
+void Entity::deserialize(const EntitySerialization& entitySerialization)
 {
-	setName(data.json["name"].get<std::string>());
+	setName(entitySerialization.data["name"].get<std::string>());
 	
 	Transform& transform = getTransform();
-	transform.setLocalPosition(glm::make_vec3(data.json["transform"]["position"].get<std::vector<float>>().data()));
-	std::vector<float> quat = data.json["transform"]["rotation"].get<std::vector<float>>();
+	transform.setLocalPosition(glm::make_vec3(entitySerialization.data["transform"]["position"].get<std::vector<float>>().data()));
+	std::vector<float> quat = entitySerialization.data["transform"]["rotation"].get<std::vector<float>>();
 	transform.setLocalRotation(glm::quat(quat[0], quat[1], quat[2], quat[3]));
-	transform.setLocalScale(glm::make_vec3(data.json["transform"]["scale"].get<std::vector<float>>().data()));
+	transform.setLocalScale(glm::make_vec3(entitySerialization.data["transform"]["scale"].get<std::vector<float>>().data()));
 	
-	for (const nlohmann::ordered_json& json : data.json["components"])
+	for (const nlohmann::ordered_json& json : entitySerialization.data["components"])
 	{
 		Component& component = addComponentByIdentifier(json["identifier"].get<std::string>());
-		ComponentSerialization serialization(json["version"].get<int>());
-		serialization.data = json["data"];
-		component.deserialize(serialization);
+		ComponentSerialization componentSerialization(json["version"].get<int>());
+		componentSerialization.data = json["data"];
+		component.deserialize(componentSerialization);
 	}
 }
 

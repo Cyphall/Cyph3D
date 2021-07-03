@@ -45,7 +45,7 @@ public:
 	void duplicate(Transform& parent) const;
 	
 	EntitySerialization serialize() const;
-	void deserialize(const EntitySerialization& data);
+	void deserialize(const EntitySerialization& entitySerialization);
 	
 	static std::map<std::string, std::function<Component&(Entity&)>>::iterator allocators_begin();
 	static std::map<std::string, std::function<Component&(Entity&)>>::iterator allocators_end();
