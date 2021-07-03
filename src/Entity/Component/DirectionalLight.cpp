@@ -71,16 +71,16 @@ void DirectionalLight::updateShadowMap(VertexArray& vao, RenderRegistry& registr
 	float depthColor = 1;
 	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
 	
-	for (auto& meshRenderer : registry.meshes)
+	for (auto& shape : registry.shapes)
 	{
-		if (!meshRenderer.contributeShadows) continue;
+		if (!shape.contributeShadows) continue;
 		
-		const Buffer<Mesh::VertexData>& vbo = meshRenderer.mesh->getVBO();
-		const Buffer<GLuint>& ibo = meshRenderer.mesh->getIBO();
+		const Buffer<Mesh::VertexData>& vbo = shape.mesh->getVBO();
+		const Buffer<GLuint>& ibo = shape.mesh->getIBO();
 		vao.bindBufferToSlot(vbo, 0);
 		vao.bindIndexBuffer(ibo);
 		
-		glm::mat4 mvp = _viewProjection * meshRenderer.matrix;
+		glm::mat4 mvp = _viewProjection * shape.matrix;
 		
 		_shadowMapProgram->setUniform("u_mvp", mvp);
 		

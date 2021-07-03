@@ -73,7 +73,7 @@ Entity* Renderer::getClickedEntity(glm::ivec2 clickPos)
 	
 	if (objectIndex != -1)
 	{
-		return _registry.meshes[objectIndex].owner;
+		return _registry.shapes[objectIndex].owner;
 	}
 	
 	return nullptr;
@@ -84,9 +84,9 @@ void Renderer::render(RenderPass& pass, Camera& camera)
 	pass.render(_textures, _registry, camera);
 }
 
-void Renderer::requestMeshRendering(MeshRenderer::RenderData request)
+void Renderer::requestShapeRendering(ShapeRenderer::RenderData request)
 {
-	_registry.meshes.push_back(request);
+	_registry.shapes.push_back(request);
 }
 
 void Renderer::requestLightRendering(DirectionalLight::RenderData data)

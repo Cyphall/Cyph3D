@@ -21,7 +21,7 @@ public:
 	
 	void onNewFrame();
 	
-	void requestMeshRendering(MeshRenderer::RenderData request);
+	void requestShapeRendering(ShapeRenderer::RenderData request);
 	void requestLightRendering(DirectionalLight::RenderData data);
 	void requestLightRendering(PointLight::RenderData data);
 	

@@ -42,17 +42,17 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, R
 	
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
-	for (int i = 0; i < registry.meshes.size(); i++)
+	for (int i = 0; i < registry.shapes.size(); i++)
 	{
-		MeshRenderer::RenderData data = registry.meshes[i];
+		ShapeRenderer::RenderData shape = registry.shapes[i];
 		
-		const Buffer<Mesh::VertexData>& vbo = data.mesh->getVBO();
-		const Buffer<GLuint>& ibo = data.mesh->getIBO();
+		const Buffer<Mesh::VertexData>& vbo = shape.mesh->getVBO();
+		const Buffer<GLuint>& ibo = shape.mesh->getIBO();
 		
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		glm::mat4 mvp = vp * data.matrix;
+		glm::mat4 mvp = vp * shape.matrix;
 		
 		_shader->setUniform("u_mvp", mvp);
 		

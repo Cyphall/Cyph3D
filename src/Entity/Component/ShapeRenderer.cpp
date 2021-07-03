@@ -1,50 +1,50 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "MeshRenderer.h"
+#include "ShapeRenderer.h"
 #include "../Entity.h"
 #include "../../Scene/Scene.h"
 #include "../../Engine.h"
 #include "../../Rendering/Renderer.h"
 
-const char* MeshRenderer::identifier = "MeshRenderer";
+const char* ShapeRenderer::identifier = "ShapeRenderer";
 
-MeshRenderer::MeshRenderer(Entity& entity):
+ShapeRenderer::ShapeRenderer(Entity& entity):
 Component(entity)
 {
 	setMaterial(Material::getDefault());
 }
 
-Material* MeshRenderer::getMaterial() const
+Material* ShapeRenderer::getMaterial() const
 {
 	return _material;
 }
 
-void MeshRenderer::setMaterial(Material* material)
+void ShapeRenderer::setMaterial(Material* material)
 {
 	_material = material;
 }
 
-Model* MeshRenderer::getModel() const
+Model* ShapeRenderer::getModel() const
 {
 	return _model;
 }
 
-void MeshRenderer::setModel(Model* model)
+void ShapeRenderer::setModel(Model* model)
 {
 	_model = model;
 }
 
-bool MeshRenderer::getContributeShadows() const
+bool ShapeRenderer::getContributeShadows() const
 {
 	return _contributeShadows;
 }
 
-void MeshRenderer::setContributeShadows(bool contributeShadows)
+void ShapeRenderer::setContributeShadows(bool contributeShadows)
 {
 	_contributeShadows = contributeShadows;
 }
 
-ComponentSerialization MeshRenderer::serialize() const
+ComponentSerialization ShapeRenderer::serialize() const
 {
 	ComponentSerialization serialization;
 	serialization.version = 1;
@@ -75,7 +75,7 @@ ComponentSerialization MeshRenderer::serialize() const
 	return serialization;
 }
 
-void MeshRenderer::deserialize(const ComponentSerialization& serialization)
+void ShapeRenderer::deserialize(const ComponentSerialization& serialization)
 {
 	Scene& scene = getEntity().getScene();
 	
@@ -92,12 +92,12 @@ void MeshRenderer::deserialize(const ComponentSerialization& serialization)
 	setContributeShadows(serialization.data["contribute_shadows"].get<bool>());
 }
 
-Material* MeshRenderer::getDrawingMaterial()
+Material* ShapeRenderer::getDrawingMaterial()
 {
 	return _material != nullptr ? _material : Material::getMissing();
 }
 
-void MeshRenderer::onPreRender(RenderContext& context)
+void ShapeRenderer::onPreRender(RenderContext& context)
 {
 	Model* model = getModel();
 	
@@ -111,10 +111,10 @@ void MeshRenderer::onPreRender(RenderContext& context)
 	data.contributeShadows = getContributeShadows();
 	data.matrix = getTransform().getLocalToWorldMatrix();
 	
-	context.renderer.requestMeshRendering(data);
+	context.renderer.requestShapeRendering(data);
 }
 
-void MeshRenderer::onDrawUi()
+void ShapeRenderer::onDrawUi()
 {
 	Model* model = getModel();
 	std::string modelName = model != nullptr ? model->getName() : "None";
@@ -157,14 +157,14 @@ void MeshRenderer::onDrawUi()
 	}
 }
 
-const char* MeshRenderer::getIdentifier() const
+const char* ShapeRenderer::getIdentifier() const
 {
 	return identifier;
 }
 
-void MeshRenderer::duplicate(Entity& targetEntity) const
+void ShapeRenderer::duplicate(Entity& targetEntity) const
 {
-	MeshRenderer& newComponent = targetEntity.addComponent<MeshRenderer>();
+	ShapeRenderer& newComponent = targetEntity.addComponent<ShapeRenderer>();
 	newComponent.setMaterial(getMaterial());
 	newComponent.setModel(getModel());
 	newComponent.setContributeShadows(getContributeShadows());

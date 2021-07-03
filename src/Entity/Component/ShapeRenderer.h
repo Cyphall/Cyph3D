@@ -4,7 +4,7 @@
 #include "../../GLObject/Material.h"
 #include "../../ResourceManagement/Model.h"
 
-class MeshRenderer : public Component
+class ShapeRenderer : public Component
 {
 public:
 	struct RenderData
@@ -16,7 +16,7 @@ public:
 		Entity* owner;
 	};
 	
-	MeshRenderer(Entity& entity);
+	ShapeRenderer(Entity& entity);
 	
 	Material* getMaterial() const;
 	void setMaterial(Material* material);

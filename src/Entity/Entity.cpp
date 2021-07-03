@@ -6,7 +6,7 @@
 #include "Component/Animator.h"
 #include "Component/DirectionalLight.h"
 #include "Component/PointLight.h"
-#include "Component/MeshRenderer.h"
+#include "Component/ShapeRenderer.h"
 
 std::map<std::string, std::function<Component&(Entity&)>> Entity::_allocators;
 
@@ -201,10 +201,11 @@ void Entity::onDrawUi()
 
 void Entity::initAllocators()
 {
-	_allocators[MeshRenderer::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<MeshRenderer>();};
+	_allocators[ShapeRenderer::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ShapeRenderer>();};
 	_allocators[Animator::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<Animator>();};
 	_allocators[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<PointLight>();};
 	_allocators[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<DirectionalLight>();};
+	_allocators["MeshRenderer"] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ShapeRenderer>();};
 }
 
 Component& Entity::addComponentByIdentifier(const std::string& identifier)

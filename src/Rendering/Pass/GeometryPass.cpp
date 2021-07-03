@@ -90,17 +90,17 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	glm::vec3 pos = camera.getPosition();
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
-	for (int i = 0; i < registry.meshes.size(); i++)
+	for (int i = 0; i < registry.shapes.size(); i++)
 	{
-		MeshRenderer::RenderData data = registry.meshes[i];
+		ShapeRenderer::RenderData shape = registry.shapes[i];
 		
-		const Buffer<Mesh::VertexData>& vbo = data.mesh->getVBO();
-		const Buffer<GLuint>& ibo = data.mesh->getIBO();
+		const Buffer<Mesh::VertexData>& vbo = shape.mesh->getVBO();
+		const Buffer<GLuint>& ibo = shape.mesh->getIBO();
 		
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		data.material->bind(data.matrix, vp, pos, i);
+		shape.material->bind(shape.matrix, vp, pos, i);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}
