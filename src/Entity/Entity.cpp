@@ -98,7 +98,7 @@ EntitySerialization Entity::serialize() const
 		ComponentSerialization serialization = it->serialize();
 		components[i]["identifier"] = std::string(it->getIdentifier());
 		components[i]["version"] = serialization.version;
-		components[i]["data"] = serialization.json;
+		components[i]["data"] = serialization.data;
 	}
 	
 	data.json["components"] = components;
@@ -120,7 +120,7 @@ void Entity::deserialize(const EntitySerialization& data)
 	{
 		Component& component = addComponentByIdentifier(json["identifier"].get<std::string>());
 		ComponentSerialization serialization(json["version"].get<int>());
-		serialization.json = json["data"];
+		serialization.data = json["data"];
 		component.deserialize(serialization);
 	}
 }

@@ -51,20 +51,20 @@ void Animator::onUpdate()
 
 ComponentSerialization Animator::serialize() const
 {
-	ComponentSerialization data(1);
+	ComponentSerialization serialization(1);
 	
 	glm::vec3 velocity = getVelocity();
-	data.json["velocity"] = {velocity.x, velocity.y, velocity.z};
+	serialization.data["velocity"] = {velocity.x, velocity.y, velocity.z};
 	glm::vec3 angularVelocity = getAngularVelocity();
-	data.json["angular_velocity"] = {angularVelocity.x, angularVelocity.y, angularVelocity.z};
+	serialization.data["angular_velocity"] = {angularVelocity.x, angularVelocity.y, angularVelocity.z};
 	
-	return data;
+	return serialization;
 }
 
-void Animator::deserialize(const ComponentSerialization& data)
+void Animator::deserialize(const ComponentSerialization& serialization)
 {
-	setVelocity(glm::make_vec3(data.json["velocity"].get<std::vector<float>>().data()));
-	setAngularVelocity(glm::make_vec3(data.json["angular_velocity"].get<std::vector<float>>().data()));
+	setVelocity(glm::make_vec3(serialization.data["velocity"].get<std::vector<float>>().data()));
+	setAngularVelocity(glm::make_vec3(serialization.data["angular_velocity"].get<std::vector<float>>().data()));
 }
 
 void Animator::onDrawUi()

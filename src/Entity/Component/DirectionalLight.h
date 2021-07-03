@@ -50,7 +50,7 @@ public:
 	void duplicate(Entity& targetEntity) const override;
 	
 	ComponentSerialization serialize() const override;
-	void deserialize(const ComponentSerialization& data) override;
+	void deserialize(const ComponentSerialization& serialization) override;
 
 private:
 	std::unique_ptr<Texture> _shadowMap;

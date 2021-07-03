@@ -4,7 +4,7 @@
 
 struct ComponentSerialization
 {
-	nlohmann::ordered_json json;
+	nlohmann::ordered_json data;
 	int version;
 	
 	ComponentSerialization(int version):

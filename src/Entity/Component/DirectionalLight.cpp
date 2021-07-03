@@ -108,23 +108,23 @@ int DirectionalLight::getResolution() const
 
 ComponentSerialization DirectionalLight::serialize() const
 {
-	ComponentSerialization data(1);
+	ComponentSerialization serialization(1);
 	
 	glm::vec3 color = getSrgbColor();
-	data.json["color"] = {color.r, color.g, color.b};
-	data.json["intensity"] = getIntensity();
-	data.json["cast_shadows"] = getCastShadows();
-	data.json["shadow_resolution"] = getResolution();
+	serialization.data["color"] = {color.r, color.g, color.b};
+	serialization.data["intensity"] = getIntensity();
+	serialization.data["cast_shadows"] = getCastShadows();
+	serialization.data["shadow_resolution"] = getResolution();
 	
-	return data;
+	return serialization;
 }
 
-void DirectionalLight::deserialize(const ComponentSerialization& data)
+void DirectionalLight::deserialize(const ComponentSerialization& serialization)
 {
-	setSrgbColor(glm::make_vec3(data.json["color"].get<std::vector<float>>().data()));
-	setIntensity(data.json["intensity"].get<float>());
-	setCastShadows(data.json["cast_shadows"].get<bool>());
-	setResolution(data.json["shadow_resolution"].get<int>());
+	setSrgbColor(glm::make_vec3(serialization.data["color"].get<std::vector<float>>().data()));
+	setIntensity(serialization.data["intensity"].get<float>());
+	setCastShadows(serialization.data["cast_shadows"].get<bool>());
+	setResolution(serialization.data["shadow_resolution"].get<int>());
 }
 
 void DirectionalLight::onPreRender(RenderContext& context)

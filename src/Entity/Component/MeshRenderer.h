@@ -36,7 +36,7 @@ public:
 	const char* getIdentifier() const override;
 	
 	ComponentSerialization serialize() const override;
-	void deserialize(const ComponentSerialization& data) override;
+	void deserialize(const ComponentSerialization& serialization) override;
 
 private:
 	Material* _material = nullptr;

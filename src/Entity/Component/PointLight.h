@@ -47,7 +47,7 @@ public:
 	void duplicate(Entity& targetEntity) const override;
 	
 	ComponentSerialization serialize() const override;
-	void deserialize(const ComponentSerialization& data) override;
+	void deserialize(const ComponentSerialization& serialization) override;
 
 private:
 	static constexpr float _NEAR = 0.01f;

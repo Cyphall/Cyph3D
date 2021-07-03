@@ -23,7 +23,7 @@ public:
 	const char* getIdentifier() const override;
 	
 	ComponentSerialization serialize() const override;
-	void deserialize(const ComponentSerialization& data) override;
+	void deserialize(const ComponentSerialization& serialization) override;
 
 private:
 	glm::vec3 _velocity = glm::vec3(0);

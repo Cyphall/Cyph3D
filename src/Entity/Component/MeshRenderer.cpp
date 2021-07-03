@@ -46,48 +46,48 @@ void MeshRenderer::setContributeShadows(bool contributeShadows)
 
 ComponentSerialization MeshRenderer::serialize() const
 {
-	ComponentSerialization data(1);
+	ComponentSerialization serialization(1);
 	
 	Model* model = getModel();
 	if (model)
 	{
-		data.json["model"] = model->getName();
+		serialization.data["model"] = model->getName();
 	}
 	else
 	{
-		data.json["model"] = nullptr;
+		serialization.data["model"] = nullptr;
 	}
 	
 	Material* material = getMaterial();
 	if (material)
 	{
-		data.json["material"] = material->getName();
+		serialization.data["material"] = material->getName();
 	}
 	else
 	{
-		data.json["material"] = nullptr;
+		serialization.data["material"] = nullptr;
 	}
 	
-	data.json["contribute_shadows"] = getContributeShadows();
+	serialization.data["contribute_shadows"] = getContributeShadows();
 	
-	return data;
+	return serialization;
 }
 
-void MeshRenderer::deserialize(const ComponentSerialization& data)
+void MeshRenderer::deserialize(const ComponentSerialization& serialization)
 {
 	Scene& scene = getEntity().getScene();
 	
-	if (!data.json["material"].is_null())
+	if (!serialization.data["material"].is_null())
 	{
-		setMaterial(scene.getRM().requestMaterial(data.json["material"].get<std::string>()));
+		setMaterial(scene.getRM().requestMaterial(serialization.data["material"].get<std::string>()));
 	}
 	
-	if (!data.json["model"].is_null())
+	if (!serialization.data["model"].is_null())
 	{
-		setModel(scene.getRM().requestModel(data.json["model"].get<std::string>()));
+		setModel(scene.getRM().requestModel(serialization.data["model"].get<std::string>()));
 	}
 	
-	setContributeShadows(data.json["contribute_shadows"].get<bool>());
+	setContributeShadows(serialization.data["contribute_shadows"].get<bool>());
 }
 
 Material* MeshRenderer::getDrawingMaterial()
