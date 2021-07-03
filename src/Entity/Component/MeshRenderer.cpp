@@ -47,8 +47,8 @@ void MeshRenderer::setContributeShadows(bool contributeShadows)
 ComponentSerialization MeshRenderer::serialize() const
 {
 	ComponentSerialization serialization;
-	
 	serialization.version = 1;
+	serialization.identifier = getIdentifier();
 	
 	Model* model = getModel();
 	if (model)

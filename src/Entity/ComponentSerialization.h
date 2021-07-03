@@ -6,4 +6,5 @@ struct ComponentSerialization
 {
 	nlohmann::ordered_json data;
 	int version;
+	std::string identifier;
 };

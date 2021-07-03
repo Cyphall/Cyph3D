@@ -98,7 +98,7 @@ EntitySerialization Entity::serialize() const
 	for (int i = 0; it != components_cend(); i++, it++)
 	{
 		ComponentSerialization componentSerialization = it->serialize();
-		components[i]["identifier"] = std::string(it->getIdentifier());
+		components[i]["identifier"] = componentSerialization.identifier;
 		components[i]["version"] = componentSerialization.version;
 		components[i]["data"] = componentSerialization.data;
 	}
@@ -120,10 +120,12 @@ void Entity::deserialize(const EntitySerialization& entitySerialization)
 	
 	for (const nlohmann::ordered_json& json : entitySerialization.data["components"])
 	{
-		Component& component = addComponentByIdentifier(json["identifier"].get<std::string>());
 		ComponentSerialization componentSerialization;
 		componentSerialization.version = json["version"].get<int>();
 		componentSerialization.data = json["data"];
+		componentSerialization.identifier = json["identifier"].get<std::string>();
+		
+		Component& component = addComponentByIdentifier(componentSerialization.identifier);
 		component.deserialize(componentSerialization);
 	}
 }

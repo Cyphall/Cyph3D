@@ -109,8 +109,8 @@ int DirectionalLight::getResolution() const
 ComponentSerialization DirectionalLight::serialize() const
 {
 	ComponentSerialization serialization;
-	
 	serialization.version = 1;
+	serialization.identifier = getIdentifier();
 	
 	glm::vec3 color = getSrgbColor();
 	serialization.data["color"] = {color.r, color.g, color.b};
