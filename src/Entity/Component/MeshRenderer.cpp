@@ -59,7 +59,7 @@ ComponentSerialization MeshRenderer::serialize() const
 	}
 	
 	Material* material = getMaterial();
-	if (model)
+	if (material)
 	{
 		data.json["material"] = material->getName();
 	}
