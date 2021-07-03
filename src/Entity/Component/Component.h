@@ -10,7 +10,8 @@ class Renderer;
 class Component
 {
 public:
-	Component(Entity& entity);
+	explicit Component(Entity& entity);
+	virtual ~Component() = default;
 	
 	Entity& getEntity() const;
 	Transform& getTransform() const;
