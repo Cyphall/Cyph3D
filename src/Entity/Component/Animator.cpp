@@ -51,7 +51,9 @@ void Animator::onUpdate()
 
 ComponentSerialization Animator::serialize() const
 {
-	ComponentSerialization serialization(1);
+	ComponentSerialization serialization;
+	
+	serialization.version = 1;
 	
 	glm::vec3 velocity = getVelocity();
 	serialization.data["velocity"] = {velocity.x, velocity.y, velocity.z};

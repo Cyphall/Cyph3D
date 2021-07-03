@@ -74,7 +74,9 @@ void Entity::onPreRender(RenderContext& context)
 
 EntitySerialization Entity::serialize() const
 {
-	EntitySerialization entitySerialization(1);
+	EntitySerialization entitySerialization;
+	
+	entitySerialization.version = 1;
 	
 	entitySerialization.data["name"] = getName();
 	
@@ -119,7 +121,8 @@ void Entity::deserialize(const EntitySerialization& entitySerialization)
 	for (const nlohmann::ordered_json& json : entitySerialization.data["components"])
 	{
 		Component& component = addComponentByIdentifier(json["identifier"].get<std::string>());
-		ComponentSerialization componentSerialization(json["version"].get<int>());
+		ComponentSerialization componentSerialization;
+		componentSerialization.version = json["version"].get<int>();
 		componentSerialization.data = json["data"];
 		component.deserialize(componentSerialization);
 	}

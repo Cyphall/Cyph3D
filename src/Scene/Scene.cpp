@@ -109,9 +109,11 @@ void Scene::load(const std::filesystem::path& path)
 
 void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene)
 {
-	Entity& entity = scene.createEntity(parent);
-	EntitySerialization serialization(json["version"].get<int>());
+	EntitySerialization serialization;
+	serialization.version = json["version"].get<int>();
 	serialization.data = json["data"];
+	
+	Entity& entity = scene.createEntity(parent);
 	entity.deserialize(serialization);
 	
 	for (const nlohmann::ordered_json& child : json["children"])

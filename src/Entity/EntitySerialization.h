@@ -6,8 +6,4 @@ struct EntitySerialization
 {
 	nlohmann::ordered_json data;
 	int version;
-	
-	EntitySerialization(int version):
-	version(version)
-	{}
 };

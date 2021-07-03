@@ -118,7 +118,9 @@ int PointLight::getResolution() const
 
 ComponentSerialization PointLight::serialize() const
 {
-	ComponentSerialization serialization(1);
+	ComponentSerialization serialization;
+	
+	serialization.version = 1;
 	
 	glm::vec3 color = getSrgbColor();
 	serialization.data["color"] = {color.r, color.g, color.b};
