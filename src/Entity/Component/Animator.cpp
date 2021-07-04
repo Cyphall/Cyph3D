@@ -49,9 +49,9 @@ void Animator::onUpdate()
 	transform.setLocalRotation(rotation);
 }
 
-ComponentSerialization Animator::serialize() const
+ObjectSerialization Animator::serialize() const
 {
-	ComponentSerialization serialization;
+	ObjectSerialization serialization;
 	serialization.version = 1;
 	serialization.identifier = getIdentifier();
 	
@@ -63,7 +63,7 @@ ComponentSerialization Animator::serialize() const
 	return serialization;
 }
 
-void Animator::deserialize(const ComponentSerialization& serialization)
+void Animator::deserialize(const ObjectSerialization& serialization)
 {
 	setVelocity(glm::make_vec3(serialization.data["velocity"].get<std::vector<float>>().data()));
 	setAngularVelocity(glm::make_vec3(serialization.data["angular_velocity"].get<std::vector<float>>().data()));

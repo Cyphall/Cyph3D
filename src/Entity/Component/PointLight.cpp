@@ -116,9 +116,9 @@ int PointLight::getResolution() const
 	return _resolution;
 }
 
-ComponentSerialization PointLight::serialize() const
+ObjectSerialization PointLight::serialize() const
 {
-	ComponentSerialization serialization;
+	ObjectSerialization serialization;
 	serialization.version = 1;
 	serialization.identifier = getIdentifier();
 	
@@ -131,7 +131,7 @@ ComponentSerialization PointLight::serialize() const
 	return serialization;
 }
 
-void PointLight::deserialize(const ComponentSerialization& serialization)
+void PointLight::deserialize(const ObjectSerialization& serialization)
 {
 	setSrgbColor(glm::make_vec3(serialization.data["color"].get<std::vector<float>>().data()));
 	setIntensity(serialization.data["intensity"].get<float>());

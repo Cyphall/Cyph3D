@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../ComponentSerialization.h"
 #include "../../Scene/Transform.h"
 #include "../../RenderContext.h"
+#include "../../ObjectSerialization.h"
 
 class Entity;
 class Renderer;
@@ -24,8 +24,8 @@ public:
 	
 	virtual void duplicate(Entity& targetEntity) const = 0;
 	
-	virtual ComponentSerialization serialize() const = 0;
-	virtual void deserialize(const ComponentSerialization& data) = 0;
+	virtual ObjectSerialization serialize() const = 0;
+	virtual void deserialize(const ObjectSerialization& data) = 0;
 
 private:
 	Entity* _entity;

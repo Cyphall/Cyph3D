@@ -72,9 +72,9 @@ void Entity::onPreRender(RenderContext& context)
 	}
 }
 
-EntitySerialization Entity::serialize() const
+ObjectSerialization Entity::serialize() const
 {
-	EntitySerialization entitySerialization;
+	ObjectSerialization entitySerialization;
 	
 	entitySerialization.version = 1;
 	
@@ -97,10 +97,7 @@ EntitySerialization Entity::serialize() const
 	auto it = components_cbegin();
 	for (int i = 0; it != components_cend(); i++, it++)
 	{
-		ComponentSerialization componentSerialization = it->serialize();
-		components[i]["identifier"] = componentSerialization.identifier;
-		components[i]["version"] = componentSerialization.version;
-		components[i]["data"] = componentSerialization.data;
+		components[i] = it->serialize().toJson();
 	}
 	
 	entitySerialization.data["components"] = components;
@@ -108,7 +105,7 @@ EntitySerialization Entity::serialize() const
 	return entitySerialization;
 }
 
-void Entity::deserialize(const EntitySerialization& entitySerialization)
+void Entity::deserialize(const ObjectSerialization& entitySerialization)
 {
 	setName(entitySerialization.data["name"].get<std::string>());
 	
@@ -120,10 +117,7 @@ void Entity::deserialize(const EntitySerialization& entitySerialization)
 	
 	for (const nlohmann::ordered_json& json : entitySerialization.data["components"])
 	{
-		ComponentSerialization componentSerialization;
-		componentSerialization.version = json["version"].get<int>();
-		componentSerialization.data = json["data"];
-		componentSerialization.identifier = json["identifier"].get<std::string>();
+		ObjectSerialization componentSerialization = ObjectSerialization::fromJson(json);
 		
 		Component& component = addComponentByIdentifier(componentSerialization.identifier);
 		component.deserialize(componentSerialization);

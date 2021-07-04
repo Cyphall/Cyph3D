@@ -22,8 +22,8 @@ public:
 	static const char* identifier;
 	const char* getIdentifier() const override;
 	
-	ComponentSerialization serialize() const override;
-	void deserialize(const ComponentSerialization& serialization) override;
+	ObjectSerialization serialize() const override;
+	void deserialize(const ObjectSerialization& serialization) override;
 
 private:
 	glm::vec3 _velocity = glm::vec3(0);

@@ -106,9 +106,9 @@ int DirectionalLight::getResolution() const
 	return _resolution;
 }
 
-ComponentSerialization DirectionalLight::serialize() const
+ObjectSerialization DirectionalLight::serialize() const
 {
-	ComponentSerialization serialization;
+	ObjectSerialization serialization;
 	serialization.version = 1;
 	serialization.identifier = getIdentifier();
 	
@@ -121,7 +121,7 @@ ComponentSerialization DirectionalLight::serialize() const
 	return serialization;
 }
 
-void DirectionalLight::deserialize(const ComponentSerialization& serialization)
+void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 {
 	setSrgbColor(glm::make_vec3(serialization.data["color"].get<std::vector<float>>().data()));
 	setIntensity(serialization.data["intensity"].get<float>());

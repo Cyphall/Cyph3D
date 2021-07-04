@@ -2,7 +2,6 @@
 
 #include "Component/Component.h"
 #include "../Scene/Transform.h"
-#include "EntitySerialization.h"
 #include "../Iterator/ComponentIterator.h"
 #include "../Iterator/ComponentConstIterator.h"
 #include <memory>
@@ -44,8 +43,8 @@ public:
 	
 	void duplicate(Transform& parent) const;
 	
-	EntitySerialization serialize() const;
-	void deserialize(const EntitySerialization& entitySerialization);
+	ObjectSerialization serialize() const;
+	void deserialize(const ObjectSerialization& entitySerialization);
 	
 	static std::map<std::string, std::function<Component&(Entity&)>>::iterator allocators_begin();
 	static std::map<std::string, std::function<Component&(Entity&)>>::iterator allocators_end();

@@ -44,9 +44,9 @@ void ShapeRenderer::setContributeShadows(bool contributeShadows)
 	_contributeShadows = contributeShadows;
 }
 
-ComponentSerialization ShapeRenderer::serialize() const
+ObjectSerialization ShapeRenderer::serialize() const
 {
-	ComponentSerialization serialization;
+	ObjectSerialization serialization;
 	serialization.version = 1;
 	serialization.identifier = getIdentifier();
 	
@@ -75,7 +75,7 @@ ComponentSerialization ShapeRenderer::serialize() const
 	return serialization;
 }
 
-void ShapeRenderer::deserialize(const ComponentSerialization& serialization)
+void ShapeRenderer::deserialize(const ObjectSerialization& serialization)
 {
 	Scene& scene = getEntity().getScene();
 	

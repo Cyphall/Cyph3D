@@ -109,9 +109,7 @@ void Scene::load(const std::filesystem::path& path)
 
 void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene)
 {
-	EntitySerialization serialization;
-	serialization.version = json["version"].get<int>();
-	serialization.data = json["data"];
+	ObjectSerialization serialization = ObjectSerialization::fromJson(json);
 	
 	Entity& entity = scene.createEntity(parent);
 	entity.deserialize(serialization);
@@ -162,11 +160,7 @@ void Scene::save(const std::filesystem::path& path)
 
 nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const
 {
-	nlohmann::ordered_json jsonData;
-	
-	EntitySerialization serialization = entity.serialize();
-	jsonData["version"] = serialization.version;
-	jsonData["data"] = serialization.data;
+	nlohmann::ordered_json jsonData = entity.serialize().toJson();
 	
 	const Transform& transform = entity.getTransform();
 	std::vector<nlohmann::ordered_json> children;
