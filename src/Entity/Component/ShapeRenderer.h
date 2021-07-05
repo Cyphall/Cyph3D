@@ -2,14 +2,14 @@
 
 #include "Component.h"
 #include "../../GLObject/Material.h"
-#include "../../ResourceManagement/Model.h"
+#include "../../Rendering/Shape/Shape.h"
 
 class ShapeRenderer : public Component
 {
 public:
 	struct RenderData
 	{
-		const Mesh* mesh;
+		const Shape* shape;
 		Material* material;
 		glm::mat4 matrix;
 		bool contributeShadows;
@@ -21,8 +21,14 @@ public:
 	Material* getMaterial() const;
 	void setMaterial(Material* material);
 	
-	Model* getModel() const;
-	void setModel(Model* model);
+	Shape& getShape() const;
+	
+	template<typename T>
+	T& setShape()
+	{
+		_shape.reset(new T(*this));
+		return static_cast<T&>(getShape());
+	}
 	
 	bool getContributeShadows() const;
 	void setContributeShadows(bool contributeShadows);
@@ -36,12 +42,20 @@ public:
 	const char* getIdentifier() const override;
 	
 	ObjectSerialization serialize() const override;
-	void deserialize(const ObjectSerialization& serialization) override;
+	void deserialize(const ObjectSerialization& shapeRendererSerialization) override;
 
 private:
 	Material* _material = nullptr;
-	Model* _model = nullptr;
+	std::unique_ptr<Shape> _shape;
 	bool _contributeShadows = true;
+	std::string _selectedShape;
+	
+	Shape& setShapeByIdentifier(const std::string& shapeIdentifier);
+	
+	static std::map<std::string, std::function<Shape&(ShapeRenderer&)>> _allocators;
+	static void initAllocators();
 	
 	Material* getDrawingMaterial();
+	
+	friend class Engine;
 };

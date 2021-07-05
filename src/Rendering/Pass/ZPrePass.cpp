@@ -44,15 +44,20 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, R
 	
 	for (int i = 0; i < registry.shapes.size(); i++)
 	{
-		ShapeRenderer::RenderData shape = registry.shapes[i];
+		ShapeRenderer::RenderData shapeData = registry.shapes[i];
 		
-		const Buffer<Mesh::VertexData>& vbo = shape.mesh->getVBO();
-		const Buffer<GLuint>& ibo = shape.mesh->getIBO();
+		if (!shapeData.shape->isReadyForRasterisationRender())
+			continue;
+		
+		const Mesh& mesh = shapeData.shape->getMeshToRender();
+		
+		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
+		const Buffer<GLuint>& ibo = mesh.getIBO();
 		
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		glm::mat4 mvp = vp * shape.matrix;
+		glm::mat4 mvp = vp * shapeData.matrix;
 		
 		_shader->setUniform("u_mvp", mvp);
 		

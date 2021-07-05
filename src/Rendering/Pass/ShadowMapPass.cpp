@@ -1,6 +1,7 @@
 #include "ShadowMapPass.h"
 #include "../../Window.h"
 #include "../../Engine.h"
+#include "../../GLObject/Mesh.h"
 
 ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Shadow map pass")

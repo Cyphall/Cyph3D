@@ -83,16 +83,21 @@ void PointLight::updateShadowMap(VertexArray& vao, RenderRegistry& registry)
 	float depthColor = 1;
 	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
 	
-	for (auto& shape : registry.shapes)
+	for (auto& shapeData : registry.shapes)
 	{
-		if (!shape.contributeShadows) continue;
+		if (!shapeData.contributeShadows) continue;
 		
-		const Buffer<Mesh::VertexData>& vbo = shape.mesh->getVBO();
-		const Buffer<GLuint>& ibo = shape.mesh->getIBO();
+		if (!shapeData.shape->isReadyForRasterisationRender())
+			continue;
+		
+		const Mesh& mesh = shapeData.shape->getMeshToRender();
+		
+		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
+		const Buffer<GLuint>& ibo = mesh.getIBO();
 		vao.bindBufferToSlot(vbo, 0);
 		vao.bindIndexBuffer(ibo);
 		
-		_shadowMapProgram->setUniform("u_model", shape.matrix);
+		_shadowMapProgram->setUniform("u_model", shapeData.matrix);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

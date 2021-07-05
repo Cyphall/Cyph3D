@@ -1,6 +1,8 @@
 #include "GeometryPass.h"
 #include "../../Window.h"
 #include "../../Engine.h"
+#include "../../GLObject/Mesh.h"
+#include "../Shape/MeshShape.h"
 
 GeometryPass::GeometryPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Geometry pass"),
@@ -92,15 +94,20 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	
 	for (int i = 0; i < registry.shapes.size(); i++)
 	{
-		ShapeRenderer::RenderData shape = registry.shapes[i];
+		ShapeRenderer::RenderData shapeData = registry.shapes[i];
 		
-		const Buffer<Mesh::VertexData>& vbo = shape.mesh->getVBO();
-		const Buffer<GLuint>& ibo = shape.mesh->getIBO();
+		if (!shapeData.shape->isReadyForRasterisationRender())
+			continue;
+		
+		const Mesh& mesh = shapeData.shape->getMeshToRender();
+		
+		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
+		const Buffer<GLuint>& ibo = mesh.getIBO();
 		
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		shape.material->bind(shape.matrix, vp, pos, i);
+		shapeData.material->bind(shapeData.matrix, vp, pos, i);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

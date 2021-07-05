@@ -1,15 +1,17 @@
+#include "ShapeRenderer.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "ShapeRenderer.h"
 #include "../Entity.h"
 #include "../../Scene/Scene.h"
 #include "../../Engine.h"
 #include "../../Rendering/Renderer.h"
+#include "../../Rendering/Shape/MeshShape.h"
 
 const char* ShapeRenderer::identifier = "ShapeRenderer";
+std::map<std::string, std::function<Shape&(ShapeRenderer&)>> ShapeRenderer::_allocators;
 
 ShapeRenderer::ShapeRenderer(Entity& entity):
-Component(entity)
+Component(entity), _shape(new MeshShape(*this)), _selectedShape(MeshShape::identifier)
 {
 	setMaterial(Material::getDefault());
 }
@@ -24,14 +26,9 @@ void ShapeRenderer::setMaterial(Material* material)
 	_material = material;
 }
 
-Model* ShapeRenderer::getModel() const
+Shape& ShapeRenderer::getShape() const
 {
-	return _model;
-}
-
-void ShapeRenderer::setModel(Model* model)
-{
-	_model = model;
+	return *_shape.get();
 }
 
 bool ShapeRenderer::getContributeShadows() const
@@ -50,15 +47,7 @@ ObjectSerialization ShapeRenderer::serialize() const
 	serialization.version = 1;
 	serialization.identifier = getIdentifier();
 	
-	Model* model = getModel();
-	if (model)
-	{
-		serialization.data["model"] = model->getName();
-	}
-	else
-	{
-		serialization.data["model"] = nullptr;
-	}
+	serialization.data["shape"] = getShape().serialize().toJson();
 	
 	Material* material = getMaterial();
 	if (material)
@@ -75,21 +64,30 @@ ObjectSerialization ShapeRenderer::serialize() const
 	return serialization;
 }
 
-void ShapeRenderer::deserialize(const ObjectSerialization& serialization)
+void ShapeRenderer::deserialize(const ObjectSerialization& shapeRendererSerialization)
 {
 	Scene& scene = getEntity().getScene();
 	
-	if (!serialization.data["material"].is_null())
+	if (!shapeRendererSerialization.data["material"].is_null())
 	{
-		setMaterial(scene.getRM().requestMaterial(serialization.data["material"].get<std::string>()));
+		setMaterial(scene.getRM().requestMaterial(shapeRendererSerialization.data["material"].get<std::string>()));
 	}
 	
-	if (!serialization.data["model"].is_null())
+	if (shapeRendererSerialization.identifier == "MeshRenderer")
 	{
-		setModel(scene.getRM().requestModel(serialization.data["model"].get<std::string>()));
+		MeshShape& shape = setShape<MeshShape>();
+		shape.setModel(scene.getRM().requestModel(shapeRendererSerialization.data["model"].get<std::string>()));
+	}
+	else
+	{
+		ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(shapeRendererSerialization.data["shape"]);
+		Shape& shape = setShapeByIdentifier(shapeSerialization.identifier);
+		shape.deserialize(shapeSerialization);
 	}
 	
-	setContributeShadows(serialization.data["contribute_shadows"].get<bool>());
+	_selectedShape = getShape().getIdentifier();
+	
+	setContributeShadows(shapeRendererSerialization.data["contribute_shadows"].get<bool>());
 }
 
 Material* ShapeRenderer::getDrawingMaterial()
@@ -99,14 +97,9 @@ Material* ShapeRenderer::getDrawingMaterial()
 
 void ShapeRenderer::onPreRender(RenderContext& context)
 {
-	Model* model = getModel();
-	
-	if (model == nullptr || !model->isResourceReady())
-		return;
-	
 	RenderData data;
 	data.material = getDrawingMaterial();
-	data.mesh = &model->getResource();
+	data.shape = &getShape();
 	data.owner = &getEntity();
 	data.contributeShadows = getContributeShadows();
 	data.matrix = getTransform().getLocalToWorldMatrix();
@@ -116,19 +109,6 @@ void ShapeRenderer::onPreRender(RenderContext& context)
 
 void ShapeRenderer::onDrawUi()
 {
-	Model* model = getModel();
-	std::string modelName = model != nullptr ? model->getName() : "None";
-	ImGui::InputText("Mesh", &modelName, ImGuiInputTextFlags_ReadOnly);
-	if (ImGui::BeginDragDropTarget())
-	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MeshDragDrop");
-		if (payload)
-		{
-			setModel(Engine::getScene().getRM().requestModel(*(*static_cast<const std::string**>(payload->Data))));
-		}
-		ImGui::EndDragDropTarget();
-	}
-	
 	Material* material = getDrawingMaterial();
 	std::string materialName = material->getName();
 	ImGui::InputText("Material", &materialName, ImGuiInputTextFlags_ReadOnly);
@@ -155,6 +135,25 @@ void ShapeRenderer::onDrawUi()
 	{
 		setContributeShadows(contributeShadows);
 	}
+	
+	if (ImGui::BeginCombo("Shape", _selectedShape.c_str()))
+	{
+		for (auto it = _allocators.begin(); it != _allocators.end(); it++)
+		{
+			const bool is_selected = (_selectedShape == it->first);
+			if (ImGui::Selectable(it->first.c_str(), is_selected))
+			{
+				_selectedShape = it->first;
+				setShapeByIdentifier(_selectedShape);
+			}
+			
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+	
+	getShape().onDrawUi();
 }
 
 const char* ShapeRenderer::getIdentifier() const
@@ -166,6 +165,16 @@ void ShapeRenderer::duplicate(Entity& targetEntity) const
 {
 	ShapeRenderer& newComponent = targetEntity.addComponent<ShapeRenderer>();
 	newComponent.setMaterial(getMaterial());
-	newComponent.setModel(getModel());
+	getShape().duplicate(newComponent);
 	newComponent.setContributeShadows(getContributeShadows());
+}
+
+void ShapeRenderer::initAllocators()
+{
+	_allocators[MeshShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<MeshShape>();};
+}
+
+Shape& ShapeRenderer::setShapeByIdentifier(const std::string& shapeIdentifier)
+{
+	return _allocators[shapeIdentifier](*this);
 }

@@ -77,6 +77,7 @@ ObjectSerialization Entity::serialize() const
 	ObjectSerialization entitySerialization;
 	
 	entitySerialization.version = 1;
+	entitySerialization.identifier = "Entity";
 	
 	entitySerialization.data["name"] = getName();
 	
@@ -199,7 +200,6 @@ void Entity::initAllocators()
 	_allocators[Animator::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<Animator>();};
 	_allocators[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<PointLight>();};
 	_allocators[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<DirectionalLight>();};
-	_allocators["MeshRenderer"] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ShapeRenderer>();};
 }
 
 Component& Entity::addComponentByIdentifier(const std::string& identifier)

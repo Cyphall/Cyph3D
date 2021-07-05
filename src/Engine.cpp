@@ -67,6 +67,7 @@ void Engine::init()
 	Framebuffer::initDrawToDefault();
 	RenderHelper::initDrawScreenQuad();
 	Entity::initAllocators();
+	ShapeRenderer::initAllocators();
 	
 	_scene = std::make_unique<Scene>();
 	
