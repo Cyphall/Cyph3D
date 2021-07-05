@@ -28,5 +28,5 @@ public:
 	virtual void deserialize(const ObjectSerialization& data) = 0;
 
 private:
-	Entity* _entity;
+	Entity& _entity;
 };
