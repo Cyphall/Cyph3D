@@ -57,7 +57,7 @@ int Texture::calculateMipmapCount(const glm::ivec2& size)
 	return (int)glm::floor(glm::log2((float)glm::max(size.x, size.y))) + 1;
 }
 
-GLuint64 Texture::getBindlessHandle() const
+GLuint64 Texture::getBindlessTextureHandle() const
 {
 	GLuint64 bindlessHandle = glGetTextureHandleARB(_handle);
 	if (!glIsTextureHandleResidentARB(bindlessHandle))
@@ -67,7 +67,7 @@ GLuint64 Texture::getBindlessHandle() const
 	return bindlessHandle;
 }
 
-GLuint64 Texture::getBindlessHandle(const Sampler* sampler) const
+GLuint64 Texture::getBindlessTextureHandle(const Sampler* sampler) const
 {
 	GLuint64 bindlessHandle = glGetTextureSamplerHandleARB(_handle, sampler->getHandle());
 	if (!glIsTextureHandleResidentARB(bindlessHandle))

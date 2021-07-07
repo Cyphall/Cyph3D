@@ -16,8 +16,8 @@ public:
 	
 	~Texture() override;
 	
-	GLuint64 getBindlessHandle() const;
-	GLuint64 getBindlessHandle(const Sampler* sampler) const;
+	GLuint64 getBindlessTextureHandle() const;
+	GLuint64 getBindlessTextureHandle(const Sampler* sampler) const;
 	void setData(const void* data, GLenum format, GLenum type);
 	void generateMipmaps();
 	glm::ivec2 getSize(int level = 0) const;

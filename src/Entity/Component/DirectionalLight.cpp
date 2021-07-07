@@ -154,7 +154,7 @@ void DirectionalLight::onPreRender(RenderContext& context)
 		.color = getLinearColor(),
 		.castShadows = _castShadows,
 		.lightViewProjection = _castShadows ? _viewProjection : glm::mat4(),
-		.shadowMap = _castShadows ? _shadowMap->getBindlessHandle() : 0,
+		.shadowMap = _castShadows ? _shadowMap->getBindlessTextureHandle() : 0,
 		.mapSize = _mapSize,
 		.mapDepth = _mapDepth,
 	};
