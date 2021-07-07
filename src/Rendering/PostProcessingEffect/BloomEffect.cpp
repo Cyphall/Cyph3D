@@ -137,7 +137,7 @@ void BloomEffect::extractBright(Texture* original)
 {
 	_extractBrightFramebuffer.bindForDrawing();
 	
-	_extractBrightProgram->setUniform("u_colorTexture", original);
+	_extractBrightProgram->setUniform("u_colorTexture", original->getBindlessTextureHandle());
 	_extractBrightProgram->bind();
 	
 	RenderHelper::drawScreenQuad();
@@ -157,7 +157,7 @@ void BloomEffect::blur(int level)
 	_blurFramebuffers[level].attachColor(0, _blurTextures[1], level);
 	_blurFramebuffers[level].bindForDrawing();
 	
-	_blurProgram->setUniform("u_sourceTexture", _blurTextures[0]);
+	_blurProgram->setUniform("u_sourceTexture", _blurTextures[0].getBindlessTextureHandle());
 	_blurProgram->setUniform("u_horizontal", false);
 	_blurProgram->setUniform("u_mipmapLevel", level);
 	_blurProgram->bind();
@@ -168,7 +168,7 @@ void BloomEffect::blur(int level)
 	_blurFramebuffers[level].attachColor(0, _blurTextures[0], level);
 	_blurFramebuffers[level].bindForDrawing();
 	
-	_blurProgram->setUniform("u_sourceTexture", _blurTextures[1]);
+	_blurProgram->setUniform("u_sourceTexture", _blurTextures[1].getBindlessTextureHandle());
 	_blurProgram->setUniform("u_horizontal", true);
 	_blurProgram->setUniform("u_mipmapLevel", level);
 	_blurProgram->bind();
@@ -191,7 +191,7 @@ void BloomEffect::combineWithNextLevel(int level)
 	_blurFramebuffers[level-1].attachColor(0, _blurTextures[0], level-1);
 	_blurFramebuffers[level-1].bindForDrawing();
 	
-	_passthroughLevelProgram->setUniform("u_colorTexture", _blurTextures[0]);
+	_passthroughLevelProgram->setUniform("u_colorTexture", _blurTextures[0].getBindlessTextureHandle());
 	_passthroughLevelProgram->setUniform("u_level", level);
 	_passthroughLevelProgram->bind();
 	
@@ -208,8 +208,8 @@ void BloomEffect::combine()
 {
 	_combineFramebuffer.bindForDrawing();
 	
-	_combineProgram->setUniform("u_colorTexture1", _nonBrightTexture);
-	_combineProgram->setUniform("u_colorTexture2", _blurTextures[0]);
+	_combineProgram->setUniform("u_colorTexture1", _nonBrightTexture.getBindlessTextureHandle());
+	_combineProgram->setUniform("u_colorTexture2", _blurTextures[0].getBindlessTextureHandle());
 	_combineProgram->bind();
 	
 	RenderHelper::drawScreenQuad();

@@ -74,11 +74,11 @@ void Material::bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3
 		
 		if (image != nullptr && image->isResourceReady())
 		{
-			_shaderProgram->getShaderProgram()->setUniform(std::format("u_{}", name).c_str(), &image->getResource());
+			_shaderProgram->getShaderProgram()->setUniform(std::format("u_{}", name).c_str(), image->getResource().getBindlessTextureHandle());
 		}
 		else
 		{
-			_shaderProgram->getShaderProgram()->setUniform(std::format("u_{}", name).c_str(), texture.get());
+			_shaderProgram->getShaderProgram()->setUniform(std::format("u_{}", name).c_str(), texture.get()->getBindlessTextureHandle());
 		}
 	}
 	

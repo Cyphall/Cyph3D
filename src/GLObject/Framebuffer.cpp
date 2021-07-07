@@ -385,7 +385,7 @@ void Framebuffer::drawToDefault(ShaderProgram* shader, bool clearFramebuffer)
 
 void Framebuffer::drawToDefault(const Texture& texture, bool clearFramebuffer)
 {
-	_drawToDefaultShaderProgram->setUniform("u_texture", texture);
+	_drawToDefaultShaderProgram->setUniform("u_texture", texture.getBindlessTextureHandle());
 	drawToDefault(_drawToDefaultShaderProgram, clearFramebuffer);
 }
 

@@ -202,32 +202,12 @@ void ShaderProgram::setUniform(const char* name, const glm::bvec4& data)
 
 #pragma region texture
 
-void ShaderProgram::setUniform(const char* name, const Texture* data, size_t count)
+void ShaderProgram::setUniform(const char* name, const GLuint64* data, size_t count)
 {
-	std::vector<GLuint64> convertedData(count);
-	for (int i = 0; i < count; i++)
-	{
-		convertedData[i] = data[i].getBindlessTextureHandle();
-	}
-	glProgramUniformHandleui64vARB(_handle, getUniformLocation(name), count, convertedData.data());
+	glProgramUniformHandleui64vARB(_handle, getUniformLocation(name), count, data);
 }
 
-void ShaderProgram::setUniform(const char* name, const Cubemap* data, size_t count)
-{
-	std::vector<GLuint64> convertedData(count);
-	for (int i = 0; i < count; i++)
-	{
-		convertedData[i] = data[i].getBindlessTextureHandle();
-	}
-	glProgramUniformHandleui64vARB(_handle, getUniformLocation(name), count, convertedData.data());
-}
-
-void ShaderProgram::setUniform(const char* name, const Texture& data)
-{
-	setUniform(name, &data);
-}
-
-void ShaderProgram::setUniform(const char* name, const Cubemap& data)
+void ShaderProgram::setUniform(const char* name, const GLuint64& data)
 {
 	setUniform(name, &data);
 }

@@ -93,7 +93,7 @@ void SkyboxPass::renderImpl(std::unordered_map<std::string, Texture*>& textures,
 	
 	_shader->setUniform("u_mvp", mvp);
 	
-	_shader->setUniform("u_skybox", Engine::getScene().getSkybox()->getResource());
+	_shader->setUniform("u_skybox", Engine::getScene().getSkybox()->getResource().getBindlessTextureHandle());
 	
 	_vao.bind();
 	

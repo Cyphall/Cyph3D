@@ -24,7 +24,7 @@ _outputTexture(TextureCreateInfo
 
 Texture* ToneMappingEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera)
 {
-	_shaderProgram->setUniform("u_colorTexture", currentRenderTexture);
+	_shaderProgram->setUniform("u_colorTexture", currentRenderTexture->getBindlessTextureHandle());
 	
 	_framebuffer.bindForDrawing();
 	_shaderProgram->bind();

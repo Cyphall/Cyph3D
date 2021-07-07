@@ -83,11 +83,9 @@ public:
 
 #pragma region texture
 	
-	void setUniform(const char* name, const Texture* data, size_t count = 1);
-	void setUniform(const char* name, const Cubemap* data, size_t count = 1);
+	void setUniform(const char* name, const GLuint64* data, size_t count = 1);
 	
-	void setUniform(const char* name, const Texture& data);
-	void setUniform(const char* name, const Cubemap& data);
+	void setUniform(const char* name, const GLuint64& data);
 
 #pragma endregion
 

@@ -34,12 +34,12 @@ void GBufferDebugPass::renderImpl(std::unordered_map<std::string, Texture*>& tex
 {
 	_shader->setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));
 	
-	_shader->setUniform("u_normalTexture", textures["gbuffer_normal"]);
-	_shader->setUniform("u_colorTexture", textures["gbuffer_color"]);
-	_shader->setUniform("u_materialTexture", textures["gbuffer_material"]);
-	_shader->setUniform("u_geometryNormalTexture", textures["gbuffer_gemoetryNormal"]);
-	_shader->setUniform("u_depthTexture", textures["z-prepass_depth"]);
-	_shader->setUniform("u_positionTexture", textures["gbuffer_position"]);
+	_shader->setUniform("u_normalTexture", textures["gbuffer_normal"]->getBindlessTextureHandle());
+	_shader->setUniform("u_colorTexture", textures["gbuffer_color"]->getBindlessTextureHandle());
+	_shader->setUniform("u_materialTexture", textures["gbuffer_material"]->getBindlessTextureHandle());
+	_shader->setUniform("u_geometryNormalTexture", textures["gbuffer_gemoetryNormal"]->getBindlessTextureHandle());
+	_shader->setUniform("u_depthTexture", textures["z-prepass_depth"]->getBindlessTextureHandle());
+	_shader->setUniform("u_positionTexture", textures["gbuffer_position"]->getBindlessTextureHandle());
 	
 	_shader->bind();
 	_framebuffer.bindForDrawing();
