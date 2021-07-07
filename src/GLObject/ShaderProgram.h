@@ -16,6 +16,7 @@ public:
 	~ShaderProgram() override;
 	
 	void bind();
+	void dispatch(glm::ivec3 groups);
 
 #pragma region float
 	

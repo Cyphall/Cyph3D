@@ -1,0 +1,12 @@
+#version 460 core
+#extension GL_ARB_bindless_texture : enable
+
+layout (local_size_x = 1, local_size_y = 1) in;
+
+layout (bindless_image) writeonly uniform image2D o_image;
+
+void main()
+{
+	ivec2 texCoords = ivec2(gl_GlobalInvocationID);
+	imageStore(o_image, texCoords, vec4(1, 0, 0, 1));
+}

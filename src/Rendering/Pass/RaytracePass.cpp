@@ -7,7 +7,7 @@ RenderPass(textures, size, "Raytrace pass"),
 _rawRenderTexture(TextureCreateInfo
 {
 	.size = size,
-	.internalFormat = GL_RGB16F
+	.internalFormat = GL_RGBA16F
 })
 {
 	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
@@ -25,7 +25,12 @@ void RaytracePass::preparePipelineImpl()
 
 void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
 {
-
+	_shader->bind();
+	_shader->setUniform("o_image", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
+	
+	_shader->dispatch(glm::ivec3(getSize(), 1));
+	
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 void RaytracePass::restorePipelineImpl()

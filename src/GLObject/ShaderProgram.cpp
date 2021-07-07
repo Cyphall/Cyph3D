@@ -165,3 +165,8 @@ int ShaderProgram::getUniformLocation(const char* name)
 	auto it = _uniforms.find(name);
 	return it != _uniforms.end() ? it->second : -1;
 }
+
+void ShaderProgram::dispatch(glm::ivec3 groups)
+{
+	glDispatchCompute(groups.x, groups.y, groups.z);
+}
