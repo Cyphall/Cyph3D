@@ -10,6 +10,7 @@ class RenderPass
 public:
 	RenderPass() = delete;
 	RenderPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size, const char* name);
+	virtual ~RenderPass() = default;
 	
 	glm::ivec2 getSize() const;
 	
