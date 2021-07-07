@@ -20,8 +20,11 @@ void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& t
 {
 	Texture* renderTexture = textures["raw_render"];
 	
+	glm::ivec2 size = getSize();
+	
 	for (auto& effect : _effects)
 	{
+		glViewport(0, 0, size.x, size.y);
 		renderTexture = effect->render(renderTexture, textures, camera);
 	}
 	

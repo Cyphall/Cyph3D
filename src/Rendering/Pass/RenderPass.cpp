@@ -10,6 +10,9 @@ void RenderPass::render(std::unordered_map<std::string, Texture*>& textures, Ren
 {
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, _name);
 	
+	glm::ivec2 size = getSize();
+	glViewport(0, 0, size.x, size.y);
+	
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Prepare pipeline");
 	preparePipelineImpl();
 	glPopDebugGroup();
