@@ -18,6 +18,9 @@ public:
 	
 	GLuint64 getBindlessTextureHandle() const;
 	GLuint64 getBindlessTextureHandle(const Sampler* sampler) const;
+	
+	GLuint64 getBindlessImageHandle(GLenum format, GLenum access, int level = 0) const;
+	
 	void setData(const void* data, GLenum format, GLenum type);
 	void generateMipmaps();
 	glm::ivec2 getSize(int level = 0) const;

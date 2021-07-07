@@ -103,3 +103,13 @@ void Texture::generateMipmaps()
 	
 	glGenerateTextureMipmap(_handle);
 }
+
+GLuint64 Texture::getBindlessImageHandle(GLenum format, GLenum access, int level) const
+{
+	GLuint64 bindlessHandle = glGetImageHandleARB(_handle, level, GL_FALSE, 0, format);
+	if (!glIsImageHandleResidentARB(bindlessHandle))
+	{
+		glMakeImageHandleResidentARB(bindlessHandle, access);
+	}
+	return bindlessHandle;
+}
