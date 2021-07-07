@@ -6,6 +6,8 @@
 class Renderer
 {
 public:
+	virtual ~Renderer() = default;
+	
 	virtual Texture& render(Camera& camera, bool debugView) = 0;
 	
 	virtual void onNewFrame();

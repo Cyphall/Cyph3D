@@ -4,17 +4,24 @@
 #include "../../Window.h"
 #include "../../Engine.h"
 #include "UIInspector.h"
+#include "../../Rendering/Renderer/RaytracingRenderer.h"
 #include <imgui_internal.h>
 
 std::unique_ptr<Renderer> UIViewport::_renderer;
 Camera UIViewport::_camera;
 bool UIViewport::_cameraFocused = false;
 glm::dvec2 UIViewport::_lockedCursorPos;
-glm::vec2 UIViewport::_previousViewportSize(0);
+glm::vec2 UIViewport::_rendererSize(0);
 bool UIViewport::_currentlyClicking = false;
 glm::vec2 UIViewport::_clickPos;
 bool UIViewport::_gbufferDebugView = false;
 bool UIViewport::_fullscreen = false;
+
+bool UIViewport::_rendererIsInvalidated = true;
+
+std::string UIViewport::_rendererType = RasterizationRenderer::identifier;
+
+std::map<std::string, std::function<void(void)>> UIViewport::_allocators;
 
 ImGuizmo::OPERATION UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
 ImGuizmo::MODE UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
@@ -43,15 +50,16 @@ void UIViewport::show()
 	glm::vec2 viewportStartGlobal = ImGui::GetCursorScreenPos();
 	glm::vec2 viewportEndGlobal = viewportStartGlobal + viewportSize;
 	
-	if (viewportSize != _previousViewportSize)
+	if (viewportSize != _rendererSize)
 	{
 		if (viewportSize.x <= 0 || viewportSize.y <= 0)
 		{
 			ImGui::End();
 			return;
 		}
-		onWindowSizeChanged(viewportSize);
-		_previousViewportSize = viewportSize;
+		invalidateRenderer();
+		_camera.setAspectRatio(viewportSize.x / viewportSize.y);
+		_rendererSize = viewportSize;
 	}
 	
 	glm::vec2 viewportCursorPos = glm::vec2(ImGui::GetIO().MousePos) - viewportStartGlobal;
@@ -67,6 +75,12 @@ void UIViewport::show()
 	{
 		_camera.update(Engine::getWindow().getCursorPos() - _lockedCursorPos);
 		Engine::getWindow().setCursorPos(_lockedCursorPos);
+	}
+	
+	if (_rendererIsInvalidated)
+	{
+		_allocators[_rendererType]();
+		_rendererIsInvalidated = false;
 	}
 	
 	_renderer->onNewFrame();
@@ -110,12 +124,6 @@ void UIViewport::show()
 	ImGui::End();
 }
 
-void UIViewport::onWindowSizeChanged(glm::vec2 newSize)
-{
-	_renderer = std::make_unique<RasterizationRenderer>(newSize);
-	_camera.setAspectRatio(newSize.x / newSize.y);
-}
-
 Camera& UIViewport::getCamera()
 {
 	return _camera;
@@ -124,7 +132,7 @@ Camera& UIViewport::getCamera()
 void UIViewport::setCamera(Camera camera)
 {
 	_camera = camera;
-	_previousViewportSize = glm::vec2(0);
+	_rendererSize = glm::vec2(0);
 }
 
 void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
@@ -222,10 +230,41 @@ void UIViewport::drawHeader()
 	
 	ImGui::Checkbox("Fullscreen", &_fullscreen);
 	
+	ImGui::Separator();
+	
+	ImGui::SetNextItemWidth(130);
+	if (ImGui::BeginCombo("Renderer", _rendererType.c_str()))
+	{
+		for (auto it = _allocators.begin(); it != _allocators.end(); it++)
+		{
+			const bool is_selected = (_rendererType == it->first);
+			if (ImGui::Selectable(it->first.c_str(), is_selected))
+			{
+				_rendererType = it->first;
+				invalidateRenderer();
+			}
+			
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+	
 	ImGui::EndChild();
 }
 
 bool UIViewport::isFullscreen()
 {
 	return _fullscreen;
+}
+
+void UIViewport::invalidateRenderer()
+{
+	_rendererIsInvalidated = true;
+}
+
+void UIViewport::initAllocators()
+{
+	_allocators[RasterizationRenderer::identifier] = []() -> decltype(auto) {UIViewport::_renderer = std::make_unique<RasterizationRenderer>(UIViewport::_rendererSize);};
+	_allocators[RaytracingRenderer::identifier] = []() -> decltype(auto) {UIViewport::_renderer = std::make_unique<RaytracingRenderer>(UIViewport::_rendererSize);};
 }

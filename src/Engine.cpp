@@ -13,6 +13,7 @@
 #include "Helper/RenderHelper.h"
 #include <format>
 #include "Entity/Entity.h"
+#include "UI/Window/UIViewport.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -68,6 +69,7 @@ void Engine::init()
 	RenderHelper::initDrawScreenQuad();
 	Entity::initAllocators();
 	ShapeRenderer::initAllocators();
+	UIViewport::initAllocators();
 	
 	_scene = std::make_unique<Scene>();
 	

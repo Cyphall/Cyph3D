@@ -5,6 +5,8 @@
 #include "../../Scene/Scene.h"
 #include "../../Engine.h"
 
+const char* RasterizationRenderer::identifier = "Rasterisation";
+
 RasterizationRenderer::RasterizationRenderer(glm::ivec2 size):
 _zPrePass(_textures, size),
 _shadowMapPass(_textures, size),

@@ -23,6 +23,8 @@ public:
 	void onNewFrame() override;
 	
 	Entity* getClickedEntity(glm::ivec2 clickPos) override;
+	
+	static const char* identifier;
 
 private:
 	ZPrePass _zPrePass;

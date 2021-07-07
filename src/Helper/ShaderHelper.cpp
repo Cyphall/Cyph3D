@@ -13,6 +13,8 @@ std::string ShaderHelper::shaderTypeToExtension(GLenum type)
 			return "frag";
 		case GL_GEOMETRY_SHADER:
 			return "geom";
+		case GL_COMPUTE_SHADER:
+			return "comp";
 		default:
 			std::stringstream error;
 			error << "Shader type " << type << " is not currently supported";
