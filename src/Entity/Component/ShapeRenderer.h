@@ -26,8 +26,10 @@ public:
 	template<typename T>
 	T& setShape()
 	{
-		_shape.reset(new T(*this));
-		return static_cast<T&>(getShape());
+		T* newShape = new T(*this);
+		_shape.reset(newShape);
+		_selectedShape = newShape->getIdentifier();
+		return static_cast<T&>(*newShape);
 	}
 	
 	bool getContributeShadows() const;
