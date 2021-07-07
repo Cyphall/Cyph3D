@@ -153,7 +153,7 @@ void PointLight::onPreRender(RenderContext& context)
 		.intensity = getIntensity(),
 		.color = getLinearColor(),
 		.castShadows = getCastShadows(),
-		.shadowMap = getCastShadows() ? _shadowMap->getBindlessHandle() : 0,
+		.shadowMap = getCastShadows() ? _shadowMap->getBindlessTextureHandle() : 0,
 		._far = getCastShadows() ? _FAR : 0,
 		.maxTexelSizeAtUnitDistance = 2.0f / getResolution()
 	};

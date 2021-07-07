@@ -217,7 +217,7 @@ void ShaderProgram::setUniform(const char* name, const Cubemap* data, size_t cou
 	std::vector<GLuint64> convertedData(count);
 	for (int i = 0; i < count; i++)
 	{
-		convertedData[i] = data[i].getBindlessHandle();
+		convertedData[i] = data[i].getBindlessTextureHandle();
 	}
 	glProgramUniformHandleui64vARB(_handle, getUniformLocation(name), count, convertedData.data());
 }

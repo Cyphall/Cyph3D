@@ -26,7 +26,7 @@ Cubemap::~Cubemap()
 	glDeleteTextures(1, &_handle);
 }
 
-GLuint64 Cubemap::getBindlessHandle() const
+GLuint64 Cubemap::getBindlessTextureHandle() const
 {
 	GLuint64 bindlessHandle = glGetTextureHandleARB(_handle);
 	if (!glIsTextureHandleResidentARB(bindlessHandle))
@@ -36,7 +36,7 @@ GLuint64 Cubemap::getBindlessHandle() const
 	return bindlessHandle;
 }
 
-GLuint64 Cubemap::getBindlessHandle(const Sampler* sampler) const
+GLuint64 Cubemap::getBindlessTextureHandle(const Sampler* sampler) const
 {
 	GLuint64 bindlessHandle = glGetTextureSamplerHandleARB(_handle, sampler->getHandle());
 	if (!glIsTextureHandleResidentARB(bindlessHandle))
