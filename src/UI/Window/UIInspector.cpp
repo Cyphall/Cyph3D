@@ -3,7 +3,7 @@
 #include <imgui_stdlib.h>
 #include "../../Window.h"
 #include "../../Scene/Scene.h"
-#include "../../Rendering/Renderer.h"
+#include "../../Rendering/Renderer/Renderer.h"
 #include "../../Engine.h"
 #include "../../Entity/Entity.h"
 #include "../../Entity/Component/Animator.h"

@@ -9,7 +9,7 @@
 #include "Window.h"
 #include "ResourceManagement/ResourceManager.h"
 #include "Scene/Scene.h"
-#include "Rendering/Renderer.h"
+#include "Entity/Component/ShapeRenderer.h"
 #include "Helper/RenderHelper.h"
 #include <format>
 #include "Entity/Entity.h"

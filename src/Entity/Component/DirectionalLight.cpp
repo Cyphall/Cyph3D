@@ -5,7 +5,7 @@
 #include <imgui.h>
 #include "../../Scene/Scene.h"
 #include "../../Engine.h"
-#include "../../Rendering/Renderer.h"
+#include "../../Rendering/Renderer/Renderer.h"
 #include "../../Rendering/RenderRegistry.h"
 
 const char* DirectionalLight::identifier = "DirectionalLight";

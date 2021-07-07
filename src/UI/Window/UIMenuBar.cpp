@@ -1,7 +1,6 @@
 #include "UIMenuBar.h"
 #include "../../Engine.h"
 #include "../../Scene/Scene.h"
-#include "../../Rendering/Renderer.h"
 #include "../../Helper/FileHelper.h"
 #include <imgui.h>
 #include <filesystem>

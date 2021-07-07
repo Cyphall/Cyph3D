@@ -1,6 +1,6 @@
 #include "LightingPass.h"
 #include "../../Helper/RenderHelper.h"
-#include "../../Rendering/Renderer.h"
+#include "../../Rendering/Renderer/Renderer.h"
 #include "../../Window.h"
 #include "../../ResourceManagement/ResourceManager.h"
 #include "../../Engine.h"

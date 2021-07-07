@@ -10,4 +10,11 @@ struct RenderRegistry
 	std::vector<ShapeRenderer::RenderData> shapes;
 	std::vector<DirectionalLight::RenderData> directionalLights;
 	std::vector<PointLight::RenderData> pointLights;
+	
+	void clear()
+	{
+		shapes.clear();
+		directionalLights.clear();
+		pointLights.clear();
+	}
 };

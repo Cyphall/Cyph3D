@@ -4,7 +4,7 @@
 #include "../Entity.h"
 #include "../../Scene/Scene.h"
 #include "../../Engine.h"
-#include "../../Rendering/Renderer.h"
+#include "../../Rendering/Renderer/Renderer.h"
 #include "../../Rendering/Shape/MeshShape.h"
 #include "../../Rendering/Shape/SphereShape.h"
 

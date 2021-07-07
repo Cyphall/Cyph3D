@@ -1,7 +1,6 @@
 #include "UIMisc.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "../../Rendering/Renderer.h"
 #include "../../Engine.h"
 #include "../../Window.h"
 #include "../../Scene/Scene.h"

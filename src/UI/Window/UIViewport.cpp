@@ -1,5 +1,5 @@
 #include "UIViewport.h"
-#include "../../Rendering/Renderer.h"
+#include "../../Rendering/Renderer/RasterizationRenderer.h"
 #include "../../Scene/Scene.h"
 #include "../../Window.h"
 #include "../../Engine.h"
@@ -112,7 +112,7 @@ void UIViewport::show()
 
 void UIViewport::onWindowSizeChanged(glm::vec2 newSize)
 {
-	_renderer = std::make_unique<Renderer>(newSize);
+	_renderer = std::make_unique<RasterizationRenderer>(newSize);
 	_camera.setAspectRatio(newSize.x / newSize.y);
 }
 
