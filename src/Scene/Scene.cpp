@@ -178,7 +178,7 @@ Scene::~Scene()
 {
 	_entities.clear();
 	
-	_root.release();
+	_root.reset();
 }
 
 const std::string& Scene::getName() const
