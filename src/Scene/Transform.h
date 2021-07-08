@@ -47,6 +47,12 @@ public:
 	const glm::mat4& getLocalToParentMatrix();
 	const glm::mat4& getParentToLocalMatrix();
 	
+	const glm::mat3& getLocalToWorldRotationMatrix();
+	const glm::mat3& getWorldToLocalRotationMatrix();
+	
+	const glm::mat3& getLocalToParentRotationMatrix();
+	const glm::mat3& getParentToLocalRotationMatrix();
+	
 	glm::vec3 localToWorldDirection(glm::vec3 localDir);
 	glm::vec3 worldToLocalDirection(glm::vec3 worldDir);
 	

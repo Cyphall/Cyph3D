@@ -175,6 +175,26 @@ const glm::mat4& Transform::getParentToLocalMatrix()
 	return _cachedParentToLocalMatrix;
 }
 
+const glm::mat3& Transform::getLocalToParentRotationMatrix()
+{
+	if (_invalidLocalCache)
+	{
+		recalculateLocalCache();
+	}
+	
+	return _cachedLocalToParentRotation;
+}
+
+const glm::mat3& Transform::getParentToLocalRotationMatrix()
+{
+	if (_invalidLocalCache)
+	{
+		recalculateLocalCache();
+	}
+	
+	return _cachedParentToLocalRotation;
+}
+
 const glm::mat4& Transform::getLocalToWorldMatrix()
 {
 	if (_invalidWorldCache)
@@ -191,6 +211,24 @@ const glm::mat4& Transform::getWorldToLocalMatrix()
 		recalculateWorldCache();
 	}
 	return _cachedWorldToLocalMatrix;
+}
+
+const glm::mat3& Transform::getLocalToWorldRotationMatrix()
+{
+	if (_invalidWorldCache)
+	{
+		recalculateWorldCache();
+	}
+	return _cachedLocalToWorldRotation;
+}
+
+const glm::mat3& Transform::getWorldToLocalRotationMatrix()
+{
+	if (_invalidWorldCache)
+	{
+		recalculateWorldCache();
+	}
+	return _cachedWorldToLocalRotation;
 }
 
 Transform::Transform() :
