@@ -12,6 +12,12 @@ public:
 	
 	}
 	
+	ShaderStorageBuffer(GLsizeiptr count, GLenum flags):
+	Buffer<T>(count, flags)
+	{
+	
+	}
+	
 	void bind(int bindingPoint)
 	{
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, this->_handle);
