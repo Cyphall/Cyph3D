@@ -2,6 +2,7 @@
 #include "../../Engine.h"
 #include "../../Scene/Scene.h"
 #include "../../Helper/FileHelper.h"
+#include "UIViewport.h"
 #include <imgui.h>
 #include <filesystem>
 
@@ -16,6 +17,7 @@ void UIMenuBar::show()
 			if (ImGui::MenuItem("New Scene"))
 			{
 				Engine::setScene(std::make_unique<Scene>());
+				UIViewport::setCamera(Camera());
 			}
 			
 			if (ImGui::MenuItem("Open Scene"))
