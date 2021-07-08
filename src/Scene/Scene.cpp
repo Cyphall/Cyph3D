@@ -79,8 +79,6 @@ ResourceManager& Scene::getRM()
 
 void Scene::load(const std::filesystem::path& path)
 {
-	UIInspector::setSelected(std::any());
-	
 	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(path.generic_string());
 
 	int version = jsonRoot["version"].get<int>();

@@ -14,6 +14,7 @@
 #include <format>
 #include "Entity/Entity.h"
 #include "UI/Window/UIViewport.h"
+#include "UI/Window/UIInspector.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -119,6 +120,7 @@ Scene& Engine::getScene()
 
 void Engine::setScene(std::unique_ptr<Scene>&& scene)
 {
+	UIInspector::setSelected(std::any());
 	_scene = std::move(scene);
 }
 
