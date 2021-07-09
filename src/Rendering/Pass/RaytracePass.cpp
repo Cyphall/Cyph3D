@@ -51,8 +51,8 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			GLSLSphere& glslSphere = glslSpheres.emplace_back();
 			glslSphere.localToWorld = transform.getLocalToWorldMatrix();
 			glslSphere.worldToLocal = transform.getWorldToLocalMatrix();
-			glslSphere.localToWorldRotation = transform.getLocalToWorldRotationMatrix();
-			glslSphere.worldToLocalRotation = transform.getWorldToLocalRotationMatrix();
+			glslSphere.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
+			glslSphere.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
 			glslSphere.color = glm::vec3(1, 0, 0);
 		}
 	}

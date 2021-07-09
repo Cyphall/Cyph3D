@@ -47,11 +47,11 @@ public:
 	const glm::mat4& getLocalToParentMatrix();
 	const glm::mat4& getParentToLocalMatrix();
 	
-	const glm::mat3& getLocalToWorldRotationMatrix();
-	const glm::mat3& getWorldToLocalRotationMatrix();
+	const glm::mat4& getLocalToWorldDirectionMatrix();
+	const glm::mat4& getWorldToLocalDirectionMatrix();
 	
-	const glm::mat3& getLocalToParentRotationMatrix();
-	const glm::mat3& getParentToLocalRotationMatrix();
+	const glm::mat4& getLocalToParentDirectionMatrix();
+	const glm::mat4& getParentToLocalDirectionMatrix();
 	
 	glm::vec3 localToWorldDirection(glm::vec3 localDir);
 	glm::vec3 worldToLocalDirection(glm::vec3 worldDir);
@@ -75,12 +75,12 @@ private:
 	glm::vec3 _cachedWorldScale;
 	
 	// used for localToWorldDirection() and worldToLocalDirection()
-	glm::mat3 _cachedLocalToWorldRotation;
-	glm::mat3 _cachedWorldToLocalRotation;
+	glm::mat4 _cachedLocalToWorldDirectionMatrix;
+	glm::mat4 _cachedWorldToLocalDirectionMatrix;
 	
 	// used for localToParentDirection() and parentToLocalDirection()
-	glm::mat3 _cachedLocalToParentRotation;
-	glm::mat3 _cachedParentToLocalRotation;
+	glm::mat4 _cachedLocalToParentDirectionMatrix;
+	glm::mat4 _cachedParentToLocalDirectionMatrix;
 	
 	// used for localToWorldMatrix() and worldToLocalMatrix()
 	glm::mat4 _cachedLocalToWorldMatrix;
@@ -106,11 +106,6 @@ private:
 	
 	void recalculateWorldCache();
 	void recalculateLocalCache();
-	
-	const glm::mat3& getLocalToWorldRotation();
-	const glm::mat3& getWorldToLocalRotation();
-	const glm::mat3& getLocalToParentRotation();
-	const glm::mat3& getParentToLocalRotation();
 };
 
 

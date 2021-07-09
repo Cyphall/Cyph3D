@@ -21,8 +21,8 @@ struct GLSLSphere
 {
 	glm::mat4 localToWorld;
 	glm::mat4 worldToLocal;
-	glm::mat4 localToWorldRotation;
-	glm::mat4 worldToLocalRotation;
+	glm::mat4 localToWorldDirection;
+	glm::mat4 worldToLocalDirection;
 	glm::vec3 color;
 	float __padding0;
 };

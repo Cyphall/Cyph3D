@@ -175,24 +175,24 @@ const glm::mat4& Transform::getParentToLocalMatrix()
 	return _cachedParentToLocalMatrix;
 }
 
-const glm::mat3& Transform::getLocalToParentRotationMatrix()
+const glm::mat4& Transform::getLocalToParentDirectionMatrix()
 {
 	if (_invalidLocalCache)
 	{
 		recalculateLocalCache();
 	}
 	
-	return _cachedLocalToParentRotation;
+	return _cachedLocalToParentDirectionMatrix;
 }
 
-const glm::mat3& Transform::getParentToLocalRotationMatrix()
+const glm::mat4& Transform::getParentToLocalDirectionMatrix()
 {
 	if (_invalidLocalCache)
 	{
 		recalculateLocalCache();
 	}
 	
-	return _cachedParentToLocalRotation;
+	return _cachedParentToLocalDirectionMatrix;
 }
 
 const glm::mat4& Transform::getLocalToWorldMatrix()
@@ -213,26 +213,26 @@ const glm::mat4& Transform::getWorldToLocalMatrix()
 	return _cachedWorldToLocalMatrix;
 }
 
-const glm::mat3& Transform::getLocalToWorldRotationMatrix()
+const glm::mat4& Transform::getLocalToWorldDirectionMatrix()
 {
 	if (_invalidWorldCache)
 	{
 		recalculateWorldCache();
 	}
-	return _cachedLocalToWorldRotation;
+	return _cachedLocalToWorldDirectionMatrix;
 }
 
-const glm::mat3& Transform::getWorldToLocalRotationMatrix()
+const glm::mat4& Transform::getWorldToLocalDirectionMatrix()
 {
 	if (_invalidWorldCache)
 	{
 		recalculateWorldCache();
 	}
-	return _cachedWorldToLocalRotation;
+	return _cachedWorldToLocalDirectionMatrix;
 }
 
 Transform::Transform() :
-		_owner(nullptr), _parent(nullptr), _localPosition(0), _localRotation(glm::vec3(0)), _localScale(1)
+_owner(nullptr), _parent(nullptr), _localPosition(0), _localRotation(glm::vec3(0)), _localScale(1)
 {
 
 }
@@ -289,6 +289,7 @@ void Transform::recalculateWorldCache()
 	glm::vec3 localScale = getLocalScale();
 	
 	glm::mat4 parentLTW;
+	glm::mat4 parentLTWDirection;
 	
 	glm::vec3 parentPos;
 	glm::quat parentRot;
@@ -297,6 +298,7 @@ void Transform::recalculateWorldCache()
 	if (_parent != nullptr)
 	{
 		parentLTW = _parent->getLocalToWorldMatrix();
+		parentLTWDirection = _parent->getLocalToWorldDirectionMatrix();
 		
 		parentPos = _parent->getWorldPosition();
 		parentRot = _parent->getWorldRotation();
@@ -305,6 +307,7 @@ void Transform::recalculateWorldCache()
 	else
 	{
 		parentLTW = glm::mat4(1);
+		parentLTWDirection = glm::mat4(1);
 		
 		parentPos = glm::vec3(0);
 		parentRot = glm::quat(1, 0, 0, 0);
@@ -319,8 +322,8 @@ void Transform::recalculateWorldCache()
 	_cachedWorldRotation = parentRot * localRot;
 	_cachedWorldScale = glm::conjugate(localRot) * (parentScale * (localRot * localScale));
 	
-	_cachedLocalToWorldRotation = glm::toMat3(_cachedWorldRotation);
-	_cachedWorldToLocalRotation = glm::affineInverse(_cachedLocalToWorldRotation);
+	_cachedLocalToWorldDirectionMatrix = parentLTWDirection * getLocalToParentDirectionMatrix();
+	_cachedWorldToLocalDirectionMatrix = glm::affineInverse(_cachedLocalToWorldDirectionMatrix);
 	
 	_invalidWorldCache = false;
 }
@@ -332,64 +335,29 @@ void Transform::recalculateLocalCache()
 								 glm::scale(_localScale);
 	_cachedParentToLocalMatrix = glm::affineInverse(_cachedLocalToParentMatrix);
 	
-	_cachedLocalToParentRotation = glm::toMat3(_localRotation);
-	_cachedParentToLocalRotation = glm::affineInverse(_cachedLocalToParentRotation);
+	_cachedLocalToParentDirectionMatrix = glm::toMat4(_localRotation) *
+										  glm::scale(_localScale);
+	_cachedParentToLocalDirectionMatrix = glm::affineInverse(_cachedLocalToParentDirectionMatrix);
 	
 	_invalidLocalCache = false;
 }
 
 glm::vec3 Transform::localToWorldDirection(glm::vec3 localDir)
 {
-	return getLocalToWorldRotation() * localDir;
+	return getLocalToWorldDirectionMatrix() * glm::vec4(localDir, 1);
 }
 
 glm::vec3 Transform::worldToLocalDirection(glm::vec3 worldDir)
 {
-	return getWorldToLocalRotation() * worldDir;
+	return getWorldToLocalDirectionMatrix() * glm::vec4(worldDir, 1);
 }
 
 glm::vec3 Transform::localToParentDirection(glm::vec3 localDir)
 {
-	return getLocalToParentRotation() * localDir;
+	return getLocalToParentDirectionMatrix() * glm::vec4(localDir, 1);
 }
 
 glm::vec3 Transform::parentToLocalDirection(glm::vec3 worldDir)
 {
-	return getParentToLocalRotation() * worldDir;
-}
-
-const glm::mat3& Transform::getLocalToWorldRotation()
-{
-	if (_invalidWorldCache)
-	{
-		recalculateWorldCache();
-	}
-	return _cachedLocalToWorldRotation;
-}
-
-const glm::mat3& Transform::getWorldToLocalRotation()
-{
-	if (_invalidWorldCache)
-	{
-		recalculateWorldCache();
-	}
-	return _cachedWorldToLocalRotation;
-}
-
-const glm::mat3& Transform::getLocalToParentRotation()
-{
-	if (_invalidWorldCache)
-	{
-		recalculateLocalCache();
-	}
-	return _cachedLocalToParentRotation;
-}
-
-const glm::mat3& Transform::getParentToLocalRotation()
-{
-	if (_invalidWorldCache)
-	{
-		recalculateLocalCache();
-	}
-	return _cachedParentToLocalRotation;
+	return getParentToLocalDirectionMatrix() * glm::vec4(worldDir, 1);
 }

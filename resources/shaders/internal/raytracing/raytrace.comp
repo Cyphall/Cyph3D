@@ -34,8 +34,8 @@ struct Transform
 {
 	mat4 localToWorld;
 	mat4 worldToLocal;
-	mat4 localToWorldRotation;
-	mat4 worldToLocalRotation;
+	mat4 localToWorldDirection;
+	mat4 worldToLocalDirection;
 };
 
 struct Sphere
@@ -98,12 +98,12 @@ void main()
 
 vec3 localToWorldDirection(Transform transform, vec3 direction)
 {
-	return mat3(transform.localToWorldRotation) * direction;
+	return mat3(transform.localToWorldDirection) * direction;
 }
 
 vec3 worldToLocalDirection(Transform transform, vec3 direction)
 {
-	return mat3(transform.worldToLocalRotation) * direction;
+	return mat3(transform.worldToLocalDirection) * direction;
 }
 
 vec3 localToWorldPosition(Transform transform, vec3 position)
