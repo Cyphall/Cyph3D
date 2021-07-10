@@ -4,9 +4,6 @@
 #include "../Engine.h"
 #include "../Window.h"
 
-float Camera::NEAR_DISTANCE = 0.02f;
-float Camera::FAR_DISTANCE = 1000.0f;
-
 glm::vec3 Camera::getOrientation()
 {
 	if (_orientationChanged) recalculateOrientation();

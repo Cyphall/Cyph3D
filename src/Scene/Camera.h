@@ -72,6 +72,6 @@ private:
 	void recalculateProjection();
 	void recalculateCornerRays();
 	
-	static float NEAR_DISTANCE;
-	static float FAR_DISTANCE;
+	static constexpr float NEAR_DISTANCE = 0.02f;
+	static constexpr float FAR_DISTANCE = 1000.0f;
 };
