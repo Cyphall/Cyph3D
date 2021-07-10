@@ -27,9 +27,14 @@ void ShapeRenderer::setMaterial(Material* material)
 	_material = material;
 }
 
-Shape& ShapeRenderer::getShape() const
+Shape& ShapeRenderer::getShape()
 {
-	return *_shape.get();
+	return *_shape;
+}
+
+const Shape& ShapeRenderer::getShape() const
+{
+	return *_shape;
 }
 
 bool ShapeRenderer::getContributeShadows() const

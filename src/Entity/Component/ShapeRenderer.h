@@ -21,7 +21,8 @@ public:
 	Material* getMaterial() const;
 	void setMaterial(Material* material);
 	
-	Shape& getShape() const;
+	Shape& getShape();
+	const Shape& getShape() const;
 	
 	template<typename T>
 	T& setShape()
