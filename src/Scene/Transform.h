@@ -18,46 +18,47 @@ public:
 	
 	Transform* getParent() const;
 	void setParent(Transform* parent);
+	
 	std::vector<Transform*>& getChildren();
 	const std::vector<Transform*>& getChildren() const;
 	
 	glm::vec3 getLocalPosition() const;
-	glm::vec3 getWorldPosition();
+	glm::vec3 getWorldPosition() const;
 	void setLocalPosition(glm::vec3 position);
 	
 	glm::quat getLocalRotation() const;
-	glm::quat getWorldRotation();
+	glm::quat getWorldRotation() const;
 	void setLocalRotation(glm::quat rotation);
 	
 	glm::vec3 getLocalScale() const;
-	glm::vec3 getWorldScale();
+	glm::vec3 getWorldScale() const;
 	void setLocalScale(glm::vec3 scale);
 	
 	glm::vec3 getEulerLocalRotation() const;
-	glm::vec3 getEulerWorldRotation();
+	glm::vec3 getEulerWorldRotation() const;
 	void setEulerLocalRotation(glm::vec3 eulerRotation);
 	
-	glm::vec3 getForward();
-	glm::vec3 getUp();
-	glm::vec3 getLeft();
+	glm::vec3 getForward() const;
+	glm::vec3 getUp() const;
+	glm::vec3 getLeft() const;
 	
-	const glm::mat4& getLocalToWorldMatrix();
-	const glm::mat4& getWorldToLocalMatrix();
+	const glm::mat4& getLocalToWorldMatrix() const;
+	const glm::mat4& getWorldToLocalMatrix() const;
 	
-	const glm::mat4& getLocalToParentMatrix();
-	const glm::mat4& getParentToLocalMatrix();
+	const glm::mat4& getLocalToParentMatrix() const;
+	const glm::mat4& getParentToLocalMatrix() const;
 	
-	const glm::mat4& getLocalToWorldDirectionMatrix();
-	const glm::mat4& getWorldToLocalDirectionMatrix();
+	const glm::mat4& getLocalToWorldDirectionMatrix() const;
+	const glm::mat4& getWorldToLocalDirectionMatrix() const;
 	
-	const glm::mat4& getLocalToParentDirectionMatrix();
-	const glm::mat4& getParentToLocalDirectionMatrix();
+	const glm::mat4& getLocalToParentDirectionMatrix() const;
+	const glm::mat4& getParentToLocalDirectionMatrix() const;
 	
-	glm::vec3 localToWorldDirection(glm::vec3 localDir);
-	glm::vec3 worldToLocalDirection(glm::vec3 worldDir);
+	glm::vec3 localToWorldDirection(glm::vec3 localDir) const;
+	glm::vec3 worldToLocalDirection(glm::vec3 worldDir) const;
 	
-	glm::vec3 localToParentDirection(glm::vec3 localDir);
-	glm::vec3 parentToLocalDirection(glm::vec3 worldDir);
+	glm::vec3 localToParentDirection(glm::vec3 localDir) const;
+	glm::vec3 parentToLocalDirection(glm::vec3 worldDir) const;
 	
 	Entity* getOwner();
 	
@@ -70,28 +71,28 @@ private:
 	glm::vec3 _localScale = glm::vec3(1);
 	
 	// used for getWorld[Position/Rotation/Scale]()
-	glm::vec3 _cachedWorldPosition;
-	glm::quat _cachedWorldRotation;
-	glm::vec3 _cachedWorldScale;
+	mutable glm::vec3 _cachedWorldPosition;
+	mutable glm::quat _cachedWorldRotation;
+	mutable glm::vec3 _cachedWorldScale;
 	
 	// used for localToWorldDirection() and worldToLocalDirection()
-	glm::mat4 _cachedLocalToWorldDirectionMatrix;
-	glm::mat4 _cachedWorldToLocalDirectionMatrix;
+	mutable glm::mat4 _cachedLocalToWorldDirectionMatrix;
+	mutable glm::mat4 _cachedWorldToLocalDirectionMatrix;
 	
 	// used for localToParentDirection() and parentToLocalDirection()
-	glm::mat4 _cachedLocalToParentDirectionMatrix;
-	glm::mat4 _cachedParentToLocalDirectionMatrix;
+	mutable glm::mat4 _cachedLocalToParentDirectionMatrix;
+	mutable glm::mat4 _cachedParentToLocalDirectionMatrix;
 	
 	// used for localToWorldMatrix() and worldToLocalMatrix()
-	glm::mat4 _cachedLocalToWorldMatrix;
-	glm::mat4 _cachedWorldToLocalMatrix;
+	mutable glm::mat4 _cachedLocalToWorldMatrix;
+	mutable glm::mat4 _cachedWorldToLocalMatrix;
 	
 	// used to cache parent<=>local matrices
-	glm::mat4 _cachedLocalToParentMatrix;
-	glm::mat4 _cachedParentToLocalMatrix;
+	mutable glm::mat4 _cachedLocalToParentMatrix;
+	mutable glm::mat4 _cachedParentToLocalMatrix;
 	
-	bool _invalidLocalCache = true;
-	bool _invalidWorldCache = true;
+	mutable bool _invalidLocalCache = true;
+	mutable bool _invalidWorldCache = true;
 	
 	Transform* _parent = nullptr;
 	std::vector<Transform*> _children;
@@ -101,11 +102,11 @@ private:
 	// Scene root constructor
 	Transform();
 	
-	void invalidateLocalCache();
-	void invalidateWorldCache();
+	void invalidateLocalCache() const;
+	void invalidateWorldCache() const;
 	
-	void recalculateWorldCache();
-	void recalculateLocalCache();
+	void recalculateWorldCache() const;
+	void recalculateLocalCache() const;
 };
 
 
