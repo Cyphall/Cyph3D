@@ -50,8 +50,8 @@ public:
 	void deserialize(const ObjectSerialization& serialization) override;
 
 private:
-	static constexpr float _NEAR = 0.01f;
-	static constexpr float _FAR = 100.0f;
+	static constexpr float NEAR_DISTANCE = 0.01f;
+	static constexpr float FAR_DISTANCE = 100.0f;
 	
 	std::unique_ptr<Cubemap> _shadowMap;
 	std::unique_ptr<Framebuffer> _shadowMapFb;

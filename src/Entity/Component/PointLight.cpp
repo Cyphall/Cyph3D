@@ -9,7 +9,7 @@
 #include "../../Rendering/RenderRegistry.h"
 
 const char* PointLight::identifier = "PointLight";
-glm::mat4 PointLight::_projection = glm::perspective(glm::radians(90.0f), 1.0f, _NEAR, _FAR);
+glm::mat4 PointLight::_projection = glm::perspective(glm::radians(90.0f), 1.0f, NEAR_DISTANCE, FAR_DISTANCE);
 
 PointLight::PointLight(Entity& entity):
 LightBase(entity)
@@ -78,7 +78,7 @@ void PointLight::updateShadowMap(VertexArray& vao, RenderRegistry& registry)
 	_shadowMapProgram->bind();
 	_shadowMapProgram->setUniform("u_viewProjections", _viewProjections, 6);
 	_shadowMapProgram->setUniform("u_lightPos", worldPos);
-	_shadowMapProgram->setUniform("u_far", _FAR);
+	_shadowMapProgram->setUniform("u_far", FAR_DISTANCE);
 	
 	float depthColor = 1;
 	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
@@ -154,7 +154,7 @@ void PointLight::onPreRender(RenderContext& context)
 		.color = getLinearColor(),
 		.castShadows = getCastShadows(),
 		.shadowMap = getCastShadows() ? _shadowMap->getBindlessTextureHandle() : 0,
-		._far = getCastShadows() ? _FAR : 0,
+		._far = getCastShadows() ? FAR_DISTANCE : 0,
 		.maxTexelSizeAtUnitDistance = 2.0f / getResolution()
 	};
 	data.light = this;
