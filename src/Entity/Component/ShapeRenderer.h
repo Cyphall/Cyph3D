@@ -57,7 +57,7 @@ private:
 	static std::map<std::string, std::function<Shape&(ShapeRenderer&)>> _allocators;
 	static void initAllocators();
 	
-	Material* getDrawingMaterial();
+	Material* getDrawingMaterial() const;
 	
 	friend class Engine;
 };

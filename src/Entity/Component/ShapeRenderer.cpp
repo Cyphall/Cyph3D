@@ -91,7 +91,7 @@ void ShapeRenderer::deserialize(const ObjectSerialization& shapeRendererSerializ
 	setContributeShadows(shapeRendererSerialization.data["contribute_shadows"].get<bool>());
 }
 
-Material* ShapeRenderer::getDrawingMaterial()
+Material* ShapeRenderer::getDrawingMaterial() const
 {
 	return _material != nullptr ? _material : Material::getMissing();
 }
