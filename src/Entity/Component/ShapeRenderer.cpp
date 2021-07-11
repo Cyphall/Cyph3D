@@ -7,6 +7,7 @@
 #include "../../Rendering/Renderer/Renderer.h"
 #include "../../Rendering/Shape/MeshShape.h"
 #include "../../Rendering/Shape/SphereShape.h"
+#include "../../Rendering/Shape/PlaneShape.h"
 
 const char* ShapeRenderer::identifier = "ShapeRenderer";
 std::map<std::string, std::function<Shape&(ShapeRenderer&)>> ShapeRenderer::_allocators;
@@ -179,6 +180,7 @@ void ShapeRenderer::initAllocators()
 {
 	_allocators[MeshShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<MeshShape>();};
 	_allocators[SphereShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<SphereShape>();};
+	_allocators[PlaneShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<PlaneShape>();};
 }
 
 Shape& ShapeRenderer::setShapeByIdentifier(const std::string& shapeIdentifier)

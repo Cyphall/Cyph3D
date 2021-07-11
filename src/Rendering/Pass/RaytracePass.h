@@ -54,6 +54,17 @@ private:
 		float __padding0;
 	};
 	
+	struct GLSLPlane
+	{
+		glm::mat4 localToWorld;
+		glm::mat4 worldToLocal;
+		glm::mat4 localToWorldDirection;
+		glm::mat4 worldToLocalDirection;
+		glm::mat4 localToWorldNormal;
+		glm::vec3 color;
+		int32_t infinite;
+	};
+	
 	ShaderProgram* _shader;
 	Texture _rawRenderTexture;
 	
@@ -61,4 +72,5 @@ private:
 	ShaderStorageBuffer<GLSLDirectionalLight> _directionalLightBuffer;
 	ShaderStorageBuffer<GLSLPointLight> _pointLightBuffer;
 	ShaderStorageBuffer<GLSLSphere> _sphereBuffer;
+	ShaderStorageBuffer<GLSLPlane> _planeBuffer;
 };

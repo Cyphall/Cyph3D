@@ -4,6 +4,7 @@
 #include "../../Engine.h"
 #include "../Shape/SphereShape.h"
 #include "../../Entity/Entity.h"
+#include "../Shape/PlaneShape.h"
 
 RaytracePass::RaytracePass(std::unordered_map<std::string, Texture*>& textures, const glm::ivec2& size):
 RenderPass(textures, size, "Raytrace pass"),
@@ -66,13 +67,14 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_pointLightBuffer.bind(2);
 	
 	std::vector<GLSLSphere> glslSpheres;
+	std::vector<GLSLPlane> glslPlanes;
 	for (const ShapeRenderer::RenderData& renderData : objects.shapes)
 	{
+		Transform& transform = renderData.owner->getTransform();
+		
 		const SphereShape* sphereShape = dynamic_cast<const SphereShape*>(renderData.shape);
 		if (sphereShape != nullptr)
 		{
-			Transform& transform = renderData.owner->getTransform();
-			
 			GLSLSphere& glslSphere = glslSpheres.emplace_back();
 			glslSphere.localToWorld = transform.getLocalToWorldMatrix();
 			glslSphere.worldToLocal = transform.getWorldToLocalMatrix();
@@ -81,9 +83,24 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslSphere.localToWorldNormal = glm::inverseTranspose(glslSphere.localToWorld);
 			glslSphere.color = glm::vec3(1, 0, 0);
 		}
+		
+		const PlaneShape* planeShape = dynamic_cast<const PlaneShape*>(renderData.shape);
+		if (planeShape != nullptr)
+		{
+			GLSLPlane& glslPlane = glslPlanes.emplace_back();
+			glslPlane.localToWorld = transform.getLocalToWorldMatrix();
+			glslPlane.worldToLocal = transform.getWorldToLocalMatrix();
+			glslPlane.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
+			glslPlane.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
+			glslPlane.localToWorldNormal = glm::inverseTranspose(glslPlane.localToWorld);
+			glslPlane.color = glm::vec3(0, 0, 1);
+			glslPlane.infinite = planeShape->isInfinite();
+		}
 	}
 	_sphereBuffer.setData(glslSpheres);
 	_sphereBuffer.bind(3);
+	_planeBuffer.setData(glslPlanes);
+	_planeBuffer.bind(4);
 	
 	_shader->bind();
 	_shader->setUniform("o_image", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
