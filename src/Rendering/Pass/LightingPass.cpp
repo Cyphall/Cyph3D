@@ -33,20 +33,43 @@ void LightingPass::preparePipelineImpl()
 
 void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera)
 {
-	std::vector<DirectionalLight::NativeData> directionalLightData;
+	std::vector<GLSLDirectionalLight> directionalLightData;
 	directionalLightData.reserve(registry.directionalLights.size());
-	for (DirectionalLight::RenderData& light : registry.directionalLights)
+	for (DirectionalLight::RenderData& renderData : registry.directionalLights)
 	{
-		directionalLightData.push_back(light.nativeData);
+		GLSLDirectionalLight data;
+		data.fragToLightDirection = renderData.fragToLightDirection;
+		data.intensity = renderData.intensity;
+		data.color = renderData.color;
+		data.castShadows = renderData.castShadows;
+		if (renderData.castShadows)
+		{
+			data.lightViewProjection = renderData.lightViewProjection;
+			data.shadowMap = renderData.shadowMapTexture->getBindlessTextureHandle();
+			data.mapSize = renderData.mapSize;
+			data.mapDepth = renderData.mapDepth;
+		}
+		directionalLightData.push_back(data);
 	}
 	_directionalLightsBuffer.setData(directionalLightData);
 	_directionalLightsBuffer.bind(1);
 	
-	std::vector<PointLight::NativeData> pointLightData;
+	std::vector<GLSLPointLight> pointLightData;
 	pointLightData.reserve(registry.pointLights.size());
-	for (PointLight::RenderData& light : registry.pointLights)
+	for (PointLight::RenderData& renderData : registry.pointLights)
 	{
-		pointLightData.push_back(light.nativeData);
+		GLSLPointLight data;
+		data.pos = renderData.pos;
+		data.intensity = renderData.intensity;
+		data.color = renderData.color;
+		data.castShadows = renderData.castShadows;
+		if (renderData.castShadows)
+		{
+			data.shadowMap = renderData.shadowMapTexture->getBindlessTextureHandle();
+			data.far = renderData.far;
+			data.maxTexelSizeAtUnitDistance = 2.0f / renderData.mapResolution;
+		}
+		pointLightData.push_back(data);
 	}
 	_pointLightsBuffer.setData(pointLightData);
 	_pointLightsBuffer.bind(0);

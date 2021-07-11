@@ -11,26 +11,20 @@ class RenderRegistry;
 class PointLight : public LightBase
 {
 public:
-	struct NativeData
-	{
-		glm::vec3  pos;
-		float32_t  intensity;
-		glm::vec3  color;
-		int32_t    castShadows; // bool
-		uint64_t   shadowMap;
-		float32_t  _far;
-		float32_t  maxTexelSizeAtUnitDistance;
-	};
-	
 	struct RenderData
 	{
-		NativeData nativeData;
-		PointLight* light;
+		glm::vec3     pos;
+		float         intensity;
+		glm::vec3     color;
+		bool          castShadows; // bool
+		glm::mat4     viewProjections[6];
+		Cubemap*      shadowMapTexture;
+		Framebuffer*  shadowMapFramebuffer;
+		int           mapResolution;
+		float         far;
 	};
 	
 	PointLight(Entity& entity);
-	
-	void updateShadowMap(VertexArray& vao, RenderRegistry& registry);
 	
 	void onPreRender(RenderContext& context) override;
 	void onDrawUi() override;

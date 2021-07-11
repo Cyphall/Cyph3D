@@ -13,4 +13,7 @@ public:
 
 private:
 	VertexArray _vao;
+	
+	ShaderProgram* _directionalLightShadowMappingProgram;
+	ShaderProgram* _pointLightShadowMappingProgram;
 };

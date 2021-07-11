@@ -53,56 +53,6 @@ bool PointLight::getCastShadows() const
 	return _castShadows;
 }
 
-void PointLight::updateShadowMap(VertexArray& vao, RenderRegistry& registry)
-{
-	if (!_castShadows) return;
-	
-	glViewport(0, 0, _resolution, _resolution);
-	
-	glm::vec3 worldPos = getTransform().getWorldPosition();
-	
-	_viewProjections[0] = _projection *
-						  glm::lookAt(worldPos, worldPos + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
-	_viewProjections[1] = _projection *
-						  glm::lookAt(worldPos, worldPos + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
-	_viewProjections[2] = _projection *
-						  glm::lookAt(worldPos, worldPos + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
-	_viewProjections[3] = _projection *
-						  glm::lookAt(worldPos, worldPos + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
-	_viewProjections[4] = _projection *
-						  glm::lookAt(worldPos, worldPos + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
-	_viewProjections[5] = _projection *
-						  glm::lookAt(worldPos, worldPos + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
-	
-	_shadowMapFb->bindForDrawing();
-	_shadowMapProgram->bind();
-	_shadowMapProgram->setUniform("u_viewProjections", _viewProjections, 6);
-	_shadowMapProgram->setUniform("u_lightPos", worldPos);
-	_shadowMapProgram->setUniform("u_far", FAR_DISTANCE);
-	
-	float depthColor = 1;
-	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
-	
-	for (auto& shapeData : registry.shapes)
-	{
-		if (!shapeData.contributeShadows) continue;
-		
-		if (!shapeData.shape->isReadyForRasterisationRender())
-			continue;
-		
-		const Mesh& mesh = shapeData.shape->getMeshToRender();
-		
-		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
-		const Buffer<GLuint>& ibo = mesh.getIBO();
-		vao.bindBufferToSlot(vbo, 0);
-		vao.bindIndexBuffer(ibo);
-		
-		_shadowMapProgram->setUniform("u_model", shapeData.matrix);
-		
-		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
-	}
-}
-
 void PointLight::setResolution(int value)
 {
 	bool castShadows = getCastShadows();
@@ -147,17 +97,29 @@ void PointLight::deserialize(const ObjectSerialization& serialization)
 void PointLight::onPreRender(RenderContext& context)
 {
 	RenderData data;
-	data.nativeData = NativeData
+	data.pos = getTransform().getWorldPosition();
+	data.intensity = getIntensity();
+	data.color = getLinearColor();
+	data.castShadows = _castShadows;
+	if (_castShadows)
 	{
-		.pos = getTransform().getWorldPosition(),
-		.intensity = getIntensity(),
-		.color = getLinearColor(),
-		.castShadows = getCastShadows(),
-		.shadowMap = getCastShadows() ? _shadowMap->getBindlessTextureHandle() : 0,
-		._far = getCastShadows() ? FAR_DISTANCE : 0,
-		.maxTexelSizeAtUnitDistance = 2.0f / getResolution()
-	};
-	data.light = this;
+		data.viewProjections[0] = _projection *
+							  glm::lookAt(data.pos, data.pos + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
+		data.viewProjections[1] = _projection *
+							  glm::lookAt(data.pos, data.pos + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
+		data.viewProjections[2] = _projection *
+							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
+		data.viewProjections[3] = _projection *
+							  glm::lookAt(data.pos, data.pos + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
+		data.viewProjections[4] = _projection *
+							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
+		data.viewProjections[5] = _projection *
+							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
+		data.shadowMapTexture = _shadowMap.get();
+		data.shadowMapFramebuffer = _shadowMapFb.get();
+		data.mapResolution = getResolution();
+		data.far = FAR_DISTANCE;
+	}
 	
 	context.renderer.requestLightRendering(data);
 }

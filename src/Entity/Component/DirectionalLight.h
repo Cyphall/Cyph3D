@@ -13,27 +13,21 @@ class Renderer;
 class DirectionalLight : public LightBase
 {
 public:
-	struct NativeData
-	{
-		glm::vec3  fragToLightDirection;
-		float32_t  intensity;
-		glm::vec3  color;
-		int32_t    castShadows; // 32-bit bool
-		glm::mat4  lightViewProjection;
-		uint64_t   shadowMap;
-		float32_t  mapSize;
-		float32_t  mapDepth;
-	};
-	
 	struct RenderData
 	{
-		NativeData nativeData;
-		DirectionalLight* light;
+		glm::vec3      fragToLightDirection;
+		float          intensity;
+		glm::vec3      color;
+		bool           castShadows; // 32-bit bool
+		glm::mat4      lightViewProjection;
+		Texture*       shadowMapTexture;
+		Framebuffer*   shadowMapFramebuffer;
+		int            mapResolution;
+		float          mapSize;
+		float          mapDepth;
 	};
 
 	DirectionalLight(Entity& entity);
-	
-	void updateShadowMap(VertexArray& vao, RenderRegistry& registry);
 	
 	void onPreRender(RenderContext& context) override;
 	void onDrawUi() override;
@@ -57,7 +51,6 @@ private:
 	std::unique_ptr<Framebuffer> _shadowMapFb;
 	ShaderProgram* _shadowMapProgram;
 	
-	glm::mat4 _viewProjection;
 	static glm::mat4 _projection;
 	
 	float _mapSize = 60;

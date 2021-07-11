@@ -59,40 +59,6 @@ glm::vec3 DirectionalLight::getLightDirection()
 	return -getTransform().getUp();
 }
 
-void DirectionalLight::updateShadowMap(VertexArray& vao, RenderRegistry& registry)
-{
-	if (!_castShadows) return;
-	
-	glViewport(0, 0, _resolution, _resolution);
-	
-	_shadowMapFb->bindForDrawing();
-	_shadowMapProgram->bind();
-	
-	float depthColor = 1;
-	_shadowMap->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
-	
-	for (auto& shapeData : registry.shapes)
-	{
-		if (!shapeData.contributeShadows) continue;
-		
-		if (!shapeData.shape->isReadyForRasterisationRender())
-			continue;
-		
-		const Mesh& mesh = shapeData.shape->getMeshToRender();
-		
-		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
-		const Buffer<GLuint>& ibo = mesh.getIBO();
-		vao.bindBufferToSlot(vbo, 0);
-		vao.bindIndexBuffer(ibo);
-		
-		glm::mat4 mvp = _viewProjection * shapeData.matrix;
-		
-		_shadowMapProgram->setUniform("u_mvp", mvp);
-		
-		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
-	}
-}
-
 void DirectionalLight::setResolution(int value)
 {
 	bool castShadows = getCastShadows();
@@ -136,29 +102,24 @@ void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 
 void DirectionalLight::onPreRender(RenderContext& context)
 {
-	if (getCastShadows())
-	{
-		Scene& scene = getEntity().getScene();
-		_viewProjection = _projection *
-						  glm::lookAt(
-							  context.camera.getPosition(),
-							  context.camera.getPosition() + getLightDirection(),
-							  glm::vec3(0, 1, 0));
-	}
-	
 	RenderData data;
-	data.nativeData = NativeData
+	data.fragToLightDirection = -getLightDirection();
+	data.intensity = getIntensity();
+	data.color = getLinearColor();
+	data.castShadows = _castShadows;
+	if (_castShadows)
 	{
-		.fragToLightDirection = -getLightDirection(),
-		.intensity = getIntensity(),
-		.color = getLinearColor(),
-		.castShadows = _castShadows,
-		.lightViewProjection = _castShadows ? _viewProjection : glm::mat4(),
-		.shadowMap = _castShadows ? _shadowMap->getBindlessTextureHandle() : 0,
-		.mapSize = _mapSize,
-		.mapDepth = _mapDepth,
-	};
-	data.light = this;
+		data.lightViewProjection = _projection *
+								   glm::lookAt(
+									   context.camera.getPosition(),
+									   context.camera.getPosition() + getLightDirection(),
+									   glm::vec3(0, 1, 0));
+		data.shadowMapTexture = _shadowMap.get();
+		data.shadowMapFramebuffer = _shadowMapFb.get();
+		data.mapResolution = getResolution();
+		data.mapSize = _mapSize;
+		data.mapDepth = _mapDepth;
+	}
 	
 	context.renderer.requestLightRendering(data);
 }

@@ -13,8 +13,31 @@ public:
 	void restorePipelineImpl() override;
 	
 private:
-	ShaderStorageBuffer<PointLight::NativeData> _pointLightsBuffer;
-	ShaderStorageBuffer<DirectionalLight::NativeData> _directionalLightsBuffer;
+	struct GLSLPointLight
+	{
+		glm::vec3  pos;
+		float32_t  intensity;
+		glm::vec3  color;
+		int32_t    castShadows; // bool
+		uint64_t   shadowMap;
+		float32_t  far;
+		float32_t  maxTexelSizeAtUnitDistance;
+	};
+	
+	struct GLSLDirectionalLight
+	{
+		glm::vec3  fragToLightDirection;
+		float32_t  intensity;
+		glm::vec3  color;
+		int32_t    castShadows; // 32-bit bool
+		glm::mat4  lightViewProjection;
+		uint64_t   shadowMap;
+		float32_t  mapSize;
+		float32_t  mapDepth;
+	};
+	
+	ShaderStorageBuffer<GLSLPointLight> _pointLightsBuffer;
+	ShaderStorageBuffer<GLSLDirectionalLight> _directionalLightsBuffer;
 	
 	ShaderProgram* _shader;
 	Framebuffer _framebuffer;
