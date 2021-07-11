@@ -36,6 +36,7 @@ struct Transform
 	mat4 worldToLocal;
 	mat4 localToWorldDirection;
 	mat4 worldToLocalDirection;
+	mat4 localToWorldNormal;
 };
 
 struct Sphere
@@ -45,12 +46,38 @@ struct Sphere
 	float padding0;
 };
 
-layout(std430, binding = 0) readonly buffer RayBuffer
+struct DirectionalLight
+{
+	vec3 fragToLightDirection;
+	float angularDiameter;
+	vec3 color;
+	float intensity;
+};
+
+struct PointLight
+{
+	vec3 position;
+	float size;
+	vec3 color;
+	float intensity;
+};
+
+layout(std430, binding = 0) readonly buffer CameraBuffer
 {
 	Camera camera;
 };
 
-layout(std430, binding = 1) readonly buffer SphereBuffer
+layout(std430, binding = 1) readonly buffer DirectionalLightBuffer
+{
+	DirectionalLight directionalLights[];
+};
+
+layout(std430, binding = 2) readonly buffer PointLightBuffer
+{
+	PointLight pointLights[];
+};
+
+layout(std430, binding = 3) readonly buffer SphereBuffer
 {
 	Sphere spheres[];
 };
@@ -63,16 +90,18 @@ vec3 localToWorldPosition(Transform transform, vec3 position);
 vec3 worldToLocalPosition(Transform transform, vec3 position);
 Ray localToWorldRay(Transform transform, Ray ray);
 Ray worldToLocalRay(Transform transform, Ray ray);
+vec3 localToWorldNormal(Transform transform, vec3 normal);
+
 vec3 background(vec3 dir);
+
 HitInfo trace(Ray ray);
+
 void intersectSphere(Ray ray, Sphere sphere, inout HitInfo hitInfo);
 
 layout (local_size_x = 1, local_size_y = 1) in;
 void main()
 {
 	vec2 normalizedPixelCoord = vec2(gl_GlobalInvocationID.xy) / vec2(gl_NumWorkGroups.xy - 1);
-//	normalizedPixelCoord.x = gl_GlobalInvocationID.x / float(gl_NumWorkGroups.x-1);
-//	normalizedPixelCoord.y = gl_GlobalInvocationID.y / float(gl_NumWorkGroups.y-1);
 	
 	vec3 interpolatedTopRayDir = mix(camera.rayTL, camera.rayTR, normalizedPixelCoord.x);
 	vec3 interpolatedBottomRayDir = mix(camera.rayBL, camera.rayBR, normalizedPixelCoord.x);
@@ -86,7 +115,19 @@ void main()
 	vec3 color;
 	if (hitInfo.anyHit)
 	{
-		color = hitInfo.color;
+		color = vec3(0);
+		
+		for (int i = 0; i < directionalLights.length(); i++)
+		{
+			DirectionalLight light = directionalLights[i];
+			color += hitInfo.color * light.color * max(dot(hitInfo.normal, light.fragToLightDirection), 0);
+		}
+		
+		for (int i = 0; i < pointLights.length(); i++)
+		{
+			PointLight light = pointLights[i];
+			color += hitInfo.color * light.color * max(dot(hitInfo.normal, normalize(light.position - hitInfo.impact)), 0);
+		}
 	}
 	else
 	{
@@ -134,6 +175,11 @@ Ray worldToLocalRay(Transform transform, Ray ray)
 	);
 }
 
+vec3 localToWorldNormal(Transform transform, vec3 normal)
+{
+	return (transform.localToWorldNormal * vec4(normal, 1)).xyz;
+}
+
 vec3 srgbToLinear(vec3 color)
 {
 	bvec3 cutoff = lessThan(color, vec3(0.04045));
@@ -169,51 +215,55 @@ void intersectSphere(Ray ray, Sphere sphere, inout HitInfo hitInfo)
 {
 	Ray localRay = worldToLocalRay(sphere.transform, ray);
 	
-	vec3 o = localRay.origin;
-	vec3 v = localRay.direction;
+	vec3 origin = localRay.origin;
+	vec3 direction = localRay.direction;
 	
-	float a =     (v.x*v.x + v.y*v.y + v.z*v.z)    ;
-	float b = 2 * (o.x*v.x + o.y*v.y + o.z*v.z)    ;
-	float c =     (o.x*o.x + o.y*o.y + o.z*o.z) - 1;
+	float a = dot(direction, direction);
+	float b = 2 * dot(direction, origin);
+	float c = dot(origin, origin) - 1;
 	
-	float delta = b*b - 4*a*c;
+	float discriminant = b*b - 4*a*c;
 	
-	if (delta < 0)
+	if (discriminant < 0)
 	{
 		return;
 	}
 	
 	float t;
 	
-	if (delta == 0)
+	if (discriminant == 0)
 	{
 		t = (-b)/(2*a);
 	}
-	else //if (delta > 0)
+	else //if (discriminant > 0)
 	{
-		float t1 = (-b - sqrt(delta)) / (2*a);
-		float t2 = (-b + sqrt(delta)) / (2*a);
+		float t0 = (-b - sqrt(discriminant)) / (2*a);
+		float t1 = (-b + sqrt(discriminant)) / (2*a);
 		
-		if (t1 > 0 && t1 < t2)
+		if (t0 > 0 && t0 < t1)
+		{
+			t = t0;
+		}
+		else //if (t1 > 0 && t1 < t0)
 		{
 			t = t1;
 		}
-		else //if (t2 > 0 && t2 < t1)
-		{
-			t = t2;
-		}
 	}
 	
-	
-	if (t > 0 && (!hitInfo.anyHit || hitInfo.t > t))
+	if (t > 0)
 	{
-		vec3 localImpact = o + v * t;
+		vec3 localImpact = origin + direction * t;
+		vec3 worldImpact = localToWorldPosition(sphere.transform, localImpact);
+		t = distance(ray.origin, worldImpact); // fix t scaling
 		
-		hitInfo.t = t;
-		hitInfo.anyHit = true;
-		hitInfo.impact = localToWorldPosition(sphere.transform, localImpact);
-		hitInfo.normal = normalize(localToWorldDirection(sphere.transform, localImpact));
-		hitInfo.color = sphere.color;
+		if (!hitInfo.anyHit || hitInfo.t > t)
+		{
+			hitInfo.t = t;
+			hitInfo.anyHit = true;
+			hitInfo.impact = worldImpact;
+			hitInfo.normal = normalize(localToWorldNormal(sphere.transform, localImpact));
+			hitInfo.color = sphere.color;
+		}
 	}
 	
 	return;

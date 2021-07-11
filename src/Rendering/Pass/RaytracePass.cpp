@@ -1,3 +1,4 @@
+#include <glm/gtc/matrix_inverse.hpp>
 #include "RaytracePass.h"
 #include "../../ResourceManagement/ResourceManager.h"
 #include "../../Engine.h"
@@ -40,25 +41,49 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_cameraBuffer.setData(&glslCamera, 1);
 	_cameraBuffer.bind(0);
 	
-	std::vector<GLSLSphere> glslSpheres;
-	for (const ShapeRenderer::RenderData& shapeData : objects.shapes)
+	std::vector<GLSLDirectionalLight> glslDirectionalLights;
+	for (const DirectionalLight::RenderData& renderData : objects.directionalLights)
 	{
-		const SphereShape* sphereShape = dynamic_cast<const SphereShape*>(shapeData.shape);
+		GLSLDirectionalLight& glslDirectionalLight = glslDirectionalLights.emplace_back();
+		glslDirectionalLight.fragToLightDirection = renderData.fragToLightDirection;
+		glslDirectionalLight.angularDiameter = 1;
+		glslDirectionalLight.color = renderData.color;
+		glslDirectionalLight.intensity = renderData.intensity;
+	}
+	_directionalLightBuffer.setData(glslDirectionalLights);
+	_directionalLightBuffer.bind(1);
+	
+	std::vector<GLSLPointLight> glslPointLights;
+	for (const PointLight::RenderData& renderData : objects.pointLights)
+	{
+		GLSLPointLight& glslPointLight = glslPointLights.emplace_back();
+		glslPointLight.position = renderData.pos;
+		glslPointLight.size = 0.1;
+		glslPointLight.color = renderData.color;
+		glslPointLight.intensity = renderData.intensity;
+	}
+	_pointLightBuffer.setData(glslPointLights);
+	_pointLightBuffer.bind(2);
+	
+	std::vector<GLSLSphere> glslSpheres;
+	for (const ShapeRenderer::RenderData& renderData : objects.shapes)
+	{
+		const SphereShape* sphereShape = dynamic_cast<const SphereShape*>(renderData.shape);
 		if (sphereShape != nullptr)
 		{
-			Transform& transform = shapeData.owner->getTransform();
+			Transform& transform = renderData.owner->getTransform();
 			
 			GLSLSphere& glslSphere = glslSpheres.emplace_back();
 			glslSphere.localToWorld = transform.getLocalToWorldMatrix();
 			glslSphere.worldToLocal = transform.getWorldToLocalMatrix();
 			glslSphere.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
 			glslSphere.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
+			glslSphere.localToWorldNormal = glm::inverseTranspose(glslSphere.localToWorld);
 			glslSphere.color = glm::vec3(1, 0, 0);
 		}
 	}
-	
 	_sphereBuffer.setData(glslSpheres);
-	_sphereBuffer.bind(1);
+	_sphereBuffer.bind(3);
 	
 	_shader->bind();
 	_shader->setUniform("o_image", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
