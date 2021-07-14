@@ -1,6 +1,11 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : enable
 
+/* ------ consts ------ */
+const float PI = 3.14159265359;
+const float TWO_PI = PI*2;
+const float SQRT_2 = 1.41421356237;
+
 struct Ray
 {
 	vec3 origin;
@@ -21,13 +26,24 @@ struct Camera
 	float padding4;
 };
 
+struct Material
+{
+	layout(bindless_sampler) sampler2D albedo;
+	layout(bindless_sampler) sampler2D normal;
+	layout(bindless_sampler) sampler2D roughness;
+	layout(bindless_sampler) sampler2D metallic;
+	layout(bindless_sampler) sampler2D displacement;
+	layout(bindless_sampler) sampler2D emissive;
+};
+
 struct HitInfo
 {
 	bool anyHit;
 	float t;
 	vec3 impact;
 	vec3 normal;
-	vec3 color;
+	Material material;
+	vec2 uv;
 };
 
 struct Transform
@@ -41,16 +57,18 @@ struct Transform
 
 struct Sphere
 {
+	Material material;
 	Transform transform;
-	vec3 color;
-	float padding0;
 };
 
 struct Plane
 {
+	Material material;
 	Transform transform;
-	vec3 color;
 	bool infinite;
+	float padding0;
+	float padding1;
+	float padding2;
 };
 
 struct DirectionalLight
@@ -132,16 +150,18 @@ void main()
 	{
 		color = vec3(0);
 		
+		vec3 albedo = texture(hitInfo.material.albedo, hitInfo.uv).rgb;
+		
 		for (int i = 0; i < directionalLights.length(); i++)
 		{
 			DirectionalLight light = directionalLights[i];
-			color += hitInfo.color * light.color * max(dot(hitInfo.normal, light.fragToLightDirection), 0);
+			color += albedo * light.color * max(dot(hitInfo.normal, light.fragToLightDirection), 0);
 		}
 		
 		for (int i = 0; i < pointLights.length(); i++)
 		{
 			PointLight light = pointLights[i];
-			color += hitInfo.color * light.color * max(dot(hitInfo.normal, normalize(light.position - hitInfo.impact)), 0);
+			color += albedo * light.color * max(dot(hitInfo.normal, normalize(light.position - hitInfo.impact)), 0);
 		}
 	}
 	else
@@ -290,7 +310,12 @@ void intersectSphere(Ray ray, Sphere sphere, inout HitInfo hitInfo)
 			vec3 potentialNormal = normalize(localToWorldNormal(sphere.transform, localImpact));
 			hitInfo.normal = dot(potentialNormal, -ray.direction) > 0 ? potentialNormal : -potentialNormal;
 			
-			hitInfo.color = sphere.color;
+			hitInfo.material = sphere.material;
+			
+			float phi = atan(localImpact.z, localImpact.x);
+			float theta = asin(localImpact.y);
+			hitInfo.uv.x = 1 - (phi + PI) / (2 * PI);
+			hitInfo.uv.y = (theta + PI / 2) / PI;
 		}
 	}
 	
@@ -327,7 +352,8 @@ void intersectPlane(Ray ray, Plane plane, inout HitInfo hitInfo)
 			vec3 potentialNormal = normalize(localToWorldNormal(plane.transform, vec3(0, 1, 0)));
 			hitInfo.normal = dot(potentialNormal, -ray.direction) > 0 ? potentialNormal : -potentialNormal;
 			
-			hitInfo.color = plane.color;
+			hitInfo.material = plane.material;
+			hitInfo.uv = vec2(localImpact.x, localImpact.z) * 0.5 + 0.5;
 		}
 	}
 }

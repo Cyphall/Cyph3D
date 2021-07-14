@@ -1,5 +1,5 @@
-#include <glm/gtc/matrix_inverse.hpp>
 #include "RaytracePass.h"
+#include <glm/gtc/matrix_inverse.hpp>
 #include "../../ResourceManagement/ResourceManager.h"
 #include "../../Engine.h"
 #include "../Shape/SphereShape.h"
@@ -76,24 +76,34 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 		if (sphereShape != nullptr)
 		{
 			GLSLSphere& glslSphere = glslSpheres.emplace_back();
+			glslSphere.albedo = renderData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle();
+			glslSphere.normal = renderData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle();
+			glslSphere.roughness = renderData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle();
+			glslSphere.metalness = renderData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle();
+			glslSphere.displacement = renderData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle();
+			glslSphere.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
 			glslSphere.localToWorld = transform.getLocalToWorldMatrix();
 			glslSphere.worldToLocal = transform.getWorldToLocalMatrix();
 			glslSphere.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
 			glslSphere.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
 			glslSphere.localToWorldNormal = glm::inverseTranspose(glslSphere.localToWorld);
-			glslSphere.color = glm::vec3(1, 0, 0);
 		}
 		
 		const PlaneShape* planeShape = dynamic_cast<const PlaneShape*>(renderData.shape);
 		if (planeShape != nullptr)
 		{
 			GLSLPlane& glslPlane = glslPlanes.emplace_back();
+			glslPlane.albedo = renderData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle();
+			glslPlane.normal = renderData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle();
+			glslPlane.roughness = renderData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle();
+			glslPlane.metalness = renderData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle();
+			glslPlane.displacement = renderData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle();
+			glslPlane.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
 			glslPlane.localToWorld = transform.getLocalToWorldMatrix();
 			glslPlane.worldToLocal = transform.getWorldToLocalMatrix();
 			glslPlane.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
 			glslPlane.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
 			glslPlane.localToWorldNormal = glm::inverseTranspose(glslPlane.localToWorld);
-			glslPlane.color = glm::vec3(0, 0, 1);
 			glslPlane.infinite = planeShape->isInfinite();
 		}
 	}
