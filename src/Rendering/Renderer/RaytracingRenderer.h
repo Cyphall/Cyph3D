@@ -18,4 +18,6 @@ public:
 private:
 	RaytracePass _raytracePass;
 	PostProcessingPass _postProcessingPass;
+	
+	Framebuffer _objectIndexFramebuffer;
 };

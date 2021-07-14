@@ -13,6 +13,11 @@ _rawRenderTexture(TextureCreateInfo
 	.size = size,
 	.internalFormat = GL_RGBA16F
 }),
+_objectIndexTexture(TextureCreateInfo
+{
+	.size = size,
+	.internalFormat = GL_R32I
+}),
 _cameraBuffer(1, GL_DYNAMIC_STORAGE_BIT)
 {
 	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
@@ -21,6 +26,7 @@ _cameraBuffer(1, GL_DYNAMIC_STORAGE_BIT)
 	_shader = Engine::getGlobalRM().requestShaderProgram(lightingShaderProgramCreateInfo);
 	
 	textures["raw_render"] = &_rawRenderTexture;
+	textures["objectIndex"] = &_objectIndexTexture;
 }
 
 void RaytracePass::preparePipelineImpl()
@@ -68,8 +74,10 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	
 	std::vector<GLSLSphere> glslSpheres;
 	std::vector<GLSLPlane> glslPlanes;
-	for (const ShapeRenderer::RenderData& renderData : objects.shapes)
+	for (int i = 0; i < objects.shapes.size(); i++)
 	{
+		const ShapeRenderer::RenderData& renderData = objects.shapes[i];
+		
 		Transform& transform = renderData.owner->getTransform();
 		
 		const SphereShape* sphereShape = dynamic_cast<const SphereShape*>(renderData.shape);
@@ -87,6 +95,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslSphere.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
 			glslSphere.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
 			glslSphere.localToWorldNormal = glm::inverseTranspose(glslSphere.localToWorld);
+			glslSphere.objectIndex = i;
 		}
 		
 		const PlaneShape* planeShape = dynamic_cast<const PlaneShape*>(renderData.shape);
@@ -105,6 +114,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslPlane.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
 			glslPlane.localToWorldNormal = glm::inverseTranspose(glslPlane.localToWorld);
 			glslPlane.infinite = planeShape->isInfinite();
+			glslPlane.objectIndex = i;
 		}
 	}
 	_sphereBuffer.setData(glslSpheres);
@@ -113,7 +123,8 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_planeBuffer.bind(4);
 	
 	_shader->bind();
-	_shader->setUniform("o_image", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
+	_shader->setUniform("o_renderImage", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
+	_shader->setUniform("o_objectIndexImage", _objectIndexTexture.getBindlessImageHandle(GL_R32I, GL_WRITE_ONLY));
 	
 	_shader->dispatch(glm::ivec3(getSize(), 1));
 	
