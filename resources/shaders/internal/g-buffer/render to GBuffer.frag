@@ -12,11 +12,11 @@ in G2F
 
 uniform vec3 u_viewPos;
 uniform int  u_objectIndex;
-layout(bindless_sampler) uniform sampler2D u_colorMap;
+layout(bindless_sampler) uniform sampler2D u_albedoMap;
 layout(bindless_sampler) uniform sampler2D u_normalMap;
 layout(bindless_sampler) uniform sampler2D u_roughnessMap;
+layout(bindless_sampler) uniform sampler2D u_metalnessMap;
 layout(bindless_sampler) uniform sampler2D u_displacementMap;
-layout(bindless_sampler) uniform sampler2D u_metallicMap;
 layout(bindless_sampler) uniform sampler2D u_emissiveMap;
 
 layout(location = 0) out vec3 o_normal;
@@ -40,7 +40,7 @@ void main()
 	vec3 viewDir = normalize(u_viewPos - g2f.fragPos);
 	vec2 texCoords = POM(g2f.texCoords, normalize(worldToTangent * viewDir));
 	
-	o_color = texture(u_colorMap, texCoords).rgb;
+	o_color = texture(u_albedoMap, texCoords).rgb;
 	
 	o_normal.xy = texture(u_normalMap, texCoords).rg * 2.0 - 1.0;
 	o_normal.z = sqrt(1 - min(dot(o_normal.xy, o_normal.xy), 1));
@@ -48,7 +48,7 @@ void main()
 	o_normal = (o_normal + 1) * 0.5;
 	
 	o_material.r = texture(u_roughnessMap, texCoords).r;
-	o_material.g = texture(u_metallicMap, texCoords).r;
+	o_material.g = texture(u_metalnessMap, texCoords).r;
 	o_material.b = texture(u_emissiveMap, texCoords).r;
 	o_material.a = 1;
 	

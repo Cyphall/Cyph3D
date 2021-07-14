@@ -7,8 +7,7 @@
 #include "Skybox.h"
 #include "../GLObject/CreateInfo/ShaderProgramCreateInfo.h"
 #include "../GLObject/ShaderProgram.h"
-#include "../GLObject/MaterialShaderProgram.h"
-#include "../GLObject/Material.h"
+#include "../GLObject/Material/Material.h"
 #include <thread_pool.hpp>
 
 namespace std
@@ -44,7 +43,6 @@ public:
 	Image* requestImage(const std::string& name, ImageType type);
 	Skybox* requestSkybox(const std::string& name);
 	ShaderProgram* requestShaderProgram(const ShaderProgramCreateInfo& createInfo);
-	MaterialShaderProgram* requestMaterialShaderProgram(const std::string& layoutName);
 	Material* requestMaterial(const std::string& name);
 	
 private:
@@ -55,8 +53,6 @@ private:
 	std::map<std::string, std::unique_ptr<Skybox>> _skyboxes;
 	
 	std::unordered_map<ShaderProgramCreateInfo, std::unique_ptr<ShaderProgram>> _shaderPrograms;
-	
-	std::map<std::string, std::unique_ptr<MaterialShaderProgram>> _materialShaderPrograms;
 	
 	std::map<std::string, std::unique_ptr<Material>> _materials;
 	

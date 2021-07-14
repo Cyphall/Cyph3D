@@ -1,4 +1,6 @@
 {
-	"shader": "unlit",
-	"colorMap": "col.png"
+	"albedo": "col.png",
+	"roughness": "rgh.png",
+	"emissive": "emis.png"
+	
 }

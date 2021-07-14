@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Component.h"
-#include "../../GLObject/Material.h"
+#include "../../GLObject/Material/Material.h"
 #include "../../Rendering/Shape/Shape.h"
 
 class ShapeRenderer : public Component

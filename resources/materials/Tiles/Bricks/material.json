@@ -1,7 +1,6 @@
 {
-	"shader": "basicPBR",
-	"colorMap": "col.jpg",
-	"normalMap": "nrm.jpg",
-	"roughnessMap": "rgh.jpg",
-	"displacementMap": "disp.jpg"
+	"albedo": "col.jpg",
+	"normal": "nrm.jpg",
+	"roughness": "rgh.jpg",
+	"displacement": "disp.jpg"
 }

@@ -1,8 +1,7 @@
 {
-	"shader": "basicPBR",
-	"colorMap": "col.jpg",
-	"normalMap": "nrm.jpg",
-	"roughnessMap": "rgh.jpg",
-	"displacementMap": "disp.png",
-	"metallicMap": "met.jpg"
+	"albedo": "col.jpg",
+	"normal": "nrm.jpg",
+	"roughness": "rgh.jpg",
+	"metalness": "met.jpg",
+	"displacement": "disp.png"
 }

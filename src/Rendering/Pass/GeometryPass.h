@@ -23,4 +23,6 @@ private:
 	Texture _objectIndexTexture;
 	
 	VertexArray _vao;
+	
+	ShaderProgram* _shaderProgram;
 };

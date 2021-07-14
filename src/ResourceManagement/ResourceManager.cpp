@@ -80,16 +80,6 @@ ShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateIn
 	return _shaderPrograms[createInfo].get();
 }
 
-MaterialShaderProgram* ResourceManager::requestMaterialShaderProgram(const std::string& layoutName)
-{
-	if (!_materialShaderPrograms.contains(layoutName))
-	{
-		_materialShaderPrograms[layoutName] = std::unique_ptr<MaterialShaderProgram>(new MaterialShaderProgram(layoutName, this));
-	}
-	
-	return _materialShaderPrograms[layoutName].get();
-}
-
 Material* ResourceManager::requestMaterial(const std::string& name)
 {
 	if (!_materials.contains(name))

@@ -3,6 +3,7 @@
 #include "../../Engine.h"
 #include "../../GLObject/Mesh.h"
 #include "../Shape/MeshShape.h"
+#include "../../ResourceManagement/ResourceManager.h"
 
 GeometryPass::GeometryPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Geometry pass"),
@@ -64,6 +65,13 @@ _positionTexture(TextureCreateInfo
 	_vao.defineFormat(0, 1, 2, GL_FLOAT, offsetof(Mesh::VertexData, uv));
 	_vao.defineFormat(0, 2, 3, GL_FLOAT, offsetof(Mesh::VertexData, normal));
 	_vao.defineFormat(0, 3, 3, GL_FLOAT, offsetof(Mesh::VertexData, tangent));
+	
+	ShaderProgramCreateInfo createInfo;
+	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
+	createInfo.shadersFiles[GL_GEOMETRY_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
+	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
+	
+	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
 
 void GeometryPass::preparePipelineImpl()
@@ -92,6 +100,8 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	glm::vec3 pos = camera.getPosition();
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
+	_shaderProgram->bind();
+	
 	for (int i = 0; i < registry.shapes.size(); i++)
 	{
 		ShapeRenderer::RenderData shapeData = registry.shapes[i];
@@ -107,7 +117,18 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		shapeData.material->bind(shapeData.matrix, vp, pos, i);
+		_shaderProgram->setUniform("u_albedoMap", shapeData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle());
+		_shaderProgram->setUniform("u_normalMap", shapeData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle());
+		_shaderProgram->setUniform("u_roughnessMap", shapeData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle());
+		_shaderProgram->setUniform("u_metalnessMap", shapeData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle());
+		_shaderProgram->setUniform("u_displacementMap", shapeData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle());
+		_shaderProgram->setUniform("u_emissiveMap", shapeData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle());
+		
+		_shaderProgram->setUniform("u_normalMatrix", glm::inverseTranspose(glm::mat3(shapeData.matrix)));
+		_shaderProgram->setUniform("u_model", shapeData.matrix);
+		_shaderProgram->setUniform("u_mvp", vp * shapeData.matrix);
+		_shaderProgram->setUniform("u_viewPos", pos);
+		_shaderProgram->setUniform("u_objectIndex", i);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}
