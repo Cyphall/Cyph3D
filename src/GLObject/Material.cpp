@@ -59,17 +59,13 @@ void Material::initialize()
 
 void Material::bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3& cameraPos, int objectIndex)
 {
-	bool allImagesAreReady = true;
 	for (auto& [name, data] : _textures)
 	{
 		auto& [texture, image] = data;
+		
 		if (texture && image != nullptr && image->isResourceReady())
 		{
 			texture.reset();
-		}
-		else if (image != nullptr && !image->isResourceReady())
-		{
-			allImagesAreReady = false;
 		}
 		
 		if (image != nullptr && image->isResourceReady())
@@ -80,12 +76,6 @@ void Material::bind(const glm::mat4& model, const glm::mat4& vp, const glm::vec3
 		{
 			_shaderProgram->getShaderProgram()->setUniform(std::format("u_{}", name).c_str(), texture.get()->getBindlessTextureHandle());
 		}
-	}
-	
-	if (!_loaded && allImagesAreReady)
-	{
-		Logger::Info(std::format("Material \"{}\" loaded", _name));
-		_loaded = true;
 	}
 	
 	_shaderProgram->getShaderProgram()->setUniform("u_normalMatrix", glm::inverseTranspose(glm::mat3(model)));

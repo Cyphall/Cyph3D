@@ -94,7 +94,6 @@ Material* ResourceManager::requestMaterial(const std::string& name)
 {
 	if (!_materials.contains(name))
 	{
-		Logger::Info(std::format("Loading material \"{}\"", name));
 		_materials[name] = std::unique_ptr<Material>(new Material(name, this));
 	}
 	

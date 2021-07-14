@@ -23,7 +23,6 @@ public:
 private:
 	MaterialShaderProgram* _shaderProgram = nullptr;
 	std::map<std::string, std::tuple<std::unique_ptr<Texture>, Image*>> _textures;
-	bool _loaded = false;
 	std::string _name;
 	
 	static Material* _default;
