@@ -78,6 +78,9 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	{
 		const ShapeRenderer::RenderData& renderData = objects.shapes[i];
 		
+		if (!renderData.shape->isReadyForRaytracingRender())
+			continue;
+		
 		Transform& transform = renderData.owner->getTransform();
 		
 		const SphereShape* sphereShape = dynamic_cast<const SphereShape*>(renderData.shape);
