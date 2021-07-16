@@ -81,6 +81,7 @@ int Window::getMouseButton(int button)
 
 void Window::swapBuffers()
 {
+	glFinish();
 	glfwSwapBuffers(_glfwWindow);
 }
 
