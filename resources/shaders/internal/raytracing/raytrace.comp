@@ -456,7 +456,7 @@ void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo)
 		
 		// if the determinant is negative the triangle is backfacing
 		// ray and triangle are parallel if det is close to 0
-		if (det <= 0) continue;
+		if (abs(det) == 0) continue;
 		
 		float invDet = 1 / det;
 		
@@ -482,10 +482,11 @@ void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo)
 				hitInfo.anyHit = true;
 				hitInfo.impact = localToWorldPosition(mesh.transform, localImpact);
 				
-				vec3 localNormal = vec3(vertex0.normal_x, vertex0.normal_y, vertex0.normal_z) * (1 - u - v) +
-								   vec3(vertex1.normal_x, vertex1.normal_y, vertex1.normal_z) * u +
-								   vec3(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z) * v;
-				hitInfo.normal = normalize(localToWorldNormal(mesh.transform, localNormal));
+				vec3 potentialNormal = vec3(vertex0.normal_x, vertex0.normal_y, vertex0.normal_z) * (1 - u - v) +
+									   vec3(vertex1.normal_x, vertex1.normal_y, vertex1.normal_z) * u +
+									   vec3(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z) * v;
+				potentialNormal = normalize(potentialNormal);
+				hitInfo.normal = normalize(localToWorldNormal(mesh.transform, dot(potentialNormal, -direction) >= 0 ? potentialNormal : -potentialNormal));
 				
 				hitInfo.material = mesh.material;
 				
