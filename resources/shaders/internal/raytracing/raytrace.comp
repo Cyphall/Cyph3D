@@ -117,6 +117,12 @@ struct Vertex
 	float tangent_z;
 };
 
+struct Skybox
+{
+	bool enabled;
+	layout(bindless_sampler) samplerCube cubemap;
+};
+
 layout(std430, binding = 0) readonly buffer CameraBuffer
 {
 	Camera camera;
@@ -157,6 +163,11 @@ layout(std430, binding = 7) readonly buffer MeshIndexBuffer
 	uint meshIndices[];
 };
 
+layout(std430, binding = 8) readonly buffer SkyboxBuffer
+{
+	Skybox skybox;
+};
+
 layout (bindless_image) writeonly uniform image2D o_renderImage;
 layout (bindless_image) writeonly uniform iimage2D o_objectIndexImage;
 
@@ -170,7 +181,8 @@ Ray localToWorldRay(Transform transform, Ray ray);
 Ray worldToLocalRay(Transform transform, Ray ray);
 vec3 localToWorldNormal(Transform transform, vec3 normal);
 
-vec3 background(vec3 dir);
+//vec3 background(vec3 dir);
+vec3 sampleSkybox(vec3 dir);
 
 HitInfo trace(Ray ray);
 
@@ -213,7 +225,7 @@ void main()
 	}
 	else
 	{
-		color = background(ray.direction);
+		color = sampleSkybox(ray.direction);
 	}
 	
 	imageStore(o_renderImage, ivec2(gl_GlobalInvocationID), vec4(color, 1));
@@ -272,13 +284,18 @@ vec3 srgbToLinear(vec3 color)
 	return mix(higher, lower, cutoff);
 }
 
-vec3 background(vec3 dir)
+//vec3 background(vec3 dir)
+//{
+//	const vec3 sky = vec3(0.21763764, 0.45626346, 1.0);
+//	const vec3 ground = vec3(1.0, 1.0, 1.0);
+//
+//	float t = dir.y * 0.5 + 0.5;
+//	return srgbToLinear(mix(ground, sky, t));
+//}
+
+vec3 sampleSkybox(vec3 dir)
 {
-	const vec3 sky = vec3(0.21763764, 0.45626346, 1.0);
-	const vec3 ground = vec3(1.0, 1.0, 1.0);
-	
-	float t = dir.y * 0.5 + 0.5;
-	return srgbToLinear(mix(ground, sky, t));
+	return skybox.enabled ? texture(skybox.cubemap, dir * vec3(-1, -1, 1)).rgb : vec3(0);
 }
 
 HitInfo trace(Ray ray)

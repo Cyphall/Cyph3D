@@ -1,6 +1,7 @@
 #include "RaytracePass.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include "../../ResourceManagement/ResourceManager.h"
+#include "../../Scene/Scene.h"
 #include "../../Engine.h"
 #include "../Shape/SphereShape.h"
 #include "../../Entity/Entity.h"
@@ -206,6 +207,27 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	
 	_meshVertexDataBuffer.bind(6);
 	_meshIndexDataBuffer.bind(7);
+	
+#pragma endregion
+
+#pragma region Skybox
+	
+	Skybox* skybox = Engine::getScene().getSkybox();
+	
+	GLSLSkybox glslSkybox;
+	
+	if (skybox && skybox->isResourceReady())
+	{
+		glslSkybox.enabled = true;
+		glslSkybox.cubemap = skybox->getResource().getBindlessTextureHandle();
+	}
+	else
+	{
+		glslSkybox.enabled = false;
+	}
+	
+	_skyboxBuffer.setData(&glslSkybox, 1);
+	_skyboxBuffer.bind(8);
 	
 #pragma endregion
 	

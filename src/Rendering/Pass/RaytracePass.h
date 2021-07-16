@@ -100,6 +100,12 @@ private:
 		int32_t indexCount;
 	};
 	
+	struct GLSLSkybox
+	{
+		int32_t enabled;
+		GLuint64 cubemap;
+	};
+	
 	ShaderProgram* _shader;
 	Texture _rawRenderTexture;
 	Texture _objectIndexTexture;
@@ -112,4 +118,5 @@ private:
 	ShaderStorageBuffer<GLSLMeshInstanceData> _meshInstanceDataBuffer;
 	ShaderStorageBuffer<Mesh::VertexData> _meshVertexDataBuffer;
 	ShaderStorageBuffer<GLuint> _meshIndexDataBuffer;
+	ShaderStorageBuffer<GLSLSkybox> _skyboxBuffer;
 };
