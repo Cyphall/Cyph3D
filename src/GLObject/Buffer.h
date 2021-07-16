@@ -19,7 +19,7 @@ public:
 	{
 		glCreateBuffers(1, &_handle);
 		
-		glNamedBufferStorage(_handle, _count * sizeof(T), nullptr, _immutableFlags);
+		glNamedBufferStorage(_handle, getSize(), nullptr, _immutableFlags);
 	}
 	
 	~Buffer() override
@@ -27,17 +27,24 @@ public:
 		glDeleteBuffers(1, &_handle);
 	}
 	
+	void resize(int elementCount)
+	{
+		assert(_isMutable);
+		_count = elementCount;
+		glNamedBufferData(_handle, getSize(), nullptr, _mutableUsage);
+	}
+	
 	void setData(const T* data, int dataCount)
 	{
 		if (_isMutable)
 		{
 			_count = dataCount;
-			glNamedBufferData(_handle, _count * sizeof(T), data, _mutableUsage);
+			glNamedBufferData(_handle, getSize(), data, _mutableUsage);
 		}
 		else
 		{
 			assert(dataCount == _count);
-			glNamedBufferSubData(_handle, 0, _count * sizeof(T), data);
+			glNamedBufferSubData(_handle, 0, getSize(), data);
 		}
 	}
 	
@@ -49,6 +56,11 @@ public:
 	GLsizeiptr getCount() const
 	{
 		return _count;
+	}
+	
+	GLsizeiptr getSize() const
+	{
+		return _count * sizeof(T);
 	}
 
 private:

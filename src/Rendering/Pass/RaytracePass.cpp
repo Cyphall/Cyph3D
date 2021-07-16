@@ -5,6 +5,7 @@
 #include "../Shape/SphereShape.h"
 #include "../../Entity/Entity.h"
 #include "../Shape/PlaneShape.h"
+#include "../Shape/MeshShape.h"
 
 RaytracePass::RaytracePass(std::unordered_map<std::string, Texture*>& textures, const glm::ivec2& size):
 RenderPass(textures, size, "Raytrace pass"),
@@ -36,6 +37,9 @@ void RaytracePass::preparePipelineImpl()
 
 void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
 {
+
+#pragma region Camera
+	
 	const std::array<glm::vec3, 4>& cornerRays = camera.getCornerRays();
 	
 	GLSLCamera glslCamera;
@@ -47,6 +51,9 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	
 	_cameraBuffer.setData(&glslCamera, 1);
 	_cameraBuffer.bind(0);
+	
+#pragma endregion
+#pragma region DirectionalLight
 	
 	std::vector<GLSLDirectionalLight> glslDirectionalLights;
 	for (const DirectionalLight::RenderData& renderData : objects.directionalLights)
@@ -60,6 +67,9 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_directionalLightBuffer.setData(glslDirectionalLights);
 	_directionalLightBuffer.bind(1);
 	
+#pragma endregion
+#pragma region PointLight
+	
 	std::vector<GLSLPointLight> glslPointLights;
 	for (const PointLight::RenderData& renderData : objects.pointLights)
 	{
@@ -72,8 +82,17 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_pointLightBuffer.setData(glslPointLights);
 	_pointLightBuffer.bind(2);
 	
-	std::vector<GLSLSphere> glslSpheres;
-	std::vector<GLSLPlane> glslPlanes;
+#pragma endregion
+#pragma region Shape
+	
+	std::vector<GLSLSphere> glslSphereVec;
+	std::vector<GLSLPlane> glslPlaneVec;
+	std::vector<GLSLMeshInstanceData> glslMeshInstanceDataVec;
+	std::vector<const MeshShape*> meshShapeVec;
+	
+	int totalVertexCount = 0;
+	int totalIndexCount = 0;
+	
 	for (int i = 0; i < objects.shapes.size(); i++)
 	{
 		const ShapeRenderer::RenderData& renderData = objects.shapes[i];
@@ -86,7 +105,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 		const SphereShape* sphereShape = dynamic_cast<const SphereShape*>(renderData.shape);
 		if (sphereShape != nullptr)
 		{
-			GLSLSphere& glslSphere = glslSpheres.emplace_back();
+			GLSLSphere& glslSphere = glslSphereVec.emplace_back();
 			glslSphere.albedo = renderData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle();
 			glslSphere.normal = renderData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle();
 			glslSphere.roughness = renderData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle();
@@ -100,11 +119,11 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslSphere.localToWorldNormal = glm::inverseTranspose(glslSphere.localToWorld);
 			glslSphere.objectIndex = i;
 		}
-		
+
 		const PlaneShape* planeShape = dynamic_cast<const PlaneShape*>(renderData.shape);
 		if (planeShape != nullptr)
 		{
-			GLSLPlane& glslPlane = glslPlanes.emplace_back();
+			GLSLPlane& glslPlane = glslPlaneVec.emplace_back();
 			glslPlane.albedo = renderData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle();
 			glslPlane.normal = renderData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle();
 			glslPlane.roughness = renderData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle();
@@ -119,11 +138,76 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslPlane.infinite = planeShape->isInfinite();
 			glslPlane.objectIndex = i;
 		}
+		
+		const MeshShape* meshShape = dynamic_cast<const MeshShape*>(renderData.shape);
+		if (meshShape != nullptr)
+		{
+			GLSLMeshInstanceData& glslMeshInstanceData = glslMeshInstanceDataVec.emplace_back();
+			glslMeshInstanceData.albedo = renderData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle();
+			glslMeshInstanceData.normal = renderData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle();
+			glslMeshInstanceData.roughness = renderData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle();
+			glslMeshInstanceData.metalness = renderData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle();
+			glslMeshInstanceData.displacement = renderData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle();
+			glslMeshInstanceData.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
+			glslMeshInstanceData.localToWorld = transform.getLocalToWorldMatrix();
+			glslMeshInstanceData.worldToLocal = transform.getWorldToLocalMatrix();
+			glslMeshInstanceData.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
+			glslMeshInstanceData.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
+			glslMeshInstanceData.localToWorldNormal = glm::inverseTranspose(glslMeshInstanceData.localToWorld);
+			glslMeshInstanceData.objectIndex = i;
+			
+			meshShapeVec.push_back(meshShape);
+			
+			const Mesh& mesh = meshShape->getMeshToRender();
+			totalVertexCount += mesh.getVBO().getCount();
+			glslMeshInstanceData.indexCount = mesh.getIBO().getCount();
+			totalIndexCount += glslMeshInstanceData.indexCount;
+			
+		}
 	}
-	_sphereBuffer.setData(glslSpheres);
+	_sphereBuffer.setData(glslSphereVec);
 	_sphereBuffer.bind(3);
-	_planeBuffer.setData(glslPlanes);
+	_planeBuffer.setData(glslPlaneVec);
 	_planeBuffer.bind(4);
+	
+	_meshVertexDataBuffer.resize(totalVertexCount);
+	_meshIndexDataBuffer.resize(totalIndexCount);
+	
+	int currentVertexOffset = 0;
+	int currentIndexOffset = 0;
+	
+	for (int i = 0; i < meshShapeVec.size(); i++)
+	{
+		GLSLMeshInstanceData& glslMeshInstanceData = glslMeshInstanceDataVec[i];
+		glslMeshInstanceData.vertexOffset = currentVertexOffset;
+		glslMeshInstanceData.indexOffset = currentIndexOffset;
+		
+		const MeshShape* meshShape = meshShapeVec[i];
+		
+		const Mesh& mesh = meshShape->getMeshToRender();
+		
+		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
+		int vboElementCount = vbo.getCount();
+		int vboSize = vbo.getSize();
+		
+		glCopyNamedBufferSubData(vbo.getHandle(), _meshVertexDataBuffer.getHandle(), 0, currentVertexOffset * sizeof(Mesh::VertexData), vboSize);
+		currentVertexOffset += vboElementCount;
+		
+		const Buffer<GLuint>& ibo = mesh.getIBO();
+		int iboElementCount = ibo.getCount();
+		int iboSize = ibo.getSize();
+		
+		glCopyNamedBufferSubData(ibo.getHandle(), _meshIndexDataBuffer.getHandle(), 0, currentIndexOffset * sizeof(GLuint), iboSize);
+		currentIndexOffset += iboElementCount;
+	}
+	
+	_meshInstanceDataBuffer.setData(glslMeshInstanceDataVec);
+	_meshInstanceDataBuffer.bind(5);
+	
+	_meshVertexDataBuffer.bind(6);
+	_meshIndexDataBuffer.bind(7);
+	
+#pragma endregion
 	
 	_shader->bind();
 	_shader->setUniform("o_renderImage", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));

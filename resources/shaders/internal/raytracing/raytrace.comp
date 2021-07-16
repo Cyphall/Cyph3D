@@ -92,6 +92,31 @@ struct PointLight
 	float intensity;
 };
 
+struct Mesh
+{
+	Material material;
+	Transform transform;
+	int objectIndex;
+	int vertexOffset;
+	int indexOffset;
+	int indexCount;
+};
+
+struct Vertex
+{
+	float position_x;
+	float position_y;
+	float position_z;
+	float u;
+	float v;
+	float normal_x;
+	float normal_y;
+	float normal_z;
+	float tangent_x;
+	float tangent_y;
+	float tangent_z;
+};
+
 layout(std430, binding = 0) readonly buffer CameraBuffer
 {
 	Camera camera;
@@ -117,6 +142,21 @@ layout(std430, binding = 4) readonly buffer PlaneBuffer
 	Plane planes[];
 };
 
+layout(std430, binding = 5) readonly buffer MeshBuffer
+{
+	Mesh meshes[];
+};
+
+layout(std430, binding = 6) readonly buffer MeshVertexBuffer
+{
+	Vertex meshVertices[];
+};
+
+layout(std430, binding = 7) readonly buffer MeshIndexBuffer
+{
+	uint meshIndices[];
+};
+
 layout (bindless_image) writeonly uniform image2D o_renderImage;
 layout (bindless_image) writeonly uniform iimage2D o_objectIndexImage;
 
@@ -136,6 +176,7 @@ HitInfo trace(Ray ray);
 
 void intersectSphere(Ray ray, Sphere sphere, inout HitInfo hitInfo);
 void intersectPlane(Ray ray, Plane plane, inout HitInfo hitInfo);
+void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo);
 
 layout (local_size_x = 1, local_size_y = 1) in;
 void main()
@@ -255,6 +296,11 @@ HitInfo trace(Ray ray)
 		intersectPlane(ray, planes[i], hitInfo);
 	}
 	
+	for (int i = 0; i < meshes.length(); i++)
+	{
+		intersectMesh(ray, meshes[i], hitInfo);
+	}
+	
 	return hitInfo;
 }
 
@@ -365,6 +411,73 @@ void intersectPlane(Ray ray, Plane plane, inout HitInfo hitInfo)
 			hitInfo.uv = vec2(localImpact.x, localImpact.z) * 0.5 + 0.5;
 			
 			hitInfo.objectIndex = plane.objectIndex;
+		}
+	}
+}
+
+void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo)
+{
+	Ray localRay = worldToLocalRay(mesh.transform, ray);
+	
+	vec3 origin = localRay.origin;
+	vec3 direction = localRay.direction;
+	
+	for (int i = 0; i < mesh.indexCount; i += 3)
+	{
+		Vertex vertex0 = meshVertices[mesh.vertexOffset + meshIndices[mesh.indexOffset + i + 0]];
+		Vertex vertex1 = meshVertices[mesh.vertexOffset + meshIndices[mesh.indexOffset + i + 1]];
+		Vertex vertex2 = meshVertices[mesh.vertexOffset + meshIndices[mesh.indexOffset + i + 2]];
+		
+		vec3 v0 = vec3(vertex0.position_x, vertex0.position_y, vertex0.position_z);
+		vec3 v1 = vec3(vertex1.position_x, vertex1.position_y, vertex1.position_z);
+		vec3 v2 = vec3(vertex2.position_x, vertex2.position_y, vertex2.position_z);
+		
+		vec3 v0v1 = v1 - v0;
+		vec3 v0v2 = v2 - v0;
+		vec3 pvec = cross(direction, v0v2);
+		float det = dot(v0v1, pvec);
+		
+		// if the determinant is negative the triangle is backfacing
+		// ray and triangle are parallel if det is close to 0
+		if (det <= 0) continue;
+		
+		float invDet = 1 / det;
+		
+		vec3 tvec = origin - v0;
+		float u = dot(tvec, pvec) * invDet;
+		if (u < 0 || u > 1) continue;
+		
+		vec3 qvec = cross(tvec, v0v1);
+		float v = dot(direction, qvec) * invDet;
+		if (v < 0 || u + v > 1) continue;
+		
+		float t = dot(v0v2, qvec) * invDet;
+		
+		if (t > 0)
+		{
+			vec3 localImpact = origin + direction * t;
+			vec3 worldImpact = localToWorldPosition(mesh.transform, localImpact);
+			t = distance(ray.origin, worldImpact); // fix t scaling
+			
+			if (!hitInfo.anyHit || t < hitInfo.t)
+			{
+				hitInfo.t = t;
+				hitInfo.anyHit = true;
+				hitInfo.impact = localToWorldPosition(mesh.transform, localImpact);
+				
+				vec3 localNormal = vec3(vertex0.normal_x, vertex0.normal_y, vertex0.normal_z) * (1 - u - v) +
+								   vec3(vertex1.normal_x, vertex1.normal_y, vertex1.normal_z) * u +
+								   vec3(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z) * v;
+				hitInfo.normal = normalize(localToWorldNormal(mesh.transform, localNormal));
+				
+				hitInfo.material = mesh.material;
+				
+				hitInfo.uv = vec2(vertex0.u, vertex0.v) * (1 - u - v) +
+							 vec2(vertex1.u, vertex1.v) * u +
+							 vec2(vertex2.u, vertex2.v) * v;
+				
+				hitInfo.objectIndex = mesh.objectIndex;
+			}
 		}
 	}
 }

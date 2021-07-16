@@ -81,6 +81,25 @@ private:
 		float __padding1;
 	};
 	
+	struct GLSLMeshInstanceData
+	{
+		GLuint64 albedo;
+		GLuint64 normal;
+		GLuint64 roughness;
+		GLuint64 metalness;
+		GLuint64 displacement;
+		GLuint64 emissive;
+		glm::mat4 localToWorld;
+		glm::mat4 worldToLocal;
+		glm::mat4 localToWorldDirection;
+		glm::mat4 worldToLocalDirection;
+		glm::mat4 localToWorldNormal;
+		int32_t objectIndex;
+		int32_t vertexOffset;
+		int32_t indexOffset;
+		int32_t indexCount;
+	};
+	
 	ShaderProgram* _shader;
 	Texture _rawRenderTexture;
 	Texture _objectIndexTexture;
@@ -90,4 +109,7 @@ private:
 	ShaderStorageBuffer<GLSLPointLight> _pointLightBuffer;
 	ShaderStorageBuffer<GLSLSphere> _sphereBuffer;
 	ShaderStorageBuffer<GLSLPlane> _planeBuffer;
+	ShaderStorageBuffer<GLSLMeshInstanceData> _meshInstanceDataBuffer;
+	ShaderStorageBuffer<Mesh::VertexData> _meshVertexDataBuffer;
+	ShaderStorageBuffer<GLuint> _meshIndexDataBuffer;
 };
