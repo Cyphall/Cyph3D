@@ -46,9 +46,11 @@ glm::vec2 Camera::getSphericalCoords() const
 
 void Camera::setSphericalCoords(glm::vec2 sphericalCoords)
 {
-	_sphericalCoords = sphericalCoords;
-	_orientationChanged = true;
-	viewChanged();
+	_sphericalCoords = glm::vec2(
+		glm::mod(sphericalCoords.x, 360.0f),
+		glm::clamp(sphericalCoords.y, -89.0f, 89.0f)
+	);
+	orientationChanged();
 }
 
 float Camera::getSpeed() const
@@ -130,11 +132,6 @@ void Camera::update(glm::vec2 mousePosDelta)
 
 void Camera::recalculateOrientation()
 {
-	_sphericalCoords = glm::vec2(
-		glm::mod(_sphericalCoords.x, 360.0f),
-		glm::clamp(_sphericalCoords.y, -89.0f, 89.0f)
-	);
-	
 	glm::vec2 sphericalCoordsRadians = glm::radians(_sphericalCoords);
 	
 	_orientation = glm::vec3(
@@ -183,16 +180,16 @@ const std::array<glm::vec3, 4>& Camera::getCornerRays()
 void Camera::viewChanged()
 {
 	_viewChanged = true;
-	raysChanged();
+	cornerRaysChanged();
 }
 
 void Camera::projectionChanged()
 {
 	_projectionChanged = true;
-	raysChanged();
+	cornerRaysChanged();
 }
 
-void Camera::raysChanged()
+void Camera::cornerRaysChanged()
 {
 	_cornerRaysChanged = true;
 }
@@ -213,4 +210,10 @@ void Camera::recalculateCornerRays()
 	}
 	
 	_cornerRaysChanged = false;
+}
+
+void Camera::orientationChanged()
+{
+	_orientationChanged = true;
+	viewChanged();
 }

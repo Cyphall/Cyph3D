@@ -36,6 +36,7 @@ public:
 	const std::array<glm::vec3, 4>& getCornerRays();
 
 private:
+	void orientationChanged();
 	bool _orientationChanged = true;
 	glm::vec3 _orientation = glm::vec3(0);
 	glm::vec3 _sideOrientation = glm::vec3(0);
@@ -60,7 +61,7 @@ private:
 	float _verticalFov;
 	float _aspectRatio;
 	
-	void raysChanged();
+	void cornerRaysChanged();
 	bool _cornerRaysChanged = true;
 	std::array<glm::vec3, 4> _cornerRays;
 	
