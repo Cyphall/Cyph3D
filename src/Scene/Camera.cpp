@@ -211,4 +211,6 @@ void Camera::recalculateCornerRays()
 		glm::vec4 vec = vpInverse * glm::vec4(_cornerRays[i], 1);
 		_cornerRays[i] = glm::normalize(glm::vec3(vec) / vec.w);
 	}
+	
+	_cornerRaysChanged = false;
 }
