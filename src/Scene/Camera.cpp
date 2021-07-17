@@ -4,25 +4,25 @@
 #include "../Engine.h"
 #include "../Window.h"
 
-glm::vec3 Camera::getOrientation()
+glm::vec3 Camera::getOrientation() const
 {
 	if (_orientationChanged) recalculateOrientation();
 	return _orientation;
 }
 
-glm::vec3 Camera::getSideOrientation()
+glm::vec3 Camera::getSideOrientation() const
 {
 	if (_orientationChanged) recalculateOrientation();
 	return _sideOrientation;
 }
 
-glm::mat4 Camera::getView()
+glm::mat4 Camera::getView() const
 {
 	if (_viewChanged) recalculateView();
 	return _view;
 }
 
-glm::mat4 Camera::getProjection()
+glm::mat4 Camera::getProjection() const
 {
 	if (_projectionChanged) recalculateProjection();
 	return _projection;
@@ -130,7 +130,7 @@ void Camera::update(glm::vec2 mousePosDelta)
 	setSphericalCoords(getSphericalCoords() - mousePosDelta / 12.0f);
 }
 
-void Camera::recalculateOrientation()
+void Camera::recalculateOrientation() const
 {
 	glm::vec2 sphericalCoordsRadians = glm::radians(_sphericalCoords);
 	
@@ -145,7 +145,7 @@ void Camera::recalculateOrientation()
 	_orientationChanged = false;
 }
 
-void Camera::recalculateView()
+void Camera::recalculateView() const
 {
 	_view = glm::lookAt(getPosition(), getPosition() + getOrientation(), glm::vec3(0, 1, 0));
 	
@@ -153,7 +153,7 @@ void Camera::recalculateView()
 }
 
 
-void Camera::recalculateProjection()
+void Camera::recalculateProjection() const
 {
 	_projection = glm::perspective(_verticalFov, _aspectRatio, NEAR_DISTANCE, FAR_DISTANCE);
 	
@@ -171,30 +171,30 @@ void Camera::setAspectRatio(float aspectRatio)
 	projectionChanged();
 }
 
-const std::array<glm::vec3, 4>& Camera::getCornerRays()
+const std::array<glm::vec3, 4>& Camera::getCornerRays() const
 {
 	if (_cornerRaysChanged) recalculateCornerRays();
 	return _cornerRays;
 }
 
-void Camera::viewChanged()
+void Camera::viewChanged() const
 {
 	_viewChanged = true;
 	cornerRaysChanged();
 }
 
-void Camera::projectionChanged()
+void Camera::projectionChanged() const
 {
 	_projectionChanged = true;
 	cornerRaysChanged();
 }
 
-void Camera::cornerRaysChanged()
+void Camera::cornerRaysChanged() const
 {
 	_cornerRaysChanged = true;
 }
 
-void Camera::recalculateCornerRays()
+void Camera::recalculateCornerRays() const
 {
 	glm::mat4 vpInverse = glm::inverse(getProjection() * getView());
 	
@@ -212,7 +212,7 @@ void Camera::recalculateCornerRays()
 	_cornerRaysChanged = false;
 }
 
-void Camera::orientationChanged()
+void Camera::orientationChanged() const
 {
 	_orientationChanged = true;
 	viewChanged();
