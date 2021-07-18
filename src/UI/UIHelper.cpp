@@ -108,7 +108,7 @@ void UIHelper::initDockingLayout(ImGuiID dockspaceId)
 
 ImVec4 normalizeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-	return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+	return ImVec4(r / 255.99f, g / 255.99f, b / 255.99f, a / 255.99f);
 }
 
 void UIHelper::initStyles()
