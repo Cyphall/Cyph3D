@@ -51,8 +51,6 @@ struct Transform
 {
 	mat4 localToWorld;
 	mat4 worldToLocal;
-	mat4 localToWorldDirection;
-	mat4 worldToLocalDirection;
 	mat4 localToWorldNormal;
 };
 
@@ -235,12 +233,12 @@ void main()
 
 vec3 localToWorldDirection(Transform transform, vec3 direction)
 {
-	return mat3(transform.localToWorldDirection) * direction;
+	return normalize((transform.localToWorld * vec4(direction, 0)).xyz);
 }
 
 vec3 worldToLocalDirection(Transform transform, vec3 direction)
 {
-	return mat3(transform.worldToLocalDirection) * direction;
+	return normalize((transform.worldToLocal * vec4(direction, 0)).xyz);
 }
 
 vec3 localToWorldPosition(Transform transform, vec3 position)
@@ -258,7 +256,7 @@ Ray localToWorldRay(Transform transform, Ray ray)
 	return Ray
 	(
 		localToWorldPosition(transform, ray.origin),
-		normalize(localToWorldDirection(transform, ray.direction))
+		localToWorldDirection(transform, ray.direction)
 	);
 }
 
@@ -267,13 +265,13 @@ Ray worldToLocalRay(Transform transform, Ray ray)
 	return Ray
 	(
 		worldToLocalPosition(transform, ray.origin),
-		normalize(worldToLocalDirection(transform, ray.direction))
+		worldToLocalDirection(transform, ray.direction)
 	);
 }
 
 vec3 localToWorldNormal(Transform transform, vec3 normal)
 {
-	return (transform.localToWorldNormal * vec4(normal, 1)).xyz;
+	return normalize((transform.localToWorldNormal * vec4(normal, 0)).xyz);
 }
 
 vec3 srgbToLinear(vec3 color)
@@ -378,7 +376,7 @@ void intersectSphere(Ray ray, Sphere sphere, inout HitInfo hitInfo)
 			hitInfo.anyHit = true;
 			hitInfo.impact = worldImpact;
 			
-			vec3 potentialNormal = normalize(localToWorldNormal(sphere.transform, localImpact));
+			vec3 potentialNormal = localToWorldNormal(sphere.transform, localImpact);
 			hitInfo.normal = dot(potentialNormal, -ray.direction) > 0 ? potentialNormal : -potentialNormal;
 			
 			hitInfo.material = sphere.material;
@@ -422,7 +420,7 @@ void intersectPlane(Ray ray, Plane plane, inout HitInfo hitInfo)
 			hitInfo.anyHit = true;
 			hitInfo.impact = localToWorldPosition(plane.transform, localImpact);
 			
-			vec3 potentialNormal = normalize(localToWorldNormal(plane.transform, vec3(0, 1, 0)));
+			vec3 potentialNormal = localToWorldNormal(plane.transform, vec3(0, 1, 0));
 			hitInfo.normal = dot(potentialNormal, -ray.direction) > 0 ? potentialNormal : -potentialNormal;
 			
 			hitInfo.material = plane.material;
@@ -498,7 +496,7 @@ void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo)
 								   -vec3(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z) * v;
 				}
 				
-				hitInfo.normal = normalize(localToWorldNormal(mesh.transform, normalize(smoothNormal)));
+				hitInfo.normal = localToWorldNormal(mesh.transform, smoothNormal);
 				
 				hitInfo.material = mesh.material;
 				

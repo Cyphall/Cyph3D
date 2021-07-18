@@ -53,8 +53,6 @@ private:
 		GLuint64 emissive;
 		glm::mat4 localToWorld;
 		glm::mat4 worldToLocal;
-		glm::mat4 localToWorldDirection;
-		glm::mat4 worldToLocalDirection;
 		glm::mat4 localToWorldNormal;
 		int32_t objectIndex;
 		float padding0;
@@ -72,8 +70,6 @@ private:
 		GLuint64 emissive;
 		glm::mat4 localToWorld;
 		glm::mat4 worldToLocal;
-		glm::mat4 localToWorldDirection;
-		glm::mat4 worldToLocalDirection;
 		glm::mat4 localToWorldNormal;
 		int32_t infinite;
 		int32_t objectIndex;
@@ -91,8 +87,6 @@ private:
 		GLuint64 emissive;
 		glm::mat4 localToWorld;
 		glm::mat4 worldToLocal;
-		glm::mat4 localToWorldDirection;
-		glm::mat4 worldToLocalDirection;
 		glm::mat4 localToWorldNormal;
 		int32_t objectIndex;
 		int32_t vertexOffset;

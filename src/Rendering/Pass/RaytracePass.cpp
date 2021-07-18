@@ -115,9 +115,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslSphere.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
 			glslSphere.localToWorld = transform.getLocalToWorldMatrix();
 			glslSphere.worldToLocal = transform.getWorldToLocalMatrix();
-			glslSphere.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
-			glslSphere.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
-			glslSphere.localToWorldNormal = glm::inverseTranspose(glslSphere.localToWorld);
+			glslSphere.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslSphere.localToWorld));
 			glslSphere.objectIndex = i;
 		}
 
@@ -133,9 +131,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslPlane.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
 			glslPlane.localToWorld = transform.getLocalToWorldMatrix();
 			glslPlane.worldToLocal = transform.getWorldToLocalMatrix();
-			glslPlane.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
-			glslPlane.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
-			glslPlane.localToWorldNormal = glm::inverseTranspose(glslPlane.localToWorld);
+			glslPlane.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslPlane.localToWorld));
 			glslPlane.infinite = planeShape->isInfinite();
 			glslPlane.objectIndex = i;
 		}
@@ -152,9 +148,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslMeshInstanceData.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
 			glslMeshInstanceData.localToWorld = transform.getLocalToWorldMatrix();
 			glslMeshInstanceData.worldToLocal = transform.getWorldToLocalMatrix();
-			glslMeshInstanceData.localToWorldDirection = transform.getLocalToWorldDirectionMatrix();
-			glslMeshInstanceData.worldToLocalDirection = transform.getWorldToLocalDirectionMatrix();
-			glslMeshInstanceData.localToWorldNormal = glm::inverseTranspose(glslMeshInstanceData.localToWorld);
+			glslMeshInstanceData.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslMeshInstanceData.localToWorld));
 			glslMeshInstanceData.objectIndex = i;
 			
 			meshShapeVec.push_back(meshShape);

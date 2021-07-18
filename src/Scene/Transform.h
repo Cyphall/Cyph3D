@@ -48,12 +48,6 @@ public:
 	const glm::mat4& getLocalToParentMatrix() const;
 	const glm::mat4& getParentToLocalMatrix() const;
 	
-	const glm::mat4& getLocalToWorldDirectionMatrix() const;
-	const glm::mat4& getWorldToLocalDirectionMatrix() const;
-	
-	const glm::mat4& getLocalToParentDirectionMatrix() const;
-	const glm::mat4& getParentToLocalDirectionMatrix() const;
-	
 	glm::vec3 localToWorldDirection(glm::vec3 localDir) const;
 	glm::vec3 worldToLocalDirection(glm::vec3 worldDir) const;
 	
@@ -74,14 +68,6 @@ private:
 	mutable glm::vec3 _cachedWorldPosition;
 	mutable glm::quat _cachedWorldRotation;
 	mutable glm::vec3 _cachedWorldScale;
-	
-	// used for localToWorldDirection() and worldToLocalDirection()
-	mutable glm::mat4 _cachedLocalToWorldDirectionMatrix;
-	mutable glm::mat4 _cachedWorldToLocalDirectionMatrix;
-	
-	// used for localToParentDirection() and parentToLocalDirection()
-	mutable glm::mat4 _cachedLocalToParentDirectionMatrix;
-	mutable glm::mat4 _cachedParentToLocalDirectionMatrix;
 	
 	// used for localToWorldMatrix() and worldToLocalMatrix()
 	mutable glm::mat4 _cachedLocalToWorldMatrix;
