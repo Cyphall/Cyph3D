@@ -193,7 +193,8 @@ void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo);
 layout (local_size_x = 1, local_size_y = 1) in;
 void main()
 {
-	vec2 normalizedPixelCoord = vec2(gl_GlobalInvocationID.xy) / vec2(gl_NumWorkGroups.xy - 1);
+	vec2 normalizedHalfPixelSize = 0.5 / vec2(gl_NumWorkGroups.xy);
+	vec2 normalizedPixelCoord = vec2(gl_GlobalInvocationID.xy) / vec2(gl_NumWorkGroups.xy) + normalizedHalfPixelSize;
 	
 	vec3 interpolatedTopRayDir = mix(camera.rayTL, camera.rayTR, normalizedPixelCoord.x);
 	vec3 interpolatedBottomRayDir = mix(camera.rayBL, camera.rayBR, normalizedPixelCoord.x);
