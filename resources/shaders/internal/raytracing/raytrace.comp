@@ -31,7 +31,7 @@ struct Material
 	layout(bindless_sampler) sampler2D albedo;
 	layout(bindless_sampler) sampler2D normal;
 	layout(bindless_sampler) sampler2D roughness;
-	layout(bindless_sampler) sampler2D metallic;
+	layout(bindless_sampler) sampler2D metalness;
 	layout(bindless_sampler) sampler2D displacement;
 	layout(bindless_sampler) sampler2D emissive;
 };
@@ -42,9 +42,21 @@ struct HitInfo
 	float t;
 	vec3 impact;
 	vec3 normal;
+	vec3 tangent;
 	Material material;
 	vec2 uv;
 	int objectIndex;
+};
+
+struct MaterialData
+{
+	vec3  albedo;
+	vec3  normal;
+	float roughness;
+	float metalness;
+	float displacement;
+	float emissive;
+	vec3  F0;
 };
 
 struct Transform
@@ -188,6 +200,19 @@ void intersectSphere(Ray ray, Sphere sphere, inout HitInfo hitInfo);
 void intersectPlane(Ray ray, Plane plane, inout HitInfo hitInfo);
 void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo);
 
+MaterialData getMaterialData(Material material, vec2 uv, vec3 surfaceNormal, vec3 surfaceTangent);
+
+vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi);
+float InterleavedGradientNoise(vec2 position_screen);
+
+vec3 calculateLighting(vec3 radiance, vec3 viewDir, vec3 lightDir, MaterialData materialData);
+vec3 calculateBRDF(vec3 viewDir, vec3 lightDir, MaterialData materialData);
+
+float DistributionGGX(vec3 N, vec3 H, float roughness);
+float GeometrySchlickGGX(float NdotV, float roughness);
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
+vec3 fresnelSchlick(float cosTheta, vec3 F0);
+
 layout (local_size_x = 1, local_size_y = 1) in;
 void main()
 {
@@ -206,20 +231,37 @@ void main()
 	vec3 color;
 	if (hitInfo.anyHit)
 	{
-		color = vec3(0);
+		MaterialData materialData = getMaterialData(hitInfo.material, hitInfo.uv, hitInfo.normal, hitInfo.tangent);
 		
-		vec3 albedo = texture(hitInfo.material.albedo, hitInfo.uv).rgb;
-		
+		color = materialData.albedo * materialData.emissive;
+
 		for (int i = 0; i < directionalLights.length(); i++)
 		{
 			DirectionalLight light = directionalLights[i];
-			color += albedo * light.color * max(dot(hitInfo.normal, light.fragToLightDirection), 0);
+
+//			float shadow = light.castShadows ? isInDirectionalShadow(i) : 0;
+			float shadow = 0;
+
+			vec3 lightDir    = light.fragToLightDirection;
+			vec3 radiance    = light.color * light.intensity;
+
+			color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
 		}
-		
+
 		for (int i = 0; i < pointLights.length(); i++)
 		{
 			PointLight light = pointLights[i];
-			color += albedo * light.color * max(dot(hitInfo.normal, normalize(light.position - hitInfo.impact)), 0);
+
+//			float shadow = light.castShadows ? isInPointShadow(i) : 0;
+			float shadow = 0;
+
+			vec3  fragToLight = light.position - hitInfo.impact;
+			float distance    = length(fragToLight);
+			vec3  lightDir    = fragToLight / distance;
+			float attenuation = 1.0 / (1 + distance * distance);
+			vec3  radiance    = light.color * light.intensity * attenuation;
+
+			color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
 		}
 	}
 	else
@@ -376,15 +418,19 @@ void intersectSphere(Ray ray, Sphere sphere, inout HitInfo hitInfo)
 			hitInfo.anyHit = true;
 			hitInfo.impact = worldImpact;
 			
-			vec3 potentialNormal = localToWorldNormal(sphere.transform, localImpact);
-			hitInfo.normal = dot(potentialNormal, -ray.direction) > 0 ? potentialNormal : -potentialNormal;
-			
-			hitInfo.material = sphere.material;
-			
 			float phi = atan(localImpact.z, localImpact.x);
 			float theta = asin(localImpact.y);
 			hitInfo.uv.x = 1 - (phi + PI) / (2 * PI);
 			hitInfo.uv.y = (theta + PI / 2) / PI;
+			
+			vec3 potentialNormal = localToWorldNormal(sphere.transform, localImpact);
+			bool flipNormals = dot(potentialNormal, -ray.direction) < 0;
+			hitInfo.normal = flipNormals ? -potentialNormal : potentialNormal;
+			
+			vec3 potentialTangent = localToWorldNormal(sphere.transform, -vec3(-sin(phi), 0, cos(phi)));
+			hitInfo.tangent = flipNormals ? -potentialTangent : potentialTangent;
+			
+			hitInfo.material = sphere.material;
 			
 			hitInfo.objectIndex = sphere.objectIndex;
 		}
@@ -421,7 +467,11 @@ void intersectPlane(Ray ray, Plane plane, inout HitInfo hitInfo)
 			hitInfo.impact = localToWorldPosition(plane.transform, localImpact);
 			
 			vec3 potentialNormal = localToWorldNormal(plane.transform, vec3(0, 1, 0));
-			hitInfo.normal = dot(potentialNormal, -ray.direction) > 0 ? potentialNormal : -potentialNormal;
+			bool flipNormals = dot(potentialNormal, -ray.direction) < 0;
+			hitInfo.normal = flipNormals ? -potentialNormal : potentialNormal;
+			
+			vec3 potentialTangent = localToWorldNormal(plane.transform, vec3(1, 0, 0));
+			hitInfo.tangent = flipNormals ? -potentialTangent : potentialTangent;
 			
 			hitInfo.material = plane.material;
 			hitInfo.uv = vec2(localImpact.x, localImpact.z) * 0.5 + 0.5;
@@ -482,21 +532,19 @@ void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo)
 				hitInfo.impact = localToWorldPosition(mesh.transform, localImpact);
 				
 				vec3 triangleNormal = normalize(cross(v0v1, v0v2));
-				vec3 smoothNormal;
-				if (dot(triangleNormal, -direction) >= 0)
-				{
-					smoothNormal = vec3(vertex0.normal_x, vertex0.normal_y, vertex0.normal_z) * (1 - u - v) +
-								   vec3(vertex1.normal_x, vertex1.normal_y, vertex1.normal_z) * u +
-								   vec3(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z) * v;
-				}
-				else
-				{
-					smoothNormal = -vec3(vertex0.normal_x, vertex0.normal_y, vertex0.normal_z) * (1 - u - v) +
-								   -vec3(vertex1.normal_x, vertex1.normal_y, vertex1.normal_z) * u +
-								   -vec3(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z) * v;
-				}
+				bool flipNormals = dot(triangleNormal, -localRay.direction) < 0;
 				
-				hitInfo.normal = localToWorldNormal(mesh.transform, smoothNormal);
+				vec3 potentialNormal = vec3(vertex0.normal_x, vertex0.normal_y, vertex0.normal_z) * (1 - u - v) +
+									   vec3(vertex1.normal_x, vertex1.normal_y, vertex1.normal_z) * u +
+									   vec3(vertex2.normal_x, vertex2.normal_y, vertex2.normal_z) * v;
+				potentialNormal = normalize(localToWorldNormal(mesh.transform, potentialNormal));
+				hitInfo.normal = flipNormals ? -potentialNormal : potentialNormal;
+				
+				vec3 potentialTangent = vec3(vertex0.tangent_x, vertex0.tangent_y, vertex0.tangent_z) * (1 - u - v) +
+										vec3(vertex1.tangent_x, vertex1.tangent_y, vertex1.tangent_z) * u +
+										vec3(vertex2.tangent_x, vertex2.tangent_y, vertex2.tangent_z) * v;
+				potentialTangent = normalize(localToWorldNormal(mesh.transform, potentialTangent));
+				hitInfo.tangent = flipNormals ? -potentialTangent : potentialTangent;
 				
 				hitInfo.material = mesh.material;
 				
@@ -508,4 +556,124 @@ void intersectMesh(Ray ray, Mesh mesh, inout HitInfo hitInfo)
 			}
 		}
 	}
+}
+
+MaterialData getMaterialData(Material material, vec2 uv, vec3 surfaceNormal, vec3 surfaceTangent)
+{
+	MaterialData materialData;
+	
+	vec3 surfaceBitangent = cross(surfaceNormal, surfaceTangent);
+	mat3 tangentToWorld = mat3(surfaceTangent, surfaceBitangent, surfaceNormal);
+	
+	materialData.normal.xy = texture(material.normal, uv).rg * 2.0 - 1.0;
+	materialData.normal.z  = sqrt(1 - min(dot(materialData.normal.xy, materialData.normal.xy), 1));
+	materialData.normal    = tangentToWorld * materialData.normal;
+	
+	materialData.albedo = texture(material.albedo, uv).rgb;
+	materialData.roughness = texture(material.roughness, uv).r;
+	materialData.metalness = texture(material.metalness, uv).r;
+	materialData.displacement = texture(material.displacement, uv).r;
+	materialData.emissive = texture(material.emissive, uv).r;
+	materialData.F0 = mix(vec3(0.04), materialData.albedo, materialData.metalness);
+	
+	return materialData;
+}
+
+// Based on the code at https://www.gamedev.net/tutorials/programming/graphics/contact-hardening-soft-shadows-made-fast-r4906/
+vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
+{
+	float GoldenAngle = 2.4;
+	
+	float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
+	float theta = sampleIndex * GoldenAngle + phi;
+	
+	float sine = sin(theta);
+	float cosine = cos(theta);
+	
+	return vec2(r * cosine, r * sine);
+}
+
+float InterleavedGradientNoise(vec2 position_screen)
+{
+	vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
+	return fract(magic.z * fract(dot(position_screen, magic.xy)));
+}
+
+vec3 calculateLighting(vec3 radiance, vec3 viewDir, vec3 lightDir, MaterialData materialData)
+{
+	vec3 brdf = calculateBRDF(viewDir, lightDir, materialData);
+	
+	return brdf * radiance * max(dot(materialData.normal, lightDir), 0.0);
+}
+
+// Cook-Torrance
+vec3 calculateBRDF(vec3 viewDir, vec3 lightDir, MaterialData materialData)
+{
+	vec3 halfwayDir  = normalize(viewDir + lightDir);
+	
+	// ---------- Specular part ----------
+	
+	float D = DistributionGGX(materialData.normal, halfwayDir, materialData.roughness);
+	vec3  F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), materialData.F0);
+	float G = GeometrySmith(materialData.normal, viewDir, lightDir, materialData.roughness);
+	
+	vec3  numerator   = D * F * G;
+	float denominator = 4.0 * max(dot(materialData.normal, viewDir), 0.0) * max(dot(materialData.normal, lightDir), 0.0);
+	vec3  specular    = numerator / max(denominator, 0.001);
+	
+	vec3 specularWeight = F;
+	
+	// ---------- Diffuse part ----------
+	
+	vec3 diffuse = materialData.albedo / PI;
+	
+	vec3 diffuseWeight = vec3(1.0) - specularWeight;
+	diffuseWeight *= 1.0 - materialData.metalness; // Metals have no diffuse
+	
+	// ---------- Final result ----------
+	
+	// specularWeight already integrated to specular
+	return (diffuseWeight * diffuse) + (specular);
+}
+
+// Normal Distribution Function
+float DistributionGGX(vec3 N, vec3 H, float roughness)
+{
+	float a      = roughness*roughness;
+	float a2     = a*a;
+	float NdotH  = max(dot(N, H), 0.0);
+	float NdotH2 = NdotH*NdotH;
+	
+	float num   = a2;
+	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	denom = PI * denom * denom;
+	
+	return num / max(denom, 0.0000001);
+}
+
+// Geometry Shadowing Function
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+	float r = (roughness + 1.0);
+	float k = (r*r) / 8.0;
+	
+	float num   = NdotV;
+	float denom = NdotV * (1.0 - k) + k;
+	
+	return num / max(denom, 0.0000001);
+}
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+	float NdotV = max(dot(N, V), 0.0);
+	float NdotL = max(dot(N, L), 0.0);
+	float ggx2  = GeometrySchlickGGX(NdotV, roughness);
+	float ggx1  = GeometrySchlickGGX(NdotL, roughness);
+	
+	return ggx1 * ggx2;
+}
+
+// Fresnel Function
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
