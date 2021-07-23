@@ -279,7 +279,7 @@ void main()
 					color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
 				}
 			}
-			else
+			else if (skybox.enabled)
 			{
 				color += sampleSkybox(ray.direction);
 			}
@@ -355,7 +355,7 @@ vec3 srgbToLinear(vec3 color)
 
 vec3 sampleSkybox(vec3 dir)
 {
-	return skybox.enabled ? texture(skybox.cubemap, dir * vec3(-1, -1, 1)).rgb : vec3(0);
+	return texture(skybox.cubemap, dir * vec3(-1, -1, 1)).rgb;
 }
 
 HitInfo trace(Ray ray)
