@@ -567,7 +567,7 @@ MaterialData getMaterialData(Material material, vec2 uv, vec3 surfaceNormal, vec
 	
 	materialData.normal.xy = texture(material.normal, uv).rg * 2.0 - 1.0;
 	materialData.normal.z  = sqrt(1 - min(dot(materialData.normal.xy, materialData.normal.xy), 1));
-	materialData.normal    = tangentToWorld * materialData.normal;
+	materialData.normal    = normalize(tangentToWorld * materialData.normal);
 	
 	materialData.albedo = texture(material.albedo, uv).rgb;
 	materialData.roughness = texture(material.roughness, uv).r;
