@@ -19,7 +19,14 @@ _objectIndexTexture(TextureCreateInfo
 {
 	.size = size,
 	.internalFormat = GL_R32I
-})
+}),
+_directionalLightBuffer(GL_STREAM_DRAW),
+_pointLightBuffer(GL_STREAM_DRAW),
+_sphereBuffer(GL_STREAM_DRAW),
+_planeBuffer(GL_STREAM_DRAW),
+_meshInstanceDataBuffer(GL_STREAM_DRAW),
+_meshVertexDataBuffer(GL_STREAM_DRAW),
+_meshIndexDataBuffer(GL_STREAM_DRAW)
 {
 	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
 	lightingShaderProgramCreateInfo.shadersFiles[GL_COMPUTE_SHADER].emplace_back("internal/raytracing/raytrace");
