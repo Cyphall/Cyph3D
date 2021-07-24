@@ -13,20 +13,6 @@ public:
 	void restorePipelineImpl() override;
 
 private:
-	struct GLSLCamera
-	{
-		glm::vec3 position;
-		float __padding0;
-		glm::vec3 rayTL;
-		float __padding1;
-		glm::vec3 rayTR;
-		float __padding2;
-		glm::vec3 rayBL;
-		float __padding3;
-		glm::vec3 rayBR;
-		float __padding4;
-	};
-	
 	struct GLSLDirectionalLight
 	{
 		glm::vec3 fragToLightDirection;
@@ -94,17 +80,10 @@ private:
 		int32_t indexCount;
 	};
 	
-	struct GLSLSkybox
-	{
-		int32_t enabled;
-		GLuint64 cubemap;
-	};
-	
 	ShaderProgram* _shader;
 	Texture _rawRenderTexture;
 	Texture _objectIndexTexture;
 	
-	ShaderStorageBuffer<GLSLCamera> _cameraBuffer;
 	ShaderStorageBuffer<GLSLDirectionalLight> _directionalLightBuffer;
 	ShaderStorageBuffer<GLSLPointLight> _pointLightBuffer;
 	ShaderStorageBuffer<GLSLSphere> _sphereBuffer;
@@ -112,5 +91,4 @@ private:
 	ShaderStorageBuffer<GLSLMeshInstanceData> _meshInstanceDataBuffer;
 	ShaderStorageBuffer<Mesh::VertexData> _meshVertexDataBuffer;
 	ShaderStorageBuffer<GLuint> _meshIndexDataBuffer;
-	ShaderStorageBuffer<GLSLSkybox> _skyboxBuffer;
 };

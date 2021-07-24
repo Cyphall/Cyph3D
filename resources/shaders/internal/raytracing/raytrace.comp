@@ -15,15 +15,10 @@ struct Ray
 struct Camera
 {
 	vec3 position;
-	float padding0;
 	vec3 rayTL;
-	float padding1;
 	vec3 rayTR;
-	float padding2;
 	vec3 rayBL;
-	float padding3;
 	vec3 rayBR;
-	float padding4;
 };
 
 struct Material
@@ -133,49 +128,42 @@ struct Skybox
 	layout(bindless_sampler) samplerCube cubemap;
 };
 
-layout(std430, binding = 0) readonly buffer CameraBuffer
-{
-	Camera camera;
-};
+uniform Camera u_camera;
+uniform Skybox u_skybox;
 
-layout(std430, binding = 1) readonly buffer DirectionalLightBuffer
+layout(std430, binding = 0) readonly buffer DirectionalLightBuffer
 {
 	DirectionalLight directionalLights[];
 };
 
-layout(std430, binding = 2) readonly buffer PointLightBuffer
+layout(std430, binding = 1) readonly buffer PointLightBuffer
 {
 	PointLight pointLights[];
 };
 
-layout(std430, binding = 3) readonly buffer SphereBuffer
+layout(std430, binding = 2) readonly buffer SphereBuffer
 {
 	Sphere spheres[];
 };
 
-layout(std430, binding = 4) readonly buffer PlaneBuffer
+layout(std430, binding = 3) readonly buffer PlaneBuffer
 {
 	Plane planes[];
 };
 
-layout(std430, binding = 5) readonly buffer MeshBuffer
+layout(std430, binding = 4) readonly buffer MeshBuffer
 {
 	Mesh meshes[];
 };
 
-layout(std430, binding = 6) readonly buffer MeshVertexBuffer
+layout(std430, binding = 5) readonly buffer MeshVertexBuffer
 {
 	Vertex meshVertices[];
 };
 
-layout(std430, binding = 7) readonly buffer MeshIndexBuffer
+layout(std430, binding = 6) readonly buffer MeshIndexBuffer
 {
 	uint meshIndices[];
-};
-
-layout(std430, binding = 8) readonly buffer SkyboxBuffer
-{
-	Skybox skybox;
 };
 
 layout (bindless_image) writeonly uniform image2D o_renderImage;
@@ -233,12 +221,12 @@ void main()
 			vec2 PS_rayPos = PS_subPixelSize * vec2(x, y) + PS_halfSubPixelSize;
 			vec2 normalizedPixelCoord = vec2(gl_GlobalInvocationID.xy) / vec2(gl_NumWorkGroups.xy) + PS_rayPos * pixelSize;
 			
-			vec3 interpolatedTopRayDir = mix(camera.rayTL, camera.rayTR, normalizedPixelCoord.x);
-			vec3 interpolatedBottomRayDir = mix(camera.rayBL, camera.rayBR, normalizedPixelCoord.x);
+			vec3 interpolatedTopRayDir = mix(u_camera.rayTL, u_camera.rayTR, normalizedPixelCoord.x);
+			vec3 interpolatedBottomRayDir = mix(u_camera.rayBL, u_camera.rayBR, normalizedPixelCoord.x);
 			
 			vec3 interpolatedRayDir = mix(interpolatedBottomRayDir, interpolatedTopRayDir, normalizedPixelCoord.y);
 			
-			Ray ray = Ray(camera.position, normalize(interpolatedRayDir));
+			Ray ray = Ray(u_camera.position, normalize(interpolatedRayDir));
 			
 			HitInfo hitInfo = trace(ray);
 			
@@ -279,7 +267,7 @@ void main()
 					color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
 				}
 
-				if (skybox.enabled)
+				if (u_skybox.enabled)
 				{
 					float shadow = 0;
 
@@ -294,7 +282,7 @@ void main()
 					color += radiance * F * (1.0 - materialData.roughness);
 				}
 			}
-			else if (skybox.enabled)
+			else if (u_skybox.enabled)
 			{
 				color += sampleSkybox(ray.direction);
 			}
@@ -370,7 +358,7 @@ vec3 srgbToLinear(vec3 color)
 
 vec3 sampleSkybox(vec3 dir)
 {
-	return texture(skybox.cubemap, dir * vec3(-1, -1, 1)).rgb;
+	return texture(u_skybox.cubemap, dir * vec3(-1, -1, 1)).rgb;
 }
 
 HitInfo trace(Ray ray)

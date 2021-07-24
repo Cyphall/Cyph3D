@@ -19,8 +19,7 @@ _objectIndexTexture(TextureCreateInfo
 {
 	.size = size,
 	.internalFormat = GL_R32I
-}),
-_cameraBuffer(1, GL_DYNAMIC_STORAGE_BIT)
+})
 {
 	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
 	lightingShaderProgramCreateInfo.shadersFiles[GL_COMPUTE_SHADER].emplace_back("internal/raytracing/raytrace");
@@ -43,16 +42,27 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	
 	const std::array<glm::vec3, 4>& cornerRays = camera.getCornerRays();
 	
-	GLSLCamera glslCamera;
-	glslCamera.position = camera.getPosition();
-	glslCamera.rayTL = cornerRays[0];
-	glslCamera.rayTR = cornerRays[1];
-	glslCamera.rayBL = cornerRays[2];
-	glslCamera.rayBR = cornerRays[3];
+	_shader->setUniform("u_camera.position", camera.getPosition());
+	_shader->setUniform("u_camera.rayTL", cornerRays[0]);
+	_shader->setUniform("u_camera.rayTR", cornerRays[1]);
+	_shader->setUniform("u_camera.rayBL", cornerRays[2]);
+	_shader->setUniform("u_camera.rayBR", cornerRays[3]);
 	
-	_cameraBuffer.setData(&glslCamera, 1);
-	_cameraBuffer.bind(0);
+#pragma endregion
+#pragma region Skybox
 	
+	Skybox* skybox = Engine::getScene().getSkybox();
+	
+	if (skybox && skybox->isResourceReady())
+	{
+		_shader->setUniform("u_skybox.enabled", true);
+		_shader->setUniform("u_skybox.cubemap", skybox->getResource().getBindlessTextureHandle());
+	}
+	else
+	{
+		_shader->setUniform("u_skybox.enabled", false);
+	}
+
 #pragma endregion
 #pragma region DirectionalLight
 	
@@ -66,7 +76,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 		glslDirectionalLight.intensity = renderData.intensity;
 	}
 	_directionalLightBuffer.setData(glslDirectionalLights);
-	_directionalLightBuffer.bind(1);
+	_directionalLightBuffer.bind(0);
 	
 #pragma endregion
 #pragma region PointLight
@@ -81,7 +91,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 		glslPointLight.intensity = renderData.intensity;
 	}
 	_pointLightBuffer.setData(glslPointLights);
-	_pointLightBuffer.bind(2);
+	_pointLightBuffer.bind(1);
 	
 #pragma endregion
 #pragma region Shape
@@ -161,9 +171,9 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 		}
 	}
 	_sphereBuffer.setData(glslSphereVec);
-	_sphereBuffer.bind(3);
+	_sphereBuffer.bind(2);
 	_planeBuffer.setData(glslPlaneVec);
-	_planeBuffer.bind(4);
+	_planeBuffer.bind(3);
 	
 	_meshVertexDataBuffer.resize(totalVertexCount);
 	_meshIndexDataBuffer.resize(totalIndexCount);
@@ -197,31 +207,10 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	}
 	
 	_meshInstanceDataBuffer.setData(glslMeshInstanceDataVec);
-	_meshInstanceDataBuffer.bind(5);
+	_meshInstanceDataBuffer.bind(4);
 	
-	_meshVertexDataBuffer.bind(6);
-	_meshIndexDataBuffer.bind(7);
-	
-#pragma endregion
-
-#pragma region Skybox
-	
-	Skybox* skybox = Engine::getScene().getSkybox();
-	
-	GLSLSkybox glslSkybox;
-	
-	if (skybox && skybox->isResourceReady())
-	{
-		glslSkybox.enabled = true;
-		glslSkybox.cubemap = skybox->getResource().getBindlessTextureHandle();
-	}
-	else
-	{
-		glslSkybox.enabled = false;
-	}
-	
-	_skyboxBuffer.setData(&glslSkybox, 1);
-	_skyboxBuffer.bind(8);
+	_meshVertexDataBuffer.bind(5);
+	_meshIndexDataBuffer.bind(6);
 	
 #pragma endregion
 	
