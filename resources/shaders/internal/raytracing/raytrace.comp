@@ -231,7 +231,7 @@ void main()
 	
 	vec2 normalizedPixelCoord = vec2(gl_GlobalInvocationID.xy) / vec2(u_resolution);
 	
-	vec2 pixelSize = 1.0 / vec2(gl_NumWorkGroups.xy);
+	vec2 pixelSize = 1.0 / vec2(u_resolution);
 	
 	float PS_subPixelSize = 1.0 / MULTISAMPLES;
 	float PS_halfSubPixelSize = PS_subPixelSize * 0.5;
