@@ -169,8 +169,6 @@ layout(std430, binding = 6) readonly buffer MeshIndexBuffer
 layout (bindless_image) writeonly uniform image2D o_renderImage;
 layout (bindless_image) writeonly uniform iimage2D o_objectIndexImage;
 
-bool between(float min, float max, float v);
-
 vec3 localToWorldDirection(Transform transform, vec3 direction);
 vec3 worldToLocalDirection(Transform transform, vec3 direction);
 vec3 localToWorldPosition(Transform transform, vec3 position);
@@ -183,6 +181,8 @@ vec3 localToWorldNormal(Transform transform, vec3 normal);
 vec3 sampleSkybox(vec3 dir);
 
 HitInfo trace(Ray ray);
+
+bool between(float min, float max, float v);
 
 void intersectSphere(Ray ray, Sphere sphere, inout HitInfo hitInfo);
 void intersectPlane(Ray ray, Plane plane, inout HitInfo hitInfo);
