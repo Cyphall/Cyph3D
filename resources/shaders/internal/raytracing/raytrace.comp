@@ -138,6 +138,7 @@ struct Skybox
 
 uniform Camera u_camera;
 uniform Skybox u_skybox;
+uniform uvec2 u_resolution;
 
 layout(std430, binding = 0) readonly buffer DirectionalLightBuffer
 {
@@ -219,9 +220,16 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
-layout (local_size_x = 1, local_size_y = 1) in;
+layout (local_size_x = 8, local_size_y = 4) in;
 void main()
 {
+	if (gl_GlobalInvocationID.x >= u_resolution.x || gl_GlobalInvocationID.y >= u_resolution.y)
+	{
+		return;
+	}
+	
+	vec2 normalizedPixelCoord = vec2(gl_GlobalInvocationID.xy) / vec2(u_resolution);
+	
 	vec2 pixelSize = 1.0 / vec2(gl_NumWorkGroups.xy);
 	
 	float PS_subPixelSize = 1.0 / MULTISAMPLES;
@@ -235,12 +243,12 @@ void main()
 		for (int x = 0; x < MULTISAMPLES; x++)
 		{
 			vec2 PS_rayPos = PS_subPixelSize * vec2(x, y) + PS_halfSubPixelSize;
-			vec2 normalizedPixelCoord = vec2(gl_GlobalInvocationID.xy) / vec2(gl_NumWorkGroups.xy) + PS_rayPos * pixelSize;
+			vec2 normalizedSubPixelCoord = normalizedPixelCoord + PS_rayPos * pixelSize;
 			
-			vec3 interpolatedTopRayDir = mix(u_camera.rayTL, u_camera.rayTR, normalizedPixelCoord.x);
-			vec3 interpolatedBottomRayDir = mix(u_camera.rayBL, u_camera.rayBR, normalizedPixelCoord.x);
+			vec3 interpolatedTopRayDir = mix(u_camera.rayTL, u_camera.rayTR, normalizedSubPixelCoord.x);
+			vec3 interpolatedBottomRayDir = mix(u_camera.rayBL, u_camera.rayBR, normalizedSubPixelCoord.x);
 			
-			vec3 interpolatedRayDir = mix(interpolatedBottomRayDir, interpolatedTopRayDir, normalizedPixelCoord.y);
+			vec3 interpolatedRayDir = mix(interpolatedBottomRayDir, interpolatedTopRayDir, normalizedSubPixelCoord.y);
 			
 			Ray ray = Ray(u_camera.position, normalize(interpolatedRayDir));
 			
