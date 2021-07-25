@@ -194,7 +194,7 @@ vec3 sampleSkybox(vec3 dir);
 HitInfo trace(Ray ray);
 HitInfo shadowTrace(Ray ray);
 
-Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameter, vec2 pixelCoord);
+Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameterRad, vec2 pixelCoord);
 
 float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord);
 
@@ -430,13 +430,13 @@ HitInfo shadowTrace(Ray ray)
 	return hitInfo;
 }
 
-Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameter, vec2 pixelCoord)
+Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameterRad, vec2 pixelCoord)
 {
 	vec3 right;
 	vec3 up;
 	getRightAndUp(ray.direction, right, up);
 	
-	float factor = tan(radians(angularDiameter));
+	float factor = tan(angularDiameterRad);
 	float phi = InterleavedGradientNoise(pixelCoord) * TWO_PI;
 	
 	Ray[SHADOW_SAMPLES] res;
@@ -458,7 +458,7 @@ float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord)
 {
 	int shadow = 0;
 	
-	Ray[SHADOW_SAMPLES] rays = calcShadowRays(ray, light.angularDiameter, pixelCoord);
+	Ray[SHADOW_SAMPLES] rays = calcShadowRays(ray, radians(light.angularDiameter), pixelCoord);
 	
 	for (int i = 0; i < SHADOW_SAMPLES; i++)
 	{
