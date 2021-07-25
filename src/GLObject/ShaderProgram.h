@@ -17,6 +17,7 @@ public:
 	
 	void bind();
 	void dispatch(glm::ivec3 groups);
+	glm::ivec3 getWorkGroupSize() const;
 
 #pragma region float
 	

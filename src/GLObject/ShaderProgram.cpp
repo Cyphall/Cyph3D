@@ -8,6 +8,7 @@
 #include "../Logger.h"
 #include <format>
 #include <numeric>
+#include <glm/gtc/type_ptr.hpp>
 
 ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 {
@@ -169,4 +170,11 @@ int ShaderProgram::getUniformLocation(const char* name)
 void ShaderProgram::dispatch(glm::ivec3 groups)
 {
 	glDispatchCompute(groups.x, groups.y, groups.z);
+}
+
+glm::ivec3 ShaderProgram::getWorkGroupSize() const
+{
+	glm::ivec3 workGroupSize;
+	glGetProgramiv(_handle, GL_COMPUTE_WORK_GROUP_SIZE, glm::value_ptr(workGroupSize));
+	return workGroupSize;
 }
