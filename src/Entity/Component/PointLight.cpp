@@ -146,7 +146,7 @@ void PointLight::onDrawUi()
 	}
 	
 	float radius = getRadius();
-	if (ImGui::SliderFloat("Radius", &radius, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+	if (ImGui::SliderFloat("Radius", &radius, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
 	{
 		setRadius(radius);
 	}
