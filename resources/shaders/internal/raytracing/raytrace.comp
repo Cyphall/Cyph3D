@@ -482,16 +482,8 @@ float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord)
 
 void getRightAndUp(vec3 forward, out vec3 right, out vec3 up)
 {
-	if (forward.y > 0.9)
-	{
-		up = cross(forward, vec3(1, 0, 0));
-		right = cross(up, forward);
-	}
-	else
-	{
-		right = cross(vec3(0, 1, 0), forward);
-		up = cross(forward, right);
-	}
+	right = normalize(cross(vec3(0, 1, 0), forward));
+	up = cross(forward, right);
 }
 
 bool between(float min, float max, float v)
