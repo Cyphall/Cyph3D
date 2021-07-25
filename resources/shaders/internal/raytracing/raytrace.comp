@@ -197,7 +197,8 @@ HitInfo shadowTrace(Ray ray);
 
 Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameterRad, vec2 pixelCoord);
 
-float calcShadow(float angularDiameterRad, Ray ray, vec2 pixelCoord);
+float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord);
+float calcPointShadow(PointLight light, Ray ray, vec2 pixelCoord);
 
 void getRightAndUp(vec3 forward, out vec3 right, out vec3 up);
 
@@ -273,7 +274,7 @@ void main()
 					if (light.castShadows)
 					{
 						Ray shadowRay = Ray(hitInfo.impact + materialData.normal * 0.001, lightDir);
-						shadow = calcShadow(radians(light.angularDiameter), shadowRay, vec2(gl_GlobalInvocationID));
+						shadow = calcDirectionalShadow(light, shadowRay, vec2(gl_GlobalInvocationID));
 					}
 					
 					color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
@@ -293,8 +294,7 @@ void main()
 					if (light.castShadows)
 					{
 						Ray shadowRay = Ray(hitInfo.impact + materialData.normal * 0.001, lightDir);
-						float angularDiameterRad = atan(light.radius / length(light.position - shadowRay.origin));
-						shadow = calcShadow(angularDiameterRad, shadowRay, vec2(gl_GlobalInvocationID));
+						shadow = calcPointShadow(light, shadowRay, vec2(gl_GlobalInvocationID));
 					}
 					
 					color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
@@ -467,16 +467,36 @@ Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameterRad, vec2 pixel
 	return res;
 }
 
-float calcShadow(float angularDiameterRad, Ray ray, vec2 pixelCoord)
+float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord)
 {
 	int shadow = 0;
 	
-	Ray[SHADOW_SAMPLES] rays = calcShadowRays(ray, angularDiameterRad, pixelCoord);
+	Ray[SHADOW_SAMPLES] rays = calcShadowRays(ray, radians(light.angularDiameter), pixelCoord);
 	
 	for (int i = 0; i < SHADOW_SAMPLES; i++)
 	{
 		HitInfo shadowRayInfo = shadowTrace(rays[i]);
 		if (shadowRayInfo.anyHit)
+		{
+			shadow++;
+		}
+	}
+	
+	return float(shadow) / float(SHADOW_SAMPLES);
+}
+
+float calcPointShadow(PointLight light, Ray ray, vec2 pixelCoord)
+{
+	int shadow = 0;
+	
+	float lightDistance = length(light.position - ray.origin);
+	float angularDiameterRad = atan(light.radius / lightDistance);
+	Ray[SHADOW_SAMPLES] rays = calcShadowRays(ray, angularDiameterRad, pixelCoord);
+	
+	for (int i = 0; i < SHADOW_SAMPLES; i++)
+	{
+		HitInfo shadowRayInfo = shadowTrace(rays[i]);
+		if (shadowRayInfo.anyHit && shadowRayInfo.t < lightDistance)
 		{
 			shadow++;
 		}
