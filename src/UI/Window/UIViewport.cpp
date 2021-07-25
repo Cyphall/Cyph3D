@@ -275,8 +275,12 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 {
 	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 		FileDialogFilter{
-			.fileTypeDisplayName = L"Image",
-			.fileTypeExtensions = L"*.png;*.jpg"
+			.fileTypeDisplayName = L"PNG Image",
+			.fileTypeExtensions = L"*.png"
+		},
+		FileDialogFilter{
+			.fileTypeDisplayName = L"JPG Image",
+			.fileTypeExtensions = L"*.jpg"
 		}
 	}, ".", "render");
 	
