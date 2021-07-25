@@ -20,6 +20,8 @@ public:
 	static void setCamera(Camera camera);
 	
 	static bool isFullscreen();
+	
+	static void renderToFile(glm::ivec2 resolution);
 
 private:
 	static std::unique_ptr<Renderer> _renderer;

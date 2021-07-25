@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <glm/glm.hpp>
 
 class UIMisc
 {
@@ -9,6 +10,5 @@ public:
 	static void show();
 
 private:
-	static std::vector<std::string> _scenes;
-	static const std::string* _selectedScene;
+	static glm::ivec2 _resolution;
 };

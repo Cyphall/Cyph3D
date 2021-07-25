@@ -18,6 +18,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
 
 std::unique_ptr<Window> Engine::_window;
 std::unique_ptr<ResourceManager> Engine::_globalResourceManager;
@@ -48,6 +50,7 @@ void Engine::init()
 	GlfwHelper::Init();
 	
 	stbi_set_flip_vertically_on_load(true);
+	stbi_flip_vertically_on_write(true);
 	
 //	Logger::SetLogLevel(Logger::LogLevel::Warning);
 	

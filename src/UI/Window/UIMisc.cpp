@@ -7,8 +7,7 @@
 #include "UIInspector.h"
 #include "UIViewport.h"
 
-std::vector<std::string> UIMisc::_scenes;
-const std::string* UIMisc::_selectedScene = nullptr;
+glm::ivec2 UIMisc::_resolution(1920, 1080);
 
 void UIMisc::show()
 {
@@ -59,6 +58,14 @@ void UIMisc::show()
 		}
 	}
 	
+	ImGui::Separator();
+	
+	ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
+	
+	if (ImGui::Button("Render to file"))
+	{
+		UIViewport::renderToFile(_resolution);
+	}
 	
 	ImGui::End();
 }

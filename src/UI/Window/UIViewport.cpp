@@ -5,7 +5,9 @@
 #include "../../Engine.h"
 #include "UIInspector.h"
 #include "../../Rendering/Renderer/RaytracingRenderer.h"
+#include "../../Helper/FileHelper.h"
 #include <imgui_internal.h>
+#include <stb_image_write.h>
 
 std::unique_ptr<Renderer> UIViewport::_renderer;
 Camera UIViewport::_camera;
@@ -267,4 +269,46 @@ void UIViewport::initAllocators()
 {
 	_allocators[RasterizationRenderer::identifier] = []() -> decltype(auto) {UIViewport::_renderer = std::make_unique<RasterizationRenderer>(UIViewport::_rendererSize);};
 	_allocators[RaytracingRenderer::identifier] = []() -> decltype(auto) {UIViewport::_renderer = std::make_unique<RaytracingRenderer>(UIViewport::_rendererSize);};
+}
+
+void UIViewport::renderToFile(glm::ivec2 resolution)
+{
+	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
+		FileDialogFilter{
+			.fileTypeDisplayName = L"Image",
+			.fileTypeExtensions = L"*.png;*.jpg"
+		}
+	}, ".", "render");
+	
+	if (!filePath)
+	{
+		return;
+	}
+	
+	RaytracingRenderer renderer(resolution);
+	
+	renderer.onNewFrame();
+	
+	RenderContext context
+	{
+		.renderer = renderer,
+		.camera = _camera
+	};
+	Engine::getScene().onPreRender(context);
+	
+	Texture& texture = renderer.render(_camera, false);
+	
+	glm::ivec2 textureSize = texture.getSize();
+	std::vector<glm::u8vec3> textureData(textureSize.x * textureSize.y);
+	
+	glGetTextureImage(texture.getHandle(), 0, GL_RGB, GL_UNSIGNED_BYTE, textureData.size() * sizeof(glm::u8vec3), textureData.data());
+	
+	if (filePath->extension() == ".png")
+	{
+		stbi_write_png(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 3, textureData.data(), textureSize.x * 3);
+	}
+	else if (filePath->extension() == ".jpg")
+	{
+		stbi_write_jpg(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 3, textureData.data(), 95);
+	}
 }
