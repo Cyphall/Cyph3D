@@ -18,6 +18,7 @@ public:
 		glm::vec3      fragToLightDirection;
 		float          intensity;
 		glm::vec3      color;
+		float          angularDiameter;
 		bool           castShadows; // 32-bit bool
 		glm::mat4      lightViewProjection;
 		Texture*       shadowMapTexture;
@@ -41,6 +42,9 @@ public:
 	int getResolution() const;
 	void setResolution(int value);
 	
+	float getAngularDiameter() const;
+	void setAngularDiameter(float value);
+	
 	void duplicate(Entity& targetEntity) const override;
 	
 	ObjectSerialization serialize() const override;
@@ -55,6 +59,8 @@ private:
 	
 	float _mapSize = 60;
 	float _mapDepth = 100;
+	
+	float _angularDiameter = 0.53f;
 	
 	bool _castShadows = false;
 	int _resolution = 4096;

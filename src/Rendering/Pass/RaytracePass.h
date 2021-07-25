@@ -19,14 +19,18 @@ private:
 		float angularDiameter;
 		glm::vec3 color;
 		float intensity;
+		glm::vec3 __padding0;
+		int32_t castShadows; // bool
 	};
 	
 	struct GLSLPointLight
 	{
 		glm::vec3 position;
-		float size;
+		float radius;
 		glm::vec3 color;
 		float intensity;
+		glm::vec3 __padding0;
+		int32_t castShadows; // bool
 	};
 	
 	struct GLSLSphere
@@ -41,9 +45,9 @@ private:
 		glm::mat4 worldToLocal;
 		glm::mat4 localToWorldNormal;
 		int32_t objectIndex;
+		int32_t contributeShadows;
 		float padding0;
 		float padding1;
-		float padding2;
 	};
 	
 	struct GLSLPlane
@@ -59,8 +63,8 @@ private:
 		glm::mat4 localToWorldNormal;
 		int32_t infinite;
 		int32_t objectIndex;
+		int32_t contributeShadows;
 		float __padding0;
-		float __padding1;
 	};
 	
 	struct GLSLMeshInstanceData
@@ -78,6 +82,10 @@ private:
 		int32_t vertexOffset;
 		int32_t indexOffset;
 		int32_t indexCount;
+		int32_t contributeShadows;
+		float __padding0;
+		float __padding1;
+		float __padding2;
 	};
 	
 	ShaderProgram* _shader;

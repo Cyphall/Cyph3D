@@ -78,9 +78,10 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	{
 		GLSLDirectionalLight& glslDirectionalLight = glslDirectionalLights.emplace_back();
 		glslDirectionalLight.fragToLightDirection = renderData.fragToLightDirection;
-		glslDirectionalLight.angularDiameter = 1;
+		glslDirectionalLight.angularDiameter = renderData.angularDiameter;
 		glslDirectionalLight.color = renderData.color;
 		glslDirectionalLight.intensity = renderData.intensity;
+		glslDirectionalLight.castShadows = renderData.castShadows;
 	}
 	_directionalLightBuffer.setData(glslDirectionalLights);
 	_directionalLightBuffer.bind(0);
@@ -93,9 +94,10 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	{
 		GLSLPointLight& glslPointLight = glslPointLights.emplace_back();
 		glslPointLight.position = renderData.pos;
-		glslPointLight.size = 0.1;
+		glslPointLight.radius = renderData.radius;
 		glslPointLight.color = renderData.color;
 		glslPointLight.intensity = renderData.intensity;
+		glslPointLight.castShadows = renderData.castShadows;
 	}
 	_pointLightBuffer.setData(glslPointLights);
 	_pointLightBuffer.bind(1);
@@ -134,6 +136,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslSphere.worldToLocal = transform.getWorldToLocalMatrix();
 			glslSphere.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslSphere.localToWorld));
 			glslSphere.objectIndex = i;
+			glslSphere.contributeShadows = renderData.contributeShadows;
 		}
 
 		const PlaneShape* planeShape = dynamic_cast<const PlaneShape*>(renderData.shape);
@@ -151,6 +154,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslPlane.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslPlane.localToWorld));
 			glslPlane.infinite = planeShape->isInfinite();
 			glslPlane.objectIndex = i;
+			glslPlane.contributeShadows = renderData.contributeShadows;
 		}
 		
 		const MeshShape* meshShape = dynamic_cast<const MeshShape*>(renderData.shape);
@@ -167,6 +171,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 			glslMeshInstanceData.worldToLocal = transform.getWorldToLocalMatrix();
 			glslMeshInstanceData.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslMeshInstanceData.localToWorld));
 			glslMeshInstanceData.objectIndex = i;
+			glslMeshInstanceData.contributeShadows = renderData.contributeShadows;
 			
 			meshShapeVec.push_back(meshShape);
 			

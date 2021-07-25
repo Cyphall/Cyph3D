@@ -74,7 +74,7 @@ int PointLight::getResolution() const
 ObjectSerialization PointLight::serialize() const
 {
 	ObjectSerialization serialization;
-	serialization.version = 1;
+	serialization.version = 2;
 	serialization.identifier = getIdentifier();
 	
 	glm::vec3 color = getSrgbColor();
@@ -82,6 +82,7 @@ ObjectSerialization PointLight::serialize() const
 	serialization.data["intensity"] = getIntensity();
 	serialization.data["cast_shadows"] = getCastShadows();
 	serialization.data["shadow_resolution"] = getResolution();
+	serialization.data["radius"] = getRadius();
 	
 	return serialization;
 }
@@ -92,6 +93,11 @@ void PointLight::deserialize(const ObjectSerialization& serialization)
 	setIntensity(serialization.data["intensity"].get<float>());
 	setCastShadows(serialization.data["cast_shadows"].get<bool>());
 	setResolution(serialization.data["shadow_resolution"].get<int>());
+	
+	if (serialization.version >= 2)
+	{
+		setRadius(serialization.data["radius"].get<float>());
+	}
 }
 
 void PointLight::onPreRender(RenderContext& context)
@@ -100,6 +106,7 @@ void PointLight::onPreRender(RenderContext& context)
 	data.pos = getTransform().getWorldPosition();
 	data.intensity = getIntensity();
 	data.color = getLinearColor();
+	data.radius = getRadius();
 	data.castShadows = _castShadows;
 	if (_castShadows)
 	{
@@ -136,6 +143,12 @@ void PointLight::onDrawUi()
 	if (ImGui::DragFloat("Intensity", &intensity, 0.01f))
 	{
 		setIntensity(intensity);
+	}
+	
+	float radius = getRadius();
+	if (ImGui::SliderFloat("Radius", &radius, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+	{
+		setRadius(radius);
 	}
 	
 	bool castShadows = getCastShadows();
@@ -179,4 +192,15 @@ void PointLight::duplicate(Entity& targetEntity) const
 	newComponent.setIntensity(getIntensity());
 	newComponent.setCastShadows(getCastShadows());
 	newComponent.setResolution(getResolution());
+	newComponent.setRadius(getRadius());
+}
+
+float PointLight::getRadius() const
+{
+	return _radius;
+}
+
+void PointLight::setRadius(float value)
+{
+	_radius = value;
 }

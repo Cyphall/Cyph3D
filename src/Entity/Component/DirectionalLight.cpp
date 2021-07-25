@@ -80,7 +80,7 @@ int DirectionalLight::getResolution() const
 ObjectSerialization DirectionalLight::serialize() const
 {
 	ObjectSerialization serialization;
-	serialization.version = 1;
+	serialization.version = 2;
 	serialization.identifier = getIdentifier();
 	
 	glm::vec3 color = getSrgbColor();
@@ -88,6 +88,7 @@ ObjectSerialization DirectionalLight::serialize() const
 	serialization.data["intensity"] = getIntensity();
 	serialization.data["cast_shadows"] = getCastShadows();
 	serialization.data["shadow_resolution"] = getResolution();
+	serialization.data["angular_diameter"] = getAngularDiameter();
 	
 	return serialization;
 }
@@ -98,6 +99,11 @@ void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 	setIntensity(serialization.data["intensity"].get<float>());
 	setCastShadows(serialization.data["cast_shadows"].get<bool>());
 	setResolution(serialization.data["shadow_resolution"].get<int>());
+	
+	if (serialization.version >= 2)
+	{
+		setAngularDiameter(serialization.data["angular_diameter"].get<float>());
+	}
 }
 
 void DirectionalLight::onPreRender(RenderContext& context)
@@ -106,6 +112,7 @@ void DirectionalLight::onPreRender(RenderContext& context)
 	data.fragToLightDirection = -getLightDirection();
 	data.intensity = getIntensity();
 	data.color = getLinearColor();
+	data.angularDiameter = getAngularDiameter();
 	data.castShadows = _castShadows;
 	if (_castShadows)
 	{
@@ -136,6 +143,12 @@ void DirectionalLight::onDrawUi()
 	if (ImGui::DragFloat("Intensity", &intensity, 0.01f))
 	{
 		setIntensity(intensity);
+	}
+	
+	float angularDiameter = getAngularDiameter();
+	if (ImGui::SliderFloat("Angular Diameter", &angularDiameter, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+	{
+		setAngularDiameter(angularDiameter);
 	}
 	
 	bool castShadows = getCastShadows();
@@ -179,4 +192,15 @@ void DirectionalLight::duplicate(Entity& targetEntity) const
 	newComponent.setIntensity(getIntensity());
 	newComponent.setCastShadows(getCastShadows());
 	newComponent.setResolution(getResolution());
+	newComponent.setAngularDiameter(getAngularDiameter());
+}
+
+float DirectionalLight::getAngularDiameter() const
+{
+	return _angularDiameter;
+}
+
+void DirectionalLight::setAngularDiameter(float value)
+{
+	_angularDiameter = value;
 }

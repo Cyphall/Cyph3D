@@ -16,6 +16,7 @@ public:
 		glm::vec3     pos;
 		float         intensity;
 		glm::vec3     color;
+		float         radius;
 		bool          castShadows; // bool
 		glm::mat4     viewProjections[6];
 		Cubemap*      shadowMapTexture;
@@ -38,6 +39,9 @@ public:
 	void setResolution(int value);
 	int getResolution() const;
 	
+	float getRadius() const;
+	void setRadius(float value);
+	
 	void duplicate(Entity& targetEntity) const override;
 	
 	ObjectSerialization serialize() const override;
@@ -53,6 +57,8 @@ private:
 	
 	glm::mat4 _viewProjections[6];
 	static glm::mat4 _projection;
+	
+	float _radius = 0.1f;
 	
 	bool _castShadows = false;
 	int _resolution = 1024;

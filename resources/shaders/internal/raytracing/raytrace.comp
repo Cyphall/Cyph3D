@@ -66,9 +66,9 @@ struct Sphere
 	Material material;
 	Transform transform;
 	int objectIndex;
+	bool contributeShadows;
 	float padding0;
 	float padding1;
-	float padding2;
 };
 
 struct Plane
@@ -77,8 +77,8 @@ struct Plane
 	Transform transform;
 	bool infinite;
 	int objectIndex;
+	bool contributeShadows;
 	float padding0;
-	float padding1;
 };
 
 struct DirectionalLight
@@ -87,14 +87,18 @@ struct DirectionalLight
 	float angularDiameter;
 	vec3 color;
 	float intensity;
+	vec3 padding0;
+	bool castShadows;
 };
 
 struct PointLight
 {
 	vec3 position;
-	float size;
+	float radius;
 	vec3 color;
 	float intensity;
+	vec3 padding0;
+	bool castShadows;
 };
 
 struct Mesh
@@ -105,6 +109,10 @@ struct Mesh
 	int vertexOffset;
 	int indexOffset;
 	int indexCount;
+	bool contributeShadows;
+	float padding0;
+	float padding1;
+	float padding2;
 };
 
 struct Vertex
@@ -169,6 +177,9 @@ layout(std430, binding = 6) readonly buffer MeshIndexBuffer
 layout (bindless_image) writeonly uniform image2D o_renderImage;
 layout (bindless_image) writeonly uniform iimage2D o_objectIndexImage;
 
+const int MULTISAMPLES = 1;
+const int SHADOW_SAMPLES = 9;
+
 vec3 localToWorldDirection(Transform transform, vec3 direction);
 vec3 worldToLocalDirection(Transform transform, vec3 direction);
 vec3 localToWorldPosition(Transform transform, vec3 position);
@@ -181,6 +192,13 @@ vec3 localToWorldNormal(Transform transform, vec3 normal);
 vec3 sampleSkybox(vec3 dir);
 
 HitInfo trace(Ray ray);
+HitInfo shadowTrace(Ray ray);
+
+Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameter, vec2 pixelCoord);
+
+float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord);
+
+void getRightAndUp(vec3 forward, out vec3 right, out vec3 up);
 
 bool between(float min, float max, float v);
 
@@ -200,8 +218,6 @@ float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
-
-const int MULTISAMPLES = 1;
 
 layout (local_size_x = 1, local_size_y = 1) in;
 void main()
@@ -242,11 +258,15 @@ void main()
 				{
 					DirectionalLight light = directionalLights[i];
 					
-					//			float shadow = light.castShadows ? isInDirectionalShadow(i) : 0;
-					float shadow = 0;
-					
 					vec3 lightDir    = light.fragToLightDirection;
 					vec3 radiance    = light.color * light.intensity;
+					
+					float shadow = 0;
+					if (light.castShadows)
+					{
+						Ray shadowRay = Ray(hitInfo.impact + materialData.normal * 0.001, lightDir);
+						shadow = calcDirectionalShadow(light, shadowRay, vec2(gl_GlobalInvocationID));
+					}
 					
 					color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
 				}
@@ -382,6 +402,88 @@ HitInfo trace(Ray ray)
 	}
 	
 	return hitInfo;
+}
+
+HitInfo shadowTrace(Ray ray)
+{
+	HitInfo hitInfo;
+	hitInfo.anyHit = false;
+	
+	for (int i = 0; i < spheres.length(); i++)
+	{
+		if (spheres[i].contributeShadows)
+			intersectSphere(ray, spheres[i], hitInfo);
+	}
+	
+	for (int i = 0; i < planes.length(); i++)
+	{
+		if (planes[i].contributeShadows)
+			intersectPlane(ray, planes[i], hitInfo);
+	}
+	
+	for (int i = 0; i < meshes.length(); i++)
+	{
+		if (meshes[i].contributeShadows)
+			intersectMesh(ray, meshes[i], hitInfo);
+	}
+	
+	return hitInfo;
+}
+
+Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameter, vec2 pixelCoord)
+{
+	vec3 right;
+	vec3 up;
+	getRightAndUp(ray.direction, right, up);
+	
+	float factor = tan(radians(angularDiameter));
+	float phi = InterleavedGradientNoise(pixelCoord) * TWO_PI;
+	
+	Ray[SHADOW_SAMPLES] res;
+	
+	for (int i = 0; i < SHADOW_SAMPLES; i++)
+	{
+		res[i].origin = ray.origin;
+		
+		vec2 vogelSample = VogelDiskSample(i, SHADOW_SAMPLES, phi) * factor;
+		
+		vec3 bias = vogelSample.x * right + vogelSample.y * up;
+		res[i].direction = normalize(ray.direction + bias);
+	}
+	
+	return res;
+}
+
+float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord)
+{
+	int shadow = 0;
+	
+	Ray[SHADOW_SAMPLES] rays = calcShadowRays(ray, light.angularDiameter, pixelCoord);
+	
+	for (int i = 0; i < SHADOW_SAMPLES; i++)
+	{
+		HitInfo shadowRayInfo = shadowTrace(rays[i]);
+		if (shadowRayInfo.anyHit)
+		{
+			shadow++;
+		}
+	}
+	
+	return float(shadow) / float(SHADOW_SAMPLES);
+}
+
+void getRightAndUp(vec3 forward, out vec3 right, out vec3 up)
+{
+	if (forward.y > 0.9)
+	{
+		up = cross(forward, vec3(1, 0, 0));
+		right = cross(up, forward);
+	}
+	else
+	{
+		right = cross(vec3(0, 1, 0), forward);
+		up = cross(forward, right);
+	}
 }
 
 bool between(float min, float max, float v)
