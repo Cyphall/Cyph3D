@@ -54,6 +54,14 @@ struct MaterialData
 	vec3  F0;
 };
 
+struct ReflectInfo
+{
+	HitInfo hitInfo;
+	MaterialData materialData;
+	vec3 viewDir;
+	vec3 reflectDir;
+};
+
 struct Transform
 {
 	mat4 localToWorld;
@@ -180,6 +188,7 @@ layout (bindless_image) writeonly uniform iimage2D o_objectIndexImage;
 
 const int MULTISAMPLES = 1;
 const int SHADOW_SAMPLES = 9;
+const int MAX_BOUNCES = 2;
 
 vec3 localToWorldDirection(Transform transform, vec3 direction);
 vec3 worldToLocalDirection(Transform transform, vec3 direction);
@@ -197,8 +206,10 @@ HitInfo shadowTrace(Ray ray);
 
 Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameterRad, vec2 pixelCoord);
 
-float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord);
-float calcPointShadow(PointLight light, Ray ray, vec2 pixelCoord);
+float calcSmoothDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord);
+float calcHardDirectionalShadow(DirectionalLight light, Ray ray);
+float calcSmoothPointShadow(PointLight light, Ray ray, vec2 pixelCoord);
+float calcHardPointShadow(PointLight light, Ray ray);
 
 void getRightAndUp(vec3 forward, out vec3 right, out vec3 up);
 
@@ -238,7 +249,7 @@ void main()
 	
 	int objectIndex = -1;
 	
-	vec3 color = vec3(0);
+	vec3 pixelColor = vec3(0);
 	for (int y = 0; y < MULTISAMPLES; y++)
 	{
 		for (int x = 0; x < MULTISAMPLES; x++)
@@ -251,21 +262,64 @@ void main()
 			
 			vec3 interpolatedRayDir = mix(interpolatedBottomRayDir, interpolatedTopRayDir, normalizedSubPixelCoord.y);
 			
+			ReflectInfo[MAX_BOUNCES] reflectInfos;
+			int bounceCount = 0;
+			
 			Ray ray = Ray(u_camera.position, normalize(interpolatedRayDir));
 			
-			HitInfo hitInfo = trace(ray);
-			
-			if (hitInfo.anyHit)
+			for (int i = 0; i < MAX_BOUNCES; i++)
 			{
-				objectIndex = hitInfo.objectIndex;
-				
-				MaterialData materialData = getMaterialData(hitInfo.material, hitInfo.uv, hitInfo.normal, hitInfo.tangent);
-				
-				color += materialData.albedo * materialData.emissive;
-				
-				for (int i = 0; i < directionalLights.length(); i++)
+				HitInfo hitInfo = trace(ray);
+
+				if (hitInfo.anyHit)
 				{
-					DirectionalLight light = directionalLights[i];
+					if (objectIndex == -1)
+					{
+						objectIndex = hitInfo.objectIndex;
+					}
+
+					reflectInfos[bounceCount].hitInfo = hitInfo;
+					reflectInfos[bounceCount].materialData = getMaterialData(hitInfo.material, hitInfo.uv, hitInfo.normal, hitInfo.tangent);;
+					reflectInfos[bounceCount].viewDir = -ray.direction;
+					reflectInfos[bounceCount].reflectDir = reflect(ray.direction, reflectInfos[bounceCount].materialData.normal);
+
+					ray = Ray(hitInfo.impact + reflectInfos[bounceCount].reflectDir * 0.001, reflectInfos[bounceCount].reflectDir);
+
+					bounceCount++;
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			vec3 subPixelColor = u_skybox.enabled ? sampleSkybox(ray.direction) : vec3(0);
+			
+			for (int i = bounceCount-1; i >= 0; i--)
+			{
+				ReflectInfo reflectInfo = reflectInfos[i];
+				
+				MaterialData materialData = reflectInfo.materialData;
+				HitInfo hitInfo = reflectInfo.hitInfo;
+				vec3 viewDir = reflectInfo.viewDir;
+				vec3 reflectDir = reflectInfo.reflectDir;
+				
+				// --- reflection ---
+				
+				vec3 halfwayDir = materialData.normal;
+				vec3  F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), materialData.F0);
+				
+				subPixelColor *= F * (1.0 - materialData.roughness);
+				
+				// --- emissive ---
+				
+				subPixelColor += materialData.albedo * materialData.emissive;
+				
+				// --- directional lights ---
+				
+				for (int j = 0; j < directionalLights.length(); j++)
+				{
+					DirectionalLight light = directionalLights[j];
 					
 					vec3 lightDir    = light.fragToLightDirection;
 					vec3 radiance    = light.color * light.intensity;
@@ -274,15 +328,24 @@ void main()
 					if (light.castShadows)
 					{
 						Ray shadowRay = Ray(hitInfo.impact + materialData.normal * 0.001, lightDir);
-						shadow = calcDirectionalShadow(light, shadowRay, vec2(gl_GlobalInvocationID));
+						if (i == 0)
+						{
+							shadow = calcSmoothDirectionalShadow(light, shadowRay, vec2(gl_GlobalInvocationID));
+						}
+						else
+						{
+							shadow = calcHardDirectionalShadow(light, shadowRay);
+						}
 					}
 					
-					color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
+					subPixelColor += calculateLighting(radiance, viewDir, lightDir, materialData) * (1 - shadow);
 				}
 				
-				for (int i = 0; i < pointLights.length(); i++)
+				// --- point lights ---
+				
+				for (int j = 0; j < pointLights.length(); j++)
 				{
-					PointLight light = pointLights[i];
+					PointLight light = pointLights[j];
 					
 					vec3  fragToLight = light.position - hitInfo.impact;
 					float distance    = length(fragToLight);
@@ -294,37 +357,27 @@ void main()
 					if (light.castShadows)
 					{
 						Ray shadowRay = Ray(hitInfo.impact + materialData.normal * 0.001, lightDir);
-						shadow = calcPointShadow(light, shadowRay, vec2(gl_GlobalInvocationID));
+						if (i == 0)
+						{
+							shadow = calcSmoothPointShadow(light, shadowRay, vec2(gl_GlobalInvocationID));
+						}
+						else
+						{
+							shadow = calcHardPointShadow(light, shadowRay);
+						}
 					}
 					
-					color += calculateLighting(radiance, -ray.direction, lightDir, materialData) * (1 - shadow);
-				}
-
-				if (u_skybox.enabled)
-				{
-					float shadow = 0;
-
-					vec3 viewDir = -ray.direction;
-					vec3 lightDir = reflect(ray.direction, materialData.normal);
-					vec3 radiance = sampleSkybox(lightDir);
-
-					vec3 halfwayDir  = normalize(viewDir + lightDir);
-
-					vec3  F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), materialData.F0);
-
-					color += radiance * F * (1.0 - materialData.roughness);
+					subPixelColor += calculateLighting(radiance, viewDir, lightDir, materialData) * (1 - shadow);
 				}
 			}
-			else if (u_skybox.enabled)
-			{
-				color += sampleSkybox(ray.direction);
-			}
+			
+			pixelColor += subPixelColor;
 		}
 	}
 	
-	color /= MULTISAMPLES * MULTISAMPLES;
+	pixelColor /= MULTISAMPLES * MULTISAMPLES;
 	
-	imageStore(o_renderImage, ivec2(gl_GlobalInvocationID), vec4(color, 1));
+	imageStore(o_renderImage, ivec2(gl_GlobalInvocationID), vec4(pixelColor, 1));
 	imageStore(o_objectIndexImage, ivec2(gl_GlobalInvocationID), ivec4(objectIndex, 0, 0, 0));
 }
 
@@ -467,7 +520,7 @@ Ray[SHADOW_SAMPLES] calcShadowRays(Ray ray, float angularDiameterRad, vec2 pixel
 	return res;
 }
 
-float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord)
+float calcSmoothDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord)
 {
 	int shadow = 0;
 	
@@ -485,7 +538,13 @@ float calcDirectionalShadow(DirectionalLight light, Ray ray, vec2 pixelCoord)
 	return float(shadow) / float(SHADOW_SAMPLES);
 }
 
-float calcPointShadow(PointLight light, Ray ray, vec2 pixelCoord)
+float calcHardDirectionalShadow(DirectionalLight light, Ray ray)
+{
+	HitInfo shadowRayInfo = shadowTrace(ray);
+	return shadowRayInfo.anyHit ? 1.0 : 0.0;
+}
+
+float calcSmoothPointShadow(PointLight light, Ray ray, vec2 pixelCoord)
 {
 	int shadow = 0;
 	
@@ -503,6 +562,14 @@ float calcPointShadow(PointLight light, Ray ray, vec2 pixelCoord)
 	}
 	
 	return float(shadow) / float(SHADOW_SAMPLES);
+}
+
+float calcHardPointShadow(PointLight light, Ray ray)
+{
+	float lightDistance = length(light.position - ray.origin);
+	
+	HitInfo shadowRayInfo = shadowTrace(ray);
+	return shadowRayInfo.anyHit && shadowRayInfo.t < lightDistance ? 1.0 : 0.0;
 }
 
 void getRightAndUp(vec3 forward, out vec3 right, out vec3 up)
