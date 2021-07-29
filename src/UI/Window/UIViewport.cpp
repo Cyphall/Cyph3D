@@ -291,16 +291,19 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 	
 	RaytracingRenderer renderer(resolution);
 	
+	Camera camera(_camera);
+	camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));
+	
 	renderer.onNewFrame();
 	
 	RenderContext context
 	{
 		.renderer = renderer,
-		.camera = _camera
+		.camera = camera
 	};
 	Engine::getScene().onPreRender(context);
 	
-	Texture& texture = renderer.render(_camera, false);
+	Texture& texture = renderer.render(camera, false);
 	
 	glm::ivec2 textureSize = texture.getSize();
 	std::vector<glm::u8vec3> textureData(textureSize.x * textureSize.y);
