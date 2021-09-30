@@ -70,7 +70,7 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, Texture*>& textur
 	_pointLightShadowMappingProgram->bind();
 	for (PointLight::RenderData& renderData : registry.pointLights)
 	{
-		if (!renderData.castShadows) return;
+		if (!renderData.castShadows) continue;
 		
 		glViewport(0, 0, renderData.mapResolution, renderData.mapResolution);
 		
