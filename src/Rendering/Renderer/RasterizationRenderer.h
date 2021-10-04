@@ -16,9 +16,7 @@
 class RasterizationRenderer : public Renderer
 {
 public:
-	RasterizationRenderer(glm::ivec2 size);
-	
-	Texture& render(Camera& camera, bool debugView) override;
+	explicit RasterizationRenderer(glm::ivec2 size);
 	
 	void onNewFrame() override;
 	
@@ -36,4 +34,6 @@ private:
 	PostProcessingPass _postProcessingPass;
 	
 	Framebuffer _objectIndexFramebuffer;
+	
+	Texture& renderImpl(Camera& camera, Scene& scene, bool debugView) override;
 };

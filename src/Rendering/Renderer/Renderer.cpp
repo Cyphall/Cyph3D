@@ -1,4 +1,6 @@
 #include "Renderer.h"
+#include "../../Engine.h"
+#include "../../Scene/Scene.h"
 
 void Renderer::render(RenderPass& pass, Camera& camera)
 {
@@ -23,4 +25,15 @@ void Renderer::requestLightRendering(DirectionalLight::RenderData data)
 void Renderer::requestLightRendering(PointLight::RenderData data)
 {
 	_registry.pointLights.push_back(data);
+}
+
+Texture& Renderer::render(Camera& camera, bool debugView)
+{
+	Scene& scene = Engine::getScene();
+	
+	Texture& result = renderImpl(camera, scene, debugView);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	return result;
 }

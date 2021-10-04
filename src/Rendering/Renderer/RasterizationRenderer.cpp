@@ -21,10 +21,8 @@ _objectIndexFramebuffer(size)
 	_objectIndexFramebuffer.setReadBuffer(0);
 }
 
-Texture& RasterizationRenderer::render(Camera& camera, bool debugView)
+Texture& RasterizationRenderer::renderImpl(Camera& camera, Scene& scene, bool debugView)
 {
-	Scene& scene = Engine::getScene();
-	
 	Renderer::render(_zPrePass, camera);
 	Renderer::render(_shadowMapPass, camera);
 	
@@ -43,8 +41,6 @@ Texture& RasterizationRenderer::render(Camera& camera, bool debugView)
 	Renderer::render(_lightingPass, camera);
 	
 	Renderer::render(_postProcessingPass, camera);
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	return *_textures["final"];
 }

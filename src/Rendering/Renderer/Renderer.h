@@ -2,13 +2,14 @@
 
 #include "../RenderRegistry.h"
 #include "../Pass/RenderPass.h"
+#include "../../Scene/Scene.h"
 
 class Renderer
 {
 public:
 	virtual ~Renderer() = default;
 	
-	virtual Texture& render(Camera& camera, bool debugView) = 0;
+	Texture& render(Camera& camera, bool debugView);
 	
 	virtual void onNewFrame();
 	
@@ -22,5 +23,6 @@ protected:
 	std::unordered_map<std::string, Texture*> _textures;
 	RenderRegistry _registry;
 	
+	virtual Texture& renderImpl(Camera& camera, Scene& scene, bool debugView) = 0;
 	void render(RenderPass& pass, Camera& camera);
 };

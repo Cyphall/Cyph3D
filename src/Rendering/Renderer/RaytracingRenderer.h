@@ -7,9 +7,7 @@
 class RaytracingRenderer : public Renderer
 {
 public:
-	RaytracingRenderer(glm::ivec2 size);
-	
-	Texture& render(Camera& camera, bool debugView) override;
+	explicit RaytracingRenderer(glm::ivec2 size);
 	
 	Entity* getClickedEntity(glm::ivec2 clickPos) override;
 	
@@ -20,4 +18,6 @@ private:
 	PostProcessingPass _postProcessingPass;
 	
 	Framebuffer _objectIndexFramebuffer;
+	
+	Texture& renderImpl(Camera& camera, Scene& scene, bool debugView) override;
 };
