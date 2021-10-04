@@ -42,7 +42,7 @@ void RaytracePass::preparePipelineImpl()
 
 }
 
-void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
+void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
 {
 
 #pragma region Camera

@@ -3,13 +3,15 @@
 #include "../RenderRegistry.h"
 #include "../Pass/RenderPass.h"
 #include "../../Scene/Scene.h"
+#include <functional>
 
 class Renderer
 {
 public:
+	explicit Renderer(const char* name);
 	virtual ~Renderer() = default;
 	
-	Texture& render(Camera& camera, bool debugView);
+	std::pair<Texture*, const PerfStep*> render(Camera& camera, bool debugView);
 	
 	virtual void onNewFrame();
 	
@@ -22,6 +24,11 @@ public:
 protected:
 	std::unordered_map<std::string, Texture*> _textures;
 	RenderRegistry _registry;
+	
+	const char* _name;
+	
+	PerfStep _renderPerf;
+	GpuPerfCounter _perfCounter;
 	
 	virtual Texture& renderImpl(Camera& camera, Scene& scene, bool debugView) = 0;
 	void render(RenderPass& pass, Camera& camera);

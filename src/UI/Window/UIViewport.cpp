@@ -22,6 +22,7 @@ bool UIViewport::_fullscreen = false;
 bool UIViewport::_rendererIsInvalidated = true;
 
 std::string UIViewport::_rendererType = RasterizationRenderer::identifier;
+const PerfStep* UIViewport::_perfStep = nullptr;
 
 std::map<std::string, std::function<void(void)>> UIViewport::_allocators;
 
@@ -94,9 +95,11 @@ void UIViewport::show()
 	};
 	Engine::getScene().onPreRender(context);
 	
-	Texture& texture = _renderer->render(_camera, _gbufferDebugView);
+	auto [texture, perfStep] = _renderer->render(_camera, _gbufferDebugView);
 	
-	ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.getHandle())), glm::vec2(texture.getSize()), ImVec2(0, 1), ImVec2(1, 0));
+	_perfStep = perfStep;
+	
+	ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture->getHandle())), glm::vec2(texture->getSize()), ImVec2(0, 1), ImVec2(1, 0));
 	
 	if (Engine::getWindow().getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && ImGui::IsItemHovered())
 	{
@@ -303,12 +306,12 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 	};
 	Engine::getScene().onPreRender(context);
 	
-	Texture& texture = renderer.render(camera, false);
+	auto [texture, perfStep] = renderer.render(camera, false);
 	
-	glm::ivec2 textureSize = texture.getSize();
+	glm::ivec2 textureSize = texture->getSize();
 	std::vector<glm::u8vec3> textureData(textureSize.x * textureSize.y);
 	
-	glGetTextureImage(texture.getHandle(), 0, GL_RGB, GL_UNSIGNED_BYTE, textureData.size() * sizeof(glm::u8vec3), textureData.data());
+	glGetTextureImage(texture->getHandle(), 0, GL_RGB, GL_UNSIGNED_BYTE, textureData.size() * sizeof(glm::u8vec3), textureData.data());
 	
 	if (filePath->extension() == ".png")
 	{
@@ -318,4 +321,9 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 	{
 		stbi_write_jpg(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 3, textureData.data(), 95);
 	}
+}
+
+const PerfStep& UIViewport::getPreviousFramePerfStep()
+{
+	return *_perfStep;
 }

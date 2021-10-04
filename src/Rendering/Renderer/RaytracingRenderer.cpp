@@ -3,6 +3,7 @@
 const char* RaytracingRenderer::identifier = "Raytracing";
 
 RaytracingRenderer::RaytracingRenderer(glm::ivec2 size):
+Renderer("Raytracing Renderer"),
 _raytracePass(_textures, size),
 _postProcessingPass(_textures, size),
 _objectIndexFramebuffer(size)

@@ -6,8 +6,14 @@ _name(name), _size(size)
 
 }
 
-void RenderPass::render(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
+PerfStep RenderPass::render(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
 {
+	PerfStep perfStep{};
+	perfStep.name = _name;
+	perfStep.durationInMs = _perfCounter.retrieve();
+	
+	_perfCounter.start();
+	
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, _name);
 	
 	glm::ivec2 size = getSize();
@@ -18,7 +24,7 @@ void RenderPass::render(std::unordered_map<std::string, Texture*>& textures, Ren
 	glPopDebugGroup();
 	
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Render");
-	renderImpl(textures, objects, camera);
+	renderImpl(textures, objects, camera, perfStep);
 	glPopDebugGroup();
 	
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Restore pipeline");
@@ -26,6 +32,10 @@ void RenderPass::render(std::unordered_map<std::string, Texture*>& textures, Ren
 	glPopDebugGroup();
 	
 	glPopDebugGroup();
+	
+	_perfCounter.stop();
+	
+	return perfStep;
 }
 
 glm::ivec2 RenderPass::getSize() const

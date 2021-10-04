@@ -30,7 +30,7 @@ void GBufferDebugPass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void GBufferDebugPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
+void GBufferDebugPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	_shader->setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));
 	

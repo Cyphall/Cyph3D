@@ -83,7 +83,7 @@ void GeometryPass::preparePipelineImpl()
 	glDisable(GL_DITHER);
 }
 
-void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera)
+void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	_normalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	_colorTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);

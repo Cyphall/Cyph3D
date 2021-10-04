@@ -6,13 +6,21 @@ _name(name), _size(size)
 
 }
 
-Texture* PostProcessingEffect::render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera)
+std::pair<Texture*, PerfStep> PostProcessingEffect::render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera)
 {
+	PerfStep perfStep{};
+	perfStep.name = _name;
+	perfStep.durationInMs = _perfCounter.retrieve();
+	
+	_perfCounter.start();
+	
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, _name);
 	Texture* output = renderImpl(currentRenderTexture, textures, camera);
 	glPopDebugGroup();
 	
-	return output;
+	_perfCounter.stop();
+	
+	return std::make_pair(output, perfStep);
 }
 
 glm::ivec2 PostProcessingEffect::getSize() const

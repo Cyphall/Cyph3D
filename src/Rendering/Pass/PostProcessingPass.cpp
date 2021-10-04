@@ -16,7 +16,7 @@ void PostProcessingPass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
+void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	Texture* renderTexture = textures["raw_render"];
 	
@@ -25,7 +25,9 @@ void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& t
 	for (auto& effect : _effects)
 	{
 		glViewport(0, 0, size.x, size.y);
-		renderTexture = effect->render(renderTexture, textures, camera);
+		auto pair = effect->render(renderTexture, textures, camera);
+		renderTexture = pair.first;
+		previousFramePerfStep.subSteps.push_back(pair.second);
 	}
 	
 	textures["final"] = renderTexture;

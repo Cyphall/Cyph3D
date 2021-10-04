@@ -80,7 +80,7 @@ void SkyboxPass::preparePipelineImpl()
 	glDepthMask(GL_FALSE);
 }
 
-void SkyboxPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
+void SkyboxPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	_framebuffer.bindForDrawing();
 	

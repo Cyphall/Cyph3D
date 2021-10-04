@@ -29,7 +29,7 @@ void ShadowMapPass::preparePipelineImpl()
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 }
 
-void ShadowMapPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera)
+void ShadowMapPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	_vao.bind();
 	

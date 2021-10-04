@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
+#include "../../PerfCounter/PerfStep.h"
 
 class UIMisc
 {
@@ -11,4 +12,6 @@ public:
 
 private:
 	static glm::ivec2 _resolution;
+	
+	static void displayPerfStep(const PerfStep& perfStep);
 };

@@ -3,6 +3,7 @@
 #include <memory>
 #include "../../GLObject/Texture.h"
 #include "../../Scene/Camera.h"
+#include "../../PerfCounter/PerfStep.h"
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <string>
@@ -22,6 +23,8 @@ public:
 	static bool isFullscreen();
 	
 	static void renderToFile(glm::ivec2 resolution);
+	
+	static const PerfStep& getPreviousFramePerfStep();
 
 private:
 	static std::unique_ptr<Renderer> _renderer;
@@ -37,6 +40,8 @@ private:
 	static bool _rendererIsInvalidated;
 	
 	static std::string _rendererType;
+	
+	static const PerfStep* _perfStep;
 	
 	static std::map<std::string, std::function<void(void)>> _allocators;
 	static void initAllocators();

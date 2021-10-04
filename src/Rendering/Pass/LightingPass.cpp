@@ -31,7 +31,7 @@ void LightingPass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera)
+void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	std::vector<GLSLDirectionalLight> directionalLightData;
 	directionalLightData.reserve(registry.directionalLights.size());

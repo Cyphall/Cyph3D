@@ -8,6 +8,7 @@
 const char* RasterizationRenderer::identifier = "Rasterisation";
 
 RasterizationRenderer::RasterizationRenderer(glm::ivec2 size):
+Renderer("Rasterization Renderer"),
 _zPrePass(_textures, size),
 _shadowMapPass(_textures, size),
 _geometryPass(_textures, size),

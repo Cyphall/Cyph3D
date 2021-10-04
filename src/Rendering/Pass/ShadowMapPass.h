@@ -8,7 +8,7 @@ public:
 	ShadowMapPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size);
 	
 	void preparePipelineImpl() override;
-	void renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera) override;
+	void renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep) override;
 	void restorePipelineImpl() override;
 
 private:

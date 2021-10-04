@@ -2,14 +2,21 @@
 #include "../../Engine.h"
 #include "../../Scene/Scene.h"
 
+Renderer::Renderer(const char* name):
+_name(name)
+{
+
+}
+
 void Renderer::render(RenderPass& pass, Camera& camera)
 {
-	pass.render(_textures, _registry, camera);
+	_renderPerf.subSteps.push_back(pass.render(_textures, _registry, camera));
 }
 
 void Renderer::onNewFrame()
 {
 	_registry.clear();
+	_renderPerf = PerfStep();
 }
 
 void Renderer::requestShapeRendering(ShapeRenderer::RenderData request)
@@ -27,13 +34,20 @@ void Renderer::requestLightRendering(PointLight::RenderData data)
 	_registry.pointLights.push_back(data);
 }
 
-Texture& Renderer::render(Camera& camera, bool debugView)
+std::pair<Texture*, const PerfStep*> Renderer::render(Camera& camera, bool debugView)
 {
 	Scene& scene = Engine::getScene();
+	
+	_renderPerf.name = _name;
+	_renderPerf.durationInMs = _perfCounter.retrieve();
+	
+	_perfCounter.start();
 	
 	Texture& result = renderImpl(camera, scene, debugView);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	return result;
+	_perfCounter.stop();
+	
+	return std::make_pair(&result, &_renderPerf);
 }

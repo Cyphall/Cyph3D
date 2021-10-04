@@ -67,5 +67,29 @@ void UIMisc::show()
 		UIViewport::renderToFile(_resolution);
 	}
 	
+	ImGui::Separator();
+	
+	displayPerfStep(UIViewport::getPreviousFramePerfStep());
+	
 	ImGui::End();
+}
+
+void UIMisc::displayPerfStep(const PerfStep& perfStep)
+{
+	if (!perfStep.subSteps.empty())
+	{
+		if (ImGui::TreeNodeEx(perfStep.name, 0, "%s: %.3fms", perfStep.name, perfStep.durationInMs))
+		{
+			for (const PerfStep& perfSubstep : perfStep.subSteps)
+			{
+				displayPerfStep(perfSubstep);
+			}
+			ImGui::TreePop();
+		}
+	}
+	else
+	{
+		ImGui::TreeNodeEx(perfStep.name, ImGuiTreeNodeFlags_Leaf, "%s: %.3fms", perfStep.name, perfStep.durationInMs);
+		ImGui::TreePop();
+	}
 }

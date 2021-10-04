@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../../GLObject/Texture.h"
+#include "../../PerfCounter/PerfStep.h"
+#include "../../PerfCounter/GpuPerfCounter.h"
 #include <unordered_map>
 
 class Camera;
@@ -13,7 +15,7 @@ public:
 	
 	glm::ivec2 getSize() const;
 	
-	Texture* render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera);
+	std::pair<Texture*, PerfStep> render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera);
 
 protected:
 	virtual Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera) = 0;
@@ -21,4 +23,5 @@ protected:
 private:
 	const char* _name;
 	glm::ivec2 _size;
+	GpuPerfCounter _perfCounter;
 };
