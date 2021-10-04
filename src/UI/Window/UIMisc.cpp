@@ -69,7 +69,9 @@ void UIMisc::show()
 	
 	ImGui::Separator();
 	
-	displayPerfStep(UIViewport::getPreviousFramePerfStep());
+	const PerfStep* perfStep = UIViewport::getPreviousFramePerfStep();
+	if (perfStep)
+		displayPerfStep(*perfStep);
 	
 	ImGui::End();
 }

@@ -323,7 +323,7 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 	}
 }
 
-const PerfStep& UIViewport::getPreviousFramePerfStep()
+const PerfStep* UIViewport::getPreviousFramePerfStep()
 {
-	return *_perfStep;
+	return _perfStep;
 }

@@ -24,7 +24,7 @@ public:
 	
 	static void renderToFile(glm::ivec2 resolution);
 	
-	static const PerfStep& getPreviousFramePerfStep();
+	static const PerfStep* getPreviousFramePerfStep();
 
 private:
 	static std::unique_ptr<Renderer> _renderer;
