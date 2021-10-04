@@ -10,7 +10,7 @@ _framebuffer(size),
 _outputTexture(TextureCreateInfo
 {
 	.size = size,
-	.internalFormat = GL_RGB16F
+	.internalFormat = GL_RGBA16F
 })
 {
 	_framebuffer.attachColor(0, _outputTexture);

@@ -11,7 +11,7 @@ _framebuffer(size),
 _rawRenderTexture(TextureCreateInfo
 {
  .size = size,
- .internalFormat = GL_RGB16F
+ .internalFormat = GL_RGBA16F
 })
 {
 	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
@@ -89,7 +89,7 @@ void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_shader->bind();
 	_framebuffer.bindForDrawing();
 	
-	_rawRenderTexture.clear(GL_RGB, GL_HALF_FLOAT, nullptr);
+	_rawRenderTexture.clear(GL_RGBA, GL_HALF_FLOAT, nullptr);
 	
 	RenderHelper::drawScreenQuad();
 }

@@ -11,12 +11,12 @@ _gbuffer(size),
 _normalTexture(TextureCreateInfo
 {
    .size = size,
-   .internalFormat = GL_RGB16F
+   .internalFormat = GL_RGBA16F
 }),
 _colorTexture(TextureCreateInfo
 {
   .size = size,
-  .internalFormat = GL_RGB16F
+  .internalFormat = GL_RGBA16F
 }),
 _materialTexture(TextureCreateInfo
  {
@@ -26,7 +26,7 @@ _materialTexture(TextureCreateInfo
 _geometryNormalTexture(TextureCreateInfo
 {
    .size = size,
-   .internalFormat = GL_RGB16F
+   .internalFormat = GL_RGBA16F
 }),
 _objectIndexTexture(TextureCreateInfo
 {
@@ -36,7 +36,7 @@ _objectIndexTexture(TextureCreateInfo
 _positionTexture(TextureCreateInfo
 {
 	.size = size,
-	.internalFormat = GL_RGB32F
+	.internalFormat = GL_RGBA32F
 })
 {
 	_gbuffer.attachColor(0, _normalTexture);
@@ -85,11 +85,11 @@ void GeometryPass::preparePipelineImpl()
 
 void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
-	_normalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-	_colorTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	_normalTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	_colorTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	_materialTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	_geometryNormalTexture.clear(GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-	_positionTexture.clear(GL_RGB, GL_FLOAT, nullptr);
+	_geometryNormalTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	_positionTexture.clear(GL_RGBA, GL_FLOAT, nullptr);
 	
 	int clearIndex = -1;
 	_objectIndexTexture.clear(GL_RED_INTEGER, GL_INT, &clearIndex);

@@ -11,13 +11,13 @@ _extractBrightFramebuffer(size),
 _nonBrightTexture(TextureCreateInfo
 {
 	.size = size,
-	.internalFormat = GL_RGB16F
+	.internalFormat = GL_RGBA16F
 }),
 _blurTextures{
 	Texture(TextureCreateInfo
 	{
 		.size = size,
-		.internalFormat = GL_RGB16F,
+		.internalFormat = GL_RGBA16F,
 		.minFilter = GL_NEAREST_MIPMAP_NEAREST,
 		.magFilter = GL_NEAREST,
 		.wrapS = GL_CLAMP_TO_BORDER,
@@ -28,7 +28,7 @@ _blurTextures{
 	Texture(TextureCreateInfo
 	{
 		.size = size,
-		.internalFormat = GL_RGB16F,
+		.internalFormat = GL_RGBA16F,
 		.minFilter = GL_NEAREST_MIPMAP_NEAREST,
 		.magFilter = GL_NEAREST,
 		.wrapS = GL_CLAMP_TO_BORDER,
@@ -49,7 +49,7 @@ _combineFramebuffer(size),
 _outputTexture(TextureCreateInfo
 {
 	.size = size,
-	.internalFormat = GL_RGB16F
+	.internalFormat = GL_RGBA16F
 })
 {
 	_extractBrightFramebuffer.attachColor(0, _nonBrightTexture);
