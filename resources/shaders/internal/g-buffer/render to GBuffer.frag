@@ -50,7 +50,6 @@ void main()
 	o_material.r = texture(u_roughnessMap, texCoords).r;
 	o_material.g = texture(u_metalnessMap, texCoords).r;
 	o_material.b = texture(u_emissiveMap, texCoords).r;
-	o_material.a = 1;
 	
 	o_objectIndex = u_objectIndex;
 	

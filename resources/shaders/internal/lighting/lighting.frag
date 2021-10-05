@@ -94,7 +94,6 @@ float getRoughness();
 float getMetallic();
 float getEmissive();
 float getDepth();
-int isLit();
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -102,24 +101,10 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
 /* ------ code ------ */
+// Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
 void main()
 {
-	// Mandatory data
-	fragData.texCoords = v2f.texCoords;
-	
-	if (isLit() == 0)
-	{
-		o_color = vec4(getColor(), 1);
-	}
-	else
-	{
-		o_color = lighting();
-	}
-}
-
-// Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
-vec4 lighting()
-{
+	fragData.texCoords         = v2f.texCoords;
 	fragData.color             = getColor();
 	fragData.depth             = getDepth();
 	fragData.pos               = getPosition();
@@ -133,7 +118,8 @@ vec4 lighting()
 	
 	if (fragData.depth == 1)
 	{
-		return vec4(0, 0, 0, 1);
+		o_color = vec4(0, 0, 0, 1);
+		return;
 	}
 	
 	// aka Lo
@@ -167,7 +153,7 @@ vec4 lighting()
 		finalColor += calculateLighting(radiance, lightDir, halfwayDir) * (1 - shadow);
 	}
 	
-	return vec4(finalColor, 1);
+	o_color = vec4(finalColor, 1);
 }
 
 // Based on the code at https://www.gamedev.net/tutorials/programming/graphics/contact-hardening-soft-shadows-made-fast-r4906/
@@ -364,11 +350,6 @@ float getEmissive()
 float getDepth()
 {
 	return texture(u_depthTexture, fragData.texCoords).r;
-}
-
-int isLit()
-{
-	return int(texture(u_materialTexture, fragData.texCoords).a);
 }
 
 // Normal Distribution Function
