@@ -172,6 +172,11 @@ void ShaderProgram::dispatch(glm::ivec3 groups)
 	glDispatchCompute(groups.x, groups.y, groups.z);
 }
 
+void ShaderProgram::dispatchAuto(glm::ivec3 workResolution)
+{
+	dispatch(glm::ivec3(glm::ceil(glm::vec3(workResolution) / glm::vec3(getWorkGroupSize()))));
+}
+
 glm::ivec3 ShaderProgram::getWorkGroupSize() const
 {
 	glm::ivec3 workGroupSize;

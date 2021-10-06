@@ -231,7 +231,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_shader->setUniform("o_objectIndexImage", _objectIndexTexture.getBindlessImageHandle(GL_R32I, GL_WRITE_ONLY));
 	
 	_shader->bind();
-	_shader->dispatch(glm::ivec3(glm::ceil(glm::vec2(getSize()) / glm::vec2(_shader->getWorkGroupSize())), 1));
+	_shader->dispatchAuto(glm::ivec3(getSize(), 1));
 	
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
