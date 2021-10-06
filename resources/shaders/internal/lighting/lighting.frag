@@ -118,7 +118,7 @@ void main()
 	
 	if (fragData.depth == 1)
 	{
-		o_color = vec4(0, 0, 0, 1);
+		o_color = vec4(fragData.color, 1);
 		return;
 	}
 	
