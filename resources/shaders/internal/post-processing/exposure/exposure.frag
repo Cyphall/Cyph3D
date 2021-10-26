@@ -4,16 +4,11 @@
 layout(bindless_sampler) uniform sampler2D u_colorTexture;
 uniform float u_exposure;
 
-in V2F
-{
-	vec2 texCoords;
-} v2f;
-
 out vec3 o_color;
 
 void main()
 {
-	vec3 color = texture(u_colorTexture, v2f.texCoords).rgb;
+	vec3 color = texelFetch(u_colorTexture, ivec2(gl_FragCoord.xy), 0).rgb;
 	
 	color *= pow(2, u_exposure);
 	

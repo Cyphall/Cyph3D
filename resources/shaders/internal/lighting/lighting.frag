@@ -6,11 +6,6 @@ const float PI = 3.14159265359;
 const float TWO_PI = PI*2;
 const float SQRT_2 = 1.41421356237;
 
-/* ------ inputs from vertex shader ------ */
-in V2F {
-	vec2  texCoords;
-} v2f;
-
 /* ------ data structures ------ */
 struct PointLight
 {
@@ -37,7 +32,7 @@ struct DirectionalLight
 
 struct FragData
 {
-	vec2  texCoords;
+	ivec2 texCoords;
 	float depth;
 	vec3  pos;
 	vec3  viewDir;
@@ -104,7 +99,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 // Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
 void main()
 {
-	fragData.texCoords         = v2f.texCoords;
+	fragData.texCoords         = ivec2(gl_FragCoord.xy);
 	fragData.color             = getColor();
 	fragData.depth             = getDepth();
 	fragData.pos               = getPosition();
@@ -314,42 +309,42 @@ vec3 calculateBRDF(vec3 lightDir, vec3 halfwayDir)
 
 vec3 getPosition()
 {
-	return texture(u_position, fragData.texCoords).rgb;
+	return texelFetch(u_position, fragData.texCoords, 0).rgb;
 }
 
 vec3 getColor()
 {
-	return texture(u_colorTexture, fragData.texCoords).rgb;
+	return texelFetch(u_colorTexture, fragData.texCoords, 0).rgb;
 }
 
 vec3 getNormal()
 {
-	return normalize(texture(u_normalTexture, fragData.texCoords).rgb * 2.0 - 1.0);
+	return normalize(texelFetch(u_normalTexture, fragData.texCoords, 0).rgb * 2.0 - 1.0);
 }
 
 vec3 getGeometryNormal()
 {
-	return normalize(texture(u_geometryNormalTexture, fragData.texCoords).rgb * 2.0 - 1.0);
+	return normalize(texelFetch(u_geometryNormalTexture, fragData.texCoords, 0).rgb * 2.0 - 1.0);
 }
 
 float getRoughness()
 {
-	return texture(u_materialTexture, fragData.texCoords).r;
+	return texelFetch(u_materialTexture, fragData.texCoords, 0).r;
 }
 
 float getMetallic()
 {
-	return texture(u_materialTexture, fragData.texCoords).g;
+	return texelFetch(u_materialTexture, fragData.texCoords, 0).g;
 }
 
 float getEmissive()
 {
-	return texture(u_materialTexture, fragData.texCoords).b;
+	return texelFetch(u_materialTexture, fragData.texCoords, 0).b;
 }
 
 float getDepth()
 {
-	return texture(u_depthTexture, fragData.texCoords).r;
+	return texelFetch(u_depthTexture, fragData.texCoords, 0).r;
 }
 
 // Normal Distribution Function

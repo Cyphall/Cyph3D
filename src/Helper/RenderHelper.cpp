@@ -7,12 +7,11 @@ void RenderHelper::initDrawScreenQuad()
 {
 	_quadVAO = std::make_unique<VertexArray>();
 	
-	RenderHelper::VertexData BL = {{-1,  -1},  {0,  0}};
-	RenderHelper::VertexData TL = {{-1,   1},  {0,  1}};
-	RenderHelper::VertexData BR = {{ 1,  -1},  {1,  0}};
-	RenderHelper::VertexData TR = {{ 1,   1},  {1,  1}};
+	RenderHelper::VertexData BL = {{-1, -1}, {0, 0}};
+	RenderHelper::VertexData BR = {{ 3, -1}, {2, 0}};
+	RenderHelper::VertexData TL = {{-1,  3}, {0, 2}};
 	
-	std::vector<RenderHelper::VertexData> data = {TL, BL, BR, TL, BR, TR};
+	std::vector<RenderHelper::VertexData> data = {BL, BR, TL};
 	
 	_quadVBO = std::make_unique<Buffer<RenderHelper::VertexData>>(data.size(), GL_DYNAMIC_STORAGE_BIT);
 	_quadVBO->setData(data);
@@ -25,5 +24,5 @@ void RenderHelper::initDrawScreenQuad()
 void RenderHelper::drawScreenQuad()
 {
 	_quadVAO->bind();
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 }

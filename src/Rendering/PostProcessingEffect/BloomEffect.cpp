@@ -69,28 +69,28 @@ _outputTexture(TextureCreateInfo
 	
 	{
 		ShaderProgramCreateInfo createInfo;
-		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/post-processing/post-processing");
+		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
 		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/extract bright");
 		_extractBrightProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 	}
 	
 	{
 		ShaderProgramCreateInfo createInfo;
-		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/post-processing/post-processing");
+		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
 		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/blur");
 		_blurProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 	}
 	
 	{
 		ShaderProgramCreateInfo createInfo;
-		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/post-processing/post-processing");
+		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
 		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/combine");
 		_combineProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 	}
 	
 	{
 		ShaderProgramCreateInfo createInfo;
-		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/post-processing/post-processing");
+		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
 		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/passthroughLevel");
 		_passthroughLevelProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 	}

@@ -6,16 +6,11 @@ vec3 ACESFilm(vec3 x);
 
 layout(bindless_sampler) uniform sampler2D u_colorTexture;
 
-in V2F
-{
-	vec2 texCoords;
-} v2f;
-
 out vec3 o_color;
 
 void main()
 {
-	vec3 color = texture(u_colorTexture, v2f.texCoords).rgb;
+	vec3 color = texelFetch(u_colorTexture, ivec2(gl_FragCoord.xy), 0).rgb;
 	
 	o_color = toSRGB(ACESFilm(color));
 }

@@ -17,7 +17,7 @@ _outputTexture(TextureCreateInfo
 	_framebuffer.addToDrawBuffers(0, 0);
 	
 	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/post-processing/post-processing");
+	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
 	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/tone mapping/tone mapping");
 	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
