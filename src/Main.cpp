@@ -1,31 +1,25 @@
 #include "Engine.h"
 #include "Exception/OpenGLException.h"
-#include <windows.h>
-#include "Logger.h"
+#include "Logging/Logger.h"
 
 int main(int argc, char** argv)
 {
 	try
 	{
-		Logger::Init();
 		Engine::init();
 		Engine::run();
 		Engine::shutdown();
 	}
 	catch (const OpenGLException& e)
 	{
-		Logger::Error(e.what(), "OPGL");
-		if (IsDebuggerPresent())
-			__debugbreak();
+		Logger::error(e.what(), "OPGL");
 		Engine::shutdown();
 		system("pause");
 		return EXIT_FAILURE;
 	}
 	catch (const std::exception& e)
 	{
-		Logger::Error(e.what());
-		if (IsDebuggerPresent())
-			__debugbreak();
+		Logger::error(e.what());
 		Engine::shutdown();
 		system("pause");
 		return EXIT_FAILURE;

@@ -1,5 +1,5 @@
 #include "ResourceManager.h"
-#include "../Logger.h"
+#include "../Logging/Logger.h"
 #include "../Window.h"
 #include "../Engine.h"
 #include <format>
@@ -21,9 +21,9 @@ Model* ResourceManager::requestModel(const std::string& name)
 		
 		_threadPool.push_task([](Model* model)
 		{
-			Logger::Info(std::format("Loading model \"{}\"", model->getName()));
+			Logger::info(std::format("Loading model \"{}\"", model->getName()));
 			model->loadResource();
-			Logger::Info(std::format("Model \"{}\" loaded", model->getName()));
+			Logger::info(std::format("Model \"{}\" loaded", model->getName()));
 		}, model);
 	}
 	
@@ -40,9 +40,9 @@ Image* ResourceManager::requestImage(const std::string& name, ImageType type)
 		
 		_threadPool.push_task([](Image* image, ImageType type)
 		{
-			Logger::Info(std::format("Loading image \"{}\"", image->getName()));
+			Logger::info(std::format("Loading image \"{}\"", image->getName()));
 			image->loadResource(type);
-			Logger::Info(std::format("Image \"{}\" loaded", image->getName()));
+			Logger::info(std::format("Image \"{}\" loaded", image->getName()));
 		}, image, type);
 	}
 	
@@ -59,9 +59,9 @@ Skybox* ResourceManager::requestSkybox(const std::string& name)
 		
 		_threadPool.push_task([](Skybox* skybox)
 		{
-			Logger::Info(std::format("Loading skybox \"{}\"", skybox->getName()));
+			Logger::info(std::format("Loading skybox \"{}\"", skybox->getName()));
 			skybox->loadResource();
-			Logger::Info(std::format("Skybox \"{}\" loaded", skybox->getName()));
+			Logger::info(std::format("Skybox \"{}\" loaded", skybox->getName()));
 		}, skybox);
 	}
 	
@@ -72,9 +72,9 @@ ShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateIn
 {
 	if (!_shaderPrograms.contains(createInfo))
 	{
-		Logger::Info("Loading shader program");
+		Logger::info("Loading shader program");
 		_shaderPrograms[createInfo] = std::make_unique<ShaderProgram>(createInfo);
-		Logger::Info(std::format("Shader program loaded (id: {})", _shaderPrograms[createInfo]->getHandle()));
+		Logger::info(std::format("Shader program loaded (id: {})", _shaderPrograms[createInfo]->getHandle()));
 	}
 	
 	return _shaderPrograms[createInfo].get();

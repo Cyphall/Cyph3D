@@ -5,7 +5,7 @@
 #include "../Helper/ShaderHelper.h"
 #include "../Helper/FileHelper.h"
 #include "../Helper/StringHelper.h"
-#include "../Logger.h"
+#include "../Logging/Logger.h"
 #include <format>
 #include <numeric>
 #include <glm/gtc/type_ptr.hpp>
@@ -130,7 +130,7 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 		}
 		catch (const std::ios_base::failure& e)
 		{
-			Logger::Error(std::format("Unable to open shader file \"{}.{}\"", file, extension));
+			Logger::error(std::format("Unable to open shader file \"{}.{}\"", file, extension));
 			throw e;
 		}
 	}

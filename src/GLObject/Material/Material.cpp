@@ -3,7 +3,6 @@
 #include "../../Helper/TextureHelper.h"
 #include "../../Helper/JsonHelper.h"
 #include "../../ResourceManagement/ResourceManager.h"
-#include "../../Logger.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include <format>
 

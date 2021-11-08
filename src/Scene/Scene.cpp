@@ -4,7 +4,6 @@
 #include "../Helper/JsonHelper.h"
 #include <format>
 #include <glm/gtc/type_ptr.hpp>
-#include "../Logger.h"
 #include "../Engine.h"
 #include "Scene.h"
 #include "../UI/Window/UIInspector.h"

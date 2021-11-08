@@ -1,10 +1,9 @@
 #include "Engine.h"
 #include "Helper/GlfwHelper.h"
 #include <stdexcept>
-#include <windows.h>
 #include "UI/UIHelper.h"
 #include "GLObject/Framebuffer.h"
-#include "Logger.h"
+#include "Logging/Logger.h"
 #include <GLFW/glfw3.h>
 #include "Window.h"
 #include "ResourceManagement/ResourceManager.h"
@@ -32,15 +31,13 @@ void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLs
 	switch (severity)
 	{
 		case GL_DEBUG_SEVERITY_HIGH:
-			Logger::Error(message, "OPGL");
-			if (IsDebuggerPresent())
-				__debugbreak();
+			Logger::error(message, "OPGL");
 			break;
 		case GL_DEBUG_SEVERITY_MEDIUM:
-			Logger::Warning(message, "OPGL");
+			Logger::warning(message, "OPGL");
 			break;
 		case GL_DEBUG_SEVERITY_LOW:
-			Logger::Info(message, "OPGL");
+			Logger::info(message, "OPGL");
 			break;
 	}
 }
@@ -58,13 +55,14 @@ void Engine::init()
 	
 	_globalResourceManager = std::make_unique<ResourceManager>(1);
 	
-	Logger::Info(std::format("GLFW Version: {}", glfwGetVersionString()), "GLFW");
-	Logger::Info(std::format("OpenGL Version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION))), "OPGL");
-	Logger::Info(std::format("GPU: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER))), "OPGL");
+	Logger::info(std::format("GLFW Version: {}", glfwGetVersionString()), "GLFW");
+	Logger::info(std::format("OpenGL Version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION))), "OPGL");
+	Logger::info(std::format("GPU: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER))), "OPGL");
 	
 	glEnable(GL_DEBUG_OUTPUT);
-	if (IsDebuggerPresent())
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#if defined(_DEBUG)
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
 //	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 	glDebugMessageCallback(messageCallback, nullptr);
 	
