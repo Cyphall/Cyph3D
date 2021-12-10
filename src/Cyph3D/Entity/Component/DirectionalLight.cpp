@@ -6,7 +6,6 @@
 #include "../../Scene/Scene.h"
 #include "../../Engine.h"
 #include "../../Rendering/Renderer/Renderer.h"
-#include "../../Rendering/RenderRegistry.h"
 
 const char* DirectionalLight::identifier = "DirectionalLight";
 glm::mat4 DirectionalLight::_projection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -50.0f, 50.0f);
@@ -14,10 +13,7 @@ glm::mat4 DirectionalLight::_projection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0
 DirectionalLight::DirectionalLight(Entity& entity):
 LightBase(entity)
 {
-	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/shadow mapping/directional light");
-	
-	_shadowMapProgram = getEntity().getScene().getRM().requestShaderProgram(createInfo);
+
 }
 
 void DirectionalLight::setCastShadows(bool value)

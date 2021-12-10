@@ -28,7 +28,7 @@ public:
 		float          mapDepth;
 	};
 
-	DirectionalLight(Entity& entity);
+	explicit DirectionalLight(Entity& entity);
 	
 	void onPreRender(RenderContext& context) override;
 	void onDrawUi() override;
@@ -53,7 +53,6 @@ public:
 private:
 	std::unique_ptr<Texture> _shadowMap;
 	std::unique_ptr<Framebuffer> _shadowMapFb;
-	ShaderProgram* _shadowMapProgram;
 	
 	static glm::mat4 _projection;
 	

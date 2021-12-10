@@ -6,7 +6,6 @@
 #include "../../Scene/Scene.h"
 #include "../../Engine.h"
 #include "../../Rendering/Renderer/Renderer.h"
-#include "../../Rendering/RenderRegistry.h"
 
 const char* PointLight::identifier = "PointLight";
 glm::mat4 PointLight::_projection = glm::perspective(glm::radians(90.0f), 1.0f, NEAR_DISTANCE, FAR_DISTANCE);
@@ -14,12 +13,7 @@ glm::mat4 PointLight::_projection = glm::perspective(glm::radians(90.0f), 1.0f, 
 PointLight::PointLight(Entity& entity):
 LightBase(entity)
 {
-	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_GEOMETRY_SHADER].emplace_back("internal/shadow mapping/point light");
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/shadow mapping/point light");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/shadow mapping/point light");
-	
-	_shadowMapProgram = getEntity().getScene().getRM().requestShaderProgram(createInfo);
+
 }
 
 void PointLight::setCastShadows(bool value)

@@ -25,7 +25,7 @@ public:
 		float         far;
 	};
 	
-	PointLight(Entity& entity);
+	explicit PointLight(Entity& entity);
 	
 	void onPreRender(RenderContext& context) override;
 	void onDrawUi() override;
@@ -53,9 +53,7 @@ private:
 	
 	std::unique_ptr<Cubemap> _shadowMap;
 	std::unique_ptr<Framebuffer> _shadowMapFb;
-	ShaderProgram* _shadowMapProgram;
 	
-	glm::mat4 _viewProjections[6];
 	static glm::mat4 _projection;
 	
 	float _radius = 0.1f;
