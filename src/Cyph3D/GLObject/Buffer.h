@@ -14,7 +14,7 @@ public:
 		glCreateBuffers(1, &_handle);
 	}
 	
-	Buffer(GLsizei count, GLenum flags):
+	Buffer(GLsizeiptr count, GLenum flags):
 	_isMutable(false), _count(count), _immutableFlags(flags)
 	{
 		glCreateBuffers(1, &_handle);
@@ -27,14 +27,14 @@ public:
 		glDeleteBuffers(1, &_handle);
 	}
 	
-	void resize(int elementCount)
+	void resize(GLsizeiptr elementCount)
 	{
 		assert(_isMutable);
 		_count = elementCount;
 		glNamedBufferData(_handle, getSize(), nullptr, _mutableUsage);
 	}
 	
-	void setData(const T* data, int dataCount)
+	void setData(const T* data, GLsizeiptr dataCount)
 	{
 		if (_isMutable)
 		{
@@ -53,19 +53,19 @@ public:
 		setData(data.data(), data.size());
 	}
 	
-	GLsizei getCount() const
+	GLsizeiptr getCount() const
 	{
 		return _count;
 	}
 	
-	GLsizei getSize() const
+	GLsizeiptr getSize() const
 	{
 		return _count * sizeof(T);
 	}
 
 private:
 	bool _isMutable;
-	GLsizei _count = -1;
+	GLsizeiptr _count = -1;
 	GLenum _mutableUsage = 0;
 	GLenum _immutableFlags = 0;
 };
