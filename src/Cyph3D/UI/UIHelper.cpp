@@ -1,6 +1,6 @@
 #include "UIHelper.h"
-#include "Impl/imgui_impl_glfw.h"
-#include "Impl/imgui_impl_opengl3.h"
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include "../Engine.h"
 #include "../Scene/Scene.h"
 #include "Window/UIMisc.h"
