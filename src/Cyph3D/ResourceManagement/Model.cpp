@@ -17,7 +17,7 @@ void Model::loadResourceImpl()
 	std::vector<Mesh::VertexData> vertexData;
 	vertexData.reserve(mesh->mNumVertices);
 	
-	for (int i = 0; i < mesh->mNumVertices; ++i)
+	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
 	{
 		aiVector3D v = mesh->mVertices[i];
 		aiVector3D uv = mesh->mTextureCoords[0][i];
@@ -34,7 +34,7 @@ void Model::loadResourceImpl()
 	std::vector<GLuint> indices;
 	indices.reserve(mesh->mNumFaces * 3);
 	
-	for (int i = 0; i < mesh->mNumFaces; ++i)
+	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
 	{
 		indices.push_back(mesh->mFaces[i].mIndices[0]);
 		indices.push_back(mesh->mFaces[i].mIndices[1]);

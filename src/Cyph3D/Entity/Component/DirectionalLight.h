@@ -7,7 +7,7 @@
 #include "LightBase.h"
 #include "../../GLObject/VertexArray.h"
 
-class RenderRegistry;
+struct RenderRegistry;
 class Renderer;
 
 class DirectionalLight : public LightBase

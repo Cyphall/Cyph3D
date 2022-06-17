@@ -6,7 +6,7 @@
 #include "../../GLObject/Cubemap.h"
 #include "../../GLObject/Framebuffer.h"
 
-class RenderRegistry;
+struct RenderRegistry;
 
 class PointLight : public LightBase
 {

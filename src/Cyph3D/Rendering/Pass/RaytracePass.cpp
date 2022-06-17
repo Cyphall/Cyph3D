@@ -110,8 +110,8 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	std::vector<GLSLMeshInstanceData> glslMeshInstanceDataVec;
 	std::vector<const MeshShape*> meshShapeVec;
 	
-	int totalVertexCount = 0;
-	int totalIndexCount = 0;
+	GLsizeiptr totalVertexCount = 0;
+	GLsizeiptr totalIndexCount = 0;
 	
 	for (int i = 0; i < objects.shapes.size(); i++)
 	{
@@ -204,15 +204,15 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 		const Mesh& mesh = meshShape->getMeshToRender();
 		
 		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
-		int vboElementCount = vbo.getCount();
-		int vboSize = vbo.getSize();
+		GLsizeiptr vboElementCount = vbo.getCount();
+		GLsizeiptr vboSize = vbo.getSize();
 		
 		glCopyNamedBufferSubData(vbo.getHandle(), _meshVertexDataBuffer.getHandle(), 0, currentVertexOffset * sizeof(Mesh::VertexData), vboSize);
 		currentVertexOffset += vboElementCount;
 		
 		const Buffer<GLuint>& ibo = mesh.getIBO();
-		int iboElementCount = ibo.getCount();
-		int iboSize = ibo.getSize();
+		GLsizeiptr iboElementCount = ibo.getCount();
+		GLsizeiptr iboSize = ibo.getSize();
 		
 		glCopyNamedBufferSubData(ibo.getHandle(), _meshIndexDataBuffer.getHandle(), 0, currentIndexOffset * sizeof(GLuint), iboSize);
 		currentIndexOffset += iboElementCount;
