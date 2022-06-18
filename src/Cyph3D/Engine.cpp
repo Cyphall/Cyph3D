@@ -67,7 +67,6 @@ void Engine::init()
 	glDebugMessageCallback(messageCallback, nullptr);
 	
 	Material::initialize();
-	Framebuffer::initDrawToDefault();
 	RenderHelper::initDrawScreenQuad();
 	Entity::initAllocators();
 	ShapeRenderer::initAllocators();

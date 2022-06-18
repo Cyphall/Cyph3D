@@ -38,11 +38,6 @@ public:
 	void setReadBuffer(int attachmentSlot);
 	void removeReadBuffer();
 	
-	static void initDrawToDefault();
-	
-	static void drawToDefault(ShaderProgram* shader, bool clearFramebuffer = false);
-	static void drawToDefault(const Texture& texture, bool clearFramebuffer = false);
-	
 private:
 	glm::ivec2 _size;
 	
@@ -75,11 +70,4 @@ private:
 	void verifyDrawBufferCount();
 	void verifyColorAttachmentSlots();
 	void verifyFace(int face);
-	void verifyObjectIsNotAttachedAsColor(GLuint handle);
-	void verifyObjectIsNotAttachedAsDepth(GLuint handle);
-	void verifyObjectIsNotAttachedAsStencil(GLuint handle);
-	void verifyTextureIsNotDrawBuffer(GLuint handle);
-	void verifyTextureIsNotReadBuffer(GLuint handle);
-
-	static ShaderProgram* _drawToDefaultShaderProgram;
 };
