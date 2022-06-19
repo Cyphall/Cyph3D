@@ -24,5 +24,4 @@ public:
 
 private:
 	glm::ivec2 _size;
-	GLuint64 _bindlessHandle;
 };
