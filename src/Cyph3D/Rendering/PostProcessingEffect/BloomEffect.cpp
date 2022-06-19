@@ -242,7 +242,8 @@ std::vector<float> BloomEffect::gaussianKernel(int kernelRadius, float sigma)
 
 void BloomEffect::recalculateGaussianKernel()
 {
-	_kernelBuffer.setData(gaussianKernel(_kernelRadius, _kernelSigma).data() + _kernelRadius, _kernelRadius+1);
+	std::vector<float> kernel = gaussianKernel(_kernelRadius, _kernelSigma);
+	_kernelBuffer.setData(std::span<const float>(kernel.data() + _kernelRadius, _kernelRadius+1));
 	
 	_kernelChanged = false;
 }

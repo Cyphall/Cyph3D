@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-Mesh::Mesh(const std::vector<Mesh::VertexData>& vertexData, const std::vector<GLuint>& indices):
+Mesh::Mesh(std::span<const Mesh::VertexData> vertexData, std::span<const GLuint> indices):
 _vbo(vertexData.size(), GL_DYNAMIC_STORAGE_BIT), _ibo(indices.size(), GL_DYNAMIC_STORAGE_BIT)
 {
 	_vbo.setData(vertexData);

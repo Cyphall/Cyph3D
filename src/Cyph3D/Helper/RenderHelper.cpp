@@ -1,4 +1,5 @@
 #include "RenderHelper.h"
+#include <vector>
 
 std::unique_ptr<VertexArray> RenderHelper::_quadVAO;
 std::unique_ptr<Buffer<RenderHelper::VertexData>> RenderHelper::_quadVBO;

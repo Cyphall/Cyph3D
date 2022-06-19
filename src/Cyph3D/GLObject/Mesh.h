@@ -3,6 +3,7 @@
 #include "Buffer.h"
 #include "VertexArray.h"
 #include <glm/glm.hpp>
+#include <span>
 
 class Mesh
 {
@@ -19,7 +20,7 @@ public:
 		{}
 	};
 	
-	Mesh(const std::vector<Mesh::VertexData>& vertexData, const std::vector<GLuint>& indices);
+	Mesh(std::span<const Mesh::VertexData> vertexData, std::span<const GLuint> indices);
 	Mesh(const Mesh& other) = delete;
 	
 	const Buffer<Mesh::VertexData>& getVBO() const;

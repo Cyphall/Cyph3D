@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BufferBase.h"
-#include <vector>
+#include <span>
 #include <cassert>
 
 template<typename T>
@@ -34,23 +34,18 @@ public:
 		glNamedBufferData(_handle, getSize(), nullptr, _mutableUsage);
 	}
 	
-	void setData(const T* data, GLsizeiptr dataCount)
+	void setData(std::span<const T> data)
 	{
 		if (_isMutable)
 		{
-			_count = dataCount;
-			glNamedBufferData(_handle, getSize(), data, _mutableUsage);
+			_count = data.size();
+			glNamedBufferData(_handle, getSize(), data.data(), _mutableUsage);
 		}
 		else
 		{
-			assert(dataCount == _count);
-			glNamedBufferSubData(_handle, 0, getSize(), data);
+			assert(data.size() == _count);
+			glNamedBufferSubData(_handle, 0, getSize(), data.data());
 		}
-	}
-	
-	void setData(const std::vector<T>& data)
-	{
-		setData(data.data(), data.size());
 	}
 	
 	GLsizeiptr getCount() const
