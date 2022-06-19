@@ -16,7 +16,7 @@ public:
 	~Cubemap() override;
 	
 	GLuint64 getBindlessTextureHandle() const;
-	GLuint64 getBindlessTextureHandle(const Sampler* sampler) const;
+	GLuint64 getBindlessTextureHandle(const Sampler& sampler) const;
 	void setData(void* data, int face, GLenum format, GLenum type);
 	void bind(GLuint unit);
 	glm::ivec2 getSize() const;

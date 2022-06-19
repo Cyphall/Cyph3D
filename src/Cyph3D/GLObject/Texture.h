@@ -17,7 +17,7 @@ public:
 	~Texture() override;
 	
 	GLuint64 getBindlessTextureHandle() const;
-	GLuint64 getBindlessTextureHandle(const Sampler* sampler) const;
+	GLuint64 getBindlessTextureHandle(const Sampler& sampler) const;
 	
 	GLuint64 getBindlessImageHandle(GLenum format, GLenum access, int level = 0) const;
 	

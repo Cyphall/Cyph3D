@@ -36,9 +36,9 @@ GLuint64 Cubemap::getBindlessTextureHandle() const
 	return bindlessHandle;
 }
 
-GLuint64 Cubemap::getBindlessTextureHandle(const Sampler* sampler) const
+GLuint64 Cubemap::getBindlessTextureHandle(const Sampler& sampler) const
 {
-	GLuint64 bindlessHandle = glGetTextureSamplerHandleARB(_handle, sampler->getHandle());
+	GLuint64 bindlessHandle = glGetTextureSamplerHandleARB(_handle, sampler.getHandle());
 	if (!glIsTextureHandleResidentARB(bindlessHandle))
 	{
 		glMakeTextureHandleResidentARB(bindlessHandle);
