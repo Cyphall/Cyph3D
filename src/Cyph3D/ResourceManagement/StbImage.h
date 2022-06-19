@@ -4,7 +4,6 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <functional>
-#include "../stdfloat.h"
 
 class StbImage
 {
@@ -22,7 +21,7 @@ public:
 private:
 	std::unique_ptr<uint8_t[], std::function<void(void*)>> _data8bit;
 	std::unique_ptr<uint16_t[], std::function<void(void*)>> _data16bit;
-	std::unique_ptr<float32_t[], std::function<void(void*)>> _data32bit;
+	std::unique_ptr<float[], std::function<void(void*)>> _data32bit;
 	
 	int _bitPerChannel = -1;
 	int _channelCount = -1;

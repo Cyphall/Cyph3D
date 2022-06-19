@@ -3,7 +3,6 @@
 #include "../../GLObject/Cubemap.h"
 #include "../../GLObject/Framebuffer.h"
 #include "../../GLObject/ShaderProgram.h"
-#include "../../stdfloat.h"
 #include "LightBase.h"
 #include "../../GLObject/VertexArray.h"
 

@@ -16,24 +16,24 @@ private:
 	struct GLSLPointLight
 	{
 		glm::vec3  pos;
-		float32_t  intensity;
+		float      intensity;
 		glm::vec3  color;
 		int32_t    castShadows; // bool
 		uint64_t   shadowMap;
-		float32_t  far;
-		float32_t  maxTexelSizeAtUnitDistance;
+		float      far;
+		float      maxTexelSizeAtUnitDistance;
 	};
 	
 	struct GLSLDirectionalLight
 	{
 		glm::vec3  fragToLightDirection;
-		float32_t  intensity;
+		float      intensity;
 		glm::vec3  color;
 		int32_t    castShadows; // 32-bit bool
 		glm::mat4  lightViewProjection;
 		uint64_t   shadowMap;
-		float32_t  mapSize;
-		float32_t  mapDepth;
+		float      mapSize;
+		float      mapDepth;
 	};
 	
 	ShaderStorageBuffer<GLSLPointLight> _pointLightsBuffer;

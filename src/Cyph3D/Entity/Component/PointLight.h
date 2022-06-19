@@ -1,7 +1,6 @@
 #pragma once
 
 #include "LightBase.h"
-#include "../../stdfloat.h"
 #include "../../GLObject/VertexArray.h"
 #include "../../GLObject/Cubemap.h"
 #include "../../GLObject/Framebuffer.h"
