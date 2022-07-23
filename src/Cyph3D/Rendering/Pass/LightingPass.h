@@ -2,6 +2,7 @@
 
 #include "RenderPass.h"
 #include "../../GLObject/ShaderStorageBuffer.h"
+#include "../../GLSL_types.h"
 
 class LightingPass : public RenderPass
 {
@@ -13,31 +14,31 @@ public:
 	void restorePipelineImpl() override;
 	
 private:
-	struct GLSLPointLight
+	struct GLSL_PointLight
 	{
-		glm::vec3  pos;
-		float      intensity;
-		glm::vec3  color;
-		int32_t    castShadows; // bool
-		uint64_t   shadowMap;
-		float      far;
-		float      maxTexelSizeAtUnitDistance;
+		GLSL_vec3  pos;
+		GLSL_float intensity;
+		GLSL_vec3  color;
+		GLSL_bool  castShadows;
+		GLSL_samplerCube shadowMap;
+		GLSL_float far;
+		GLSL_float maxTexelSizeAtUnitDistance;
 	};
 	
-	struct GLSLDirectionalLight
+	struct GLSL_DirectionalLight
 	{
-		glm::vec3  fragToLightDirection;
-		float      intensity;
-		glm::vec3  color;
-		int32_t    castShadows; // 32-bit bool
-		glm::mat4  lightViewProjection;
-		uint64_t   shadowMap;
-		float      mapSize;
-		float      mapDepth;
+		GLSL_vec3  fragToLightDirection;
+		GLSL_float intensity;
+		GLSL_vec3  color;
+		GLSL_bool  castShadows;
+		GLSL_mat4  lightViewProjection;
+		GLSL_sampler2D shadowMap;
+		GLSL_float mapSize;
+		GLSL_float mapDepth;
 	};
 	
-	ShaderStorageBuffer<GLSLPointLight> _pointLightsBuffer;
-	ShaderStorageBuffer<GLSLDirectionalLight> _directionalLightsBuffer;
+	ShaderStorageBuffer<GLSL_PointLight> _pointLightsBuffer;
+	ShaderStorageBuffer<GLSL_DirectionalLight> _directionalLightsBuffer;
 	
 	ShaderProgram* _shader;
 	Framebuffer _framebuffer;

@@ -33,11 +33,11 @@ void LightingPass::preparePipelineImpl()
 
 void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
-	std::vector<GLSLDirectionalLight> directionalLightData;
+	std::vector<GLSL_DirectionalLight> directionalLightData;
 	directionalLightData.reserve(registry.directionalLights.size());
 	for (DirectionalLight::RenderData& renderData : registry.directionalLights)
 	{
-		GLSLDirectionalLight data;
+		GLSL_DirectionalLight data;
 		data.fragToLightDirection = renderData.fragToLightDirection;
 		data.intensity = renderData.intensity;
 		data.color = renderData.color;
@@ -54,11 +54,11 @@ void LightingPass::renderImpl(std::unordered_map<std::string, Texture*>& texture
 	_directionalLightsBuffer.setData(directionalLightData);
 	_directionalLightsBuffer.bind(1);
 	
-	std::vector<GLSLPointLight> pointLightData;
+	std::vector<GLSL_PointLight> pointLightData;
 	pointLightData.reserve(registry.pointLights.size());
 	for (PointLight::RenderData& renderData : registry.pointLights)
 	{
-		GLSLPointLight data;
+		GLSL_PointLight data;
 		data.pos = renderData.pos;
 		data.intensity = renderData.intensity;
 		data.color = renderData.color;

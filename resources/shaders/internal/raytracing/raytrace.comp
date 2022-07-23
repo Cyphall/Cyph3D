@@ -75,8 +75,6 @@ struct Sphere
 	Transform transform;
 	int objectIndex;
 	bool contributeShadows;
-	float padding0;
-	float padding1;
 };
 
 struct Plane
@@ -86,7 +84,6 @@ struct Plane
 	bool infinite;
 	int objectIndex;
 	bool contributeShadows;
-	float padding0;
 };
 
 struct DirectionalLight
@@ -95,7 +92,6 @@ struct DirectionalLight
 	float angularDiameter;
 	vec3 color;
 	float intensity;
-	vec3 padding0;
 	bool castShadows;
 };
 
@@ -105,7 +101,6 @@ struct PointLight
 	float radius;
 	vec3 color;
 	float intensity;
-	vec3 padding0;
 	bool castShadows;
 };
 
@@ -118,9 +113,6 @@ struct Mesh
 	int indexOffset;
 	int indexCount;
 	bool contributeShadows;
-	float padding0;
-	float padding1;
-	float padding2;
 };
 
 struct Vertex
