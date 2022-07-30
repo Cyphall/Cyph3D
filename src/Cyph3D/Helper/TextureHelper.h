@@ -4,7 +4,7 @@
 #include <tuple>
 #include <optional>
 #include <array>
-#include "../Enums/ImageType.h"
+#include "Cyph3D/Enums/ImageType.h"
 
 struct TextureProperties
 {

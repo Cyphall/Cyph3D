@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Resource.h"
-#include "../GLObject/Cubemap.h"
-#include "StbImage.h"
+#include "Cyph3D/ResourceManagement/Resource.h"
+#include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/ResourceManagement/StbImage.h"
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <optional>
@@ -22,5 +22,4 @@ private:
 	
 	void loadResourceImpl() override;
 };
-
 

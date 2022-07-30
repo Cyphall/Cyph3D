@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../ResourceManagement/Image.h"
-#include "MaterialMapType.h"
-#include "MaterialMap.h"
-#include "MaterialMapDefinition.h"
+#include "Cyph3D/ResourceManagement/Image.h"
+#include "Cyph3D/GLObject/Material/MaterialMapType.h"
+#include "Cyph3D/GLObject/Material/MaterialMap.h"
+#include "Cyph3D/GLObject/Material/MaterialMapDefinition.h"
 #include <map>
 #include <tuple>
 

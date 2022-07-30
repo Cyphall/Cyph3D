@@ -1,11 +1,11 @@
-#include "ShaderProgram.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
 #include <stdexcept>
 #include <ios>
 #include <sstream>
-#include "../Helper/ShaderHelper.h"
-#include "../Helper/FileHelper.h"
-#include "../Helper/StringHelper.h"
-#include "../Logging/Logger.h"
+#include "Cyph3D/Helper/ShaderHelper.h"
+#include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/Helper/StringHelper.h"
+#include "Cyph3D/Logging/Logger.h"
 #include <format>
 #include <numeric>
 #include <glm/gtc/type_ptr.hpp>

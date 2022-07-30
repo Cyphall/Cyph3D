@@ -95,4 +95,3 @@ private:
 	void recalculateLocalCache() const;
 };
 
-

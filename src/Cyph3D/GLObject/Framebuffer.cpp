@@ -1,11 +1,11 @@
-#include "Framebuffer.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
 #include <stdexcept>
 #include <vector>
-#include "../Helper/MathHelper.h"
-#include "../Engine.h"
-#include "../ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Helper/MathHelper.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include <format>
-#include "../Helper/RenderHelper.h"
+#include "Cyph3D/Helper/RenderHelper.h"
 
 Framebuffer::Framebuffer(glm::ivec2 size):
 _size(size)

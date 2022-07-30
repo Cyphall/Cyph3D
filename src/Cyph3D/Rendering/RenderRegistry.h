@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vector>
-#include "../Entity/Component/DirectionalLight.h"
-#include "../Entity/Component/PointLight.h"
-#include "../Entity/Component/ShapeRenderer.h"
+#include "Cyph3D/Entity/Component/DirectionalLight.h"
+#include "Cyph3D/Entity/Component/PointLight.h"
+#include "Cyph3D/Entity/Component/ShapeRenderer.h"
 
 struct RenderRegistry
 {

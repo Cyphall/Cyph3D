@@ -1,4 +1,4 @@
-#include "TextureHelper.h"
+#include "Cyph3D/Helper/TextureHelper.h"
 #include <stdexcept>
 #include <format>
 

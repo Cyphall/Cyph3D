@@ -1,4 +1,4 @@
-#include "PostProcessingEffect.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 
 PostProcessingEffect::PostProcessingEffect(const char* name, glm::ivec2 size):
 _name(name), _size(size)

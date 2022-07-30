@@ -8,4 +8,3 @@ public:
 	OpenGLException(const std::string& message) : runtime_error(message){};
 };
 
-

@@ -1,11 +1,11 @@
-#include "UIViewport.h"
-#include "../../Rendering/Renderer/RasterizationRenderer.h"
-#include "../../Scene/Scene.h"
-#include "../../Window.h"
-#include "../../Engine.h"
-#include "UIInspector.h"
-#include "../../Rendering/Renderer/RaytracingRenderer.h"
-#include "../../Helper/FileHelper.h"
+#include "Cyph3D/UI/Window/UIViewport.h"
+#include "Cyph3D/Rendering/Renderer/RasterizationRenderer.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/UI/Window/UIInspector.h"
+#include "Cyph3D/Rendering/Renderer/RaytracingRenderer.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include <imgui_internal.h>
 #include <stb_image_write.h>
 

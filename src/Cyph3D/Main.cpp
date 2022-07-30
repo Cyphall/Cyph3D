@@ -1,6 +1,6 @@
-#include "Engine.h"
-#include "Exception/OpenGLException.h"
-#include "Logging/Logger.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Exception/OpenGLException.h"
+#include "Cyph3D/Logging/Logger.h"
 
 int main(int argc, char** argv)
 {

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
-#include "../../GLObject/Texture.h"
-#include "../../Scene/Camera.h"
-#include "../../PerfCounter/PerfStep.h"
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/PerfCounter/PerfStep.h"
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <string>

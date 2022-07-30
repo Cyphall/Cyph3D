@@ -1,5 +1,5 @@
-#include "SphereShape.h"
-#include "../../Entity/Component/ShapeRenderer.h"
+#include "Cyph3D/Rendering/Shape/SphereShape.h"
+#include "Cyph3D/Entity/Component/ShapeRenderer.h"
 
 const char* SphereShape::identifier = "SphereShape";
 

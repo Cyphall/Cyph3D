@@ -3,9 +3,9 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <map>
-#include "CreateInfo/TextureCreateInfo.h"
-#include "BufferBase.h"
-#include "Sampler.h"
+#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
+#include "Cyph3D/GLObject/BufferBase.h"
+#include "Cyph3D/GLObject/Sampler.h"
 
 class Texture : public BufferBase
 {
@@ -31,5 +31,4 @@ private:
 	
 	static int calculateMipmapCount(const glm::ivec2& size);
 };
-
 

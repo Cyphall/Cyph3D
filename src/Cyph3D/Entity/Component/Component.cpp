@@ -1,5 +1,5 @@
-#include "Component.h"
-#include "../Entity.h"
+#include "Cyph3D/Entity/Component/Component.h"
+#include "Cyph3D/Entity/Entity.h"
 
 Component::Component(Entity& entity):
 _entity(entity)

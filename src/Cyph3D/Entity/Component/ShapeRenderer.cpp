@@ -1,13 +1,13 @@
-#include "ShapeRenderer.h"
+#include "Cyph3D/Entity/Component/ShapeRenderer.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "../Entity.h"
-#include "../../Scene/Scene.h"
-#include "../../Engine.h"
-#include "../../Rendering/Renderer/Renderer.h"
-#include "../../Rendering/Shape/MeshShape.h"
-#include "../../Rendering/Shape/SphereShape.h"
-#include "../../Rendering/Shape/PlaneShape.h"
+#include "Cyph3D/Entity/Entity.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Rendering/Shape/MeshShape.h"
+#include "Cyph3D/Rendering/Shape/SphereShape.h"
+#include "Cyph3D/Rendering/Shape/PlaneShape.h"
 
 const char* ShapeRenderer::identifier = "ShapeRenderer";
 std::map<std::string, std::function<Shape&(ShapeRenderer&)>> ShapeRenderer::_allocators;

@@ -1,6 +1,6 @@
-#include "Logger.h"
-#include "../Engine.h"
-#include "Impl/Win32LoggerColor.h"
+#include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Logging/Impl/Win32LoggerColor.h"
 #include <iostream>
 #include <iomanip>
 

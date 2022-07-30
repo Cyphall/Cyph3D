@@ -1,6 +1,6 @@
-#include "Image.h"
+#include "Cyph3D/ResourceManagement/Image.h"
 #include <stdexcept>
-#include "../Helper/TextureHelper.h"
+#include "Cyph3D/Helper/TextureHelper.h"
 #include <format>
 #include <chrono>
 

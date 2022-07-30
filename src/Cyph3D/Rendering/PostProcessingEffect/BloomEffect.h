@@ -1,8 +1,8 @@
 #pragma once
 
-#include "PostProcessingEffect.h"
-#include "../../GLObject/Framebuffer.h"
-#include "../../GLObject/ShaderStorageBuffer.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/ShaderStorageBuffer.h"
 
 class BloomEffect : public PostProcessingEffect
 {

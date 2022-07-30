@@ -1,6 +1,6 @@
 #include <imgui.h>
-#include "PlaneShape.h"
-#include "../../Entity/Component/ShapeRenderer.h"
+#include "Cyph3D/Rendering/Shape/PlaneShape.h"
+#include "Cyph3D/Entity/Component/ShapeRenderer.h"
 
 const char* PlaneShape::identifier = "PlaneShape";
 

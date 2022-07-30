@@ -1,8 +1,8 @@
-#include "ShadowMapPass.h"
-#include "../../Window.h"
-#include "../../Engine.h"
-#include "../../ResourceManagement/ResourceManager.h"
-#include "../../GLObject/Mesh.h"
+#include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/GLObject/Mesh.h"
 
 ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Shadow map pass")

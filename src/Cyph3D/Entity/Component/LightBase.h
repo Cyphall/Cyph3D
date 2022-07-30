@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Component.h"
+#include "Cyph3D/Entity/Component/Component.h"
 #include <glm/glm.hpp>
 
 class LightBase : public Component

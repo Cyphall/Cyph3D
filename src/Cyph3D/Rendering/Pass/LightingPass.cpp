@@ -1,9 +1,9 @@
-#include "LightingPass.h"
-#include "../../Helper/RenderHelper.h"
-#include "../../Rendering/Renderer/Renderer.h"
-#include "../../Window.h"
-#include "../../ResourceManagement/ResourceManager.h"
-#include "../../Engine.h"
+#include "Cyph3D/Rendering/Pass/LightingPass.h"
+#include "Cyph3D/Helper/RenderHelper.h"
+#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Engine.h"
 
 LightingPass::LightingPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Lighting pass"),

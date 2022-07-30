@@ -36,6 +36,7 @@ target_link_libraries(Cyph3D PRIVATE magic_enum::magic_enum)
 find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
 
+target_include_directories(Cyph3D PRIVATE "src")
 target_include_directories(Cyph3D PRIVATE "vendor/glad/include")
 target_include_directories(Cyph3D PRIVATE "vendor/imgui/include")
 target_include_directories(Cyph3D PRIVATE "vendor/thread-pool/include")

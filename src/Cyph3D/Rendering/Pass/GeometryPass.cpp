@@ -1,9 +1,9 @@
-#include "GeometryPass.h"
-#include "../../Window.h"
-#include "../../Engine.h"
-#include "../../GLObject/Mesh.h"
-#include "../Shape/MeshShape.h"
-#include "../../ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Rendering/Pass/GeometryPass.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/GLObject/Mesh.h"
+#include "Cyph3D/Rendering/Shape/MeshShape.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
 
 GeometryPass::GeometryPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Geometry pass"),

@@ -1,6 +1,6 @@
-#include "Skybox.h"
-#include "../Helper/JsonHelper.h"
-#include "../Helper/TextureHelper.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Helper/JsonHelper.h"
+#include "Cyph3D/Helper/TextureHelper.h"
 #include <format>
 #include <chrono>
 

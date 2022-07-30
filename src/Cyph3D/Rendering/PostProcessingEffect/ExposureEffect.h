@@ -1,7 +1,7 @@
 #pragma once
 
-#include "PostProcessingEffect.h"
-#include "../../GLObject/Framebuffer.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
 
 class ExposureEffect : public PostProcessingEffect
 {

@@ -1,8 +1,8 @@
-#include "Camera.h"
-#include "../Helper/MathHelper.h"
+#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Helper/MathHelper.h"
 #include <glm/gtc/matrix_transform.hpp>
-#include "../Engine.h"
-#include "../Window.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Window.h"
 
 glm::vec3 Camera::getOrientation() const
 {

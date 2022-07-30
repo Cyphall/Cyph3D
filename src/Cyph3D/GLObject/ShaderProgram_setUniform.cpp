@@ -1,4 +1,4 @@
-#include "ShaderProgram.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

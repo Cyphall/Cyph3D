@@ -2,12 +2,12 @@
 
 #include <map>
 #include <unordered_map>
-#include "Model.h"
-#include "Image.h"
-#include "Skybox.h"
-#include "../GLObject/CreateInfo/ShaderProgramCreateInfo.h"
-#include "../GLObject/ShaderProgram.h"
-#include "../GLObject/Material/Material.h"
+#include "Cyph3D/ResourceManagement/Model.h"
+#include "Cyph3D/ResourceManagement/Image.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/Material/Material.h"
 #include <thread_pool.hpp>
 
 namespace std

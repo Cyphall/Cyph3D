@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Component.h"
-#include "../../GLObject/Material/Material.h"
-#include "../../Rendering/Shape/Shape.h"
+#include "Cyph3D/Entity/Component/Component.h"
+#include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/Rendering/Shape/Shape.h"
 
 class ShapeRenderer : public Component
 {

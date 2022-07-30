@@ -1,7 +1,7 @@
-#include "ResourceManager.h"
-#include "../Logging/Logger.h"
-#include "../Window.h"
-#include "../Engine.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Engine.h"
 #include <format>
 #include <GLFW/glfw3.h>
 

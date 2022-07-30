@@ -1,7 +1,7 @@
-#include "PostProcessingPass.h"
-#include "../PostProcessingEffect/ToneMappingEffect.h"
-#include "../PostProcessingEffect/ExposureEffect.h"
-#include "../PostProcessingEffect/BloomEffect.h"
+#include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/ToneMappingEffect.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/ExposureEffect.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/BloomEffect.h"
 
 PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Post-processing pass")

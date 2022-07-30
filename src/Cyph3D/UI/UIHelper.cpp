@@ -1,18 +1,18 @@
-#include "UIHelper.h"
+#include "Cyph3D/UI/UIHelper.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include "../Engine.h"
-#include "../Scene/Scene.h"
-#include "Window/UIMisc.h"
-#include "Window/UIHierarchy.h"
-#include "Window/UIInspector.h"
-#include "Window/UIResourceExplorer.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/UI/Window/UIMisc.h"
+#include "Cyph3D/UI/Window/UIHierarchy.h"
+#include "Cyph3D/UI/Window/UIInspector.h"
+#include "Cyph3D/UI/Window/UIResourceExplorer.h"
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <imgui_internal.h>
-#include "../Window.h"
-#include "Window/UIMenuBar.h"
-#include "Window/UIViewport.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/UI/Window/UIMenuBar.h"
+#include "Cyph3D/UI/Window/UIViewport.h"
 
 ImGuiContext* UIHelper::_context = nullptr;
 bool UIHelper::_dockingLayoutInitialized = false;

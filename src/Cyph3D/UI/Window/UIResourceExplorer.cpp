@@ -1,12 +1,12 @@
-#include "UIResourceExplorer.h"
+#include "Cyph3D/UI/Window/UIResourceExplorer.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "../../Window.h"
-#include "../../Engine.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Engine.h"
 #include <magic_enum.hpp>
 #include <algorithm>
 #include <filesystem>
-#include "../../Helper/StringHelper.h"
+#include "Cyph3D/Helper/StringHelper.h"
 
 std::vector<std::string> UIResourceExplorer::_meshes;
 std::vector<std::string> UIResourceExplorer::_materials;

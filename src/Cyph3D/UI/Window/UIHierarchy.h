@@ -3,7 +3,7 @@
 #include <imgui.h>
 #include <queue>
 #include <optional>
-#include "../../Entity/Entity.h"
+#include "Cyph3D/Entity/Entity.h"
 
 class Transform;
 

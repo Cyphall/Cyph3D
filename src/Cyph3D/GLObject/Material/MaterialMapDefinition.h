@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "../../Enums/ImageType.h"
+#include "Cyph3D/Enums/ImageType.h"
 #include <vector>
 
 struct MaterialMapDefinition

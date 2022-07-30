@@ -17,4 +17,3 @@ protected:
 	GLuint _handle = -1;
 };
 
-

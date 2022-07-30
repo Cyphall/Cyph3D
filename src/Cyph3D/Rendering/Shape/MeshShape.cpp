@@ -1,7 +1,7 @@
-#include "MeshShape.h"
-#include "../../Entity/Component/ShapeRenderer.h"
-#include "../../Entity/Entity.h"
-#include "../../Scene/Scene.h"
+#include "Cyph3D/Rendering/Shape/MeshShape.h"
+#include "Cyph3D/Entity/Component/ShapeRenderer.h"
+#include "Cyph3D/Entity/Entity.h"
+#include "Cyph3D/Scene/Scene.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
 

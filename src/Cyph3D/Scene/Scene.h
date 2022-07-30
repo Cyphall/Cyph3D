@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../ResourceManagement/Skybox.h"
-#include "../ResourceManagement/ResourceManager.h"
-#include "Camera.h"
-#include "Transform.h"
-#include "../Iterator/EntityIterator.h"
-#include "../Iterator/EntityConstIterator.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Transform.h"
+#include "Cyph3D/Iterator/EntityIterator.h"
+#include "Cyph3D/Iterator/EntityConstIterator.h"
 
 #include <nlohmann/json.hpp>
 #include <filesystem>

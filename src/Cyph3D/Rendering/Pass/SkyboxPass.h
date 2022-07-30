@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderPass.h"
+#include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class SkyboxPass : public RenderPass
 {

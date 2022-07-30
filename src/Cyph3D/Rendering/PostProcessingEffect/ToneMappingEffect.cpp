@@ -1,8 +1,8 @@
-#include "ToneMappingEffect.h"
-#include "../../Window.h"
-#include "../../Scene/Scene.h"
-#include "../../Engine.h"
-#include "../../Helper/RenderHelper.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/ToneMappingEffect.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/RenderHelper.h"
 
 ToneMappingEffect::ToneMappingEffect(glm::ivec2 size):
 PostProcessingEffect("Tonemapping", size),

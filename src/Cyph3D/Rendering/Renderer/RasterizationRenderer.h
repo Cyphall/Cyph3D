@@ -1,17 +1,17 @@
 #pragma once
 
-#include "../../GLObject/Framebuffer.h"
-#include "../../GLObject/VertexArray.h"
-#include "../../GLObject/ShaderStorageBuffer.h"
-#include "../PostProcessingEffect/PostProcessingEffect.h"
-#include "../Pass/GeometryPass.h"
-#include "../Pass/GBufferDebugPass.h"
-#include "../Pass/SkyboxPass.h"
-#include "../Pass/LightingPass.h"
-#include "../Pass/ShadowMapPass.h"
-#include "../Pass/PostProcessingPass.h"
-#include "../Pass/ZPrePass.h"
-#include "Renderer.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/VertexArray.h"
+#include "Cyph3D/GLObject/ShaderStorageBuffer.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
+#include "Cyph3D/Rendering/Pass/GeometryPass.h"
+#include "Cyph3D/Rendering/Pass/GBufferDebugPass.h"
+#include "Cyph3D/Rendering/Pass/SkyboxPass.h"
+#include "Cyph3D/Rendering/Pass/LightingPass.h"
+#include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
+#include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
+#include "Cyph3D/Rendering/Pass/ZPrePass.h"
+#include "Cyph3D/Rendering/Renderer/Renderer.h"
 
 class RasterizationRenderer : public Renderer
 {

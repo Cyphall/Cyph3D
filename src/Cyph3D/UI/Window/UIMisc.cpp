@@ -1,11 +1,11 @@
-#include "UIMisc.h"
+#include "Cyph3D/UI/Window/UIMisc.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "../../Engine.h"
-#include "../../Window.h"
-#include "../../Scene/Scene.h"
-#include "UIInspector.h"
-#include "UIViewport.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/UI/Window/UIInspector.h"
+#include "Cyph3D/UI/Window/UIViewport.h"
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
 

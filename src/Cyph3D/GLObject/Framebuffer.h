@@ -1,11 +1,11 @@
 #pragma once
 
-#include "BufferBase.h"
-#include "CreateInfo/TextureCreateInfo.h"
-#include "CreateInfo/CubemapCreateInfo.h"
-#include "Texture.h"
-#include "Cubemap.h"
-#include "ShaderProgram.h"
+#include "Cyph3D/GLObject/BufferBase.h"
+#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
+#include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
 #include <glm/glm.hpp>
 #include <list>
 

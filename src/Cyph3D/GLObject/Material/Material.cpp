@@ -1,8 +1,8 @@
-#include "Material.h"
-#include "../../Engine.h"
-#include "../../Helper/TextureHelper.h"
-#include "../../Helper/JsonHelper.h"
-#include "../../ResourceManagement/ResourceManager.h"
+#include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/TextureHelper.h"
+#include "Cyph3D/Helper/JsonHelper.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include <format>
 

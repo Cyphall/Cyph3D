@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/ext.hpp>
 #include <optional>
-#include "Event.h"
+#include "Cyph3D/Event.h"
 
 class Window
 {

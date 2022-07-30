@@ -1,7 +1,7 @@
-#include "FileHelper.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include <ShObjIdl_core.h>
-#include "../Window.h"
-#include "../Engine.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Engine.h"
 #include <fstream>
 #include <ios>
 #include <format>

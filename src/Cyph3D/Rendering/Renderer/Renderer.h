@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../RenderRegistry.h"
-#include "../Pass/RenderPass.h"
-#include "../../Scene/Scene.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "Cyph3D/Scene/Scene.h"
 #include <functional>
 
 class Renderer

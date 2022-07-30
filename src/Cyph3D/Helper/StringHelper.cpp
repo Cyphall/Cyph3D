@@ -1,4 +1,4 @@
-#include "StringHelper.h"
+#include "Cyph3D/Helper/StringHelper.h"
 
 void StringHelper::remove(std::string& string, const char* stringToRemove)
 {

@@ -1,4 +1,4 @@
-#include "StbImage.h"
+#include "Cyph3D/ResourceManagement/StbImage.h"
 #include <stb_image.h>
 
 StbImage::StbImage(const std::string& path, int desiredChannels):

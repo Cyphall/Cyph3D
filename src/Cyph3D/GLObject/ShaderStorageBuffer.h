@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Buffer.h"
+#include "Cyph3D/GLObject/Buffer.h"
 
 template<typename T>
 class ShaderStorageBuffer : public Buffer<T>

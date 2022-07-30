@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ILoggerColor.h"
+#include "Cyph3D/Logging/Impl/ILoggerColor.h"
 
 class Win32LoggerColor : public ILoggerColor
 {

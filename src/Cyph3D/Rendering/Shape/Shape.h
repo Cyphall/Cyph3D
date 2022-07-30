@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../ObjectSerialization.h"
-#include "../../GLObject/Mesh.h"
+#include "Cyph3D/ObjectSerialization.h"
+#include "Cyph3D/GLObject/Mesh.h"
 
 class ShapeRenderer;
 

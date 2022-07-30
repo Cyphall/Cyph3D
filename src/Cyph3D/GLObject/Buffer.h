@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BufferBase.h"
+#include "Cyph3D/GLObject/BufferBase.h"
 #include <span>
 #include <cassert>
 
@@ -64,5 +64,4 @@ private:
 	GLenum _mutableUsage = 0;
 	GLenum _immutableFlags = 0;
 };
-
 

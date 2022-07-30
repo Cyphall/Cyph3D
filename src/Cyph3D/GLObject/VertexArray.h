@@ -1,8 +1,8 @@
 #pragma once
 
 #include <map>
-#include "BufferBase.h"
-#include "Buffer.h"
+#include "Cyph3D/GLObject/BufferBase.h"
+#include "Cyph3D/GLObject/Buffer.h"
 
 class VertexArray : public BufferBase
 {
@@ -40,5 +40,4 @@ public:
 		glBindVertexArray(_handle);
 	}
 };
-
 

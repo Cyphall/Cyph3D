@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../Scene/Transform.h"
-#include "../../RenderContext.h"
-#include "../../ObjectSerialization.h"
+#include "Cyph3D/Scene/Transform.h"
+#include "Cyph3D/RenderContext.h"
+#include "Cyph3D/ObjectSerialization.h"
 
 class Entity;
 class Renderer;

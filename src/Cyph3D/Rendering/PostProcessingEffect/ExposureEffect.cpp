@@ -1,8 +1,8 @@
-#include "ExposureEffect.h"
-#include "../../Window.h"
-#include "../../Scene/Scene.h"
-#include "../../Engine.h"
-#include "../../Helper/RenderHelper.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/ExposureEffect.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/RenderHelper.h"
 
 ExposureEffect::ExposureEffect(glm::ivec2 size):
 PostProcessingEffect("Exposure", size),

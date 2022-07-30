@@ -1,9 +1,9 @@
-#include "UIHierarchy.h"
+#include "Cyph3D/UI/Window/UIHierarchy.h"
 #include <imgui.h>
-#include "../../Window.h"
-#include "../../Scene/Scene.h"
-#include "../../Engine.h"
-#include "UIInspector.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/UI/Window/UIInspector.h"
 
 std::optional<std::pair<Transform*, Transform*>> UIHierarchy::_entityToReparent;
 Entity* UIHierarchy::_entityToDelete = nullptr;

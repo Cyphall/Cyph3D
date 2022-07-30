@@ -17,4 +17,3 @@ private:
 	GLuint _queryBegin = 0;
 	GLuint _queryEnd = 0;
 };
-

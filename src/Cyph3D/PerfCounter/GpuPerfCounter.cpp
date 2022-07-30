@@ -1,4 +1,4 @@
-#include "GpuPerfCounter.h"
+#include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 
 GpuPerfCounter::GpuPerfCounter()
 {

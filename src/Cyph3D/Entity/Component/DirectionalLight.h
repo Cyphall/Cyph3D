@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../GLObject/Cubemap.h"
-#include "../../GLObject/Framebuffer.h"
-#include "../../GLObject/ShaderProgram.h"
-#include "LightBase.h"
-#include "../../GLObject/VertexArray.h"
+#include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/Entity/Component/LightBase.h"
+#include "Cyph3D/GLObject/VertexArray.h"
 
 struct RenderRegistry;
 class Renderer;

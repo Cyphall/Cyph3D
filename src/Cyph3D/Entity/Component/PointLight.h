@@ -1,9 +1,9 @@
 #pragma once
 
-#include "LightBase.h"
-#include "../../GLObject/VertexArray.h"
-#include "../../GLObject/Cubemap.h"
-#include "../../GLObject/Framebuffer.h"
+#include "Cyph3D/Entity/Component/LightBase.h"
+#include "Cyph3D/GLObject/VertexArray.h"
+#include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
 
 struct RenderRegistry;
 

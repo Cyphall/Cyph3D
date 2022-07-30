@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Component/Component.h"
-#include "../Scene/Transform.h"
-#include "../Iterator/ComponentIterator.h"
-#include "../Iterator/ComponentConstIterator.h"
+#include "Cyph3D/Entity/Component/Component.h"
+#include "Cyph3D/Scene/Transform.h"
+#include "Cyph3D/Iterator/ComponentIterator.h"
+#include "Cyph3D/Iterator/ComponentConstIterator.h"
 #include <memory>
 #include <vector>
 #include <string>

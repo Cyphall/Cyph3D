@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <glm/glm.hpp>
-#include "../GLObject/VertexArray.h"
+#include "Cyph3D/GLObject/VertexArray.h"
 
 class RenderHelper
 {

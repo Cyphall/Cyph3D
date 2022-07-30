@@ -1,9 +1,9 @@
 #include <glad/glad.h>
-#include "RasterizationRenderer.h"
-#include "../../ResourceManagement/ResourceManager.h"
-#include "../../Window.h"
-#include "../../Scene/Scene.h"
-#include "../../Engine.h"
+#include "Cyph3D/Rendering/Renderer/RasterizationRenderer.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Window.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Engine.h"
 
 const char* RasterizationRenderer::identifier = "Rasterisation";
 

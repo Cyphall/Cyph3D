@@ -1,5 +1,5 @@
-#include "Transform.h"
-#include "../Helper/VectorHelper.h"
+#include "Cyph3D/Scene/Transform.h"
+#include "Cyph3D/Helper/VectorHelper.h"
 #include <stdexcept>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>

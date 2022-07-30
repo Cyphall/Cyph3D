@@ -1,12 +1,12 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
-#include "Entity.h"
-#include "../Scene/Scene.h"
-#include "Component/Animator.h"
-#include "Component/DirectionalLight.h"
-#include "Component/PointLight.h"
-#include "Component/ShapeRenderer.h"
+#include "Cyph3D/Entity/Entity.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Entity/Component/Animator.h"
+#include "Cyph3D/Entity/Component/DirectionalLight.h"
+#include "Cyph3D/Entity/Component/PointLight.h"
+#include "Cyph3D/Entity/Component/ShapeRenderer.h"
 
 std::map<std::string, std::function<Component&(Entity&)>> Entity::_allocators;
 

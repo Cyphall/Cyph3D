@@ -1,8 +1,8 @@
-#include "GlfwHelper.h"
+#include "Cyph3D/Helper/GlfwHelper.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "../Logging/Logger.h"
-#include "../Exception/OpenGLException.h"
+#include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/Exception/OpenGLException.h"
 #include <sstream>
 
 #define VERSION(major, minor, revision) (major * 100 + minor * 10 + revision)

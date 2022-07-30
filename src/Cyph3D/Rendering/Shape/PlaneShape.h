@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Shape.h"
+#include "Cyph3D/Rendering/Shape/Shape.h"
 
 class PlaneShape : public Shape
 {

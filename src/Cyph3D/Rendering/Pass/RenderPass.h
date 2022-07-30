@@ -1,11 +1,11 @@
 #pragma once
 
 #include <unordered_map>
-#include "../../GLObject/Texture.h"
-#include "../../Scene/Camera.h"
-#include "../RenderRegistry.h"
-#include "../../PerfCounter/PerfStep.h"
-#include "../../PerfCounter/GpuPerfCounter.h"
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/PerfCounter/PerfStep.h"
+#include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 
 class RenderPass
 {

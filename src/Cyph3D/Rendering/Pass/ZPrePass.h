@@ -1,9 +1,9 @@
 #pragma once
 
 
-#include "../../GLObject/ShaderProgram.h"
-#include "../../GLObject/Framebuffer.h"
-#include "RenderPass.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class ZPrePass : public RenderPass
 {
@@ -20,5 +20,4 @@ private:
 	Texture _depthTexture;
 	VertexArray _vao;
 };
-
 

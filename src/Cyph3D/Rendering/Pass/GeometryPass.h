@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RenderPass.h"
-#include "../../GLObject/Framebuffer.h"
+#include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
 
 class GeometryPass : public RenderPass
 {

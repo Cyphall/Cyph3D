@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "../../Enums/ResourceType.h"
+#include "Cyph3D/Enums/ResourceType.h"
 
 class UIResourceExplorer
 {

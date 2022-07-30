@@ -1,4 +1,4 @@
-#include "RenderHelper.h"
+#include "Cyph3D/Helper/RenderHelper.h"
 #include <vector>
 
 std::unique_ptr<VertexArray> RenderHelper::_quadVAO;

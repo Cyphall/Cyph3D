@@ -1,12 +1,12 @@
-#include "RaytracePass.h"
+#include "Cyph3D/Rendering/Pass/RaytracePass.h"
 #include <glm/gtc/matrix_inverse.hpp>
-#include "../../ResourceManagement/ResourceManager.h"
-#include "../../Scene/Scene.h"
-#include "../../Engine.h"
-#include "../Shape/SphereShape.h"
-#include "../../Entity/Entity.h"
-#include "../Shape/PlaneShape.h"
-#include "../Shape/MeshShape.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Rendering/Shape/SphereShape.h"
+#include "Cyph3D/Entity/Entity.h"
+#include "Cyph3D/Rendering/Shape/PlaneShape.h"
+#include "Cyph3D/Rendering/Shape/MeshShape.h"
 
 RaytracePass::RaytracePass(std::unordered_map<std::string, Texture*>& textures, const glm::ivec2& size):
 RenderPass(textures, size, "Raytrace pass"),

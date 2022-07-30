@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Resource.h"
-#include "../GLObject/Mesh.h"
+#include "Cyph3D/ResourceManagement/Resource.h"
+#include "Cyph3D/GLObject/Mesh.h"
 
 class Model : public Resource<Mesh>
 {
@@ -12,5 +12,4 @@ public:
 private:
 	void loadResourceImpl() override;
 };
-
 

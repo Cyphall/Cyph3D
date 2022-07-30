@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../GLObject/Texture.h"
-#include "../../PerfCounter/PerfStep.h"
-#include "../../PerfCounter/GpuPerfCounter.h"
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/PerfCounter/PerfStep.h"
+#include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 #include <unordered_map>
 
 class Camera;

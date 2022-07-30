@@ -3,11 +3,11 @@
 #include <map>
 #include <vector>
 #include <glad/glad.h>
-#include "BufferBase.h"
+#include "Cyph3D/GLObject/BufferBase.h"
 #include <glm/glm.hpp>
-#include "Texture.h"
-#include "Cubemap.h"
-#include "CreateInfo/ShaderProgramCreateInfo.h"
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
 
 class ShaderProgram : public BufferBase
 {
@@ -98,5 +98,4 @@ private:
 	
 	int getUniformLocation(const char* name);
 };
-
 
