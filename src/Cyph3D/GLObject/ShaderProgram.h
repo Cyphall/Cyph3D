@@ -2,9 +2,9 @@
 
 #include <map>
 #include <vector>
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "BufferBase.h"
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
 #include "Texture.h"
 #include "Cubemap.h"
 #include "CreateInfo/ShaderProgramCreateInfo.h"

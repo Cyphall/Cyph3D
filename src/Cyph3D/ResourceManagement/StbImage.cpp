@@ -1,5 +1,5 @@
 #include "StbImage.h"
-#include "stb_image.h"
+#include <stb_image.h>
 
 StbImage::StbImage(const std::string& path, int desiredChannels):
 _data8bit(nullptr, stbi_image_free),
