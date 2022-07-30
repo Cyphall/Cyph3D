@@ -1,6 +1,6 @@
 #include "Cyph3D/Window.h"
 
-void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height)
+static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height)
 {
 	Window& window = *(Window*)glfwGetWindowUserPointer(glfwWindow);
 	window.resizeEvent().invoke(glm::ivec2(width, height));
