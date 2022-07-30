@@ -14,10 +14,7 @@
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
-
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
 std::unique_ptr<Window> Engine::_window;
