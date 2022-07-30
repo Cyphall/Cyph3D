@@ -18,7 +18,7 @@ endif()
 
 target_compile_features(Cyph3D PRIVATE cxx_std_20)
 
-find_path(STB_INCLUDE_DIRS "stb.h")
+find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
 target_include_directories(Cyph3D PRIVATE ${STB_INCLUDE_DIRS})
 
 find_package(assimp CONFIG REQUIRED)
@@ -34,7 +34,7 @@ find_package(magic_enum CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE magic_enum::magic_enum)
 
 find_package(nlohmann_json CONFIG REQUIRED)
-target_link_libraries(Cyph3D PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
+target_link_libraries(Cyph3D PRIVATE nlohmann_json::nlohmann_json)
 
 target_include_directories(Cyph3D PRIVATE "src")
 target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/glad/include")
