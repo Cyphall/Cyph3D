@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <unordered_map>
 #include "Cyph3D/ResourceManagement/Model.h"
 #include "Cyph3D/ResourceManagement/Image.h"
@@ -46,15 +45,15 @@ public:
 	Material* requestMaterial(const std::string& name);
 	
 private:
-	std::map<std::string, std::unique_ptr<Model>> _models;
+	std::unordered_map<std::string, std::unique_ptr<Model>> _models;
 	
-	std::map<std::string, std::unique_ptr<Image>> _images;
+	std::unordered_map<std::string, std::unique_ptr<Image>> _images;
 	
-	std::map<std::string, std::unique_ptr<Skybox>> _skyboxes;
+	std::unordered_map<std::string, std::unique_ptr<Skybox>> _skyboxes;
 	
 	std::unordered_map<ShaderProgramCreateInfo, std::unique_ptr<ShaderProgram>> _shaderPrograms;
 	
-	std::map<std::string, std::unique_ptr<Material>> _materials;
+	std::unordered_map<std::string, std::unique_ptr<Material>> _materials;
 	
 	thread_pool _threadPool;
 };

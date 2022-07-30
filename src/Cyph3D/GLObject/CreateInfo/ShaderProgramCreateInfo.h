@@ -2,10 +2,11 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 struct ShaderProgramCreateInfo
 {
-	std::map<GLenum, std::vector<std::string>> shadersFiles;
+	std::unordered_map<GLenum, std::vector<std::string>> shadersFiles;
 	
 	bool operator ==(const ShaderProgramCreateInfo& other) const
 	{
