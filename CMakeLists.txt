@@ -37,11 +37,11 @@ find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
 
 target_include_directories(Cyph3D PRIVATE "src")
-target_include_directories(Cyph3D PRIVATE "vendor/glad/include")
-target_include_directories(Cyph3D PRIVATE "vendor/imgui/include")
-target_include_directories(Cyph3D PRIVATE "vendor/thread-pool/include")
-target_include_directories(Cyph3D PRIVATE "vendor/concurrentqueue/include")
-target_include_directories(Cyph3D PRIVATE "vendor/imguizmo-8afa1d7050392111cb917a6439dc76450cda5aa6/include")
+target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/glad/include")
+target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/imgui/include")
+target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/thread-pool/include")
+target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/concurrentqueue/include")
+target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/imguizmo-8afa1d7050392111cb917a6439dc76450cda5aa6/include")
 
 add_custom_command(TARGET Cyph3D POST_BUILD
 		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /E /NS /NC /NFL /NDL /NP /NJH /NJS  || cmd /c "exit /b 0")
