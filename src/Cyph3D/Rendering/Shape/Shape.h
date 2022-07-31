@@ -2,7 +2,6 @@
 
 struct ObjectSerialization;
 class Mesh;
-
 class ShapeRenderer;
 
 class Shape
