@@ -14,6 +14,8 @@ public:
 	
 	}
 	
+	virtual ~Resource() = default;
+	
 	Resource(const Resource& other) = delete;
 	Resource& operator=(const Resource& other) = delete;
 	
@@ -52,5 +54,3 @@ private:
 	
 	friend class ResourceManager;
 };
-
-
