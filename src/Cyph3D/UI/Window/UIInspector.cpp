@@ -8,7 +8,6 @@
 #include "Cyph3D/Window.h"
 
 #include <imgui.h>
-#include <imgui_stdlib.h>
 
 std::any UIInspector::_selected;
 

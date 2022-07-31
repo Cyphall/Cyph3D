@@ -13,6 +13,9 @@ RenderPass(textures, size, "Post-processing pass")
 	_effects.push_back(std::make_unique<ToneMappingEffect>(size));
 }
 
+PostProcessingPass::~PostProcessingPass()
+{}
+
 void PostProcessingPass::preparePipelineImpl()
 {
 	glEnable(GL_CULL_FACE);

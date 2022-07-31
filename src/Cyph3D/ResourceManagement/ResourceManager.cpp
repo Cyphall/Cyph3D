@@ -18,6 +18,9 @@ _threadPool(threadCount, Engine::getWindow().getHandle())
 
 }
 
+ResourceManager::~ResourceManager()
+{}
+
 Model* ResourceManager::requestModel(const std::string& name)
 {
 	if (!_models.contains(name))

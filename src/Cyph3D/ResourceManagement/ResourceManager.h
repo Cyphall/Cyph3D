@@ -40,6 +40,7 @@ class ResourceManager
 {
 public:
 	explicit ResourceManager(int threadCount);
+	~ResourceManager();
 	
 	Model* requestModel(const std::string& name);
 	Image* requestImage(const std::string& name, ImageType type);

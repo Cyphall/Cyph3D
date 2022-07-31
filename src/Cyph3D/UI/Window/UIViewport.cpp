@@ -4,7 +4,6 @@
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/RenderContext.h"
-#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 #include "Cyph3D/Rendering/Renderer/RasterizationRenderer.h"
 #include "Cyph3D/Rendering/Renderer/RaytracingRenderer.h"
 #include "Cyph3D/Scene/Scene.h"

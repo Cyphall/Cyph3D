@@ -5,7 +5,6 @@
 #include "Cyph3D/Window.h"
 
 #include <imgui.h>
-#include <imgui_stdlib.h>
 #include <magic_enum.hpp>
 #include <algorithm>
 #include <filesystem>

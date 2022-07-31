@@ -10,6 +10,7 @@ class PostProcessingPass : public RenderPass
 {
 public:
 	PostProcessingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size);
+	~PostProcessingPass() override;
 
 private:
 	
