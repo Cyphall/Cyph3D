@@ -3,8 +3,6 @@
 #include "Cyph3D/GLObject/Buffer.h"
 #include "Cyph3D/GLObject/BufferBase.h"
 
-#include <map>
-
 class VertexArray : public BufferBase
 {
 public:
@@ -41,4 +39,3 @@ public:
 		glBindVertexArray(_handle);
 	}
 };
-

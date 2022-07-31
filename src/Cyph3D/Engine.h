@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Timer.h"
 
-#include <glm/glm.hpp>
 #include <memory>
 
 class Window;

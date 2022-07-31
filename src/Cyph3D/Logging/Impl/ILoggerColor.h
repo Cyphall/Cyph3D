@@ -2,8 +2,6 @@
 
 #include "Cyph3D/Logging/LogColorFlags.h"
 
-#include <string_view>
-
 class ILoggerColor
 {
 public:

@@ -4,7 +4,6 @@
 
 #include <glm/glm.hpp>
 #include <array>
-#include <list>
 #include <optional>
 
 class Texture;

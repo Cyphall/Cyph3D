@@ -3,11 +3,6 @@
 #include "Cyph3D/GLObject/Cubemap.h"
 #include "Cyph3D/ResourceManagement/Resource.h"
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <array>
-#include <optional>
-
 class Skybox : public Resource<Cubemap>
 {
 public:

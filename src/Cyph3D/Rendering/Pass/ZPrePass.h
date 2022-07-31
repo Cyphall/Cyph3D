@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Cyph3D/GLObject/Framebuffer.h"
 #include "Cyph3D/GLObject/Texture.h"
 #include "Cyph3D/GLObject/VertexArray.h"

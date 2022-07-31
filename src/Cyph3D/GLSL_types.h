@@ -1,5 +1,8 @@
 #pragma once
 
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+
 #define GLSL_bool alignas(4) GLuint
 #define GLSL_int alignas(4) GLint
 #define GLSL_uint alignas(4) GLuint

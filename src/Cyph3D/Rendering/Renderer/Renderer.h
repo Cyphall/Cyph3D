@@ -4,8 +4,6 @@
 #include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 
-#include <functional>
-
 class RenderPass;
 class Scene;
 class Texture;

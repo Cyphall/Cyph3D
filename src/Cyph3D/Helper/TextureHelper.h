@@ -4,8 +4,6 @@
 
 #include <glad/glad.h>
 #include <array>
-#include <optional>
-#include <tuple>
 
 struct TextureProperties
 {

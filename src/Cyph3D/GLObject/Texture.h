@@ -4,7 +4,6 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <map>
 
 struct TextureCreateInfo;
 class Sampler;

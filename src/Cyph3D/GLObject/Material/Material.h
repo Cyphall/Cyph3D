@@ -5,7 +5,6 @@
 #include "Cyph3D/GLObject/Material/MaterialMapType.h"
 
 #include <map>
-#include <tuple>
 
 class ResourceManager;
 

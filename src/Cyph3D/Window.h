@@ -2,9 +2,7 @@
 
 #include "Cyph3D/Event.h"
 
-#include <glad/glad.h>
 #include <glm/ext.hpp>
-#include <optional>
 
 struct GLFWwindow;
 
