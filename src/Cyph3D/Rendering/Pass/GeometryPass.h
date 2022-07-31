@@ -2,7 +2,7 @@
 
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
-#include "Cyph3D/GLObject/VertexArray.h"
+#include "Cyph3D/GLObject/GLVertexArray.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class GLShaderProgram;
@@ -26,7 +26,7 @@ private:
 	GLTexture _geometryNormalTexture;
 	GLTexture _objectIndexTexture;
 	
-	VertexArray _vao;
+	GLVertexArray _vao;
 	
 	GLShaderProgram* _shaderProgram;
 };

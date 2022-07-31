@@ -5,6 +5,7 @@
 #include "Cyph3D/GLObject/Material/Material.h"
 #include "Cyph3D/GLObject/Mesh.h"
 #include "Cyph3D/GLObject/GLShaderProgram.h"
+#include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
@@ -117,8 +118,8 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		
 		const Mesh& mesh = shapeData.shape->getMeshToRender();
 		
-		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
-		const Buffer<GLuint>& ibo = mesh.getIBO();
+		const GLBuffer<Mesh::VertexData>& vbo = mesh.getVBO();
+		const GLBuffer<GLuint>& ibo = mesh.getIBO();
 		
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);

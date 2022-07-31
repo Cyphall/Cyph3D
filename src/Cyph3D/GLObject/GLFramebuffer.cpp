@@ -23,6 +23,7 @@ _size(size)
 GLFramebuffer::~GLFramebuffer()
 {
 	glDeleteFramebuffers(1, &_handle);
+	_handle = 0;
 }
 
 void GLFramebuffer::bindForDrawing()

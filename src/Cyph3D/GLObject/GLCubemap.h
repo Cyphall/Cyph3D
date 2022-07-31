@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/GLObject/BufferBase.h"
+#include "Cyph3D/GLObject/GLObject.h"
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -8,13 +8,10 @@
 struct CubemapCreateInfo;
 class GLSampler;
 
-class GLCubemap : public BufferBase
+class GLCubemap : public GLObject
 {
 public:
 	explicit GLCubemap(const CubemapCreateInfo& settings);
-	GLCubemap(const GLCubemap& other) = delete;
-	GLCubemap(GLCubemap&& other) = delete;
-	
 	~GLCubemap() override;
 	
 	GLuint64 getBindlessTextureHandle() const;

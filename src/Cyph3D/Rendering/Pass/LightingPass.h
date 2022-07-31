@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Cyph3D/GLObject/GLFramebuffer.h"
-#include "Cyph3D/GLObject/ShaderStorageBuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "Cyph3D/GLObject/GLMutableBuffer.h"
 
 class GLShaderProgram;
 
@@ -41,8 +41,8 @@ private:
 		GLSL_float mapDepth;
 	};
 	
-	ShaderStorageBuffer<GLSL_PointLight> _pointLightsBuffer;
-	ShaderStorageBuffer<GLSL_DirectionalLight> _directionalLightsBuffer;
+	GLMutableBuffer<GLSL_PointLight> _pointLightsBuffer;
+	GLMutableBuffer<GLSL_DirectionalLight> _directionalLightsBuffer;
 	
 	GLShaderProgram* _shader;
 	GLFramebuffer _framebuffer;

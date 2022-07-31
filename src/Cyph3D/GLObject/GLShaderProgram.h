@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/GLObject/BufferBase.h"
+#include "Cyph3D/GLObject/GLObject.h"
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -10,7 +10,7 @@
 
 struct ShaderProgramCreateInfo;
 
-class GLShaderProgram : public BufferBase
+class GLShaderProgram : public GLObject
 {
 public:
 	explicit GLShaderProgram(const ShaderProgramCreateInfo& createInfo);

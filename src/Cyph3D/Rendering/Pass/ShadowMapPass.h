@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/GLObject/VertexArray.h"
+#include "Cyph3D/GLObject/GLVertexArray.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class GLShaderProgram;
@@ -15,7 +15,7 @@ public:
 	void restorePipelineImpl() override;
 
 private:
-	VertexArray _vao;
+	GLVertexArray _vao;
 	
 	GLShaderProgram* _directionalLightShadowMappingProgram;
 	GLShaderProgram* _pointLightShadowMappingProgram;

@@ -27,6 +27,7 @@ _size(settings.size)
 GLCubemap::~GLCubemap()
 {
 	glDeleteTextures(1, &_handle);
+	_handle = 0;
 }
 
 GLuint64 GLCubemap::getBindlessTextureHandle() const

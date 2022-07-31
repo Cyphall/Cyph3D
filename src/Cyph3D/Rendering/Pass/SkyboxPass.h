@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Cyph3D/GLObject/GLFramebuffer.h"
-#include "Cyph3D/GLObject/VertexArray.h"
+#include "Cyph3D/GLObject/GLImmutableBuffer.h"
+#include "Cyph3D/GLObject/GLVertexArray.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class GLShaderProgram;
@@ -24,6 +25,6 @@ private:
 	GLFramebuffer _framebuffer;
 	GLShaderProgram* _shader;
 	
-	VertexArray _vao;
-	Buffer<VertexData> _vbo;
+	GLVertexArray _vao;
+	GLImmutableBuffer<VertexData> _vbo;
 };

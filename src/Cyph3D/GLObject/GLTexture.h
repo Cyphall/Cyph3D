@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/GLObject/BufferBase.h"
+#include "Cyph3D/GLObject/GLObject.h"
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -8,13 +8,10 @@
 struct TextureCreateInfo;
 class GLSampler;
 
-class GLTexture : public BufferBase
+class GLTexture : public GLObject
 {
 public:
 	explicit GLTexture(const TextureCreateInfo& settings);
-	GLTexture(const GLTexture& other) = delete;
-	GLTexture(GLTexture&& other) = delete;
-	
 	~GLTexture() override;
 	
 	GLuint64 getBindlessTextureHandle() const;

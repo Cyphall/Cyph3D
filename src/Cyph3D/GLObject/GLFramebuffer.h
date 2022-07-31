@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/GLObject/BufferBase.h"
+#include "Cyph3D/GLObject/GLObject.h"
 
 #include <glm/glm.hpp>
 #include <array>
@@ -9,11 +9,10 @@
 class GLTexture;
 class GLCubemap;
 
-class GLFramebuffer : public BufferBase
+class GLFramebuffer : public GLObject
 {
 public:
 	explicit GLFramebuffer(glm::ivec2 size);
-	
 	~GLFramebuffer() override;
 	
 	void bindForDrawing();

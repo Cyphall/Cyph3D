@@ -1,15 +1,16 @@
 #include "RenderHelper.h"
 
-#include "Cyph3D/GLObject/VertexArray.h"
+#include "Cyph3D/GLObject/GLVertexArray.h"
+#include "Cyph3D/GLObject/GLImmutableBuffer.h"
 
 #include <vector>
 
-std::unique_ptr<VertexArray> RenderHelper::_quadVAO;
-std::unique_ptr<Buffer<RenderHelper::VertexData>> RenderHelper::_quadVBO;
+std::unique_ptr<GLVertexArray> RenderHelper::_quadVAO;
+std::unique_ptr<GLImmutableBuffer<RenderHelper::VertexData>> RenderHelper::_quadVBO;
 
 void RenderHelper::initDrawScreenQuad()
 {
-	_quadVAO = std::make_unique<VertexArray>();
+	_quadVAO = std::make_unique<GLVertexArray>();
 	
 	RenderHelper::VertexData BL = {{-1, -1}, {0, 0}};
 	RenderHelper::VertexData BR = {{ 3, -1}, {2, 0}};
@@ -17,7 +18,7 @@ void RenderHelper::initDrawScreenQuad()
 	
 	std::vector<RenderHelper::VertexData> data = {BL, BR, TL};
 	
-	_quadVBO = std::make_unique<Buffer<RenderHelper::VertexData>>(data.size(), GL_DYNAMIC_STORAGE_BIT);
+	_quadVBO = std::make_unique<GLImmutableBuffer<RenderHelper::VertexData>>(data.size(), GL_DYNAMIC_STORAGE_BIT);
 	_quadVBO->setData(data);
 	
 	_quadVAO->defineFormat(0, 0, 2, GL_FLOAT, offsetof(RenderHelper::VertexData, position));

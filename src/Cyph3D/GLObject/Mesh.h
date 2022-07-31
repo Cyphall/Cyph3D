@@ -1,9 +1,12 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Buffer.h"
-
+#include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <memory>
 #include <span>
+
+template<typename T>
+class GLImmutableBuffer;
 
 class Mesh
 {
@@ -21,12 +24,12 @@ public:
 	};
 	
 	Mesh(std::span<const Mesh::VertexData> vertexData, std::span<const GLuint> indices);
-	Mesh(const Mesh& other) = delete;
+	~Mesh();
 	
-	const Buffer<Mesh::VertexData>& getVBO() const;
-	const Buffer<GLuint>& getIBO() const;
+	const GLImmutableBuffer<Mesh::VertexData>& getVBO() const;
+	const GLImmutableBuffer<GLuint>& getIBO() const;
 	
 private:
-	Buffer<Mesh::VertexData> _vbo;
-	Buffer<GLuint> _ibo;
+	std::unique_ptr<GLImmutableBuffer<Mesh::VertexData>> _vbo;
+	std::unique_ptr<GLImmutableBuffer<GLuint>> _ibo;
 };

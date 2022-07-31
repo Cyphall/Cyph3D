@@ -5,6 +5,7 @@
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
@@ -92,8 +93,9 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		glslDirectionalLight.intensity = renderData.intensity;
 		glslDirectionalLight.castShadows = renderData.castShadows;
 	}
+	_directionalLightBuffer.resize(glslDirectionalLights.size());
 	_directionalLightBuffer.setData(glslDirectionalLights);
-	_directionalLightBuffer.bind(0);
+	_directionalLightBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 0);
 	
 #pragma endregion
 #pragma region PointLight
@@ -108,8 +110,9 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		glslPointLight.intensity = renderData.intensity;
 		glslPointLight.castShadows = renderData.castShadows;
 	}
+	_pointLightBuffer.resize(glslPointLights.size());
 	_pointLightBuffer.setData(glslPointLights);
-	_pointLightBuffer.bind(1);
+	_pointLightBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 1);
 	
 #pragma endregion
 #pragma region Shape
@@ -191,10 +194,12 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 			
 		}
 	}
+	_sphereBuffer.resize(glslSphereVec.size());
 	_sphereBuffer.setData(glslSphereVec);
-	_sphereBuffer.bind(2);
+	_sphereBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 2);
+	_planeBuffer.resize(glslPlaneVec.size());
 	_planeBuffer.setData(glslPlaneVec);
-	_planeBuffer.bind(3);
+	_planeBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 3);
 	
 	_meshVertexDataBuffer.resize(totalVertexCount);
 	_meshIndexDataBuffer.resize(totalIndexCount);
@@ -212,26 +217,27 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		
 		const Mesh& mesh = meshShape->getMeshToRender();
 		
-		const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
+		const GLBuffer<Mesh::VertexData>& vbo = mesh.getVBO();
 		GLsizeiptr vboElementCount = vbo.getCount();
 		GLsizeiptr vboSize = vbo.getSize();
 		
 		glCopyNamedBufferSubData(vbo.getHandle(), _meshVertexDataBuffer.getHandle(), 0, currentVertexOffset * sizeof(Mesh::VertexData), vboSize);
 		currentVertexOffset += vboElementCount;
 		
-		const Buffer<GLuint>& ibo = mesh.getIBO();
+		const GLBuffer<GLuint>& ibo = mesh.getIBO();
 		GLsizeiptr iboElementCount = ibo.getCount();
 		GLsizeiptr iboSize = ibo.getSize();
 		
 		glCopyNamedBufferSubData(ibo.getHandle(), _meshIndexDataBuffer.getHandle(), 0, currentIndexOffset * sizeof(GLuint), iboSize);
 		currentIndexOffset += iboElementCount;
 	}
-	
+
+	_meshBuffer.resize(glslMeshVec.size());
 	_meshBuffer.setData(glslMeshVec);
-	_meshBuffer.bind(4);
+	_meshBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 4);
 	
-	_meshVertexDataBuffer.bind(5);
-	_meshIndexDataBuffer.bind(6);
+	_meshVertexDataBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 5);
+	_meshIndexDataBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 6);
 	
 #pragma endregion
 	

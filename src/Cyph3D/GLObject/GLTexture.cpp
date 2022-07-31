@@ -53,6 +53,7 @@ GLTexture::GLTexture(const TextureCreateInfo& settings)
 GLTexture::~GLTexture()
 {
 	glDeleteTextures(1, &_handle);
+	_handle = 0;
 }
 
 int GLTexture::calculateMipmapCount(const glm::ivec2& size)

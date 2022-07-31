@@ -2,6 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
+#include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/GLObject/GLCubemap.h"
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/Mesh.h"
@@ -62,8 +63,8 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& text
 			
 			const Mesh& mesh = shapeData.shape->getMeshToRender();
 			
-			const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
-			const Buffer<GLuint>& ibo = mesh.getIBO();
+			const GLBuffer<Mesh::VertexData>& vbo = mesh.getVBO();
+			const GLBuffer<GLuint>& ibo = mesh.getIBO();
 			_vao.bindBufferToSlot(vbo, 0);
 			_vao.bindIndexBuffer(ibo);
 			
@@ -102,8 +103,8 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& text
 			
 			const Mesh& mesh = shapeData.shape->getMeshToRender();
 			
-			const Buffer<Mesh::VertexData>& vbo = mesh.getVBO();
-			const Buffer<GLuint>& ibo = mesh.getIBO();
+			const GLBuffer<Mesh::VertexData>& vbo = mesh.getVBO();
+			const GLBuffer<GLuint>& ibo = mesh.getIBO();
 			_vao.bindBufferToSlot(vbo, 0);
 			_vao.bindIndexBuffer(ibo);
 			

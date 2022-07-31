@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Cyph3D/GLObject/GLFramebuffer.h"
-#include "Cyph3D/GLObject/ShaderStorageBuffer.h"
+#include "Cyph3D/GLObject/GLMutableBuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 
@@ -34,7 +34,7 @@ private:
 	GLShaderProgram* _combineProgram;
 	GLTexture _outputTexture;
 	
-	ShaderStorageBuffer<float> _kernelBuffer;
+	GLMutableBuffer<float> _kernelBuffer;
 	bool _kernelChanged = true;
 	int _kernelRadius = 20;
 	float _kernelSigma = 5;

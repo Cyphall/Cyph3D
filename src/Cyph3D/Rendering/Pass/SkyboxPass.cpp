@@ -74,7 +74,6 @@ _vbo(36, GL_DYNAMIC_STORAGE_BIT)
 	
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(SkyboxPass::VertexData, position));
 	_vao.bindBufferToSlot(_vbo, 0);
-	
 }
 
 void SkyboxPass::preparePipelineImpl()

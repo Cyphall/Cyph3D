@@ -3,9 +3,9 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-class VertexArray;
+class GLVertexArray;
 template<typename T>
-class Buffer;
+class GLImmutableBuffer;
 
 class RenderHelper
 {
@@ -20,6 +20,6 @@ private:
 		glm::vec2 uv;
 	};
 	
-	static std::unique_ptr<VertexArray> _quadVAO;
-	static std::unique_ptr<Buffer<RenderHelper::VertexData>> _quadVBO;
+	static std::unique_ptr<GLVertexArray> _quadVAO;
+	static std::unique_ptr<GLImmutableBuffer<RenderHelper::VertexData>> _quadVBO;
 };

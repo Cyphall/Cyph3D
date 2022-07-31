@@ -105,6 +105,7 @@ GLShaderProgram::GLShaderProgram(const ShaderProgramCreateInfo& createInfo)
 GLShaderProgram::~GLShaderProgram()
 {
 	glDeleteProgram(_handle);
+	_handle = 0;
 }
 
 void GLShaderProgram::bind()

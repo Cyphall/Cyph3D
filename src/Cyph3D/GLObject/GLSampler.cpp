@@ -37,4 +37,5 @@ GLSampler::GLSampler(const SamplerCreateInfo& settings)
 GLSampler::~GLSampler()
 {
 	glDeleteSamplers(1, &_handle);
+	_handle = 0;
 }

@@ -54,7 +54,8 @@ _outputTexture(TextureCreateInfo
 {
 	.size = size,
 	.internalFormat = GL_RGBA16F
-})
+}),
+_kernelBuffer(GL_DYNAMIC_DRAW)
 {
 	_extractBrightFramebuffer.attachColor(0, _nonBrightTexture);
 	_extractBrightFramebuffer.attachColor(1, _blurTextures[0]);
@@ -113,7 +114,7 @@ GLTexture* BloomEffect::renderImpl(GLTexture* currentRenderTexture, std::unorder
 	if (_kernelChanged)
 		recalculateGaussianKernel();
 	
-	_kernelBuffer.bind(2);
+	_kernelBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 2);
 	
 	for (int i = 5; i > 0; i--)
 	{
@@ -247,7 +248,9 @@ std::vector<float> BloomEffect::gaussianKernel(int kernelRadius, float sigma)
 void BloomEffect::recalculateGaussianKernel()
 {
 	std::vector<float> kernel = gaussianKernel(_kernelRadius, _kernelSigma);
-	_kernelBuffer.setData(std::span<const float>(kernel.data() + _kernelRadius, _kernelRadius+1));
+	std::span<const float> span(kernel.data() + _kernelRadius, _kernelRadius+1);
+	_kernelBuffer.resize(span.size());
+	_kernelBuffer.setData(span);
 	
 	_kernelChanged = false;
 }

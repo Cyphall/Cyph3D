@@ -12,6 +12,8 @@
 
 LightingPass::LightingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Lighting pass"),
+_pointLightsBuffer(GL_DYNAMIC_DRAW),
+_directionalLightsBuffer(GL_DYNAMIC_DRAW),
 _framebuffer(size),
 _rawRenderTexture(TextureCreateInfo
 {
@@ -56,8 +58,9 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		}
 		directionalLightData.push_back(data);
 	}
+	_directionalLightsBuffer.resize(directionalLightData.size());
 	_directionalLightsBuffer.setData(directionalLightData);
-	_directionalLightsBuffer.bind(1);
+	_directionalLightsBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 1);
 	
 	std::vector<GLSL_PointLight> pointLightData;
 	pointLightData.reserve(registry.pointLights.size());
@@ -76,9 +79,9 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		}
 		pointLightData.push_back(data);
 	}
+	_pointLightsBuffer.resize(pointLightData.size());
 	_pointLightsBuffer.setData(pointLightData);
-	_pointLightsBuffer.bind(0);
-	
+	_pointLightsBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 0);
 	
 	_shader->setUniform("u_viewPos", camera.getPosition());
 	_shader->setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));

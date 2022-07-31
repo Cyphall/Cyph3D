@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Cyph3D/GLObject/Mesh.h"
-#include "Cyph3D/GLObject/ShaderStorageBuffer.h"
+#include "Cyph3D/GLObject/GLMutableBuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
@@ -85,11 +85,11 @@ private:
 	GLTexture _rawRenderTexture;
 	GLTexture _objectIndexTexture;
 	
-	ShaderStorageBuffer<GLSL_DirectionalLight> _directionalLightBuffer;
-	ShaderStorageBuffer<GLSL_PointLight> _pointLightBuffer;
-	ShaderStorageBuffer<GLSL_Sphere> _sphereBuffer;
-	ShaderStorageBuffer<GLSL_Plane> _planeBuffer;
-	ShaderStorageBuffer<GLSL_Mesh> _meshBuffer;
-	ShaderStorageBuffer<Mesh::VertexData> _meshVertexDataBuffer;
-	ShaderStorageBuffer<GLuint> _meshIndexDataBuffer;
+	GLMutableBuffer<GLSL_DirectionalLight> _directionalLightBuffer;
+	GLMutableBuffer<GLSL_PointLight> _pointLightBuffer;
+	GLMutableBuffer<GLSL_Sphere> _sphereBuffer;
+	GLMutableBuffer<GLSL_Plane> _planeBuffer;
+	GLMutableBuffer<GLSL_Mesh> _meshBuffer;
+	GLMutableBuffer<Mesh::VertexData> _meshVertexDataBuffer;
+	GLMutableBuffer<GLuint> _meshIndexDataBuffer;
 };
