@@ -1,4 +1,5 @@
 #include "Cyph3D/Window.h"
+#include <GLFW/glfw3.h>
 
 static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height)
 {

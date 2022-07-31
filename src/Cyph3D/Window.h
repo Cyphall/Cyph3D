@@ -1,10 +1,11 @@
 #pragma once
 
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <glm/ext.hpp>
 #include <optional>
 #include "Cyph3D/Event.h"
+
+struct GLFWwindow;
 
 class Window
 {
