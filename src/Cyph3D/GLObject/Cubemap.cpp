@@ -1,4 +1,5 @@
 #include "Cubemap.h"
+
 #include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
 #include "Cyph3D/GLObject/Sampler.h"
 

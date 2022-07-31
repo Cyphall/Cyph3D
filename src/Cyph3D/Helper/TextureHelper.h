@@ -1,10 +1,11 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <tuple>
-#include <optional>
-#include <array>
 #include "Cyph3D/Enums/ImageType.h"
+
+#include <glad/glad.h>
+#include <array>
+#include <optional>
+#include <tuple>
 
 struct TextureProperties
 {

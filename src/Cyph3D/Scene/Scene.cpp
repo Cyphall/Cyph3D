@@ -1,24 +1,26 @@
 #include "Scene.h"
-#include <stdexcept>
-#include "Cyph3D/Helper/VectorHelper.h"
-#include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/Helper/JsonHelper.h"
-#include <format>
-#include <glm/gtc/type_ptr.hpp>
+
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/UI/Window/UIInspector.h"
-#include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/UI/Window/UIViewport.h"
-#include "Cyph3D/Helper/ThreadHelper.h"
-#include "Cyph3D/Iterator/EntityIterator.h"
-#include "Cyph3D/Iterator/EntityConstIterator.h"
-#include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/ResourceManagement/Model.h"
-#include "Cyph3D/ResourceManagement/Image.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
-#include "Cyph3D/GLObject/Material/Material.h"
 #include "Cyph3D/Entity/Component/Component.h"
+#include "Cyph3D/Entity/Entity.h"
+#include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/Helper/JsonHelper.h"
+#include "Cyph3D/Helper/ThreadHelper.h"
+#include "Cyph3D/Helper/VectorHelper.h"
+#include "Cyph3D/Iterator/EntityConstIterator.h"
+#include "Cyph3D/Iterator/EntityIterator.h"
+#include "Cyph3D/ObjectSerialization.h"
+#include "Cyph3D/ResourceManagement/Image.h"
+#include "Cyph3D/ResourceManagement/Model.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/UI/Window/UIInspector.h"
+#include "Cyph3D/UI/Window/UIViewport.h"
+
+#include <glm/gtc/type_ptr.hpp>
+#include <format>
+#include <stdexcept>
 
 Scene::Scene(std::string name):
 _root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::max(ThreadHelper::getPhysicalCoreCount() - 2, 1))

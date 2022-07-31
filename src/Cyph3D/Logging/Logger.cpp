@@ -1,8 +1,10 @@
 #include "Logger.h"
+
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Logging/Impl/Win32LoggerColor.h"
-#include <iostream>
+
 #include <iomanip>
+#include <iostream>
 
 Logger::LogLevel Logger::_logLevel = LogLevel::FULL;
 std::mutex Logger::_mtx;

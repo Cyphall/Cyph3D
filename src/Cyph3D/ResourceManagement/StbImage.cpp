@@ -1,4 +1,5 @@
 #include "StbImage.h"
+
 #include <stb_image.h>
 
 StbImage::StbImage(const std::string& path, int desiredChannels):

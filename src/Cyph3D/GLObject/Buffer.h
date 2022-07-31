@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Cyph3D/GLObject/BufferBase.h"
-#include <span>
+
 #include <cassert>
+#include <span>
 
 template<typename T>
 class Buffer : public BufferBase

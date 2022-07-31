@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
-#include <memory>
 #include <cassert>
+#include <memory>
+#include <string>
 
 template<typename TResource, typename... Args>
 class Resource

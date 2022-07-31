@@ -1,9 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <glad/glad.h>
-#include <optional>
+#include <glm/glm.hpp>
 #include <array>
+#include <optional>
 
 struct CubemapCreateInfo
 {

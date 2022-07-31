@@ -1,26 +1,28 @@
 #include "Engine.h"
-#include "Cyph3D/Helper/GlfwHelper.h"
-#include <stdexcept>
-#include "Cyph3D/UI/UIHelper.h"
-#include "Cyph3D/GLObject/Framebuffer.h"
-#include "Cyph3D/Logging/Logger.h"
-#include <GLFW/glfw3.h>
-#include "Cyph3D/Window.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
-#include "Cyph3D/Scene/Scene.h"
+
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
-#include "Cyph3D/Helper/RenderHelper.h"
-#include <format>
 #include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/UI/Window/UIViewport.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/Helper/GlfwHelper.h"
+#include "Cyph3D/Helper/RenderHelper.h"
+#include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/ResourceManagement/Image.h"
+#include "Cyph3D/ResourceManagement/Model.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/UI/UIHelper.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
+#include "Cyph3D/UI/Window/UIViewport.h"
+#include "Cyph3D/Window.h"
+
+#include <GLFW/glfw3.h>
 #include <stb_image.h>
 #include <stb_image_write.h>
-#include "Cyph3D/ResourceManagement/Model.h"
-#include "Cyph3D/ResourceManagement/Image.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
-#include "Cyph3D/GLObject/Material/Material.h"
+#include <format>
+#include <stdexcept>
 
 std::unique_ptr<Window> Engine::_window;
 std::unique_ptr<ResourceManager> Engine::_globalResourceManager;

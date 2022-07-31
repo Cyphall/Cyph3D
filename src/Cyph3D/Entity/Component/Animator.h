@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/Entity/Component/Component.h"
+
 #include <glm/glm.hpp>
 
 class Animator : public Component

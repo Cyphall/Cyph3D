@@ -1,7 +1,8 @@
 #pragma once
 
-#include <string_view>
 #include "Cyph3D/Logging/LogColorFlags.h"
+
+#include <string_view>
 
 class ILoggerColor
 {

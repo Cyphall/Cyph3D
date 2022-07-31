@@ -1,15 +1,17 @@
 #include "Entity.h"
-#include <imgui.h>
-#include <imgui_stdlib.h>
-#include <glm/gtc/type_ptr.hpp>
-#include "Cyph3D/Scene/Scene.h"
+
 #include "Cyph3D/Entity/Component/Animator.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
 #include "Cyph3D/Entity/Component/PointLight.h"
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
-#include "Cyph3D/Iterator/ComponentIterator.h"
 #include "Cyph3D/Iterator/ComponentConstIterator.h"
+#include "Cyph3D/Iterator/ComponentIterator.h"
 #include "Cyph3D/ObjectSerialization.h"
+#include "Cyph3D/Scene/Scene.h"
+
+#include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
+#include <imgui_stdlib.h>
 
 std::map<std::string, std::function<Component&(Entity&)>> Entity::_allocators;
 

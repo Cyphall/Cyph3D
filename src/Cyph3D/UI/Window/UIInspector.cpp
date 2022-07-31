@@ -1,12 +1,14 @@
 #include "UIInspector.h"
+
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Entity/Component/Animator.h"
+#include "Cyph3D/Entity/Entity.h"
+#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Window.h"
+
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "Cyph3D/Window.h"
-#include "Cyph3D/Scene/Scene.h"
-#include "Cyph3D/Rendering/Renderer/Renderer.h"
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/Entity/Component/Animator.h"
 
 std::any UIInspector::_selected;
 

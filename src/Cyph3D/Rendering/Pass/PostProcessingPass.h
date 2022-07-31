@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
+
 #include <memory>
 
 class PostProcessingEffect;

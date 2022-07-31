@@ -1,11 +1,12 @@
 #pragma once
 
-#include <map>
-#include <vector>
-#include <glad/glad.h>
 #include "Cyph3D/GLObject/BufferBase.h"
+
+#include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <map>
 #include <string>
+#include <vector>
 
 struct ShaderProgramCreateInfo;
 

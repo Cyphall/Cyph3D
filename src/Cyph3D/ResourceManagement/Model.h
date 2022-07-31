@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Cyph3D/ResourceManagement/Resource.h"
 #include "Cyph3D/GLObject/Mesh.h"
+#include "Cyph3D/ResourceManagement/Resource.h"
 
 class Model : public Resource<Mesh>
 {

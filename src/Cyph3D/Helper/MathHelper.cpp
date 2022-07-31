@@ -1,4 +1,5 @@
 #include "MathHelper.h"
+
 #include <glm/glm.hpp>
 
 bool MathHelper::between(int64_t number, int64_t lower, int64_t upper)

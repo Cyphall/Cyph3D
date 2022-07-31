@@ -1,8 +1,9 @@
 #pragma once
 
-#include <unordered_map>
 #include "Cyph3D/PerfCounter/GpuPerfCounter.h"
+
 #include <glm/glm.hpp>
+#include <unordered_map>
 
 class Texture;
 class Camera;

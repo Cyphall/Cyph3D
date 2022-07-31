@@ -1,4 +1,5 @@
 #include "ThreadHelper.h"
+
 #include <windows.h>
 #include <vector>
 

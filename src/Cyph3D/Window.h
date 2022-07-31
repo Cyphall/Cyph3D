@@ -1,9 +1,10 @@
 #pragma once
 
+#include "Cyph3D/Event.h"
+
 #include <glad/glad.h>
 #include <glm/ext.hpp>
 #include <optional>
-#include "Cyph3D/Event.h"
 
 struct GLFWwindow;
 

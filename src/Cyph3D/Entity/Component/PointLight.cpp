@@ -1,16 +1,18 @@
 #include "PointLight.h"
-#include "Cyph3D/Entity/Entity.h"
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/integer.hpp>
-#include <imgui.h>
-#include "Cyph3D/Scene/Scene.h"
+
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
-#include "Cyph3D/GLObject/Framebuffer.h"
 #include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/RenderContext.h"
+#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Scene/Scene.h"
+
+#include <glm/gtc/integer.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
 
 const char* PointLight::identifier = "PointLight";
 glm::mat4 PointLight::_projection = glm::perspective(glm::radians(90.0f), 1.0f, NEAR_DISTANCE, FAR_DISTANCE);

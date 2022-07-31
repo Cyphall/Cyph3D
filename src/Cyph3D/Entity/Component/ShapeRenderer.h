@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Cyph3D/Entity/Component/Component.h"
-#include <functional>
+
 #include <glm/glm.hpp>
+#include <functional>
 #include <map>
 
 class Material;

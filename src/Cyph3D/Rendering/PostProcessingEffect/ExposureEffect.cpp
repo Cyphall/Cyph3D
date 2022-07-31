@@ -1,11 +1,12 @@
 #include "ExposureEffect.h"
-#include "Cyph3D/Window.h"
-#include "Cyph3D/Scene/Scene.h"
+
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Window.h"
 
 ExposureEffect::ExposureEffect(glm::ivec2 size):
 PostProcessingEffect("Exposure", size),

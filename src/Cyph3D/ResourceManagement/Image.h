@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Cyph3D/ResourceManagement/Resource.h"
-#include "Cyph3D/GLObject/Texture.h"
 #include "Cyph3D/Enums/ImageType.h"
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/ResourceManagement/Resource.h"
 
 class Image : public Resource<Texture, ImageType>
 {

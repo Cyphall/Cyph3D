@@ -1,8 +1,9 @@
 #pragma once
 
+#include "Cyph3D/Enums/ResourceType.h"
+
 #include <string>
 #include <vector>
-#include "Cyph3D/Enums/ResourceType.h"
 
 class UIResourceExplorer
 {

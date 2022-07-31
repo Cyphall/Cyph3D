@@ -1,9 +1,10 @@
 #pragma once
 
-#include <unordered_map>
-#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
 #include "Cyph3D/Enums/ImageType.h"
+#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
+
 #include <thread_pool.hpp>
+#include <unordered_map>
 
 class Model;
 class Image;

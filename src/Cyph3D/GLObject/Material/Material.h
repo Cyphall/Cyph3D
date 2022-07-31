@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Material/MaterialMapType.h"
 #include "Cyph3D/GLObject/Material/MaterialMap.h"
 #include "Cyph3D/GLObject/Material/MaterialMapDefinition.h"
+#include "Cyph3D/GLObject/Material/MaterialMapType.h"
+
 #include <map>
 #include <tuple>
 

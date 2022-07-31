@@ -1,13 +1,15 @@
 #include "Framebuffer.h"
+
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/Helper/MathHelper.h"
+#include "Cyph3D/Helper/RenderHelper.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+
+#include <format>
 #include <stdexcept>
 #include <vector>
-#include "Cyph3D/Helper/MathHelper.h"
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
-#include <format>
-#include "Cyph3D/Helper/RenderHelper.h"
-#include "Cyph3D/GLObject/Texture.h"
-#include "Cyph3D/GLObject/Cubemap.h"
 
 Framebuffer::Framebuffer(glm::ivec2 size):
 _size(size)

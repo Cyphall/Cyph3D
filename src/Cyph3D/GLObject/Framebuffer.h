@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Cyph3D/GLObject/BufferBase.h"
+
 #include <glm/glm.hpp>
+#include <array>
 #include <list>
 #include <optional>
-#include <array>
 
 class Texture;
 class Cubemap;

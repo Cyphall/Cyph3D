@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/GLObject/VertexArray.h"
+#include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class ShaderProgram;
 

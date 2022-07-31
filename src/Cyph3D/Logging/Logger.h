@@ -1,7 +1,8 @@
 #pragma once
 
-#include <mutex>
 #include "Cyph3D/Logging/LogColorFlags.h"
+
+#include <mutex>
 
 class ILoggerColor;
 

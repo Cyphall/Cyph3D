@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/Entity/Component/LightBase.h"
+
 #include <memory>
 
 class Texture;

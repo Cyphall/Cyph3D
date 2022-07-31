@@ -1,12 +1,14 @@
 #include "SkyboxPass.h"
-#include "Cyph3D/Window.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
+
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Scene/Scene.h"
-#include <glm/gtx/transform.hpp>
 #include "Cyph3D/GLObject/ShaderProgram.h"
-#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Window.h"
+
+#include <glm/gtx/transform.hpp>
 
 SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Skybox pass"),

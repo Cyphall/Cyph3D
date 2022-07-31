@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/GLObject/Buffer.h"
+
 #include <glm/glm.hpp>
 #include <span>
 

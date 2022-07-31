@@ -1,9 +1,11 @@
 #include "Transform.h"
+
 #include "Cyph3D/Helper/VectorHelper.h"
-#include <stdexcept>
+
 #include <glm/gtc/matrix_inverse.hpp>
-#include <glm/gtx/transform.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/transform.hpp>
+#include <stdexcept>
 
 Transform* Transform::getParent() const
 {

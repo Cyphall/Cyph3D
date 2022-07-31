@@ -1,9 +1,10 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glad/glad.h>
-#include <map>
 #include "Cyph3D/GLObject/BufferBase.h"
+
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <map>
 
 struct TextureCreateInfo;
 class Sampler;

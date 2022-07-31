@@ -1,9 +1,9 @@
 #pragma once
 
-#include <memory>
-#include <string>
 #include <glm/glm.hpp>
 #include <functional>
+#include <memory>
+#include <string>
 
 class StbImage
 {

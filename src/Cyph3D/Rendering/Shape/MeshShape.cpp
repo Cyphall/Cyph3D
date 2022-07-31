@@ -1,11 +1,13 @@
 #include "MeshShape.h"
+
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
 #include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/ObjectSerialization.h"
+#include "Cyph3D/ResourceManagement/Model.h"
+#include "Cyph3D/Scene/Scene.h"
+
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "Cyph3D/ResourceManagement/Model.h"
 
 const char* MeshShape::identifier = "MeshShape";
 

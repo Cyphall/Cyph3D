@@ -1,6 +1,7 @@
 #include "TextureHelper.h"
-#include <stdexcept>
+
 #include <format>
+#include <stdexcept>
 
 TextureProperties TextureHelper::getTextureProperties(ImageType type)
 {

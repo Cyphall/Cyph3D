@@ -1,12 +1,13 @@
 #pragma once
 
-#include <memory>
 #include "Cyph3D/Scene/Camera.h"
+
 #include <imgui.h>
 #include <ImGuizmo.h>
-#include <string>
-#include <map>
 #include <functional>
+#include <map>
+#include <memory>
+#include <string>
 
 class Renderer;
 struct PerfStep;

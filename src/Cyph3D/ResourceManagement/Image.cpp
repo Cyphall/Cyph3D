@@ -1,10 +1,12 @@
 #include "Image.h"
-#include <stdexcept>
+
+#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/Helper/TextureHelper.h"
 #include "Cyph3D/ResourceManagement/StbImage.h"
-#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include <format>
+
 #include <chrono>
+#include <format>
+#include <stdexcept>
 
 void Image::loadResourceImpl(ImageType type)
 {

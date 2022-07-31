@@ -1,13 +1,15 @@
 #include "UIMisc.h"
-#include <imgui.h>
-#include <imgui_stdlib.h>
+
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Window.h"
+#include "Cyph3D/PerfCounter/PerfStep.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
-#include "Cyph3D/PerfCounter/PerfStep.h"
+#include "Cyph3D/Window.h"
+
+#include <imgui.h>
+#include <imgui_stdlib.h>
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
 

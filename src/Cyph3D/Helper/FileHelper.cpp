@@ -1,13 +1,16 @@
 #include "FileHelper.h"
-#include <ShObjIdl_core.h>
-#include "Cyph3D/Window.h"
+
 #include "Cyph3D/Engine.h"
-#include <fstream>
-#include <ios>
-#include <format>
+#include "Cyph3D/Window.h"
+
+#include <GLFW/glfw3.h>
+#undef APIENTRY
+#include <ShObjIdl_core.h>
 #include <stdlib.h>
 #include <filesystem>
-#include <GLFW/glfw3.h>
+#include <format>
+#include <fstream>
+#include <ios>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 

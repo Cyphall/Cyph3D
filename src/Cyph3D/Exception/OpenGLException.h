@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+
 class OpenGLException : public std::runtime_error
 {
 public:

@@ -1,8 +1,10 @@
 #include "UIMenuBar.h"
+
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
+
 #include <imgui.h>
 #include <filesystem>
 

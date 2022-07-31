@@ -1,7 +1,8 @@
 #include "ShaderHelper.h"
-#include <stdexcept>
-#include <sstream>
+
 #include <glad/glad.h>
+#include <sstream>
+#include <stdexcept>
 
 std::string ShaderHelper::shaderTypeToExtension(GLenum type)
 {

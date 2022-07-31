@@ -1,14 +1,16 @@
 #include "ResourceManager.h"
-#include "Cyph3D/Logging/Logger.h"
-#include "Cyph3D/Window.h"
+
 #include "Cyph3D/Engine.h"
-#include <format>
-#include <GLFW/glfw3.h>
-#include "Cyph3D/ResourceManagement/Model.h"
-#include "Cyph3D/ResourceManagement/Image.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
 #include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/ResourceManagement/Image.h"
+#include "Cyph3D/ResourceManagement/Model.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Window.h"
+
+#include <GLFW/glfw3.h>
+#include <format>
 
 ResourceManager::ResourceManager(int threadCount):
 _threadPool(threadCount, Engine::getWindow().getHandle())

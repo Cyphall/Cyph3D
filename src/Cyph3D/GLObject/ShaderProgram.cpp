@@ -1,15 +1,17 @@
 #include "ShaderProgram.h"
-#include <stdexcept>
-#include <ios>
-#include <sstream>
-#include "Cyph3D/Helper/ShaderHelper.h"
+
+#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
 #include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/Helper/ShaderHelper.h"
 #include "Cyph3D/Helper/StringHelper.h"
 #include "Cyph3D/Logging/Logger.h"
-#include <format>
-#include <numeric>
+
 #include <glm/gtc/type_ptr.hpp>
-#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
+#include <format>
+#include <ios>
+#include <numeric>
+#include <sstream>
+#include <stdexcept>
 
 ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 {

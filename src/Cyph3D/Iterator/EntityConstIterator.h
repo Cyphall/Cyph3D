@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <list>
+#include <memory>
 
 class Entity;
 

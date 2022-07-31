@@ -1,8 +1,9 @@
 #pragma once
 
+#include "Cyph3D/Timer.h"
+
 #include <glm/glm.hpp>
 #include <memory>
-#include "Cyph3D/Timer.h"
 
 class Window;
 class ResourceManager;

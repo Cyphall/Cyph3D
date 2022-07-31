@@ -1,4 +1,5 @@
 #include "PostProcessingEffect.h"
+
 #include "Cyph3D/PerfCounter/PerfStep.h"
 
 PostProcessingEffect::PostProcessingEffect(const char* name, glm::ivec2 size):

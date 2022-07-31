@@ -1,10 +1,12 @@
 #include "Skybox.h"
+
+#include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Helper/TextureHelper.h"
-#include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
-#include <format>
-#include <chrono>
 #include "Cyph3D/ResourceManagement/StbImage.h"
+
+#include <chrono>
+#include <format>
 
 float Skybox::getRotation() const
 {

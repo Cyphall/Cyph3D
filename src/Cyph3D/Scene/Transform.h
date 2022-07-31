@@ -2,8 +2,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <vector>
 #include <memory>
+#include <vector>
 
 class Entity;
 

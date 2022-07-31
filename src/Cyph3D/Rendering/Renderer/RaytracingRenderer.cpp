@@ -1,4 +1,5 @@
 #include "RaytracingRenderer.h"
+
 #include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 
 const char* RaytracingRenderer::identifier = "Raytracing";

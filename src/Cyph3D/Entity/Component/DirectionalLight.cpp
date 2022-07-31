@@ -1,17 +1,19 @@
 #include "DirectionalLight.h"
-#include "Cyph3D/Entity/Entity.h"
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/integer.hpp>
-#include <imgui.h>
-#include "Cyph3D/Scene/Scene.h"
+
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Framebuffer.h"
 #include "Cyph3D/GLObject/Texture.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/RenderContext.h"
+#include "Cyph3D/Rendering/Renderer/Renderer.h"
 #include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Scene.h"
+
+#include <glm/gtc/integer.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
 
 const char* DirectionalLight::identifier = "DirectionalLight";
 glm::mat4 DirectionalLight::_projection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -50.0f, 50.0f);

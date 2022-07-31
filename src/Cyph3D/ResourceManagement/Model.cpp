@@ -1,9 +1,10 @@
 #include "Model.h"
+
 #include <assimp/Importer.hpp>
-#include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <format>
+#include <assimp/scene.h>
 #include <chrono>
+#include <format>
 
 void Model::loadResourceImpl()
 {
