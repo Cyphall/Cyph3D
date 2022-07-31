@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/GLObject/Buffer.h"
-#include "Cyph3D/GLObject/VertexArray.h"
 #include <glm/glm.hpp>
 #include <span>
 
@@ -30,4 +29,3 @@ private:
 	Buffer<Mesh::VertexData> _vbo;
 	Buffer<GLuint> _ibo;
 };
-

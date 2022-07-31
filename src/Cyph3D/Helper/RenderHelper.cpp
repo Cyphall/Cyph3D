@@ -1,5 +1,6 @@
 #include "Cyph3D/Helper/RenderHelper.h"
 #include <vector>
+#include "Cyph3D/GLObject/VertexArray.h"
 
 std::unique_ptr<VertexArray> RenderHelper::_quadVAO;
 std::unique_ptr<Buffer<RenderHelper::VertexData>> RenderHelper::_quadVBO;

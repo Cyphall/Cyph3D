@@ -1,9 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Entity/Component/Component.h"
 #include "Cyph3D/Scene/Transform.h"
-#include "Cyph3D/Iterator/ComponentIterator.h"
-#include "Cyph3D/Iterator/ComponentConstIterator.h"
 #include <memory>
 #include <vector>
 #include <string>
@@ -12,6 +9,11 @@
 
 class Scene;
 class Renderer;
+class Component;
+class ComponentIterator;
+class ComponentConstIterator;
+struct RenderContext;
+struct ObjectSerialization;
 
 class Entity
 {

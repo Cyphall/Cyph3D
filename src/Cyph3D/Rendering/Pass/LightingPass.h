@@ -3,6 +3,10 @@
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/GLObject/ShaderStorageBuffer.h"
 #include "Cyph3D/GLSL_types.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/Texture.h"
+
+class ShaderProgram;
 
 class LightingPass : public RenderPass
 {

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Cyph3D/GLObject/BufferBase.h"
-#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
-#include "Cyph3D/GLObject/Texture.h"
-#include "Cyph3D/GLObject/Cubemap.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
 #include <glm/glm.hpp>
 #include <list>
+#include <optional>
+#include <array>
+
+class Texture;
+class Cubemap;
 
 class Framebuffer : public BufferBase
 {

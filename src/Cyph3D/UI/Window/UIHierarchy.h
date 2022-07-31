@@ -3,9 +3,9 @@
 #include <imgui.h>
 #include <queue>
 #include <optional>
-#include "Cyph3D/Entity/Entity.h"
 
 class Transform;
+class Entity;
 
 class UIHierarchy
 {

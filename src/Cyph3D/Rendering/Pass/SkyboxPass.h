@@ -1,6 +1,10 @@
 #pragma once
 
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/VertexArray.h"
+
+class ShaderProgram;
 
 class SkyboxPass : public RenderPass
 {

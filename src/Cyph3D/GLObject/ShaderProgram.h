@@ -5,9 +5,9 @@
 #include <glad/glad.h>
 #include "Cyph3D/GLObject/BufferBase.h"
 #include <glm/glm.hpp>
-#include "Cyph3D/GLObject/Texture.h"
-#include "Cyph3D/GLObject/Cubemap.h"
-#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
+#include <string>
+
+struct ShaderProgramCreateInfo;
 
 class ShaderProgram : public BufferBase
 {
@@ -98,4 +98,3 @@ private:
 	
 	int getUniformLocation(const char* name);
 };
-

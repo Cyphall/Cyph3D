@@ -1,9 +1,14 @@
 #pragma once
 
 #include "Cyph3D/Rendering/RenderRegistry.h"
-#include "Cyph3D/Rendering/Pass/RenderPass.h"
-#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/PerfCounter/PerfStep.h"
+#include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 #include <functional>
+
+class RenderPass;
+class Scene;
+class Texture;
+class Camera;
 
 class Renderer
 {

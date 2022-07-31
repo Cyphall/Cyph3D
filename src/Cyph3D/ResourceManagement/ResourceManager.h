@@ -1,13 +1,15 @@
 #pragma once
 
 #include <unordered_map>
-#include "Cyph3D/ResourceManagement/Model.h"
-#include "Cyph3D/ResourceManagement/Image.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
-#include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/Enums/ImageType.h"
 #include <thread_pool.hpp>
+
+class Model;
+class Image;
+class Skybox;
+class ShaderProgram;
+class Material;
 
 namespace std
 {

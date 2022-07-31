@@ -3,6 +3,13 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/GLObject/Mesh.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/Entity/Component/DirectionalLight.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/Rendering/Shape/Shape.h"
+#include "Cyph3D/GLObject/Cubemap.h"
 
 ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Shadow map pass")

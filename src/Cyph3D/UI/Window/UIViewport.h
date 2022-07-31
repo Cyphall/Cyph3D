@@ -1,9 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "Cyph3D/GLObject/Texture.h"
 #include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/PerfCounter/PerfStep.h"
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <string>
@@ -11,6 +9,7 @@
 #include <functional>
 
 class Renderer;
+struct PerfStep;
 
 class UIViewport
 {

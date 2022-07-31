@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Texture.h"
-#include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 #include <unordered_map>
+#include <glm/glm.hpp>
 
 class Camera;
+class Texture;
+struct PerfStep;
 
 class PostProcessingEffect
 {

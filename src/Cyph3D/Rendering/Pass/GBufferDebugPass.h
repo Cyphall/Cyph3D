@@ -1,6 +1,10 @@
 #pragma once
 
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/Texture.h"
+
+class ShaderProgram;
 
 class GBufferDebugPass : public RenderPass
 {
@@ -17,4 +21,3 @@ private:
 	Framebuffer _framebuffer;
 	Texture _debugTexture;
 };
-

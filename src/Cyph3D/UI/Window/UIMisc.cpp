@@ -6,6 +6,8 @@
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/PerfCounter/PerfStep.h"
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
 

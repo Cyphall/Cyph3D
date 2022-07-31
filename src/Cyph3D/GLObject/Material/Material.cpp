@@ -3,8 +3,11 @@
 #include "Cyph3D/Helper/TextureHelper.h"
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include <format>
+#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/ResourceManagement/Image.h"
 
 Material* Material::_default;
 Material* Material::_missing;

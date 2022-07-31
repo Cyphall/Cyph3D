@@ -1,9 +1,6 @@
 #pragma once
 
 #include "Cyph3D/GLObject/Framebuffer.h"
-#include "Cyph3D/GLObject/VertexArray.h"
-#include "Cyph3D/GLObject/ShaderStorageBuffer.h"
-#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 #include "Cyph3D/Rendering/Pass/GeometryPass.h"
 #include "Cyph3D/Rendering/Pass/GBufferDebugPass.h"
 #include "Cyph3D/Rendering/Pass/SkyboxPass.h"
@@ -12,6 +9,8 @@
 #include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
 #include "Cyph3D/Rendering/Pass/ZPrePass.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
+
+class PostProcessingEffect;
 
 class RasterizationRenderer : public Renderer
 {

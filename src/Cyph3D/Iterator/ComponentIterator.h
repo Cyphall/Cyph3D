@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Cyph3D/Entity/Component/Component.h"
 #include <memory>
 #include <vector>
+
+class Component;
 
 class ComponentIterator
 {

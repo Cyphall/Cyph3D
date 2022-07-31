@@ -2,9 +2,10 @@
 
 #include <glm/glm.hpp>
 #include <glad/glad.h>
-#include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
 #include "Cyph3D/GLObject/BufferBase.h"
-#include "Cyph3D/GLObject/Sampler.h"
+
+struct CubemapCreateInfo;
+class Sampler;
 
 class Cubemap : public BufferBase
 {

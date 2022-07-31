@@ -1,13 +1,12 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Cubemap.h"
-#include "Cyph3D/GLObject/Framebuffer.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
 #include "Cyph3D/Entity/Component/LightBase.h"
-#include "Cyph3D/GLObject/VertexArray.h"
+#include <memory>
 
 struct RenderRegistry;
 class Renderer;
+class Framebuffer;
+class Texture;
 
 class DirectionalLight : public LightBase
 {

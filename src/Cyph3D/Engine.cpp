@@ -16,6 +16,11 @@
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include <stb_image.h>
 #include <stb_image_write.h>
+#include "Cyph3D/ResourceManagement/Model.h"
+#include "Cyph3D/ResourceManagement/Image.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/Material/Material.h"
 
 std::unique_ptr<Window> Engine::_window;
 std::unique_ptr<ResourceManager> Engine::_globalResourceManager;

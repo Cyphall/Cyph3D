@@ -1,6 +1,7 @@
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 Renderer::Renderer(const char* name):
 _name(name)

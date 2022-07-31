@@ -3,7 +3,8 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
-#include "Cyph3D/PerfCounter/PerfStep.h"
+
+struct PerfStep;
 
 class UIMisc
 {

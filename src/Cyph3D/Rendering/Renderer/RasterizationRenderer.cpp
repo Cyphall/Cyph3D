@@ -4,6 +4,8 @@
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 
 const char* RasterizationRenderer::identifier = "Rasterisation";
 

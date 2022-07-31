@@ -1,8 +1,9 @@
 #pragma once
 
 #include <memory>
-#include "Cyph3D/GLObject/Texture.h"
-#include "Cyph3D/ResourceManagement/Image.h"
+
+class Texture;
+class Image;
 
 struct MaterialMap
 {

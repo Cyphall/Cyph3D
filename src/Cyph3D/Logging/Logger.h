@@ -2,7 +2,8 @@
 
 #include <mutex>
 #include "Cyph3D/Logging/LogColorFlags.h"
-#include "Cyph3D/Logging/Impl/ILoggerColor.h"
+
+class ILoggerColor;
 
 class Logger
 {

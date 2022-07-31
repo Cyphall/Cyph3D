@@ -4,6 +4,11 @@
 #include "Cyph3D/Engine.h"
 #include <format>
 #include <GLFW/glfw3.h>
+#include "Cyph3D/ResourceManagement/Model.h"
+#include "Cyph3D/ResourceManagement/Image.h"
+#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/Material/Material.h"
 
 ResourceManager::ResourceManager(int threadCount):
 _threadPool(threadCount, Engine::getWindow().getHandle())

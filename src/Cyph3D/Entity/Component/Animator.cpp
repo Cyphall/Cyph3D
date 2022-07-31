@@ -1,6 +1,7 @@
 #include "Cyph3D/Entity/Component/Animator.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
+#include "Cyph3D/ObjectSerialization.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 

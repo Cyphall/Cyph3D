@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Cyph3D/GLObject/BufferBase.h"
-#include "Cyph3D/GLObject/CreateInfo/SamplerCreateInfo.h"
+
+struct SamplerCreateInfo;
 
 class Sampler : public BufferBase
 {

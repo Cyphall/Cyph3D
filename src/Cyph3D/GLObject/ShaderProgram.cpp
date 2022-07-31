@@ -9,6 +9,7 @@
 #include <format>
 #include <numeric>
 #include <glm/gtc/type_ptr.hpp>
+#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
 
 ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 {

@@ -1,16 +1,17 @@
 #pragma once
 
-#include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
-#include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/Scene/Transform.h"
-#include "Cyph3D/Iterator/EntityIterator.h"
-#include "Cyph3D/Iterator/EntityConstIterator.h"
 
 #include <nlohmann/json.hpp>
 #include <filesystem>
 
 class Renderer;
+class Skybox;
+class Transform;
+class Entity;
+class EntityIterator;
+class EntityConstIterator;
+struct RenderContext;
 
 class Scene
 {

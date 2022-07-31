@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/ResourceManagement/Image.h"
 #include "Cyph3D/GLObject/Material/MaterialMapType.h"
 #include "Cyph3D/GLObject/Material/MaterialMap.h"
 #include "Cyph3D/GLObject/Material/MaterialMapDefinition.h"

@@ -7,6 +7,9 @@
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
 #include "Cyph3D/Entity/Component/PointLight.h"
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
+#include "Cyph3D/Iterator/ComponentIterator.h"
+#include "Cyph3D/Iterator/ComponentConstIterator.h"
+#include "Cyph3D/ObjectSerialization.h"
 
 std::map<std::string, std::function<Component&(Entity&)>> Entity::_allocators;
 

@@ -1,11 +1,9 @@
 #pragma once
 
-#include "Cyph3D/Scene/Transform.h"
-#include "Cyph3D/RenderContext.h"
-#include "Cyph3D/ObjectSerialization.h"
-
 class Entity;
-class Renderer;
+class Transform;
+struct RenderContext;
+struct ObjectSerialization;
 
 class Component
 {

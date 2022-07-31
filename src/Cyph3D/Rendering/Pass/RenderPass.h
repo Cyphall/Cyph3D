@@ -1,11 +1,13 @@
 #pragma once
 
 #include <unordered_map>
-#include "Cyph3D/GLObject/Texture.h"
-#include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/Rendering/RenderRegistry.h"
-#include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/PerfCounter/GpuPerfCounter.h"
+#include <glm/glm.hpp>
+
+class Texture;
+class Camera;
+struct RenderRegistry;
+struct PerfStep;
 
 class RenderPass
 {

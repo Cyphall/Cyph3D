@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Cyph3D/Rendering/Shape/Shape.h"
-#include "Cyph3D/ResourceManagement/Model.h"
+
+class Model;
 
 class MeshShape : public Shape
 {

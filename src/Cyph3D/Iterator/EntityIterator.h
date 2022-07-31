@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Cyph3D/Entity/Entity.h"
 #include <memory>
 #include <list>
+
+class Entity;
 
 class EntityIterator
 {

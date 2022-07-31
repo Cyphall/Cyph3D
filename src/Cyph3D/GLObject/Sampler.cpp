@@ -1,4 +1,5 @@
 #include "Cyph3D/GLObject/Sampler.h"
+#include "Cyph3D/GLObject/CreateInfo/SamplerCreateInfo.h"
 
 Sampler::Sampler(const SamplerCreateInfo& settings)
 {

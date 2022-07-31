@@ -1,5 +1,7 @@
 #include "Cyph3D/Rendering/Shape/SphereShape.h"
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
+#include "Cyph3D/ObjectSerialization.h"
+#include <stdexcept>
 
 const char* SphereShape::identifier = "SphereShape";
 

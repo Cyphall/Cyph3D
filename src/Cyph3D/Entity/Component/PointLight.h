@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Cyph3D/Entity/Component/LightBase.h"
-#include "Cyph3D/GLObject/VertexArray.h"
-#include "Cyph3D/GLObject/Cubemap.h"
-#include "Cyph3D/GLObject/Framebuffer.h"
+#include <memory>
 
 struct RenderRegistry;
+class Cubemap;
+class Framebuffer;
 
 class PointLight : public LightBase
 {

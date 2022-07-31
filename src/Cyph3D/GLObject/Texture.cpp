@@ -1,4 +1,6 @@
 #include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
+#include "Cyph3D/GLObject/Sampler.h"
 
 Texture::Texture(const TextureCreateInfo& settings)
 {

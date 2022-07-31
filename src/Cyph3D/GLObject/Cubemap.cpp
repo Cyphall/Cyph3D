@@ -1,4 +1,6 @@
 #include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
+#include "Cyph3D/GLObject/Sampler.h"
 
 Cubemap::Cubemap(const CubemapCreateInfo& settings):
 _size(settings.size)
