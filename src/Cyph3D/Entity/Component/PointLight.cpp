@@ -3,8 +3,8 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
-#include "Cyph3D/GLObject/Cubemap.h"
-#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/GLCubemap.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/RenderContext.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
@@ -31,14 +31,14 @@ void PointLight::setCastShadows(bool value)
 	
 	if (value)
 	{
-		_shadowMapFb = std::make_unique<Framebuffer>(glm::ivec2(_resolution));
+		_shadowMapFb = std::make_unique<GLFramebuffer>(glm::ivec2(_resolution));
 		
 		CubemapCreateInfo createInfo
 			{
 				.size = _shadowMapFb->getSize(),
 				.internalFormat = GL_DEPTH_COMPONENT32
 			};
-		_shadowMap = std::make_unique<Cubemap>(createInfo);
+		_shadowMap = std::make_unique<GLCubemap>(createInfo);
 		
 		_shadowMapFb->attachDepth(*_shadowMap.get());
 	}

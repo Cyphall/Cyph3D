@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
 #include "Cyph3D/Rendering/Pass/RaytracePass.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
@@ -18,7 +18,7 @@ private:
 	RaytracePass _raytracePass;
 	PostProcessingPass _postProcessingPass;
 	
-	Framebuffer _objectIndexFramebuffer;
+	GLFramebuffer _objectIndexFramebuffer;
 	
-	Texture& renderImpl(Camera& camera, Scene& scene, bool debugView) override;
+	GLTexture& renderImpl(Camera& camera, Scene& scene, bool debugView) override;
 };

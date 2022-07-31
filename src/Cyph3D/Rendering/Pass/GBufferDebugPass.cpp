@@ -2,13 +2,13 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Window.h"
 
-GBufferDebugPass::GBufferDebugPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size) :
+GBufferDebugPass::GBufferDebugPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size) :
 RenderPass(textures, size, "GBuffer Debug pass"),
 _framebuffer(size),
 _debugTexture(TextureCreateInfo
@@ -34,7 +34,7 @@ void GBufferDebugPass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void GBufferDebugPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
+void GBufferDebugPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	_shader->setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));
 	

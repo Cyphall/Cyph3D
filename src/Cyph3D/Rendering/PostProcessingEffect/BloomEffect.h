@@ -1,18 +1,18 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/ShaderStorageBuffer.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 
-class ShaderProgram;
+class GLShaderProgram;
 
 class BloomEffect : public PostProcessingEffect
 {
 public:
 	BloomEffect(glm::ivec2 size);
 	
-	Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera) override;
+	GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) override;
 	
 	int getKernelRadius() const;
 	void setKernelRadius(int kernelRadius);
@@ -21,25 +21,25 @@ public:
 	void setKernelSigma(float kernelSigma);
 	
 private:
-	Framebuffer _extractBrightFramebuffer;
-	ShaderProgram* _extractBrightProgram;
-	Texture _nonBrightTexture;
+	GLFramebuffer _extractBrightFramebuffer;
+	GLShaderProgram* _extractBrightProgram;
+	GLTexture _nonBrightTexture;
 	
-	std::array<Texture, 2> _blurTextures;
-	std::array<Framebuffer, 6> _blurFramebuffers;
-	ShaderProgram* _blurProgram;
-	ShaderProgram* _passthroughLevelProgram;
+	std::array<GLTexture, 2> _blurTextures;
+	std::array<GLFramebuffer, 6> _blurFramebuffers;
+	GLShaderProgram* _blurProgram;
+	GLShaderProgram* _passthroughLevelProgram;
 	
-	Framebuffer _combineFramebuffer;
-	ShaderProgram* _combineProgram;
-	Texture _outputTexture;
+	GLFramebuffer _combineFramebuffer;
+	GLShaderProgram* _combineProgram;
+	GLTexture _outputTexture;
 	
 	ShaderStorageBuffer<float> _kernelBuffer;
 	bool _kernelChanged = true;
 	int _kernelRadius = 20;
 	float _kernelSigma = 5;
 	
-	void extractBright(Texture* original);
+	void extractBright(GLTexture* original);
 	void downsample();
 	void blur(int level);
 	void combineWithNextLevel(int level);

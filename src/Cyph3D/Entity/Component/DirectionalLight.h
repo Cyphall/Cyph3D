@@ -4,8 +4,8 @@
 
 #include <memory>
 
-class Texture;
-class Framebuffer;
+class GLTexture;
+class GLFramebuffer;
 
 class DirectionalLight : public LightBase
 {
@@ -18,8 +18,8 @@ public:
 		float          angularDiameter;
 		bool           castShadows; // 32-bit bool
 		glm::mat4      lightViewProjection;
-		Texture*       shadowMapTexture;
-		Framebuffer*   shadowMapFramebuffer;
+		GLTexture*       shadowMapTexture;
+		GLFramebuffer*   shadowMapFramebuffer;
 		int            mapResolution;
 		float          mapSize;
 		float          mapDepth;
@@ -48,8 +48,8 @@ public:
 	void deserialize(const ObjectSerialization& serialization) override;
 
 private:
-	std::unique_ptr<Texture> _shadowMap;
-	std::unique_ptr<Framebuffer> _shadowMapFb;
+	std::unique_ptr<GLTexture> _shadowMap;
+	std::unique_ptr<GLFramebuffer> _shadowMapFb;
 	
 	static glm::mat4 _projection;
 	

@@ -1,8 +1,8 @@
-#include "Framebuffer.h"
+#include "GLFramebuffer.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/GLObject/Cubemap.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLCubemap.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/Helper/MathHelper.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <vector>
 
-Framebuffer::Framebuffer(glm::ivec2 size):
+GLFramebuffer::GLFramebuffer(glm::ivec2 size):
 _size(size)
 {
 	glCreateFramebuffers(1, &_handle);
@@ -20,12 +20,12 @@ _size(size)
 	glNamedFramebufferParameteri(_handle, GL_FRAMEBUFFER_DEFAULT_HEIGHT, _size.y);
 }
 
-Framebuffer::~Framebuffer()
+GLFramebuffer::~GLFramebuffer()
 {
 	glDeleteFramebuffers(1, &_handle);
 }
 
-void Framebuffer::bindForDrawing()
+void GLFramebuffer::bindForDrawing()
 {
 	if (_drawBuffersChanged)
 	{
@@ -35,7 +35,7 @@ void Framebuffer::bindForDrawing()
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _handle);
 }
 
-void Framebuffer::bindForReading()
+void GLFramebuffer::bindForReading()
 {
 	if (_readBufferChanged)
 	{
@@ -45,12 +45,12 @@ void Framebuffer::bindForReading()
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, _handle);
 }
 
-glm::ivec2 Framebuffer::getSize()
+glm::ivec2 GLFramebuffer::getSize()
 {
 	return _size;
 }
 
-void Framebuffer::checkDrawCompleteness()
+void GLFramebuffer::checkDrawCompleteness()
 {
 	GLenum state = glCheckNamedFramebufferStatus(_handle, GL_DRAW_FRAMEBUFFER);
 	if (state != GL_FRAMEBUFFER_COMPLETE)
@@ -59,7 +59,7 @@ void Framebuffer::checkDrawCompleteness()
 	}
 }
 
-void Framebuffer::checkReadCompleteness()
+void GLFramebuffer::checkReadCompleteness()
 {
 	GLenum state = glCheckNamedFramebufferStatus(_handle, GL_READ_FRAMEBUFFER);
 	if (state != GL_FRAMEBUFFER_COMPLETE)
@@ -68,7 +68,7 @@ void Framebuffer::checkReadCompleteness()
 	}
 }
 
-void Framebuffer::verifySize(glm::ivec2 size)
+void GLFramebuffer::verifySize(glm::ivec2 size)
 {
 	if (size != _size)
 	{
@@ -76,7 +76,7 @@ void Framebuffer::verifySize(glm::ivec2 size)
 	}
 }
 
-void Framebuffer::verifyDrawBufferCount()
+void GLFramebuffer::verifyDrawBufferCount()
 {
 	int maxDrawBuffers;
 	glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
@@ -96,7 +96,7 @@ void Framebuffer::verifyDrawBufferCount()
 	}
 }
 
-void Framebuffer::verifyColorAttachmentSlots()
+void GLFramebuffer::verifyColorAttachmentSlots()
 {
 	int maxColorAttachments;
 	glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxColorAttachments);
@@ -111,7 +111,7 @@ void Framebuffer::verifyColorAttachmentSlots()
 	}
 }
 
-void Framebuffer::verifyFace(int face)
+void GLFramebuffer::verifyFace(int face)
 {
 	if (!MathHelper::between(face, 0, 5))
 	{
@@ -119,7 +119,7 @@ void Framebuffer::verifyFace(int face)
 	}
 }
 
-void Framebuffer::updateDrawBuffers()
+void GLFramebuffer::updateDrawBuffers()
 {
 	std::optional<int> highestIndex;
 	for (const std::optional<int>& attachment : _colorAttachments)
@@ -152,7 +152,7 @@ void Framebuffer::updateDrawBuffers()
 	_drawBuffersChanged = false;
 }
 
-void Framebuffer::updateReadBuffer()
+void GLFramebuffer::updateReadBuffer()
 {
 	if (_readBuffer.has_value())
 	{
@@ -167,7 +167,7 @@ void Framebuffer::updateReadBuffer()
 	_readBufferChanged = false;
 }
 
-void Framebuffer::attachColor(int attachmentSlot, const Texture& texture, int level)
+void GLFramebuffer::attachColor(int attachmentSlot, const GLTexture& texture, int level)
 {
 	verifySize(texture.getSize(level));
 	
@@ -176,7 +176,7 @@ void Framebuffer::attachColor(int attachmentSlot, const Texture& texture, int le
 	verifyColorAttachmentSlots();
 }
 
-void Framebuffer::attachColor(int attachmentSlot, const Cubemap& cubemap, std::optional<int> face, int level)
+void GLFramebuffer::attachColor(int attachmentSlot, const GLCubemap& cubemap, std::optional<int> face, int level)
 {
 	verifySize(cubemap.getSize());
 	if (face.has_value())
@@ -189,19 +189,19 @@ void Framebuffer::attachColor(int attachmentSlot, const Cubemap& cubemap, std::o
 	verifyColorAttachmentSlots();
 }
 
-void Framebuffer::detachColor(int attachmentSlot)
+void GLFramebuffer::detachColor(int attachmentSlot)
 {
 	detachColorImpl(attachmentSlot);
 }
 
-void Framebuffer::attachDepth(const Texture& texture, int level)
+void GLFramebuffer::attachDepth(const GLTexture& texture, int level)
 {
 	verifySize(texture.getSize(level));
 	
 	attachDepthImpl(texture.getHandle(), std::nullopt, level);
 }
 
-void Framebuffer::attachDepth(const Cubemap& cubemap, std::optional<int> face, int level)
+void GLFramebuffer::attachDepth(const GLCubemap& cubemap, std::optional<int> face, int level)
 {
 	verifySize(cubemap.getSize());
 	
@@ -213,19 +213,19 @@ void Framebuffer::attachDepth(const Cubemap& cubemap, std::optional<int> face, i
 	attachDepthImpl(cubemap.getHandle(), face, level);
 }
 
-void Framebuffer::detachDepth()
+void GLFramebuffer::detachDepth()
 {
 	detachDepthImpl();
 }
 
-void Framebuffer::attachStencil(const Texture& texture, int level)
+void GLFramebuffer::attachStencil(const GLTexture& texture, int level)
 {
 	verifySize(texture.getSize(level));
 	
 	attachStencilImpl(texture.getHandle(), std::nullopt, level);
 }
 
-void Framebuffer::attachStencil(const Cubemap& cubemap, std::optional<int> face, int level)
+void GLFramebuffer::attachStencil(const GLCubemap& cubemap, std::optional<int> face, int level)
 {
 	verifySize(cubemap.getSize());
 	
@@ -237,12 +237,12 @@ void Framebuffer::attachStencil(const Cubemap& cubemap, std::optional<int> face,
 	attachStencilImpl(cubemap.getHandle(), face, level);
 }
 
-void Framebuffer::detachStencil()
+void GLFramebuffer::detachStencil()
 {
 	detachStencilImpl();
 }
 
-void Framebuffer::attachColorImpl(int attachmentSlot, GLuint handle, std::optional<int> face, int level)
+void GLFramebuffer::attachColorImpl(int attachmentSlot, GLuint handle, std::optional<int> face, int level)
 {
 	GLenum attachmentEnum = GL_COLOR_ATTACHMENT0 + attachmentSlot;
 	
@@ -256,12 +256,12 @@ void Framebuffer::attachColorImpl(int attachmentSlot, GLuint handle, std::option
 	}
 }
 
-void Framebuffer::detachColorImpl(int attachmentSlot)
+void GLFramebuffer::detachColorImpl(int attachmentSlot)
 {
 	glNamedFramebufferTexture(_handle, GL_COLOR_ATTACHMENT0 + attachmentSlot, 0, 0);
 }
 
-void Framebuffer::attachDepthImpl(GLuint handle, std::optional<int> face, int level)
+void GLFramebuffer::attachDepthImpl(GLuint handle, std::optional<int> face, int level)
 {
 	if (face)
 	{
@@ -273,12 +273,12 @@ void Framebuffer::attachDepthImpl(GLuint handle, std::optional<int> face, int le
 	}
 }
 
-void Framebuffer::detachDepthImpl()
+void GLFramebuffer::detachDepthImpl()
 {
 	glNamedFramebufferTexture(_handle, GL_DEPTH_ATTACHMENT, 0, 0);
 }
 
-void Framebuffer::attachStencilImpl(GLuint handle, std::optional<int> face, int level)
+void GLFramebuffer::attachStencilImpl(GLuint handle, std::optional<int> face, int level)
 {
 	if (face)
 	{
@@ -290,53 +290,53 @@ void Framebuffer::attachStencilImpl(GLuint handle, std::optional<int> face, int 
 	}
 }
 
-void Framebuffer::detachStencilImpl()
+void GLFramebuffer::detachStencilImpl()
 {
 	glNamedFramebufferTexture(_handle, GL_STENCIL_ATTACHMENT, 0, 0);
 }
 
-void Framebuffer::addToDrawBuffersImpl(int attachmentSlot, int drawLocation)
+void GLFramebuffer::addToDrawBuffersImpl(int attachmentSlot, int drawLocation)
 {
 	_colorAttachments[attachmentSlot] = drawLocation;
 	_drawBuffersChanged = true;
 }
 
-void Framebuffer::removeFromDrawBuffersImpl(int attachmentSlot)
+void GLFramebuffer::removeFromDrawBuffersImpl(int attachmentSlot)
 {
 	_colorAttachments[attachmentSlot].reset();
 	_drawBuffersChanged = true;
 }
 
-void Framebuffer::setReadBufferImpl(int attachmentSlot)
+void GLFramebuffer::setReadBufferImpl(int attachmentSlot)
 {
 	_readBuffer = attachmentSlot;
 	_readBufferChanged = true;
 }
 
-void Framebuffer::removeReadBufferImpl()
+void GLFramebuffer::removeReadBufferImpl()
 {
 	_readBuffer.reset();
 	_readBufferChanged = true;
 }
 
-void Framebuffer::addToDrawBuffers(int attachmentSlot, int drawLocation)
+void GLFramebuffer::addToDrawBuffers(int attachmentSlot, int drawLocation)
 {
 	addToDrawBuffersImpl(attachmentSlot, drawLocation);
 	
 	verifyDrawBufferCount();
 }
 
-void Framebuffer::removeFromDrawBuffers(int attachmentSlot)
+void GLFramebuffer::removeFromDrawBuffers(int attachmentSlot)
 {
 	removeFromDrawBuffersImpl(attachmentSlot);
 }
 
-void Framebuffer::setReadBuffer(int attachmentSlot)
+void GLFramebuffer::setReadBuffer(int attachmentSlot)
 {
 	setReadBufferImpl(attachmentSlot);
 }
 
-void Framebuffer::removeReadBuffer()
+void GLFramebuffer::removeReadBuffer()
 {
 	removeReadBufferImpl();
 }

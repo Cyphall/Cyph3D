@@ -6,7 +6,7 @@
 
 class RenderPass;
 class Scene;
-class Texture;
+class GLTexture;
 class Camera;
 
 class Renderer
@@ -15,7 +15,7 @@ public:
 	explicit Renderer(const char* name);
 	virtual ~Renderer() = default;
 	
-	std::pair<Texture*, const PerfStep*> render(Camera& camera, bool debugView);
+	std::pair<GLTexture*, const PerfStep*> render(Camera& camera, bool debugView);
 	
 	virtual void onNewFrame();
 	
@@ -26,7 +26,7 @@ public:
 	virtual Entity* getClickedEntity(glm::ivec2 clickPos) = 0;
 	
 protected:
-	std::unordered_map<std::string, Texture*> _textures;
+	std::unordered_map<std::string, GLTexture*> _textures;
 	RenderRegistry _registry;
 	
 	const char* _name;
@@ -34,6 +34,6 @@ protected:
 	PerfStep _renderPerf;
 	GpuPerfCounter _perfCounter;
 	
-	virtual Texture& renderImpl(Camera& camera, Scene& scene, bool debugView) = 0;
+	virtual GLTexture& renderImpl(Camera& camera, Scene& scene, bool debugView) = 0;
 	void render(RenderPass& pass, Camera& camera);
 };

@@ -2,17 +2,17 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
-#include "Cyph3D/GLObject/Cubemap.h"
-#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/GLCubemap.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/Mesh.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/Shape.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Window.h"
 
-ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Shadow map pass")
 {
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
@@ -37,7 +37,7 @@ void ShadowMapPass::preparePipelineImpl()
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 }
 
-void ShadowMapPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
+void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	_vao.bind();
 	

@@ -29,7 +29,7 @@ void Image::loadResourceImpl(ImageType type)
 	createInfo.anisotropicFiltering = true;
 	createInfo.swizzle = textureProperties.swizzle;
 	
-	_resource = std::make_unique<Texture>(createInfo);
+	_resource = std::make_unique<GLTexture>(createInfo);
 	
 	PixelProperties pixelProperties = TextureHelper::getPixelProperties(data.getChannelCount(), data.getBitPerChannel());
 	_resource->setData(data.getPtr(), pixelProperties.format, pixelProperties.type);

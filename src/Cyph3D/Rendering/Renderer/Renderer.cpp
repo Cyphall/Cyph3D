@@ -36,7 +36,7 @@ void Renderer::requestLightRendering(PointLight::RenderData data)
 	_registry.pointLights.push_back(data);
 }
 
-std::pair<Texture*, const PerfStep*> Renderer::render(Camera& camera, bool debugView)
+std::pair<GLTexture*, const PerfStep*> Renderer::render(Camera& camera, bool debugView)
 {
 	Scene& scene = Engine::getScene();
 	
@@ -45,7 +45,7 @@ std::pair<Texture*, const PerfStep*> Renderer::render(Camera& camera, bool debug
 	
 	_perfCounter.start();
 	
-	Texture& result = renderImpl(camera, scene, debugView);
+	GLTexture& result = renderImpl(camera, scene, debugView);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	

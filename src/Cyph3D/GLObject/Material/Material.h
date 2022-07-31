@@ -16,7 +16,7 @@ public:
 	
 	static void initialize();
 	
-	const Texture& getTexture(MaterialMapType mapType);
+	const GLTexture& getTexture(MaterialMapType mapType);
 	
 	static Material* getDefault();
 	static Material* getMissing();

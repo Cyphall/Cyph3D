@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Cubemap.h"
+#include "Cyph3D/GLObject/GLCubemap.h"
 #include "Cyph3D/ResourceManagement/Resource.h"
 
-class Skybox : public Resource<Cubemap>
+class Skybox : public Resource<GLCubemap>
 {
 public:
 	using Resource::Resource;

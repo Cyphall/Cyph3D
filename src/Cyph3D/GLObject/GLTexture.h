@@ -6,19 +6,19 @@
 #include <glm/glm.hpp>
 
 struct TextureCreateInfo;
-class Sampler;
+class GLSampler;
 
-class Texture : public BufferBase
+class GLTexture : public BufferBase
 {
 public:
-	explicit Texture(const TextureCreateInfo& settings);
-	Texture(const Texture& other) = delete;
-	Texture(Texture&& other) = delete;
+	explicit GLTexture(const TextureCreateInfo& settings);
+	GLTexture(const GLTexture& other) = delete;
+	GLTexture(GLTexture&& other) = delete;
 	
-	~Texture() override;
+	~GLTexture() override;
 	
 	GLuint64 getBindlessTextureHandle() const;
-	GLuint64 getBindlessTextureHandle(const Sampler& sampler) const;
+	GLuint64 getBindlessTextureHandle(const GLSampler& sampler) const;
 	
 	GLuint64 getBindlessImageHandle(GLenum format, GLenum access, int level = 0) const;
 	

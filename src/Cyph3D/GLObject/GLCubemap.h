@@ -6,19 +6,19 @@
 #include <glm/glm.hpp>
 
 struct CubemapCreateInfo;
-class Sampler;
+class GLSampler;
 
-class Cubemap : public BufferBase
+class GLCubemap : public BufferBase
 {
 public:
-	explicit Cubemap(const CubemapCreateInfo& settings);
-	Cubemap(const Cubemap& other) = delete;
-	Cubemap(Cubemap&& other) = delete;
+	explicit GLCubemap(const CubemapCreateInfo& settings);
+	GLCubemap(const GLCubemap& other) = delete;
+	GLCubemap(GLCubemap&& other) = delete;
 	
-	~Cubemap() override;
+	~GLCubemap() override;
 	
 	GLuint64 getBindlessTextureHandle() const;
-	GLuint64 getBindlessTextureHandle(const Sampler& sampler) const;
+	GLuint64 getBindlessTextureHandle(const GLSampler& sampler) const;
 	void setData(void* data, int face, GLenum format, GLenum type);
 	void bind(GLuint unit);
 	glm::ivec2 getSize() const;

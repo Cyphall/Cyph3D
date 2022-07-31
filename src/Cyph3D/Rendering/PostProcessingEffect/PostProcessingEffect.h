@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 class Camera;
-class Texture;
+class GLTexture;
 struct PerfStep;
 
 class PostProcessingEffect
@@ -17,10 +17,10 @@ public:
 	
 	glm::ivec2 getSize() const;
 	
-	std::pair<Texture*, PerfStep> render(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera);
+	std::pair<GLTexture*, PerfStep> render(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera);
 
 protected:
-	virtual Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera) = 0;
+	virtual GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) = 0;
 
 private:
 	const char* _name;

@@ -1,20 +1,20 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/ShaderStorageBuffer.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
-class ShaderProgram;
+class GLShaderProgram;
 
 class LightingPass : public RenderPass
 {
 public:
-	LightingPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size);
+	LightingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size);
 	
 	void preparePipelineImpl() override;
-	void renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep) override;
+	void renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep) override;
 	void restorePipelineImpl() override;
 	
 private:
@@ -44,7 +44,7 @@ private:
 	ShaderStorageBuffer<GLSL_PointLight> _pointLightsBuffer;
 	ShaderStorageBuffer<GLSL_DirectionalLight> _directionalLightsBuffer;
 	
-	ShaderProgram* _shader;
-	Framebuffer _framebuffer;
-	Texture _rawRenderTexture;
+	GLShaderProgram* _shader;
+	GLFramebuffer _framebuffer;
+	GLTexture _rawRenderTexture;
 };

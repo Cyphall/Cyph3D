@@ -69,7 +69,7 @@ void Skybox::loadResourceImpl()
 	createInfo.textureFiltering = GL_LINEAR;
 	createInfo.swizzle = textureProperties.swizzle;
 	
-	_resource = std::make_unique<Cubemap>(createInfo);
+	_resource = std::make_unique<GLCubemap>(createInfo);
 	
 	for (int i = 0; i < data.size(); i++)
 	{

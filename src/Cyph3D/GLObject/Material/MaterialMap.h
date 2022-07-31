@@ -2,11 +2,11 @@
 
 #include <memory>
 
-class Texture;
+class GLTexture;
 class Image;
 
 struct MaterialMap
 {
-	std::unique_ptr<Texture> defaultTexture;
+	std::unique_ptr<GLTexture> defaultTexture;
 	Image* imageTexture = nullptr;
 };

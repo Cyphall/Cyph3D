@@ -4,14 +4,14 @@
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Material/Material.h"
 #include "Cyph3D/GLObject/Mesh.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Window.h"
 
-GeometryPass::GeometryPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+GeometryPass::GeometryPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Geometry pass"),
 _gbuffer(size),
 _normalTexture(TextureCreateInfo
@@ -89,7 +89,7 @@ void GeometryPass::preparePipelineImpl()
 	glDisable(GL_DITHER);
 }
 
-void GeometryPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
+void GeometryPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	_normalTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	_colorTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);

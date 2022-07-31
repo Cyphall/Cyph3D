@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/Rendering/Pass/GBufferDebugPass.h"
 #include "Cyph3D/Rendering/Pass/GeometryPass.h"
 #include "Cyph3D/Rendering/Pass/LightingPass.h"
@@ -30,7 +30,7 @@ private:
 	LightingPass _lightingPass;
 	PostProcessingPass _postProcessingPass;
 	
-	Framebuffer _objectIndexFramebuffer;
+	GLFramebuffer _objectIndexFramebuffer;
 	
-	Texture& renderImpl(Camera& camera, Scene& scene, bool debugView) override;
+	GLTexture& renderImpl(Camera& camera, Scene& scene, bool debugView) override;
 };

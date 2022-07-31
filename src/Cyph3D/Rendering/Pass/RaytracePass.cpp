@@ -5,7 +5,7 @@
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Material/Material.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
 #include "Cyph3D/Rendering/Shape/PlaneShape.h"
@@ -17,7 +17,7 @@
 
 #include <glm/gtc/matrix_inverse.hpp>
 
-RaytracePass::RaytracePass(std::unordered_map<std::string, Texture*>& textures, const glm::ivec2& size):
+RaytracePass::RaytracePass(std::unordered_map<std::string, GLTexture*>& textures, const glm::ivec2& size):
 RenderPass(textures, size, "Raytrace pass"),
 _rawRenderTexture(TextureCreateInfo
 {
@@ -51,7 +51,7 @@ void RaytracePass::preparePipelineImpl()
 
 }
 
-void RaytracePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
+void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
 {
 
 #pragma region Camera

@@ -1,9 +1,9 @@
-#include "Cubemap.h"
+#include "GLCubemap.h"
 
 #include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
-#include "Cyph3D/GLObject/Sampler.h"
+#include "Cyph3D/GLObject/GLSampler.h"
 
-Cubemap::Cubemap(const CubemapCreateInfo& settings):
+GLCubemap::GLCubemap(const CubemapCreateInfo& settings):
 _size(settings.size)
 {
 	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &_handle);
@@ -24,12 +24,12 @@ _size(settings.size)
 	glTextureStorage2D(_handle, 1, settings.internalFormat, _size.x, _size.y);
 }
 
-Cubemap::~Cubemap()
+GLCubemap::~GLCubemap()
 {
 	glDeleteTextures(1, &_handle);
 }
 
-GLuint64 Cubemap::getBindlessTextureHandle() const
+GLuint64 GLCubemap::getBindlessTextureHandle() const
 {
 	GLuint64 bindlessHandle = glGetTextureHandleARB(_handle);
 	if (!glIsTextureHandleResidentARB(bindlessHandle))
@@ -39,7 +39,7 @@ GLuint64 Cubemap::getBindlessTextureHandle() const
 	return bindlessHandle;
 }
 
-GLuint64 Cubemap::getBindlessTextureHandle(const Sampler& sampler) const
+GLuint64 GLCubemap::getBindlessTextureHandle(const GLSampler& sampler) const
 {
 	GLuint64 bindlessHandle = glGetTextureSamplerHandleARB(_handle, sampler.getHandle());
 	if (!glIsTextureHandleResidentARB(bindlessHandle))
@@ -49,22 +49,22 @@ GLuint64 Cubemap::getBindlessTextureHandle(const Sampler& sampler) const
 	return bindlessHandle;
 }
 
-void Cubemap::setData(void* data, int face, GLenum format, GLenum type)
+void GLCubemap::setData(void* data, int face, GLenum format, GLenum type)
 {
 	glTextureSubImage3D(_handle, 0, 0, 0, face, _size.x, _size.y, 1, format, type, data);
 }
 
-void Cubemap::bind(GLuint unit)
+void GLCubemap::bind(GLuint unit)
 {
 	glBindTextureUnit(unit, _handle);
 }
 
-glm::ivec2 Cubemap::getSize() const
+glm::ivec2 GLCubemap::getSize() const
 {
 	return _size;
 }
 
-void Cubemap::clear(GLenum format, GLenum type, void* clearData)
+void GLCubemap::clear(GLenum format, GLenum type, void* clearData)
 {
 	glClearTexImage(_handle, 0, format, type, clearData);
 }

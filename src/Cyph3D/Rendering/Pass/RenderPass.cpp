@@ -2,13 +2,13 @@
 
 #include "Cyph3D/PerfCounter/PerfStep.h"
 
-RenderPass::RenderPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size, const char* name):
+RenderPass::RenderPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size, const char* name):
 _name(name), _size(size)
 {
 
 }
 
-PerfStep RenderPass::render(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera)
+PerfStep RenderPass::render(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera)
 {
 	PerfStep perfStep{};
 	perfStep.name = _name;

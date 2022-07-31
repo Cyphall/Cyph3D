@@ -2,7 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Helper/TextureHelper.h"
 #include "Cyph3D/ResourceManagement/Image.h"
@@ -60,7 +60,7 @@ _name(std::move(name))
 		createInfo.magFilter = GL_NEAREST;
 		createInfo.swizzle = textureProperties.swizzle;
 		
-		materialMap.defaultTexture = std::make_unique<Texture>(createInfo);
+		materialMap.defaultTexture = std::make_unique<GLTexture>(createInfo);
 		
 		PixelProperties pixelProperties = TextureHelper::getPixelProperties(mapDefinition.defaultData.size(), 8);
 		materialMap.defaultTexture->setData(mapDefinition.defaultData.data(), pixelProperties.format, pixelProperties.type);
@@ -100,7 +100,7 @@ Material* Material::getMissing()
 	return _missing;
 }
 
-const Texture& Material::getTexture(MaterialMapType mapType)
+const GLTexture& Material::getTexture(MaterialMapType mapType)
 {
 	MaterialMap& map = _maps.at(mapType);
 	

@@ -2,7 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"
@@ -26,7 +26,7 @@ _outputTexture(TextureCreateInfo
 	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
 
-Texture* ExposureEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera)
+GLTexture* ExposureEffect::renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera)
 {
 	_shaderProgram->setUniform("u_colorTexture", currentRenderTexture->getBindlessTextureHandle());
 	_shaderProgram->setUniform("u_exposure", camera.getExposure());

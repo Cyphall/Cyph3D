@@ -9,7 +9,7 @@
 class Model;
 class Image;
 class Skybox;
-class ShaderProgram;
+class GLShaderProgram;
 class Material;
 
 namespace std
@@ -44,7 +44,7 @@ public:
 	Model* requestModel(const std::string& name);
 	Image* requestImage(const std::string& name, ImageType type);
 	Skybox* requestSkybox(const std::string& name);
-	ShaderProgram* requestShaderProgram(const ShaderProgramCreateInfo& createInfo);
+	GLShaderProgram* requestShaderProgram(const ShaderProgramCreateInfo& createInfo);
 	Material* requestMaterial(const std::string& name);
 	
 private:
@@ -54,7 +54,7 @@ private:
 	
 	std::unordered_map<std::string, std::unique_ptr<Skybox>> _skyboxes;
 	
-	std::unordered_map<ShaderProgramCreateInfo, std::unique_ptr<ShaderProgram>> _shaderPrograms;
+	std::unordered_map<ShaderProgramCreateInfo, std::unique_ptr<GLShaderProgram>> _shaderPrograms;
 	
 	std::unordered_map<std::string, std::unique_ptr<Material>> _materials;
 	

@@ -3,14 +3,14 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Mesh.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/Shape.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Window.h"
 
-ZPrePass::ZPrePass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size) :
+ZPrePass::ZPrePass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size) :
 RenderPass(textures, size, "Z prepass"),
 _framebuffer(size),
 _depthTexture(TextureCreateInfo
@@ -38,7 +38,7 @@ void ZPrePass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void ZPrePass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
+void ZPrePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	float clearDepth = 1;
 	_depthTexture.clear(GL_DEPTH_COMPONENT, GL_FLOAT, &clearDepth);

@@ -4,8 +4,8 @@
 
 #include <memory>
 
-class Cubemap;
-class Framebuffer;
+class GLCubemap;
+class GLFramebuffer;
 
 class PointLight : public LightBase
 {
@@ -18,8 +18,8 @@ public:
 		float         radius;
 		bool          castShadows; // bool
 		glm::mat4     viewProjections[6];
-		Cubemap*      shadowMapTexture;
-		Framebuffer*  shadowMapFramebuffer;
+		GLCubemap*      shadowMapTexture;
+		GLFramebuffer*  shadowMapFramebuffer;
 		int           mapResolution;
 		float         far;
 	};
@@ -50,8 +50,8 @@ private:
 	static constexpr float NEAR_DISTANCE = 0.01f;
 	static constexpr float FAR_DISTANCE = 100.0f;
 	
-	std::unique_ptr<Cubemap> _shadowMap;
-	std::unique_ptr<Framebuffer> _shadowMapFb;
+	std::unique_ptr<GLCubemap> _shadowMap;
+	std::unique_ptr<GLFramebuffer> _shadowMapFb;
 	
 	static glm::mat4 _projection;
 	

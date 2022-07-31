@@ -10,11 +10,11 @@
 
 struct ShaderProgramCreateInfo;
 
-class ShaderProgram : public BufferBase
+class GLShaderProgram : public BufferBase
 {
 public:
-	explicit ShaderProgram(const ShaderProgramCreateInfo& createInfo);
-	~ShaderProgram() override;
+	explicit GLShaderProgram(const ShaderProgramCreateInfo& createInfo);
+	~GLShaderProgram() override;
 	
 	void bind();
 	void dispatch(glm::ivec3 groups);

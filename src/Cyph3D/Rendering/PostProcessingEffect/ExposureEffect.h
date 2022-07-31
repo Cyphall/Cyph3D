@@ -1,20 +1,20 @@
 #pragma once
 
-#include "Cyph3D/GLObject/Framebuffer.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 
-class ShaderProgram;
+class GLShaderProgram;
 
 class ExposureEffect : public PostProcessingEffect
 {
 public:
 	ExposureEffect(glm::ivec2 size);
 	
-	Texture* renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera) override;
+	GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) override;
 
 private:
-	Framebuffer _framebuffer;
-	Texture _outputTexture;
-	ShaderProgram* _shaderProgram;
+	GLFramebuffer _framebuffer;
+	GLTexture _outputTexture;
+	GLShaderProgram* _shaderProgram;
 };

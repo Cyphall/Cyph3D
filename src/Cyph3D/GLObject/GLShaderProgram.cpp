@@ -1,4 +1,4 @@
-#include "ShaderProgram.h"
+#include "GLShaderProgram.h"
 
 #include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
 #include "Cyph3D/Helper/FileHelper.h"
@@ -13,7 +13,7 @@
 #include <sstream>
 #include <stdexcept>
 
-ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
+GLShaderProgram::GLShaderProgram(const ShaderProgramCreateInfo& createInfo)
 {
 	_handle = glCreateProgram();
 	if (_handle == 0)
@@ -102,17 +102,17 @@ ShaderProgram::ShaderProgram(const ShaderProgramCreateInfo& createInfo)
 	}
 }
 
-ShaderProgram::~ShaderProgram()
+GLShaderProgram::~GLShaderProgram()
 {
 	glDeleteProgram(_handle);
 }
 
-void ShaderProgram::bind()
+void GLShaderProgram::bind()
 {
 	glUseProgram(_handle);
 }
 
-GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& files)
+GLuint GLShaderProgram::loadShader(GLenum type, const std::vector<std::string>& files)
 {
 	GLuint shader = glCreateShader(type);
 	
@@ -164,23 +164,23 @@ GLuint ShaderProgram::loadShader(GLenum type, const std::vector<std::string>& fi
 	return shader;
 }
 
-int ShaderProgram::getUniformLocation(const char* name)
+int GLShaderProgram::getUniformLocation(const char* name)
 {
 	auto it = _uniforms.find(name);
 	return it != _uniforms.end() ? it->second : -1;
 }
 
-void ShaderProgram::dispatch(glm::ivec3 groups)
+void GLShaderProgram::dispatch(glm::ivec3 groups)
 {
 	glDispatchCompute(groups.x, groups.y, groups.z);
 }
 
-void ShaderProgram::dispatchAuto(glm::ivec3 workResolution)
+void GLShaderProgram::dispatchAuto(glm::ivec3 workResolution)
 {
 	dispatch(glm::ivec3(glm::ceil(glm::vec3(workResolution) / glm::vec3(getWorkGroupSize()))));
 }
 
-glm::ivec3 ShaderProgram::getWorkGroupSize() const
+glm::ivec3 GLShaderProgram::getWorkGroupSize() const
 {
 	glm::ivec3 workGroupSize;
 	glGetProgramiv(_handle, GL_COMPUTE_WORK_GROUP_SIZE, glm::value_ptr(workGroupSize));

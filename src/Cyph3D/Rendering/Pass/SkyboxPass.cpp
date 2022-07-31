@@ -1,7 +1,7 @@
 #include "SkyboxPass.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/Scene/Camera.h"
@@ -10,7 +10,7 @@
 
 #include <glm/gtx/transform.hpp>
 
-SkyboxPass::SkyboxPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+SkyboxPass::SkyboxPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Skybox pass"),
 _framebuffer(size),
 _vao(),
@@ -85,7 +85,7 @@ void SkyboxPass::preparePipelineImpl()
 	glDepthMask(GL_FALSE);
 }
 
-void SkyboxPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
+void SkyboxPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	_framebuffer.bindForDrawing();
 	

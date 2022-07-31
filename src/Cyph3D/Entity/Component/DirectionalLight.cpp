@@ -3,8 +3,8 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/Framebuffer.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/RenderContext.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
@@ -32,7 +32,7 @@ void DirectionalLight::setCastShadows(bool value)
 	
 	if (value)
 	{
-		_shadowMapFb = std::make_unique<Framebuffer>(glm::ivec2(_resolution));
+		_shadowMapFb = std::make_unique<GLFramebuffer>(glm::ivec2(_resolution));
 		
 		TextureCreateInfo textureCreateInfo;
 		textureCreateInfo.size = _shadowMapFb->getSize();
@@ -42,7 +42,7 @@ void DirectionalLight::setCastShadows(bool value)
 		textureCreateInfo.wrapS = GL_CLAMP_TO_BORDER;
 		textureCreateInfo.wrapT = GL_CLAMP_TO_BORDER;
 		textureCreateInfo.borderColor = {1, 1, 1, 1};
-		_shadowMap = std::make_unique<Texture>(textureCreateInfo);
+		_shadowMap = std::make_unique<GLTexture>(textureCreateInfo);
 		
 		_shadowMapFb->attachDepth(*_shadowMap.get());
 	}

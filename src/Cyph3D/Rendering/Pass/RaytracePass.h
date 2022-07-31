@@ -2,19 +2,19 @@
 
 #include "Cyph3D/GLObject/Mesh.h"
 #include "Cyph3D/GLObject/ShaderStorageBuffer.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
-class ShaderProgram;
+class GLShaderProgram;
 
 class RaytracePass : public RenderPass
 {
 public:
-	RaytracePass(std::unordered_map<std::string, Texture*>& textures, const glm::ivec2& size);
+	RaytracePass(std::unordered_map<std::string, GLTexture*>& textures, const glm::ivec2& size);
 	
 	void preparePipelineImpl() override;
-	void renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep) override;
+	void renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep) override;
 	void restorePipelineImpl() override;
 
 private:
@@ -81,9 +81,9 @@ private:
 		GLSL_bool contributeShadows;
 	};
 	
-	ShaderProgram* _shader;
-	Texture _rawRenderTexture;
-	Texture _objectIndexTexture;
+	GLShaderProgram* _shader;
+	GLTexture _rawRenderTexture;
+	GLTexture _objectIndexTexture;
 	
 	ShaderStorageBuffer<GLSL_DirectionalLight> _directionalLightBuffer;
 	ShaderStorageBuffer<GLSL_PointLight> _pointLightBuffer;

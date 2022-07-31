@@ -6,30 +6,30 @@
 #include <array>
 #include <optional>
 
-class Texture;
-class Cubemap;
+class GLTexture;
+class GLCubemap;
 
-class Framebuffer : public BufferBase
+class GLFramebuffer : public BufferBase
 {
 public:
-	explicit Framebuffer(glm::ivec2 size);
+	explicit GLFramebuffer(glm::ivec2 size);
 	
-	~Framebuffer() override;
+	~GLFramebuffer() override;
 	
 	void bindForDrawing();
 	void bindForReading();
 	glm::ivec2 getSize();
 	
-	void attachColor(int attachmentSlot, const Texture& texture, int level = 0);
-	void attachColor(int attachmentSlot, const Cubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
+	void attachColor(int attachmentSlot, const GLTexture& texture, int level = 0);
+	void attachColor(int attachmentSlot, const GLCubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
 	void detachColor(int attachmentSlot);
 	
-	void attachDepth(const Texture& texture, int level = 0);
-	void attachDepth(const Cubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
+	void attachDepth(const GLTexture& texture, int level = 0);
+	void attachDepth(const GLCubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
 	void detachDepth();
 	
-	void attachStencil(const Texture& texture, int level = 0);
-	void attachStencil(const Cubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
+	void attachStencil(const GLTexture& texture, int level = 0);
+	void attachStencil(const GLCubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
 	void detachStencil();
 	
 	void addToDrawBuffers(int attachmentSlot, int drawLocation);

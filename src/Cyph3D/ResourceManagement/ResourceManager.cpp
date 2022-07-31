@@ -2,7 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/Material/Material.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/ResourceManagement/Image.h"
 #include "Cyph3D/ResourceManagement/Model.h"
@@ -75,12 +75,12 @@ Skybox* ResourceManager::requestSkybox(const std::string& name)
 	return _skyboxes[name].get();
 }
 
-ShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateInfo& createInfo)
+GLShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateInfo& createInfo)
 {
 	if (!_shaderPrograms.contains(createInfo))
 	{
 		Logger::info("Loading shader program");
-		_shaderPrograms[createInfo] = std::make_unique<ShaderProgram>(createInfo);
+		_shaderPrograms[createInfo] = std::make_unique<GLShaderProgram>(createInfo);
 		Logger::info(std::format("Shader program loaded (id: {})", _shaderPrograms[createInfo]->getHandle()));
 	}
 	

@@ -1,9 +1,9 @@
-#include "Texture.h"
+#include "GLTexture.h"
 
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/Sampler.h"
+#include "Cyph3D/GLObject/GLSampler.h"
 
-Texture::Texture(const TextureCreateInfo& settings)
+GLTexture::GLTexture(const TextureCreateInfo& settings)
 {
 	glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
 	
@@ -50,17 +50,17 @@ Texture::Texture(const TextureCreateInfo& settings)
 	glTextureStorage2D(_handle, _levels, settings.internalFormat, settings.size.x, settings.size.y);
 }
 
-Texture::~Texture()
+GLTexture::~GLTexture()
 {
 	glDeleteTextures(1, &_handle);
 }
 
-int Texture::calculateMipmapCount(const glm::ivec2& size)
+int GLTexture::calculateMipmapCount(const glm::ivec2& size)
 {
 	return (int)glm::floor(glm::log2((float)glm::max(size.x, size.y))) + 1;
 }
 
-GLuint64 Texture::getBindlessTextureHandle() const
+GLuint64 GLTexture::getBindlessTextureHandle() const
 {
 	GLuint64 bindlessHandle = glGetTextureHandleARB(_handle);
 	if (!glIsTextureHandleResidentARB(bindlessHandle))
@@ -70,7 +70,7 @@ GLuint64 Texture::getBindlessTextureHandle() const
 	return bindlessHandle;
 }
 
-GLuint64 Texture::getBindlessTextureHandle(const Sampler& sampler) const
+GLuint64 GLTexture::getBindlessTextureHandle(const GLSampler& sampler) const
 {
 	GLuint64 bindlessHandle = glGetTextureSamplerHandleARB(_handle, sampler.getHandle());
 	if (!glIsTextureHandleResidentARB(bindlessHandle))
@@ -80,14 +80,14 @@ GLuint64 Texture::getBindlessTextureHandle(const Sampler& sampler) const
 	return bindlessHandle;
 }
 
-void Texture::setData(const void* data, GLenum format, GLenum type)
+void GLTexture::setData(const void* data, GLenum format, GLenum type)
 {
 	glm::ivec2 size = getSize();
 	glTextureSubImage2D(_handle, 0, 0, 0, size.x, size.y, format, type, data);
 	generateMipmaps();
 }
 
-glm::ivec2 Texture::getSize(int level) const
+glm::ivec2 GLTexture::getSize(int level) const
 {
 	glm::ivec2 size;
 	glGetTextureLevelParameteriv(_handle, level, GL_TEXTURE_WIDTH, &size.x);
@@ -95,19 +95,19 @@ glm::ivec2 Texture::getSize(int level) const
 	return size;
 }
 
-void Texture::clear(GLenum format, GLenum type, void* clearData)
+void GLTexture::clear(GLenum format, GLenum type, void* clearData)
 {
 	glClearTexImage(_handle, 0, format, type, clearData);
 }
 
-void Texture::generateMipmaps()
+void GLTexture::generateMipmaps()
 {
 	if (_levels == 1) return;
 	
 	glGenerateTextureMipmap(_handle);
 }
 
-GLuint64 Texture::getBindlessImageHandle(GLenum format, GLenum access, int level) const
+GLuint64 GLTexture::getBindlessImageHandle(GLenum format, GLenum access, int level) const
 {
 	GLuint64 bindlessHandle = glGetImageHandleARB(_handle, level, GL_FALSE, 0, format);
 	if (!glIsImageHandleResidentARB(bindlessHandle))

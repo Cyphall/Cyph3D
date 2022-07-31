@@ -14,7 +14,7 @@ _objectIndexFramebuffer(size)
 	_objectIndexFramebuffer.setReadBuffer(0);
 }
 
-Texture& RaytracingRenderer::renderImpl(Camera& camera, Scene& scene, bool debugView)
+GLTexture& RaytracingRenderer::renderImpl(Camera& camera, Scene& scene, bool debugView)
 {
 	Renderer::render(_raytracePass, camera);
 	Renderer::render(_postProcessingPass, camera);

@@ -1,8 +1,8 @@
-#include "Sampler.h"
+#include "GLSampler.h"
 
 #include "Cyph3D/GLObject/CreateInfo/SamplerCreateInfo.h"
 
-Sampler::Sampler(const SamplerCreateInfo& settings)
+GLSampler::GLSampler(const SamplerCreateInfo& settings)
 {
 	glCreateSamplers(1, &_handle);
 	
@@ -34,7 +34,7 @@ Sampler::Sampler(const SamplerCreateInfo& settings)
 	}
 }
 
-Sampler::~Sampler()
+GLSampler::~GLSampler()
 {
 	glDeleteSamplers(1, &_handle);
 }

@@ -5,7 +5,7 @@
 #include "Cyph3D/Rendering/PostProcessingEffect/ExposureEffect.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/ToneMappingEffect.h"
 
-PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size):
+PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Post-processing pass")
 {
 	_effects.push_back(std::make_unique<ExposureEffect>(size));
@@ -18,9 +18,9 @@ void PostProcessingPass::preparePipelineImpl()
 	glEnable(GL_CULL_FACE);
 }
 
-void PostProcessingPass::renderImpl(std::unordered_map<std::string, Texture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
+void PostProcessingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
 {
-	Texture* renderTexture = textures["raw_render"];
+	GLTexture* renderTexture = textures["raw_render"];
 	
 	glm::ivec2 size = getSize();
 	

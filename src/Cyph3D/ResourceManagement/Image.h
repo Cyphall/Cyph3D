@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Cyph3D/Enums/ImageType.h"
-#include "Cyph3D/GLObject/Texture.h"
+#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/ResourceManagement/Resource.h"
 
-class Image : public Resource<Texture, ImageType>
+class Image : public Resource<GLTexture, ImageType>
 {
 public:
 	using Resource::Resource;

@@ -2,7 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Window.h"
@@ -18,7 +18,7 @@ _nonBrightTexture(TextureCreateInfo
 	.internalFormat = GL_RGBA16F
 }),
 _blurTextures{
-	Texture(TextureCreateInfo
+	GLTexture(TextureCreateInfo
 	{
 		.size = size,
 		.internalFormat = GL_RGBA16F,
@@ -29,7 +29,7 @@ _blurTextures{
 		.borderColor = {0, 0, 0, 1},
 		.levels = 6
 	}),
-	Texture(TextureCreateInfo
+	GLTexture(TextureCreateInfo
 	{
 		.size = size,
 		.internalFormat = GL_RGBA16F,
@@ -42,12 +42,12 @@ _blurTextures{
 	})
 },
 _blurFramebuffers{
-	Framebuffer(_blurTextures[0].getSize(0)),
-	Framebuffer(_blurTextures[0].getSize(1)),
-	Framebuffer(_blurTextures[0].getSize(2)),
-	Framebuffer(_blurTextures[0].getSize(3)),
-	Framebuffer(_blurTextures[0].getSize(4)),
-	Framebuffer(_blurTextures[0].getSize(5))
+	GLFramebuffer(_blurTextures[0].getSize(0)),
+	GLFramebuffer(_blurTextures[0].getSize(1)),
+	GLFramebuffer(_blurTextures[0].getSize(2)),
+	GLFramebuffer(_blurTextures[0].getSize(3)),
+	GLFramebuffer(_blurTextures[0].getSize(4)),
+	GLFramebuffer(_blurTextures[0].getSize(5))
 },
 _combineFramebuffer(size),
 _outputTexture(TextureCreateInfo
@@ -100,7 +100,7 @@ _outputTexture(TextureCreateInfo
 	}
 }
 
-Texture* BloomEffect::renderImpl(Texture* currentRenderTexture, std::unordered_map<std::string, Texture*>& textures, Camera& camera)
+GLTexture* BloomEffect::renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera)
 {
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "extractBright");
 	extractBright(currentRenderTexture);
@@ -137,7 +137,7 @@ Texture* BloomEffect::renderImpl(Texture* currentRenderTexture, std::unordered_m
 	return &_outputTexture;
 }
 
-void BloomEffect::extractBright(Texture* original)
+void BloomEffect::extractBright(GLTexture* original)
 {
 	_extractBrightFramebuffer.bindForDrawing();
 	

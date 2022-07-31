@@ -4,7 +4,7 @@
 #include "Cyph3D/Entity/Component/Component.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/Material/Material.h"
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Helper/ThreadHelper.h"
 #include "Cyph3D/Helper/VectorHelper.h"
