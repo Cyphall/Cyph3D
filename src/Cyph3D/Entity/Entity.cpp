@@ -1,4 +1,4 @@
-#include "Cyph3D/Entity/Entity.h"
+#include "Entity.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>

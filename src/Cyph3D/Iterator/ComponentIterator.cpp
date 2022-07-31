@@ -1,4 +1,4 @@
-#include "Cyph3D/Iterator/ComponentIterator.h"
+#include "ComponentIterator.h"
 
 ComponentIterator::ComponentIterator()
 {}

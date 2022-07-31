@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/Pass/LightingPass.h"
+#include "LightingPass.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
 #include "Cyph3D/Window.h"

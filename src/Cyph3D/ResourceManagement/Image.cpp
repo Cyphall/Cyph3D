@@ -1,4 +1,4 @@
-#include "Cyph3D/ResourceManagement/Image.h"
+#include "Image.h"
 #include <stdexcept>
 #include "Cyph3D/Helper/TextureHelper.h"
 #include "Cyph3D/ResourceManagement/StbImage.h"

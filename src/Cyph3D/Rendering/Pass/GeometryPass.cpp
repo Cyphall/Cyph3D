@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/Pass/GeometryPass.h"
+#include "GeometryPass.h"
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/Mesh.h"

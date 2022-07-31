@@ -1,4 +1,4 @@
-#include "Cyph3D/UI/Window/UIHierarchy.h"
+#include "UIHierarchy.h"
 #include <imgui.h>
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Scene/Scene.h"

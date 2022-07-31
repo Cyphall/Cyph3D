@@ -1,4 +1,4 @@
-#include "Cyph3D/GLObject/BufferBase.h"
+#include "BufferBase.h"
 
 GLuint BufferBase::getHandle() const
 {

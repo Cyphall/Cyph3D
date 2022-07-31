@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/PostProcessingEffect/ExposureEffect.h"
+#include "ExposureEffect.h"
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Engine.h"

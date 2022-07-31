@@ -1,4 +1,4 @@
-#include "Cyph3D/Scene/Camera.h"
+#include "Camera.h"
 #include "Cyph3D/Helper/MathHelper.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include "Cyph3D/Engine.h"

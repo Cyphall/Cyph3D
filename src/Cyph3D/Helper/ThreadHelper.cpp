@@ -1,4 +1,4 @@
-#include "Cyph3D/Helper/ThreadHelper.h"
+#include "ThreadHelper.h"
 #include <windows.h>
 #include <vector>
 

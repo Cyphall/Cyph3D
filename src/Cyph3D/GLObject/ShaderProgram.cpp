@@ -1,4 +1,4 @@
-#include "Cyph3D/GLObject/ShaderProgram.h"
+#include "ShaderProgram.h"
 #include <stdexcept>
 #include <ios>
 #include <sstream>

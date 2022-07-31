@@ -1,4 +1,4 @@
-#include "Cyph3D/ObjectSerialization.h"
+#include "ObjectSerialization.h"
 
 nlohmann::ordered_json ObjectSerialization::toJson()
 {

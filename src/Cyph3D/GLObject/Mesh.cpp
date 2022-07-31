@@ -1,4 +1,4 @@
-#include "Cyph3D/GLObject/Mesh.h"
+#include "Mesh.h"
 
 Mesh::Mesh(std::span<const Mesh::VertexData> vertexData, std::span<const GLuint> indices):
 _vbo(vertexData.size(), GL_DYNAMIC_STORAGE_BIT), _ibo(indices.size(), GL_DYNAMIC_STORAGE_BIT)

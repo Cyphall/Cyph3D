@@ -1,4 +1,4 @@
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "ResourceManager.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Engine.h"

@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
+#include "PostProcessingPass.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/ToneMappingEffect.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/ExposureEffect.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/BloomEffect.h"

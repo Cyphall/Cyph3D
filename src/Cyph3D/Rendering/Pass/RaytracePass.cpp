@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/Pass/RaytracePass.h"
+#include "RaytracePass.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Scene.h"

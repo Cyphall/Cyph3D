@@ -1,4 +1,4 @@
-#include "Cyph3D/Entity/Component/PointLight.h"
+#include "PointLight.h"
 #include "Cyph3D/Entity/Entity.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/integer.hpp>

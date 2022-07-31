@@ -1,4 +1,4 @@
-#include "Cyph3D/Entity/Component/DirectionalLight.h"
+#include "DirectionalLight.h"
 #include "Cyph3D/Entity/Entity.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/integer.hpp>

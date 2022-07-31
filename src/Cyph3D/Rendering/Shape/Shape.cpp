@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/Shape/Shape.h"
+#include "Shape.h"
 
 Shape::Shape(ShapeRenderer& shapeRenderer):
 _shapeRenderer(shapeRenderer)

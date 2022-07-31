@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/Pass/SkyboxPass.h"
+#include "SkyboxPass.h"
 #include "Cyph3D/Window.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Engine.h"

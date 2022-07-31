@@ -1,4 +1,4 @@
-#include "Cyph3D/Helper/FileHelper.h"
+#include "FileHelper.h"
 #include <ShObjIdl_core.h>
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Engine.h"

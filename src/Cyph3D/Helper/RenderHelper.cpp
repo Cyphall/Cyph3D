@@ -1,4 +1,4 @@
-#include "Cyph3D/Helper/RenderHelper.h"
+#include "RenderHelper.h"
 #include <vector>
 #include "Cyph3D/GLObject/VertexArray.h"
 

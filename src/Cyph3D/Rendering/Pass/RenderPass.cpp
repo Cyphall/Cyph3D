@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "RenderPass.h"
 #include "Cyph3D/PerfCounter/PerfStep.h"
 
 RenderPass::RenderPass(std::unordered_map<std::string, Texture*>& textures, glm::ivec2 size, const char* name):

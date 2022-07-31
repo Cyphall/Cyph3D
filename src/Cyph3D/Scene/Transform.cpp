@@ -1,4 +1,4 @@
-#include "Cyph3D/Scene/Transform.h"
+#include "Transform.h"
 #include "Cyph3D/Helper/VectorHelper.h"
 #include <stdexcept>
 #include <glm/gtc/matrix_inverse.hpp>

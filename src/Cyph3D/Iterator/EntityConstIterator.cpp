@@ -1,4 +1,4 @@
-#include "Cyph3D/Iterator/EntityConstIterator.h"
+#include "EntityConstIterator.h"
 
 EntityConstIterator::EntityConstIterator()
 {}

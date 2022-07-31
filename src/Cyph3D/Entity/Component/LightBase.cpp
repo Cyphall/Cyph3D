@@ -1,4 +1,4 @@
-#include "Cyph3D/Entity/Component/LightBase.h"
+#include "LightBase.h"
 
 LightBase::LightBase(Entity& entity):
 Component(entity)

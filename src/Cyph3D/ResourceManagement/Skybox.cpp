@@ -1,4 +1,4 @@
-#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Skybox.h"
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Helper/TextureHelper.h"
 #include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"

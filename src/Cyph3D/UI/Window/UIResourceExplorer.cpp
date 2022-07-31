@@ -1,4 +1,4 @@
-#include "Cyph3D/UI/Window/UIResourceExplorer.h"
+#include "UIResourceExplorer.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include "Cyph3D/Window.h"

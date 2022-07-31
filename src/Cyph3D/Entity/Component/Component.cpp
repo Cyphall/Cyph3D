@@ -1,4 +1,4 @@
-#include "Cyph3D/Entity/Component/Component.h"
+#include "Component.h"
 #include "Cyph3D/Entity/Entity.h"
 
 Component::Component(Entity& entity):

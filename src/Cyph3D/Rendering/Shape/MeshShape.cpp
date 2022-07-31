@@ -1,4 +1,4 @@
-#include "Cyph3D/Rendering/Shape/MeshShape.h"
+#include "MeshShape.h"
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Scene/Scene.h"

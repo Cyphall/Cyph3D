@@ -1,4 +1,4 @@
-#include "Cyph3D/Timer.h"
+#include "Timer.h"
 
 void Timer::onNewFrame()
 {

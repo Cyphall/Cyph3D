@@ -1,4 +1,4 @@
-#include "Cyph3D/GLObject/Material/Material.h"
+#include "Material.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/TextureHelper.h"
 #include "Cyph3D/Helper/JsonHelper.h"

@@ -1,4 +1,4 @@
-#include "Cyph3D/Scene/Scene.h"
+#include "Scene.h"
 #include <stdexcept>
 #include "Cyph3D/Helper/VectorHelper.h"
 #include "Cyph3D/Entity/Entity.h"

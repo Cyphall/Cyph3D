@@ -1,4 +1,4 @@
-#include "Cyph3D/GLObject/Texture.h"
+#include "Texture.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Sampler.h"
 

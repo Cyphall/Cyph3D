@@ -1,4 +1,4 @@
-#include "Cyph3D/Helper/GlfwHelper.h"
+#include "GlfwHelper.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "Cyph3D/Logging/Logger.h"

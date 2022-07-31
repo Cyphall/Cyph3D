@@ -1,4 +1,4 @@
-#include "Cyph3D/Helper/ShaderHelper.h"
+#include "ShaderHelper.h"
 #include <stdexcept>
 #include <sstream>
 #include <glad/glad.h>

@@ -1,4 +1,4 @@
-#include "Cyph3D/GLObject/Framebuffer.h"
+#include "Framebuffer.h"
 #include <stdexcept>
 #include <vector>
 #include "Cyph3D/Helper/MathHelper.h"
