@@ -1,7 +1,7 @@
+#include "Cyph3D/Entity/Entity.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
-#include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Entity/Component/Animator.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"

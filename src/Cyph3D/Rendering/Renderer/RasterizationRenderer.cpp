@@ -1,5 +1,5 @@
-#include <glad/glad.h>
 #include "Cyph3D/Rendering/Renderer/RasterizationRenderer.h"
+#include <glad/glad.h>
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Scene/Scene.h"

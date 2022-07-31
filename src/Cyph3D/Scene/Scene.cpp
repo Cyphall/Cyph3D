@@ -1,3 +1,4 @@
+#include "Cyph3D/Scene/Scene.h"
 #include <stdexcept>
 #include "Cyph3D/Helper/VectorHelper.h"
 #include "Cyph3D/Entity/Entity.h"
@@ -5,7 +6,6 @@
 #include <format>
 #include <glm/gtc/type_ptr.hpp>
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
