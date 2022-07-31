@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 enum class LogColorFlags
 {
 	FOREGROUND_BLUE      = 0x01,
