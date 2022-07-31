@@ -1,13 +1,12 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <memory>
+#include "Cyph3D/Timer.h"
 
 class Window;
 class ResourceManager;
 class Scene;
-
-#include <memory>
-#include "Cyph3D/Timer.h"
 
 class Engine
 {
