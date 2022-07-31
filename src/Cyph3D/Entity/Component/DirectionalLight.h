@@ -3,10 +3,8 @@
 #include "Cyph3D/Entity/Component/LightBase.h"
 #include <memory>
 
-struct RenderRegistry;
-class Renderer;
-class Framebuffer;
 class Texture;
+class Framebuffer;
 
 class DirectionalLight : public LightBase
 {

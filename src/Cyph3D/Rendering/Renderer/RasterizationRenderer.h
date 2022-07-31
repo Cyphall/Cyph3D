@@ -10,8 +10,6 @@
 #include "Cyph3D/Rendering/Pass/ZPrePass.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
 
-class PostProcessingEffect;
-
 class RasterizationRenderer : public Renderer
 {
 public:

@@ -3,7 +3,6 @@
 #include "Cyph3D/Entity/Component/LightBase.h"
 #include <memory>
 
-struct RenderRegistry;
 class Cubemap;
 class Framebuffer;
 

@@ -5,7 +5,6 @@
 #include <nlohmann/json.hpp>
 #include <filesystem>
 
-class Renderer;
 class Skybox;
 class Transform;
 class Entity;

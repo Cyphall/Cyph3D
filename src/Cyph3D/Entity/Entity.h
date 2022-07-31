@@ -8,7 +8,6 @@
 #include <nlohmann/json.hpp>
 
 class Scene;
-class Renderer;
 class Component;
 class ComponentIterator;
 class ComponentConstIterator;

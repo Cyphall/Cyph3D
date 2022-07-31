@@ -5,7 +5,6 @@
 class Window;
 class ResourceManager;
 class Scene;
-class Renderer;
 
 #include <memory>
 #include "Cyph3D/Timer.h"

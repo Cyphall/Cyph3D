@@ -3,7 +3,6 @@
 #include <imgui.h>
 
 struct ImGuiContext;
-class Scene;
 
 class UIHelper
 {
