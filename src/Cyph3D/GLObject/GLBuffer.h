@@ -43,6 +43,16 @@ public:
 		}
 		glNamedBufferSubData(_handle, offset * sizeof(T), data.size() * sizeof(T), data.data());
 	}
+
+	T* map(GLbitfield access)
+	{
+		return static_cast<T*>(glMapNamedBufferRange(this->_handle, 0, this->getSize(), access));
+	}
+
+	void unmap()
+	{
+		glUnmapNamedBuffer(this->_handle);
+	}
 	
 protected:
 	GLsizeiptr _count = 0;

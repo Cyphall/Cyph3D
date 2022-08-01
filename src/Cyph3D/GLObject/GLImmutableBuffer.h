@@ -12,16 +12,6 @@ public:
 		glNamedBufferStorage(this->_handle, this->getSize(), nullptr, _flags);
 	}
 
-	T* map(GLbitfield access)
-	{
-		return static_cast<T*>(glMapNamedBufferRange(this->_handle, 0, this->getSize(), access));
-	}
-
-	void unmap()
-	{
-		glUnmapNamedBuffer(this->_handle);
-	}
-
 private:
 	GLenum _flags;
 };
