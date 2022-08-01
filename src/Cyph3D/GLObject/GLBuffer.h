@@ -35,16 +35,6 @@ public:
 		return _count * sizeof(T);
 	}
 	
-	T* map(GLenum mode)
-	{
-		glMapNamedBuffer(_handle, mode);
-	}
-	
-	void unmap()
-	{
-		glUnmapNamedBuffer(_handle);
-	}
-	
 	void setData(std::span<const T> data, GLintptr offset = 0)
 	{
 		if (offset + data.size() > _count)
