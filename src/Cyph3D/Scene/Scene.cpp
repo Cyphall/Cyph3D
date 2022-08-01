@@ -31,6 +31,7 @@ Transform& Scene::getRoot()
 
 void Scene::onUpdate()
 {
+	_resourceManager.onUpdate();
 	for (auto it = entities_begin(); it != entities_end(); it++)
 	{
 		(*it).onUpdate();

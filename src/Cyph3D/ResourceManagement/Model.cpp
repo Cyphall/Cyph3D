@@ -1,50 +1,96 @@
 #include "Model.h"
 
+#include "Cyph3D/GLObject/GLImmutableBuffer.h"
+#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Logging/Logger.h"
+
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <chrono>
 #include <format>
 
-void Model::loadResourceImpl()
+struct Model::LoadData
+{
+	ResourceManager* rm;
+
+	// step 1: load mesh into vectors
+	std::vector<Mesh::VertexData> vertices;
+	std::vector<GLuint> indices;
+
+	// step 2: create buffers and fill them
+	std::unique_ptr<GLImmutableBuffer<Mesh::VertexData>> vertexBuffer;
+	std::unique_ptr<GLImmutableBuffer<GLuint>> indexBuffer;
+	GLsync fence;
+
+	// step 3: wait for the fence
+};
+
+Model::Model(const std::string& name, ResourceManager& rm):
+	Resource(name)
+{
+	_loadData = std::make_unique<LoadData>();
+	_loadData->rm = &rm;
+
+	Logger::info(std::format("Loading model \"{}\"", getName()));
+	_loadData->rm->addThreadPoolTask(std::bind(&Model::load_step1_tp, this));
+}
+
+void Model::load_step1_tp()
 {
 	std::string path = std::format("resources/meshes/{}.obj", _name);
-	
+
 	Assimp::Importer importer;
-	
+
 	const aiScene* scene = importer.ReadFile(path, aiProcess_CalcTangentSpace | aiProcess_Triangulate);
 	aiMesh* mesh = scene->mMeshes[0];
-	
-	std::vector<Mesh::VertexData> vertexData;
-	vertexData.reserve(mesh->mNumVertices);
-	
+
+	_loadData->vertices.resize(mesh->mNumVertices);
+
 	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
 	{
-		aiVector3D v = mesh->mVertices[i];
-		aiVector3D uv = mesh->mTextureCoords[0][i];
-		aiVector3D n = mesh->mNormals[i];
-		aiVector3D t = mesh->mTangents[i];
-		
-		vertexData.emplace_back(
-				*reinterpret_cast<glm::vec3*>(&v),
-				glm::vec2(*reinterpret_cast<glm::vec3*>(&uv)),
-				*reinterpret_cast<glm::vec3*>(&n),
-				*reinterpret_cast<glm::vec3*>(&t));
+		std::memcpy(&_loadData->vertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
+		std::memcpy(&_loadData->vertices[i].uv, &mesh->mTextureCoords[0][i], 2 * sizeof(float));
+		std::memcpy(&_loadData->vertices[i].normal, &mesh->mNormals[i], 3 * sizeof(float));
+		std::memcpy(&_loadData->vertices[i].tangent, &mesh->mTangents[i], 3 * sizeof(float));
 	}
-	
-	std::vector<GLuint> indices;
-	indices.reserve(mesh->mNumFaces * 3);
-	
+
+	_loadData->indices.resize(mesh->mNumFaces * 3);
+
 	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
 	{
-		indices.push_back(mesh->mFaces[i].mIndices[0]);
-		indices.push_back(mesh->mFaces[i].mIndices[1]);
-		indices.push_back(mesh->mFaces[i].mIndices[2]);
+		std::memcpy(&_loadData->indices[i*3], mesh->mFaces[i].mIndices, 3 * sizeof(GLuint));
 	}
 	
-	_resource = std::make_unique<Mesh>(vertexData, indices);
+	_loadData->rm->addMainThreadTask(std::bind(&Model::load_step2_mt, this));
+}
+
+bool Model::load_step2_mt()
+{
+	_loadData->vertexBuffer = std::make_unique<GLImmutableBuffer<Mesh::VertexData>>(_loadData->vertices.size(), GL_DYNAMIC_STORAGE_BIT);
+	_loadData->vertexBuffer->setData(_loadData->vertices);
+	_loadData->vertices = std::vector<Mesh::VertexData>(); // clear & free
 	
-	GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	auto timeout = std::chrono::seconds(10);
-	glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, std::chrono::duration_cast<std::chrono::nanoseconds>(timeout).count());
+	_loadData->indexBuffer = std::make_unique<GLImmutableBuffer<GLuint>>(_loadData->indices.size(), GL_DYNAMIC_STORAGE_BIT);
+	_loadData->indexBuffer->setData(_loadData->indices);
+	_loadData->indices = std::vector<GLuint>(); // clear & free
+
+	_loadData->fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+	_loadData->rm->addMainThreadTask(std::bind(&Model::load_step3_mt, this));
+	return true;
+}
+
+bool Model::load_step3_mt()
+{
+	if (glClientWaitSync(_loadData->fence, 0, 0) != GL_ALREADY_SIGNALED)
+	{
+		return false;
+	}
+	
+	_resource = std::make_unique<Mesh>(std::move(_loadData->vertexBuffer), std::move(_loadData->indexBuffer));
+	_loadData.reset();
+	_ready = true;
+	Logger::info(std::format("Model \"{}\" loaded", getName()));
+	return true;
 }

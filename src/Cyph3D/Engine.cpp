@@ -86,6 +86,7 @@ void Engine::run()
 		_timer.onNewFrame();
 		UIHelper::onNewFrame();
 		
+		_globalResourceManager->onUpdate();
 		_scene->onUpdate();
 		
 		UIHelper::render();

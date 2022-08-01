@@ -23,21 +23,13 @@ ResourceManager::~ResourceManager()
 
 Model* ResourceManager::requestModel(const std::string& name)
 {
-	if (!_models.contains(name))
+	auto it = _models.find(name);
+	if (it == _models.end())
 	{
-		_models[name] = std::make_unique<Model>(name);
-		
-		Model* model = _models[name].get();
-		
-		_threadPool.push_task([](Model* model)
-		{
-			Logger::info(std::format("Loading model \"{}\"", model->getName()));
-			model->loadResource();
-			Logger::info(std::format("Model \"{}\" loaded", model->getName()));
-		}, model);
+		it = _models.try_emplace(name, std::make_unique<Model>(name, *this)).first;
 	}
 	
-	return _models[name].get();
+	return it->second.get();
 }
 
 Image* ResourceManager::requestImage(const std::string& name, ImageType type)
@@ -98,4 +90,33 @@ Material* ResourceManager::requestMaterial(const std::string& name)
 	}
 	
 	return _materials[name].get();
+}
+
+void ResourceManager::onUpdate()
+{
+	auto it = _mainThreadTasks.begin();
+	while (it != _mainThreadTasks.end())
+	{
+		std::function<bool()>& task = *it;
+		
+		bool completed = task();
+		if (completed)
+		{
+			it = _mainThreadTasks.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+}
+
+void ResourceManager::addThreadPoolTask(const std::function<void()>& task)
+{
+	_threadPool.push_task(task);
+}
+
+void ResourceManager::addMainThreadTask(const std::function<bool()>& task)
+{
+	_mainThreadTasks.push_back(task);
 }

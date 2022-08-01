@@ -5,6 +5,8 @@
 
 #include <thread_pool.hpp>
 #include <unordered_map>
+#include <list>
+#include <functional>
 
 class Model;
 class Image;
@@ -48,6 +50,11 @@ public:
 	GLShaderProgram* requestShaderProgram(const ShaderProgramCreateInfo& createInfo);
 	Material* requestMaterial(const std::string& name);
 	
+	void onUpdate();
+	
+	void addThreadPoolTask(const std::function<void()>& task);
+	void addMainThreadTask(const std::function<bool()>& task);
+	
 private:
 	std::unordered_map<std::string, std::unique_ptr<Model>> _models;
 	
@@ -60,4 +67,6 @@ private:
 	std::unordered_map<std::string, std::unique_ptr<Material>> _materials;
 	
 	thread_pool _threadPool;
+	
+	std::list<std::function<bool()>> _mainThreadTasks;
 };

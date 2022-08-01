@@ -3,10 +3,9 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <memory>
-#include <span>
 
 template<typename T>
-class GLImmutableBuffer;
+class GLBuffer;
 
 class Mesh
 {
@@ -17,19 +16,15 @@ public:
 		glm::vec2 uv;
 		glm::vec3 normal;
 		glm::vec3 tangent;
-		
-		VertexData(const glm::vec3& position, const glm::vec2& uv, const glm::vec3& normal, const glm::vec3& tangent):
-				position(position), uv(uv), normal(normal), tangent(tangent)
-		{}
 	};
 	
-	Mesh(std::span<const Mesh::VertexData> vertexData, std::span<const GLuint> indices);
+	Mesh(std::unique_ptr<GLBuffer<Mesh::VertexData>>&& vertexData, std::unique_ptr<GLBuffer<GLuint>>&& indices);
 	~Mesh();
 	
-	const GLImmutableBuffer<Mesh::VertexData>& getVBO() const;
-	const GLImmutableBuffer<GLuint>& getIBO() const;
+	const GLBuffer<Mesh::VertexData>& getVBO() const;
+	const GLBuffer<GLuint>& getIBO() const;
 	
 private:
-	std::unique_ptr<GLImmutableBuffer<Mesh::VertexData>> _vbo;
-	std::unique_ptr<GLImmutableBuffer<GLuint>> _ibo;
+	std::unique_ptr<GLBuffer<Mesh::VertexData>> _vbo;
+	std::unique_ptr<GLBuffer<GLuint>> _ibo;
 };

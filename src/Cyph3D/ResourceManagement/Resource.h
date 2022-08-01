@@ -8,8 +8,8 @@ template<typename TResource, typename... Args>
 class Resource
 {
 public:
-	explicit Resource(std::string name):
-	_name(std::move(name))
+	explicit Resource(const std::string& name):
+	_name(name)
 	{
 	
 	}
@@ -43,7 +43,8 @@ protected:
 	const std::string _name;
 	std::atomic_bool _ready = false;
 	
-	virtual void loadResourceImpl(Args... args) = 0;
+	virtual void loadResourceImpl(Args... args)
+	{}
 
 private:
 	void loadResource(Args... args)

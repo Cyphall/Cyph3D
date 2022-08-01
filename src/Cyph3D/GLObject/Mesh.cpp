@@ -2,24 +2,21 @@
 
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
 
-Mesh::Mesh(std::span<const Mesh::VertexData> vertexData, std::span<const GLuint> indices)
+Mesh::Mesh(std::unique_ptr<GLBuffer<Mesh::VertexData>>&& vertexData, std::unique_ptr<GLBuffer<GLuint>>&& indices)
 {
-	_vbo = std::make_unique<GLImmutableBuffer<Mesh::VertexData>>(vertexData.size(), GL_DYNAMIC_STORAGE_BIT);
-	_vbo->setData(vertexData);
-
-	_ibo = std::make_unique<GLImmutableBuffer<GLuint>>(indices.size(), GL_DYNAMIC_STORAGE_BIT);
-	_ibo->setData(indices);
+	_vbo = std::forward<std::unique_ptr<GLBuffer<Mesh::VertexData>>>(vertexData);
+	_ibo = std::forward<std::unique_ptr<GLBuffer<GLuint>>>(indices);
 }
 
 Mesh::~Mesh()
 {}
 
-const GLImmutableBuffer<Mesh::VertexData>& Mesh::getVBO() const
+const GLBuffer<Mesh::VertexData>& Mesh::getVBO() const
 {
 	return *_vbo;
 }
 
-const GLImmutableBuffer<GLuint>& Mesh::getIBO() const
+const GLBuffer<GLuint>& Mesh::getIBO() const
 {
 	return *_ibo;
 }
