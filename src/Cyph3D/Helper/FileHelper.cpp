@@ -61,7 +61,7 @@ std::optional<std::filesystem::path> FileHelper::fileDialogOpen(std::vector<File
 			
 			if (SUCCEEDED(hr))
 			{
-				hr = pfd->SetDefaultFolder(defaultFolderItem);
+				hr = pfd->SetFolder(defaultFolderItem);
 				
 				if (SUCCEEDED(hr))
 				{
@@ -123,7 +123,7 @@ std::optional<std::filesystem::path> FileHelper::fileDialogSave(std::vector<File
 			
 			if (SUCCEEDED(hr))
 			{
-				hr = pfd->SetDefaultFolder(defaultFolderItem);
+				hr = pfd->SetFolder(defaultFolderItem);
 				
 				if (SUCCEEDED(hr))
 				{
