@@ -3,6 +3,7 @@
 #include "Cyph3D/Logging/LogColorFlags.h"
 
 #include <mutex>
+#include <fstream>
 
 class ILoggerColor;
 
@@ -27,6 +28,7 @@ private:
 	static Logger::LogLevel _logLevel;
 	static std::mutex _mtx;
 	static std::unique_ptr<ILoggerColor> _loggerColor;
+	static std::ofstream _logFile;
 	
 	static void print(std::string_view message, std::string_view context, std::string_view prefix, LogColorFlags color);
 };
