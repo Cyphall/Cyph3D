@@ -13,7 +13,9 @@ public:
 	
 	void* getPtr() const;
 	int getBitPerChannel() const;
+	int getBytePerChannel() const;
 	int getBitPerPixel() const;
+	int getBytePerPixel() const;
 	int getChannelCount() const;
 	glm::ivec2 getSize() const;
 	bool isValid() const;

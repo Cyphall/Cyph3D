@@ -44,9 +44,19 @@ int StbImage::getBitPerChannel() const
 	return _bitPerChannel;
 }
 
+int StbImage::getBytePerChannel() const
+{
+	return _bitPerChannel / 8;
+}
+
 int StbImage::getBitPerPixel() const
 {
 	return _bitPerChannel * _channelCount;
+}
+
+int StbImage::getBytePerPixel() const
+{
+	return _bitPerChannel * _channelCount / 8;
 }
 
 int StbImage::getChannelCount() const
