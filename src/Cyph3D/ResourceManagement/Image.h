@@ -7,11 +7,14 @@
 class Image : public Resource<GLTexture, ImageType>
 {
 public:
-	using Resource::Resource;
-	Image(const Image& other) = delete;
+	Image(const std::string& name, ImageType type, ResourceManager& rm);
 	
 private:
-	void loadResourceImpl(ImageType type) override;
+	struct LoadData;
 	
-	friend class ResourceManager;
+	std::unique_ptr<LoadData> _loadData;
+	
+	void load_step1_tp();
+	bool load_step2_mt();
+	bool load_step3_mt();
 };

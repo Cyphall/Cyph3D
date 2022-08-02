@@ -34,21 +34,13 @@ Model* ResourceManager::requestModel(const std::string& name)
 
 Image* ResourceManager::requestImage(const std::string& name, ImageType type)
 {
-	if (!_images.contains(name))
+	auto it = _images.find(name);
+	if (it == _images.end())
 	{
-		_images[name] = std::make_unique<Image>(name);
-		
-		Image* image = _images[name].get();
-		
-		_threadPool.push_task([](Image* image, ImageType type)
-		{
-			Logger::info(std::format("Loading image \"{}\"", image->getName()));
-			image->loadResource(type);
-			Logger::info(std::format("Image \"{}\" loaded", image->getName()));
-		}, image, type);
+		it = _images.try_emplace(name, std::make_unique<Image>(name, type, *this)).first;
 	}
-	
-	return _images[name].get();
+
+	return it->second.get();
 }
 
 Skybox* ResourceManager::requestSkybox(const std::string& name)
