@@ -6,14 +6,19 @@
 class Skybox : public Resource<GLCubemap>
 {
 public:
-	using Resource::Resource;
-	Skybox(const Skybox& other) = delete;
-	
+	Skybox(const std::string& name, ResourceManager& rm);
+	~Skybox();
+
 	float getRotation() const;
 	void setRotation(float rotation);
 
 private:
-	float _rotation = 0;
+	struct LoadData;
+	std::unique_ptr<LoadData> _loadData;
 	
-	void loadResourceImpl() override;
+	float _rotation = 0;
+
+	void load_step1_tp();
+	bool load_step2_mt();
+	bool load_step3_mt();
 };

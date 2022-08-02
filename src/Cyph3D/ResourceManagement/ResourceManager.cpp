@@ -45,21 +45,13 @@ Image* ResourceManager::requestImage(const std::string& name, ImageType type)
 
 Skybox* ResourceManager::requestSkybox(const std::string& name)
 {
-	if (!_skyboxes.contains(name))
+	auto it = _skyboxes.find(name);
+	if (it == _skyboxes.end())
 	{
-		_skyboxes[name] = std::make_unique<Skybox>(name);
-		
-		Skybox* skybox = _skyboxes[name].get();
-		
-		_threadPool.push_task([](Skybox* skybox)
-		{
-			Logger::info(std::format("Loading skybox \"{}\"", skybox->getName()));
-			skybox->loadResource();
-			Logger::info(std::format("Skybox \"{}\" loaded", skybox->getName()));
-		}, skybox);
+		it = _skyboxes.try_emplace(name, std::make_unique<Skybox>(name, *this)).first;
 	}
-	
-	return _skyboxes[name].get();
+
+	return it->second.get();
 }
 
 GLShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateInfo& createInfo)
