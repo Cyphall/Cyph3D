@@ -4,7 +4,9 @@
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/ResourceManagement/Resource.h"
 
-class Image : public Resource<GLTexture, ImageType>
+class ResourceManager;
+
+class Image : public Resource<GLTexture>
 {
 public:
 	Image(const std::string& name, ImageType type, ResourceManager& rm);

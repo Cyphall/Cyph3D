@@ -3,6 +3,8 @@
 #include "Cyph3D/GLObject/GLCubemap.h"
 #include "Cyph3D/ResourceManagement/Resource.h"
 
+class ResourceManager;
+
 class Skybox : public Resource<GLCubemap>
 {
 public:

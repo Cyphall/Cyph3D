@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-template<typename TResource, typename... Args>
+template<typename TResource>
 class Resource
 {
 public:
@@ -42,16 +42,4 @@ protected:
 	std::unique_ptr<TResource> _resource;
 	const std::string _name;
 	std::atomic_bool _ready = false;
-	
-	virtual void loadResourceImpl(Args... args)
-	{}
-
-private:
-	void loadResource(Args... args)
-	{
-		loadResourceImpl(args...);
-		_ready = true;
-	}
-	
-	friend class ResourceManager;
 };
