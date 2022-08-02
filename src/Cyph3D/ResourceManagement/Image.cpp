@@ -37,6 +37,9 @@ Image::Image(const std::string& name, ImageType type, ResourceManager& rm):
 	_loadData->rm->addThreadPoolTask(std::bind(&Image::load_step1_tp, this));
 }
 
+Image::~Image()
+{}
+
 void Image::load_step1_tp()
 {
 	std::string path = std::format("resources/{}", _name);

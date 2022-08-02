@@ -36,6 +36,9 @@ Model::Model(const std::string& name, ResourceManager& rm):
 	_loadData->rm->addThreadPoolTask(std::bind(&Model::load_step1_tp, this));
 }
 
+Model::~Model()
+{}
+
 void Model::load_step1_tp()
 {
 	std::string path = std::format("resources/meshes/{}.obj", _name);

@@ -11,10 +11,10 @@ class Model : public Resource<Mesh>
 {
 public:
 	Model(const std::string& name, ResourceManager& rm);
+	~Model();
 	
 private:
 	struct LoadData;
-	
 	std::unique_ptr<LoadData> _loadData;
 	
 	void load_step1_tp();
