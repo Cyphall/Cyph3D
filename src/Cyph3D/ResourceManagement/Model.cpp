@@ -3,6 +3,7 @@
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/GLObject/GLFence.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -21,7 +22,7 @@ struct Model::LoadData
 	// step 2: create buffers and fill them
 	std::unique_ptr<GLImmutableBuffer<Mesh::VertexData>> vertexBuffer;
 	std::unique_ptr<GLImmutableBuffer<GLuint>> indexBuffer;
-	GLsync fence;
+	std::unique_ptr<GLFence> fence;
 
 	// step 3: wait for the fence
 };
@@ -78,7 +79,7 @@ bool Model::load_step2_mt()
 	_loadData->indexBuffer->setData(_loadData->indices);
 	_loadData->indices = std::vector<GLuint>(); // clear & free
 
-	_loadData->fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	_loadData->fence = std::make_unique<GLFence>();
 
 	_loadData->rm->addMainThreadTask(std::bind(&Model::load_step3_mt, this));
 	return true;
@@ -86,7 +87,7 @@ bool Model::load_step2_mt()
 
 bool Model::load_step3_mt()
 {
-	if (glClientWaitSync(_loadData->fence, 0, 0) != GL_ALREADY_SIGNALED)
+	if (!_loadData->fence->isSignaled())
 	{
 		return false;
 	}

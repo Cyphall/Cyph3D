@@ -6,6 +6,7 @@
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/ResourceManagement/StbImage.h"
 #include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/GLObject/GLFence.h"
 
 #include <chrono>
 #include <format>
@@ -21,7 +22,7 @@ struct Skybox::LoadData
 	std::array<PixelProperties, 6> pixelProperties;
 
 	// step 2: create GLTexture and fill it
-	GLsync fence;
+	std::unique_ptr<GLFence> fence;
 
 	// step 3: wait for the fence
 };
@@ -111,7 +112,7 @@ bool Skybox::load_step2_mt()
 		_resource->setData(_loadData->imageData[i].getPtr(), i, _loadData->pixelProperties[i].format, _loadData->pixelProperties[i].type);
 	}
 
-	_loadData->fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	_loadData->fence = std::make_unique<GLFence>();
 
 	_loadData->rm->addMainThreadTask(std::bind(&Skybox::load_step3_mt, this));
 	return true;
@@ -119,8 +120,7 @@ bool Skybox::load_step2_mt()
 
 bool Skybox::load_step3_mt()
 {
-	GLenum fenceWaitResult = glClientWaitSync(_loadData->fence, 0, 0);
-	if (fenceWaitResult != GL_ALREADY_SIGNALED && fenceWaitResult != GL_CONDITION_SATISFIED)
+	if (!_loadData->fence->isSignaled())
 	{
 		return false;
 	}

@@ -5,6 +5,7 @@
 #include "Cyph3D/ResourceManagement/StbImage.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/GLObject/GLFence.h"
 
 #include <chrono>
 #include <format>
@@ -21,7 +22,7 @@ struct Image::LoadData
 	PixelProperties pixelProperties;
 	
 	// step 2: create GLTexture and fill it
-	GLsync fence;
+	std::unique_ptr<GLFence> fence;
 	
 	// step 3: wait for the fence
 };
@@ -70,7 +71,7 @@ bool Image::load_step2_mt()
 	_resource = std::make_unique<GLTexture>(_loadData->textureCreateInfo);
 	_resource->setData(_loadData->imageData.getPtr(), _loadData->pixelProperties.format, _loadData->pixelProperties.type);
 
-	_loadData->fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	_loadData->fence = std::make_unique<GLFence>();
 
 	_loadData->rm->addMainThreadTask(std::bind(&Image::load_step3_mt, this));
 	return true;
@@ -78,7 +79,7 @@ bool Image::load_step2_mt()
 
 bool Image::load_step3_mt()
 {
-	if (glClientWaitSync(_loadData->fence, 0, 0) != GL_ALREADY_SIGNALED)
+	if (!_loadData->fence->isSignaled())
 	{
 		return false;
 	}
