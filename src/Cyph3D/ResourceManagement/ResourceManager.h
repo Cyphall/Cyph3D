@@ -3,7 +3,7 @@
 #include "Cyph3D/Enums/ImageType.h"
 #include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
 
-#include <thread_pool.hpp>
+#include <BS_thread_pool.hpp>
 #include <unordered_map>
 #include <list>
 #include <functional>
@@ -52,8 +52,17 @@ public:
 	
 	void onUpdate();
 	
-	void addThreadPoolTask(const std::function<void()>& task);
-	void addMainThreadTask(const std::function<bool()>& task);
+	template <typename TTask, typename... TArgs>
+	void addThreadPoolTask(TTask&& task, TArgs&&... args)
+	{
+		_threadPool.push_task(std::forward<TTask>(task), std::forward<TArgs>(args)...);
+	}
+
+	template <typename TTask, typename... TArgs>
+	void addMainThreadTask(TTask&& task, TArgs&&... args)
+	{
+		_mainThreadTasks.push_back(std::bind(std::forward<TTask>(task), std::forward<TArgs>(args)...));
+	}
 	
 private:
 	std::unordered_map<std::string, std::unique_ptr<Model>> _models;
@@ -66,7 +75,7 @@ private:
 	
 	std::unordered_map<std::string, std::unique_ptr<Material>> _materials;
 	
-	thread_pool _threadPool;
+	BS::thread_pool _threadPool;
 	
 	std::list<std::function<bool()>> _mainThreadTasks;
 };

@@ -39,8 +39,7 @@ target_link_libraries(Cyph3D PRIVATE nlohmann_json::nlohmann_json)
 target_include_directories(Cyph3D PRIVATE "src")
 target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/glad/include")
 target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/imgui/include")
-target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/thread-pool/include")
-target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/concurrentqueue/include")
+target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/bs-thread-pool/include")
 target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/imguizmo-8afa1d7050392111cb917a6439dc76450cda5aa6/include")
 
 add_custom_command(TARGET Cyph3D POST_BUILD

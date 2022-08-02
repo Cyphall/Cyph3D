@@ -12,6 +12,7 @@
 
 #include <imgui_internal.h>
 #include <stb_image_write.h>
+#include <GLFW/glfw3.h>
 
 std::unique_ptr<Renderer> UIViewport::_renderer;
 Camera UIViewport::_camera;

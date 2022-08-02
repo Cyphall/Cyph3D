@@ -34,7 +34,7 @@ Skybox::Skybox(const std::string& name, ResourceManager& rm):
 	_loadData->rm = &rm;
 
 	Logger::info(std::format("Loading skybox \"{}\"", getName()));
-	_loadData->rm->addThreadPoolTask(std::bind(&Skybox::load_step1_tp, this));
+	_loadData->rm->addThreadPoolTask(&Skybox::load_step1_tp, this);
 }
 
 Skybox::~Skybox()
@@ -100,7 +100,7 @@ void Skybox::load_step1_tp()
 	_loadData->cubemapCreateInfo.textureFiltering = GL_LINEAR;
 	_loadData->cubemapCreateInfo.swizzle = textureProperties.swizzle;
 
-	_loadData->rm->addMainThreadTask(std::bind(&Skybox::load_step2_mt, this));
+	_loadData->rm->addMainThreadTask(&Skybox::load_step2_mt, this);
 }
 
 bool Skybox::load_step2_mt()
@@ -114,7 +114,7 @@ bool Skybox::load_step2_mt()
 
 	_loadData->fence = std::make_unique<GLFence>();
 
-	_loadData->rm->addMainThreadTask(std::bind(&Skybox::load_step3_mt, this));
+	_loadData->rm->addMainThreadTask(&Skybox::load_step3_mt, this);
 	return true;
 }
 

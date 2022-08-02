@@ -34,7 +34,7 @@ Model::Model(const std::string& name, ResourceManager& rm):
 	_loadData->rm = &rm;
 
 	Logger::info(std::format("Loading model \"{}\"", getName()));
-	_loadData->rm->addThreadPoolTask(std::bind(&Model::load_step1_tp, this));
+	_loadData->rm->addThreadPoolTask(&Model::load_step1_tp, this);
 }
 
 Model::~Model()
@@ -66,7 +66,7 @@ void Model::load_step1_tp()
 		std::memcpy(&_loadData->indices[i*3], mesh->mFaces[i].mIndices, 3 * sizeof(GLuint));
 	}
 	
-	_loadData->rm->addMainThreadTask(std::bind(&Model::load_step2_mt, this));
+	_loadData->rm->addMainThreadTask(&Model::load_step2_mt, this);
 }
 
 bool Model::load_step2_mt()
@@ -81,7 +81,7 @@ bool Model::load_step2_mt()
 
 	_loadData->fence = std::make_unique<GLFence>();
 
-	_loadData->rm->addMainThreadTask(std::bind(&Model::load_step3_mt, this));
+	_loadData->rm->addMainThreadTask(&Model::load_step3_mt, this);
 	return true;
 }
 

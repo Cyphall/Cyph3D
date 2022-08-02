@@ -35,7 +35,7 @@ Image::Image(const std::string& name, ImageType type, ResourceManager& rm):
 	_loadData->type = type;
 
 	Logger::info(std::format("Loading image \"{}\"", getName()));
-	_loadData->rm->addThreadPoolTask(std::bind(&Image::load_step1_tp, this));
+	_loadData->rm->addThreadPoolTask(&Image::load_step1_tp, this);
 }
 
 Image::~Image()
@@ -63,7 +63,7 @@ void Image::load_step1_tp()
 
 	_loadData->pixelProperties = TextureHelper::getPixelProperties(_loadData->imageData.getChannelCount(), _loadData->imageData.getBitPerChannel());
 	
-	_loadData->rm->addMainThreadTask(std::bind(&Image::load_step2_mt, this));
+	_loadData->rm->addMainThreadTask(&Image::load_step2_mt, this);
 }
 
 bool Image::load_step2_mt()
@@ -73,7 +73,7 @@ bool Image::load_step2_mt()
 
 	_loadData->fence = std::make_unique<GLFence>();
 
-	_loadData->rm->addMainThreadTask(std::bind(&Image::load_step3_mt, this));
+	_loadData->rm->addMainThreadTask(&Image::load_step3_mt, this);
 	return true;
 }
 
