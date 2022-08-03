@@ -65,6 +65,7 @@ void Engine::init()
 #endif
 //	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 	glDebugMessageCallback(messageCallback, nullptr);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
 	Material::initialize();
 	RenderHelper::initDrawScreenQuad();
