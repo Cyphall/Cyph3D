@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <list>
 #include <functional>
+#include <mutex>
 
 class Model;
 class Image;
@@ -61,7 +62,9 @@ public:
 	template <typename TTask, typename... TArgs>
 	void addMainThreadTask(TTask&& task, TArgs&&... args)
 	{
+		_mainThreadTasksMutex.lock();
 		_mainThreadTasks.push_back(std::bind(std::forward<TTask>(task), std::forward<TArgs>(args)...));
+		_mainThreadTasksMutex.unlock();
 	}
 	
 private:
@@ -78,4 +81,6 @@ private:
 	BS::thread_pool _threadPool;
 	
 	std::list<std::function<bool()>> _mainThreadTasks;
+	
+	std::mutex _mainThreadTasksMutex;
 };

@@ -75,12 +75,17 @@ Material* ResourceManager::requestMaterial(const std::string& name)
 
 void ResourceManager::onUpdate()
 {
+	_mainThreadTasksMutex.lock();
+	
 	auto it = _mainThreadTasks.begin();
 	while (it != _mainThreadTasks.end())
 	{
 		std::function<bool()>& task = *it;
-		
+
+		_mainThreadTasksMutex.unlock();
 		bool completed = task();
+		_mainThreadTasksMutex.lock();
+		
 		if (completed)
 		{
 			it = _mainThreadTasks.erase(it);
@@ -90,4 +95,6 @@ void ResourceManager::onUpdate()
 			it++;
 		}
 	}
+
+	_mainThreadTasksMutex.unlock();
 }
