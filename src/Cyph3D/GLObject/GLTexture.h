@@ -20,6 +20,7 @@ public:
 	GLuint64 getBindlessImageHandle(GLenum format, GLenum access, int level = 0) const;
 	
 	void setData(const void* data, GLenum format, GLenum type);
+	void setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, GLint level, GLenum format);
 	void generateMipmaps();
 	glm::ivec2 getSize(int level = 0) const;
 	int getLevels() const;

@@ -88,6 +88,11 @@ void GLTexture::setData(const void* data, GLenum format, GLenum type)
 	generateMipmaps();
 }
 
+void GLTexture::setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, GLint level, GLenum format)
+{
+	glCompressedTextureSubImage2D(_handle, level, 0, 0, size.x, size.y, format, dataByteSize, data);
+}
+
 glm::ivec2 GLTexture::getSize(int level) const
 {
 	glm::ivec2 size;
