@@ -22,6 +22,7 @@ public:
 	void setData(const void* data, GLenum format, GLenum type);
 	void generateMipmaps();
 	glm::ivec2 getSize(int level = 0) const;
+	int getLevels() const;
 	void clear(GLenum format, GLenum type, void* clearData);
 	
 private:

@@ -96,6 +96,11 @@ glm::ivec2 GLTexture::getSize(int level) const
 	return size;
 }
 
+int GLTexture::getLevels() const
+{
+	return _levels;
+}
+
 void GLTexture::clear(GLenum format, GLenum type, void* clearData)
 {
 	glClearTexImage(_handle, 0, format, type, clearData);
