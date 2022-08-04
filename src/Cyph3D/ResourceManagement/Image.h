@@ -16,7 +16,6 @@ private:
 	struct LoadData;
 	std::unique_ptr<LoadData> _loadData;
 	
-	void load_step1_tp();
+	bool load_step1_mt();
 	bool load_step2_mt();
-	bool load_step3_mt();
 };

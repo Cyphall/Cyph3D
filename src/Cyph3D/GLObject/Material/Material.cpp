@@ -68,7 +68,7 @@ _name(std::move(name))
 		if (jsonRoot.contains(mapDefinition.name))
 		{
 			materialMap.imageTexture = resourceManager->requestImage(
-					std::format("materials/{}/{}", _name, jsonRoot[mapDefinition.name].get<std::string>()),
+					std::format("{}/{}", _name, jsonRoot[mapDefinition.name].get<std::string>()),
 					mapDefinition.type);
 		}
 	}
