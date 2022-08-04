@@ -4,12 +4,14 @@
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/GLObject/GLFence.h"
+#include "Cyph3D/Helper/FileHelper.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <chrono>
 #include <format>
+#include <filesystem>
 
 struct Model::LoadData
 {
@@ -40,30 +42,68 @@ Model::Model(const std::string& name, ResourceManager& rm):
 Model::~Model()
 {}
 
-void Model::load_step1_tp()
+static void writeProcessedMesh(const std::filesystem::path& path, const std::vector<Mesh::VertexData>& vertices, const std::vector<GLuint>& indices)
 {
-	std::string path = std::format("resources/meshes/{}.obj", _name);
+	std::filesystem::create_directories(path.parent_path());
+	std::ofstream file(path, std::ios::out | std::ios::binary);
 
-	Assimp::Importer importer;
+	uint8_t version = 1;
+	FileHelper::write(file, &version);
 
-	const aiScene* scene = importer.ReadFile(path, aiProcess_CalcTangentSpace | aiProcess_Triangulate);
-	aiMesh* mesh = scene->mMeshes[0];
+	FileHelper::write(file, vertices);
 
-	_loadData->vertices.resize(mesh->mNumVertices);
+	FileHelper::write(file, indices);
+}
 
-	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
+static bool readProcessedMesh(const std::filesystem::path& path, std::vector<Mesh::VertexData>& vertices, std::vector<GLuint>& indices)
+{
+	std::ifstream file(path, std::ios::in | std::ios::binary);
+
+	uint8_t version;
+	FileHelper::read(file, &version);
+
+	if (version > 1)
 	{
-		std::memcpy(&_loadData->vertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
-		std::memcpy(&_loadData->vertices[i].uv, &mesh->mTextureCoords[0][i], 2 * sizeof(float));
-		std::memcpy(&_loadData->vertices[i].normal, &mesh->mNormals[i], 3 * sizeof(float));
-		std::memcpy(&_loadData->vertices[i].tangent, &mesh->mTangents[i], 3 * sizeof(float));
+		return false;
 	}
 
-	_loadData->indices.resize(mesh->mNumFaces * 3);
+	FileHelper::read(file, vertices);
 
-	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
+	FileHelper::read(file, indices);
+	
+	return true;
+}
+
+void Model::load_step1_tp()
+{
+	std::filesystem::path path = std::format("resources/meshes/{}.obj", _name);
+	std::filesystem::path processedMeshPath = (std::filesystem::temp_directory_path() / "Cyph3D" / path).replace_extension(".c3da");
+	
+	if (!std::filesystem::exists(processedMeshPath) || !readProcessedMesh(processedMeshPath, _loadData->vertices, _loadData->indices))
 	{
-		std::memcpy(&_loadData->indices[i*3], mesh->mFaces[i].mIndices, 3 * sizeof(GLuint));
+		Assimp::Importer importer;
+
+		const aiScene* scene = importer.ReadFile(path.generic_string(), aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+		aiMesh* mesh = scene->mMeshes[0];
+
+		_loadData->vertices.resize(mesh->mNumVertices);
+
+		for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
+		{
+			std::memcpy(&_loadData->vertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
+			std::memcpy(&_loadData->vertices[i].uv, &mesh->mTextureCoords[0][i], 2 * sizeof(float));
+			std::memcpy(&_loadData->vertices[i].normal, &mesh->mNormals[i], 3 * sizeof(float));
+			std::memcpy(&_loadData->vertices[i].tangent, &mesh->mTangents[i], 3 * sizeof(float));
+		}
+
+		_loadData->indices.resize(mesh->mNumFaces * 3);
+
+		for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
+		{
+			std::memcpy(&_loadData->indices[i*3], mesh->mFaces[i].mIndices, 3 * sizeof(GLuint));
+		}
+
+		writeProcessedMesh(processedMeshPath, _loadData->vertices, _loadData->indices);
 	}
 	
 	_loadData->rm->addMainThreadTask(&Model::load_step2_mt, this);

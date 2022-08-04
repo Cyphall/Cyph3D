@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <fstream>
 
 struct FileDialogFilter
 {
@@ -17,4 +18,36 @@ public:
 	static std::string readAllText(const std::string& path);
 	static std::optional<std::filesystem::path> fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes, const std::filesystem::path& defaultFolder);
 	static std::optional<std::filesystem::path> fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName);
+
+	template<typename T>
+	static void read(std::ifstream& stream, T* data)
+	{
+		stream.read(reinterpret_cast<char*>(data), sizeof(T));
+	}
+
+	template<typename T>
+	static void read(std::ifstream& stream, std::vector<T>& data)
+	{
+		size_t dataSize;
+		read(stream, &dataSize);
+
+		data.resize(dataSize);
+		
+		stream.read(reinterpret_cast<char*>(data.data()), data.size() * sizeof(T));
+	}
+
+	template<typename T>
+	static void write(std::ofstream& stream, const T* data)
+	{
+		stream.write(reinterpret_cast<const char*>(data), sizeof(T));
+	}
+
+	template<typename T>
+	static void write(std::ofstream& stream, const std::vector<T>& data)
+	{
+		size_t dataSize = data.size();
+		write(stream, &dataSize);
+		
+		stream.write(reinterpret_cast<const char*>(data.data()), data.size() * sizeof(T));
+	}
 };
