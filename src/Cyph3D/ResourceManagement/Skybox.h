@@ -20,7 +20,6 @@ private:
 	
 	float _rotation = 0;
 
-	void load_step1_tp();
+	bool load_step1_mt();
 	bool load_step2_mt();
-	bool load_step3_mt();
 };

@@ -7,19 +7,29 @@
 #include "Cyph3D/ResourceManagement/StbImage.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/GLObject/GLFence.h"
+#include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/GLObject/GLTexture.h"
+#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 
 #include <chrono>
 #include <format>
 #include <array>
+#include <filesystem>
+
+struct CubemapFace
+{
+	std::vector<uint8_t> imageData;
+	GLenum format;
+	glm::ivec2 size;
+};
 
 struct Skybox::LoadData
 {
 	ResourceManager* rm;
 
 	// step 1: read the image and fill the properties
-	std::array<StbImage, 6> imageData;
 	CubemapCreateInfo cubemapCreateInfo;
-	std::array<PixelProperties, 6> pixelProperties;
+	std::array<CubemapFace, 6> compressedData;
 
 	// step 2: create GLTexture and fill it
 	std::unique_ptr<GLFence> fence;
@@ -34,7 +44,7 @@ Skybox::Skybox(const std::string& name, ResourceManager& rm):
 	_loadData->rm = &rm;
 
 	Logger::info(std::format("Loading skybox \"{}\"", getName()));
-	_loadData->rm->addThreadPoolTask(&Skybox::load_step1_tp, this);
+	_loadData->rm->addMainThreadTask(&Skybox::load_step1_mt, this);
 }
 
 Skybox::~Skybox()
@@ -50,7 +60,47 @@ void Skybox::setRotation(float rotation)
 	_rotation = rotation;
 }
 
-void Skybox::load_step1_tp()
+static void writeProcessedCubemapFace(const std::filesystem::path& path, const CubemapFace& cubemapData)
+{
+	std::filesystem::create_directories(path.parent_path());
+	std::ofstream file(path, std::ios::out | std::ios::binary);
+
+	uint8_t version = 1;
+	FileHelper::write(file, &version);
+
+	FileHelper::write(file, &cubemapData.size.x);
+
+	FileHelper::write(file, &cubemapData.size.y);
+	
+	FileHelper::write(file, &cubemapData.format);
+
+	FileHelper::write(file, cubemapData.imageData);
+}
+
+static bool readProcessedCubemapFace(const std::filesystem::path& path, CubemapFace& cubemapData)
+{
+	std::ifstream file(path, std::ios::in | std::ios::binary);
+
+	uint8_t version;
+	FileHelper::read(file, &version);
+
+	if (version > 1)
+	{
+		return false;
+	}
+
+	FileHelper::read(file, &cubemapData.size.x);
+
+	FileHelper::read(file, &cubemapData.size.y);
+	
+	FileHelper::read(file, &cubemapData.format);
+
+	FileHelper::read(file, cubemapData.imageData);
+
+	return true;
+}
+
+bool Skybox::load_step1_mt()
 {
 	std::string path = std::format("resources/skyboxes/{}", _name);
 
@@ -64,61 +114,86 @@ void Skybox::load_step1_tp()
 		std::format("{}/{}", path, root["front"].get<std::string>()),
 		std::format("{}/{}", path, root["back"].get<std::string>())
 	};
-
-	int skyboxComp;
-	glm::ivec2 skyboxSize;
-
-	bool firstIteration = true;
+	
 	for (int i = 0; i < 6; ++i)
 	{
-		_loadData->imageData[i] = StbImage(facePaths[i].c_str());
-
-		if (!_loadData->imageData[i].isValid())
+		std::filesystem::path processedCubemapFacePath = (std::filesystem::temp_directory_path() / "Cyph3D" / facePaths[i]).replace_extension(".c3da");
+		
+		if (!std::filesystem::exists(processedCubemapFacePath) || !readProcessedCubemapFace(processedCubemapFacePath, _loadData->compressedData[i]))
 		{
-			throw std::runtime_error(std::format("Unable to load image {} from disk", path));
-		}
+			StbImage imageData(facePaths[i].c_str());
 
-		if (firstIteration)
-		{
-			skyboxComp = _loadData->imageData[i].getChannelCount();
-			skyboxSize = _loadData->imageData[i].getSize();
-			firstIteration = false;
-		}
+			if (!imageData.isValid())
+			{
+				throw std::runtime_error(std::format("Unable to load image {} from disk", path));
+			}
 
-		if (_loadData->imageData[i].getChannelCount() != skyboxComp || _loadData->imageData[i].getSize() != skyboxSize)
+			TextureProperties textureProperties = TextureHelper::getTextureProperties(COLOR_SRGB);
+
+			TextureCreateInfo textureCreateInfo;
+			textureCreateInfo.size = imageData.getSize();
+			textureCreateInfo.internalFormat = textureProperties.internalFormat;
+			textureCreateInfo.minFilter = GL_LINEAR;
+			textureCreateInfo.magFilter = GL_LINEAR;
+			textureCreateInfo.swizzle = textureProperties.swizzle;
+
+			PixelProperties pixelProperties = TextureHelper::getPixelProperties(imageData.getChannelCount(), imageData.getBitPerChannel());
+
+			GLTexture threadTexture(textureCreateInfo);
+			threadTexture.setData(imageData.getPtr(), pixelProperties.format, pixelProperties.type);
+
+			GLint actualFormat = -1;
+			glGetTextureLevelParameteriv(threadTexture.getHandle(), 0, GL_TEXTURE_INTERNAL_FORMAT, &actualFormat);
+			_loadData->compressedData[i].format = actualFormat;
+
+			GLint compressedSize = -1;
+			glGetTextureLevelParameteriv(threadTexture.getHandle(), 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize);
+
+			_loadData->compressedData[i].imageData.resize(compressedSize);
+			glGetCompressedTextureImage(threadTexture.getHandle(), 0, compressedSize, _loadData->compressedData[i].imageData.data());
+
+			_loadData->compressedData[i].size = imageData.getSize();
+
+			writeProcessedCubemapFace(processedCubemapFacePath, _loadData->compressedData[i]);
+		}
+	}
+
+	glm::ivec2 skyboxSize = _loadData->compressedData[0].size;
+	
+	for (int i = 1; i < 6; i++)
+	{
+		if (_loadData->compressedData[i].size != skyboxSize)
 		{
 			throw std::runtime_error(std::format("Skybox {} have images with different formats", _name));
 		}
-
-		_loadData->pixelProperties[i] = TextureHelper::getPixelProperties(_loadData->imageData[i].getChannelCount(), _loadData->imageData[i].getBitPerChannel());
 	}
 
 	TextureProperties textureProperties = TextureHelper::getTextureProperties(COLOR_SRGB);
 
-	_loadData->cubemapCreateInfo.size = _loadData->imageData[0].getSize();
+	_loadData->cubemapCreateInfo.size = skyboxSize;
 	_loadData->cubemapCreateInfo.internalFormat = textureProperties.internalFormat;
 	_loadData->cubemapCreateInfo.textureFiltering = GL_LINEAR;
 	_loadData->cubemapCreateInfo.swizzle = textureProperties.swizzle;
 
-	_loadData->rm->addMainThreadTask(&Skybox::load_step2_mt, this);
-}
-
-bool Skybox::load_step2_mt()
-{
 	_resource = std::make_unique<GLCubemap>(_loadData->cubemapCreateInfo);
-	
-	for (int i = 0; i < _loadData->imageData.size(); i++)
+
+	for (int i = 0; i < 6; i++)
 	{
-		_resource->setData(_loadData->imageData[i].getPtr(), i, _loadData->pixelProperties[i].format, _loadData->pixelProperties[i].type);
+		_resource->setCompressedData(
+			_loadData->compressedData[i].imageData.data(),
+			_loadData->compressedData[i].imageData.size(),
+			_loadData->compressedData[i].size,
+			i,
+			_loadData->compressedData[i].format);
 	}
 
 	_loadData->fence = std::make_unique<GLFence>();
 
-	_loadData->rm->addMainThreadTask(&Skybox::load_step3_mt, this);
+	_loadData->rm->addMainThreadTask(&Skybox::load_step2_mt, this);
 	return true;
 }
 
-bool Skybox::load_step3_mt()
+bool Skybox::load_step2_mt()
 {
 	if (!_loadData->fence->isSignaled())
 	{

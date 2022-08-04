@@ -55,6 +55,11 @@ void GLCubemap::setData(void* data, int face, GLenum format, GLenum type)
 	glTextureSubImage3D(_handle, 0, 0, 0, face, _size.x, _size.y, 1, format, type, data);
 }
 
+void GLCubemap::setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, GLint face, GLenum format)
+{
+	glCompressedTextureSubImage3D(_handle, 0, 0, 0, face, size.x, size.y, 1, format, dataByteSize, data);
+}
+
 void GLCubemap::bind(GLuint unit)
 {
 	glBindTextureUnit(unit, _handle);

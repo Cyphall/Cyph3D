@@ -17,6 +17,7 @@ public:
 	GLuint64 getBindlessTextureHandle() const;
 	GLuint64 getBindlessTextureHandle(const GLSampler& sampler) const;
 	void setData(void* data, int face, GLenum format, GLenum type);
+	void setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, GLint face, GLenum format);
 	void bind(GLuint unit);
 	glm::ivec2 getSize() const;
 	void clear(GLenum format, GLenum type, void* clearData);
