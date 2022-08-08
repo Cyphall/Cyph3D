@@ -9,7 +9,7 @@ template<typename T>
 class GLBuffer : public GLObject
 {
 public:
-	~GLBuffer()
+	~GLBuffer() override
 	{
 		glDeleteBuffers(1, &_handle);
 		_handle = 0;
