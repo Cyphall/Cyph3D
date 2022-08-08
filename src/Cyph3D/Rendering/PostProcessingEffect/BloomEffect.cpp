@@ -223,7 +223,7 @@ void BloomEffect::combine()
 float BloomEffect::gaussian(float x, float mu, float sigma)
 {
 	const float a = ( x - mu ) / sigma;
-	return glm::exp( -0.5 * a * a );
+	return glm::exp( -0.5f * a * a );
 }
 
 std::vector<float> BloomEffect::gaussianKernel(int kernelRadius, float sigma)

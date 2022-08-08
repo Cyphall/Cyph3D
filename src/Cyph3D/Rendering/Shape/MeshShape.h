@@ -7,7 +7,7 @@ class Model;
 class MeshShape : public Shape
 {
 public:
-	MeshShape(ShapeRenderer& shapeRenderer);
+	explicit MeshShape(ShapeRenderer& shapeRenderer);
 	
 	const Model* getModel();
 	const Model* getModel() const;

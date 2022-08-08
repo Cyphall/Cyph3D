@@ -71,5 +71,5 @@ glm::ivec2 StbImage::getSize() const
 
 bool StbImage::isValid() const
 {
-	return _data8bit.get() != nullptr || _data16bit.get() != nullptr || _data32bit.get() != nullptr;
+	return _data8bit != nullptr || _data16bit != nullptr || _data32bit != nullptr;
 }

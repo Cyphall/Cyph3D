@@ -121,7 +121,7 @@ bool Skybox::load_step1_mt()
 		
 		if (!std::filesystem::exists(processedCubemapFacePath) || !readProcessedCubemapFace(processedCubemapFacePath, _loadData->compressedData[i]))
 		{
-			StbImage imageData(facePaths[i].c_str());
+			StbImage imageData(facePaths[i]);
 
 			if (!imageData.isValid())
 			{

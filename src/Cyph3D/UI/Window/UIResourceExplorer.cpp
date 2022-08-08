@@ -135,7 +135,7 @@ void UIResourceExplorer::findMeshes(const std::string& path)
 
 void UIResourceExplorer::findMaterial(const std::string& path)
 {
-	_materials.push_back("internal/Default Material");
+	_materials.emplace_back("internal/Default Material");
 	
 	std::filesystem::recursive_directory_iterator it(path);
 	for (const auto& entry : it)

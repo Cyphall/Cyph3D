@@ -14,9 +14,9 @@ public:
 	using pointer = value_type*;
 	using reference = value_type&;
 	
-	ComponentIterator();
+	ComponentIterator() = default;
 	
-	ComponentIterator(std::vector<std::unique_ptr<Component>>::iterator it);
+	explicit ComponentIterator(std::vector<std::unique_ptr<Component>>::iterator it);
 	
 	ComponentIterator& operator++();
 	ComponentIterator operator++(int);

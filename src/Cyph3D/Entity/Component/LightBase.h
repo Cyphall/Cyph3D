@@ -7,7 +7,7 @@
 class LightBase : public Component
 {
 public:
-	LightBase(Entity& entity);
+	explicit LightBase(Entity& entity);
 	
 	glm::vec3 getLinearColor() const;
 	void setLinearColor(glm::vec3 color);

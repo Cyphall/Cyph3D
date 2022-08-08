@@ -44,7 +44,7 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	directionalLightData.reserve(registry.directionalLights.size());
 	for (DirectionalLight::RenderData& renderData : registry.directionalLights)
 	{
-		GLSL_DirectionalLight data;
+		GLSL_DirectionalLight data{};
 		data.fragToLightDirection = renderData.fragToLightDirection;
 		data.intensity = renderData.intensity;
 		data.color = renderData.color;
@@ -66,7 +66,7 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	pointLightData.reserve(registry.pointLights.size());
 	for (PointLight::RenderData& renderData : registry.pointLights)
 	{
-		GLSL_PointLight data;
+		GLSL_PointLight data{};
 		data.pos = renderData.pos;
 		data.intensity = renderData.intensity;
 		data.color = renderData.color;

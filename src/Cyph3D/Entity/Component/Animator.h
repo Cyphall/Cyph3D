@@ -7,7 +7,7 @@
 class Animator : public Component
 {
 public:
-	Animator(Entity& entity);
+	explicit Animator(Entity& entity);
 	
 	glm::vec3 getVelocity() const;
 	void setVelocity(glm::vec3 velocity);

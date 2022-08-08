@@ -9,7 +9,7 @@ class GLShaderProgram;
 class ExposureEffect : public PostProcessingEffect
 {
 public:
-	ExposureEffect(glm::ivec2 size);
+	explicit ExposureEffect(glm::ivec2 size);
 	
 	GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) override;
 

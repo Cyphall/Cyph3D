@@ -9,7 +9,7 @@ class Skybox : public Resource<GLCubemap>
 {
 public:
 	Skybox(const std::string& name, ResourceManager& rm);
-	~Skybox();
+	~Skybox() override;
 
 	float getRotation() const;
 	void setRotation(float rotation);

@@ -40,7 +40,7 @@ void PointLight::setCastShadows(bool value)
 			};
 		_shadowMap = std::make_unique<GLCubemap>(createInfo);
 		
-		_shadowMapFb->attachDepth(*_shadowMap.get());
+		_shadowMapFb->attachDepth(*_shadowMap);
 	}
 	else
 	{
@@ -103,7 +103,7 @@ void PointLight::deserialize(const ObjectSerialization& serialization)
 
 void PointLight::onPreRender(RenderContext& context)
 {
-	RenderData data;
+	RenderData data{};
 	data.pos = getTransform().getWorldPosition();
 	data.intensity = getIntensity();
 	data.color = getLinearColor();

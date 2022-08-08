@@ -68,5 +68,5 @@ private:
 	void verifySize(glm::ivec2 size);
 	void verifyDrawBufferCount();
 	void verifyColorAttachmentSlots();
-	void verifyFace(int face);
+	static void verifyFace(int face);
 };

@@ -11,7 +11,7 @@ class Model : public Resource<Mesh>
 {
 public:
 	Model(const std::string& name, ResourceManager& rm);
-	~Model();
+	~Model() override;
 	
 private:
 	struct LoadData;

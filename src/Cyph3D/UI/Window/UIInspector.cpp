@@ -11,12 +11,12 @@
 
 std::any UIInspector::_selected;
 
-std::any UIInspector::getSelected()
+const std::any& UIInspector::getSelected()
 {
 	return _selected;
 }
 
-void UIInspector::setSelected(std::any selected)
+void UIInspector::setSelected(const std::any& selected)
 {
 	_selected = selected;
 }

@@ -109,7 +109,7 @@ Material* ShapeRenderer::getDrawingMaterial() const
 
 void ShapeRenderer::onPreRender(RenderContext& context)
 {
-	RenderData data;
+	RenderData data{};
 	data.material = getDrawingMaterial();
 	data.shape = &getShape();
 	data.owner = &getEntity();

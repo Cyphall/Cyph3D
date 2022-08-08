@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 #undef APIENTRY
 #include <ShObjIdl_core.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -30,14 +30,14 @@ std::string FileHelper::readAllText(const std::string& path)
 	throw std::ios_base::failure(std::format("Could not find file \"{}\"", path));
 }
 
-std::optional<std::filesystem::path> FileHelper::fileDialogOpen(std::vector<FileDialogFilter> allowedFileTypes, const std::filesystem::path& defaultFolder)
+std::optional<std::filesystem::path> FileHelper::fileDialogOpen(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder)
 {
 	std::optional<std::filesystem::path> res;
 	
 	IFileOpenDialog* pfd;
 	
 	HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog,
-		NULL,
+		nullptr,
 		CLSCTX_INPROC_SERVER,
 		IID_PPV_ARGS(&pfd));
 	
@@ -92,14 +92,14 @@ std::optional<std::filesystem::path> FileHelper::fileDialogOpen(std::vector<File
 	return res;
 }
 
-std::optional<std::filesystem::path> FileHelper::fileDialogSave(std::vector<FileDialogFilter> allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName)
+std::optional<std::filesystem::path> FileHelper::fileDialogSave(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName)
 {
 	std::optional<std::filesystem::path> res;
 	
 	IFileSaveDialog* pfd;
 	
 	HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog,
-		NULL,
+		nullptr,
 		CLSCTX_INPROC_SERVER,
 		IID_PPV_ARGS(&pfd));
 	

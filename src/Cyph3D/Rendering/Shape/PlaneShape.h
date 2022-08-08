@@ -5,7 +5,7 @@
 class PlaneShape : public Shape
 {
 public:
-	PlaneShape(ShapeRenderer& shapeRenderer);
+	explicit PlaneShape(ShapeRenderer& shapeRenderer);
 	
 	bool isReadyForRasterisationRender() const override;
 	bool isReadyForRaytracingRender() const override;

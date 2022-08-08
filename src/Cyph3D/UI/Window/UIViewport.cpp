@@ -95,7 +95,7 @@ void UIViewport::show()
 	
 	RenderContext context
 	{
-		.renderer = *_renderer.get(),
+		.renderer = *_renderer,
 		.camera = _camera
 	};
 	Engine::getScene().onPreRender(context);

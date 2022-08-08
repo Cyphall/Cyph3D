@@ -9,7 +9,7 @@ class GLShaderProgram;
 class ToneMappingEffect : public PostProcessingEffect
 {
 public:
-	ToneMappingEffect(glm::ivec2 size);
+	explicit ToneMappingEffect(glm::ivec2 size);
 	
 	GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) override;
 

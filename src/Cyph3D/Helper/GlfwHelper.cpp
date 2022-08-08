@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <sstream>
 
-#define VERSION(major, minor, revision) (major * 100 + minor * 10 + revision)
+#define VERSION(major, minor, revision) ((major) * 100 + (minor) * 10 + (revision))
 
 void GlfwHelper::Init()
 {

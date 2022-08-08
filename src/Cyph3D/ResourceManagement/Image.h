@@ -10,7 +10,7 @@ class Image : public Resource<GLTexture>
 {
 public:
 	Image(const std::string& name, ImageType type, ResourceManager& rm);
-	~Image();
+	~Image() override;
 	
 private:
 	struct LoadData;

@@ -50,10 +50,8 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures,
 	
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
-	for (int i = 0; i < registry.shapes.size(); i++)
+	for (const ShapeRenderer::RenderData& shapeData : registry.shapes)
 	{
-		ShapeRenderer::RenderData shapeData = registry.shapes[i];
-		
 		if (!shapeData.shape->isReadyForRasterisationRender())
 			continue;
 		

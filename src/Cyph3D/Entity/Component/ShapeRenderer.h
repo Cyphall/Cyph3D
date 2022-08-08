@@ -21,7 +21,7 @@ public:
 		Entity* owner;
 	};
 	
-	ShapeRenderer(Entity& entity);
+	explicit ShapeRenderer(Entity& entity);
 	
 	Material* getMaterial() const;
 	void setMaterial(Material* material);

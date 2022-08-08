@@ -14,9 +14,9 @@ public:
 	using pointer = value_type*;
 	using reference = value_type&;
 	
-	EntityIterator();
+	EntityIterator() = default;
 	
-	EntityIterator(std::list<std::unique_ptr<Entity>>::iterator it);
+	explicit EntityIterator(std::list<std::unique_ptr<Entity>>::iterator it);
 	
 	EntityIterator& operator++();
 	EntityIterator operator++(int);

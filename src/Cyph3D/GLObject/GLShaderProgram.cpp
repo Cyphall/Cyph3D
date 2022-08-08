@@ -51,10 +51,10 @@ GLShaderProgram::GLShaderProgram(const ShaderProgramCreateInfo& createInfo)
 		glGetProgramInfoLog(_handle, length, nullptr, error.data());
 		
 		std::string formattedFiles;
-		for (const std::pair<GLenum, std::vector<std::string>>& files : createInfo.shadersFiles)
+		for (const auto& [shaderType, files] : createInfo.shadersFiles)
 		{
-			std::string extension = ShaderHelper::shaderTypeToExtension(files.first);
-			for (const std::string& file : files.second)
+			std::string extension = ShaderHelper::shaderTypeToExtension(shaderType);
+			for (const std::string& file : files)
 				formattedFiles += std::format("{}.{}\n", file, extension);
 		}
 		

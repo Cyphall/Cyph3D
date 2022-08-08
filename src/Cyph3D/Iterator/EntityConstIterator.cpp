@@ -1,8 +1,5 @@
 #include "EntityConstIterator.h"
 
-EntityConstIterator::EntityConstIterator()
-{}
-
 EntityConstIterator::EntityConstIterator(std::list<std::unique_ptr<Entity>>::const_iterator it):
 _it(it)
 {}

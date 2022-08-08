@@ -44,7 +44,7 @@ void DirectionalLight::setCastShadows(bool value)
 		textureCreateInfo.borderColor = {1, 1, 1, 1};
 		_shadowMap = std::make_unique<GLTexture>(textureCreateInfo);
 		
-		_shadowMapFb->attachDepth(*_shadowMap.get());
+		_shadowMapFb->attachDepth(*_shadowMap);
 	}
 	else
 	{
@@ -112,7 +112,7 @@ void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 
 void DirectionalLight::onPreRender(RenderContext& context)
 {
-	RenderData data;
+	RenderData data{};
 	data.fragToLightDirection = -getLightDirection();
 	data.intensity = getIntensity();
 	data.color = getLinearColor();

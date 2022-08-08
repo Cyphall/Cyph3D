@@ -5,7 +5,7 @@
 class SphereShape : public Shape
 {
 public:
-	SphereShape(ShapeRenderer& shapeRenderer);
+	explicit SphereShape(ShapeRenderer& shapeRenderer);
 	
 	bool isReadyForRasterisationRender() const override;
 	bool isReadyForRaytracingRender() const override;

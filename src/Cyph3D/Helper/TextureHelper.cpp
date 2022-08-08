@@ -32,7 +32,7 @@ TextureProperties TextureHelper::getTextureProperties(ImageType type)
 
 PixelProperties TextureHelper::getPixelProperties(int channelCount, int bitPerChannel)
 {
-	PixelProperties properties;
+	PixelProperties properties{};
 	
 	switch (channelCount)
 	{
@@ -48,6 +48,8 @@ PixelProperties TextureHelper::getPixelProperties(int channelCount, int bitPerCh
 		case 4:
 			properties.format = GL_RGBA;
 			break;
+		default:
+			throw std::runtime_error("This exception is not supposed to be reachable");
 	}
 	
 	switch (bitPerChannel)

@@ -26,7 +26,7 @@ _root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(st
 
 Transform& Scene::getRoot()
 {
-	return *_root.get();
+	return *_root;
 }
 
 void Scene::onUpdate()

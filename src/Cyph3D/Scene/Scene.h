@@ -15,7 +15,7 @@ struct RenderContext;
 class Scene
 {
 public:
-	Scene(std::string name = "Untitled Scene");
+	explicit Scene(std::string name = "Untitled Scene");
 	~Scene();
 	
 	void onUpdate();

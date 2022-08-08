@@ -1,8 +1,5 @@
 #include "ComponentIterator.h"
 
-ComponentIterator::ComponentIterator()
-{}
-
 ComponentIterator::ComponentIterator(std::vector<std::unique_ptr<Component>>::iterator it):
 _it(it)
 {}

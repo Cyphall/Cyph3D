@@ -10,7 +10,7 @@ class GLShaderProgram;
 class BloomEffect : public PostProcessingEffect
 {
 public:
-	BloomEffect(glm::ivec2 size);
+	explicit BloomEffect(glm::ivec2 size);
 	
 	GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) override;
 	
@@ -45,7 +45,7 @@ private:
 	void combineWithNextLevel(int level);
 	void combine();
 	
-	float gaussian(float x, float mu, float sigma);
-	std::vector<float> gaussianKernel(int kernelRadius, float sigma);
+	static float gaussian(float x, float mu, float sigma);
+	static std::vector<float> gaussianKernel(int kernelRadius, float sigma);
 	void recalculateGaussianKernel();
 };
