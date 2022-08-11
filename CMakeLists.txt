@@ -42,5 +42,6 @@ target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/imgui/include")
 target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/bs-thread-pool/include")
 target_include_directories(Cyph3D SYSTEM PRIVATE "vendor/imguizmo-8afa1d7050392111cb917a6439dc76450cda5aa6/include")
 
-add_custom_command(TARGET Cyph3D POST_BUILD
-		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /E /NS /NC /NFL /NDL /NP /NJH /NJS  || cmd /c "exit /b 0")
+add_custom_target(copy_resources
+		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /E /NS /NC /NFL /NDL /NP /NJH /NJS || cmd /c "exit /b 0")
+add_dependencies(Cyph3D copy_resources)
