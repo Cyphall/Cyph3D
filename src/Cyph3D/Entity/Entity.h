@@ -18,8 +18,12 @@ class Entity
 {
 public:
 	Entity(Transform& parent, Scene& scene);
+
 	Entity(const Entity& other) = delete;
-	Entity(Entity&&) = delete;
+	Entity& operator=(const Entity& other) = delete;
+
+	Entity(Entity&& other) = delete;
+	Entity& operator=(Entity&& other) = delete;
 	
 	ComponentIterator components_begin();
 	ComponentIterator components_end();

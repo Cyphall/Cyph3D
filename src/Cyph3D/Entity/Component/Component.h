@@ -10,6 +10,12 @@ class Component
 public:
 	explicit Component(Entity& entity);
 	virtual ~Component() = default;
+
+	Component(const Component& other) = delete;
+	Component& operator=(const Component& other) = delete;
+
+	Component(Component&& other) = delete;
+	Component& operator=(Component&& other) = delete;
 	
 	Entity& getEntity() const;
 	Transform& getTransform() const;
