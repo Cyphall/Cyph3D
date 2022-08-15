@@ -117,7 +117,7 @@ bool Skybox::load_step1_mt()
 	
 	for (int i = 0; i < 6; ++i)
 	{
-		std::filesystem::path processedCubemapFacePath = (std::filesystem::temp_directory_path() / "Cyph3D" / facePaths[i]).replace_extension(".c3da");
+		std::filesystem::path processedCubemapFacePath = (std::filesystem::path("cache") / facePaths[i]).replace_extension(".c3da");
 		
 		if (!std::filesystem::exists(processedCubemapFacePath) || !readProcessedCubemapFace(processedCubemapFacePath, _loadData->compressedData[i]))
 		{
