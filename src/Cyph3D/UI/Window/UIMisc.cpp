@@ -14,67 +14,64 @@ glm::ivec2 UIMisc::_resolution(1920, 1080);
 
 void UIMisc::show()
 {
-	if (!ImGui::Begin("Misc", nullptr))
+	if (ImGui::Begin("Misc", nullptr))
 	{
-		ImGui::End();
-		return;
-	}
-	
-	int fps = 1 / Engine::getTimer().deltaTime();
-	ImGui::Text("FPS: %d", fps);
-	
-	float cameraSpeed = UIViewport::getCamera().getSpeed();;
-	if (ImGui::SliderFloat("Camera speed", &cameraSpeed, 0, 10))
-	{
-		UIViewport::getCamera().setSpeed(cameraSpeed);
-	}
-	
-	float exposure = UIViewport::getCamera().getExposure();
-	if (ImGui::SliderFloat("Exposure", &exposure, -10, 10))
-	{
-		UIViewport::getCamera().setExposure(exposure);
-	}
-	
-	ImGui::Separator();
-	
-	Skybox* currentSkybox = Engine::getScene().getSkybox();
-	const std::string& skyboxName = currentSkybox != nullptr ? currentSkybox->getName() : "None";
-	
-	// Field is read-only anyway, we can safely remove the const from skyboxName
-	ImGui::InputText("Skybox", &const_cast<std::string&>(skyboxName), ImGuiInputTextFlags_ReadOnly);
-	if (ImGui::BeginDragDropTarget())
-	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SkyboxDragDrop");
-		if (payload)
+		int fps = 1 / Engine::getTimer().deltaTime();
+		ImGui::Text("FPS: %d", fps);
+
+		float cameraSpeed = UIViewport::getCamera().getSpeed();;
+		if (ImGui::SliderFloat("Camera speed", &cameraSpeed, 0, 10))
 		{
-			Engine::getScene().setSkybox(Engine::getScene().getRM().requestSkybox(*(*static_cast<const std::string**>(payload->Data))));
+			UIViewport::getCamera().setSpeed(cameraSpeed);
 		}
-		ImGui::EndDragDropTarget();
-	}
-	
-	if (Engine::getScene().getSkybox() != nullptr)
-	{
-		float skyboxRotation = Engine::getScene().getSkybox()->getRotation();
-		if (ImGui::SliderFloat("Skybox rotation", &skyboxRotation, 0, 360))
+
+		float exposure = UIViewport::getCamera().getExposure();
+		if (ImGui::SliderFloat("Exposure", &exposure, -10, 10))
 		{
-			Engine::getScene().getSkybox()->setRotation(skyboxRotation);
+			UIViewport::getCamera().setExposure(exposure);
 		}
+
+		ImGui::Separator();
+
+		Skybox* currentSkybox = Engine::getScene().getSkybox();
+		const std::string& skyboxName = currentSkybox != nullptr ? currentSkybox->getName() : "None";
+
+		// Field is read-only anyway, we can safely remove the const from skyboxName
+		ImGui::InputText("Skybox", &const_cast<std::string&>(skyboxName), ImGuiInputTextFlags_ReadOnly);
+		if (ImGui::BeginDragDropTarget())
+		{
+			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SkyboxDragDrop");
+			if (payload)
+			{
+				Engine::getScene().setSkybox(Engine::getScene().getRM().requestSkybox(*(*static_cast<const std::string**>(payload->Data))));
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		if (Engine::getScene().getSkybox() != nullptr)
+		{
+			float skyboxRotation = Engine::getScene().getSkybox()->getRotation();
+			if (ImGui::SliderFloat("Skybox rotation", &skyboxRotation, 0, 360))
+			{
+				Engine::getScene().getSkybox()->setRotation(skyboxRotation);
+			}
+		}
+
+		ImGui::Separator();
+
+		ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
+
+		if (ImGui::Button("Render to file"))
+		{
+			UIViewport::renderToFile(_resolution);
+		}
+
+		ImGui::Separator();
+
+		const PerfStep* perfStep = UIViewport::getPreviousFramePerfStep();
+		if (perfStep)
+			displayPerfStep(*perfStep);
 	}
-	
-	ImGui::Separator();
-	
-	ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
-	
-	if (ImGui::Button("Render to file"))
-	{
-		UIViewport::renderToFile(_resolution);
-	}
-	
-	ImGui::Separator();
-	
-	const PerfStep* perfStep = UIViewport::getPreviousFramePerfStep();
-	if (perfStep)
-		displayPerfStep(*perfStep);
 	
 	ImGui::End();
 }

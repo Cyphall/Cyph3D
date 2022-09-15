@@ -22,86 +22,83 @@ void UIResourceExplorer::init()
 
 void UIResourceExplorer::show()
 {
-	if (!ImGui::Begin("Resources", nullptr))
+	if (ImGui::Begin("Resources", nullptr))
 	{
-		ImGui::End();
-		return;
-	}
-	
-	ImGui::BeginChild("type", glm::vec2(100, 0));
-	for (auto& [resourceType, resourceTypeName] : magic_enum::enum_entries<ResourceType>())
-	{
-		if (ImGui::Selectable(std::string(resourceTypeName).c_str(), resourceType == _currentResourceType))
+		ImGui::BeginChild("type", glm::vec2(100, 0));
+		for (auto& [resourceType, resourceTypeName] : magic_enum::enum_entries<ResourceType>())
 		{
-			_currentResourceType = resourceType;
+			if (ImGui::Selectable(std::string(resourceTypeName).c_str(), resourceType == _currentResourceType))
+			{
+				_currentResourceType = resourceType;
+			}
 		}
-	}
-	ImGui::EndChild();
-	
-	ImGui::SameLine();
-	
-	ImGui::BeginGroup();
-	
-	glm::vec2 buttonSize = glm::vec2(ImGui::CalcTextSize("Refresh")) + glm::vec2(ImGui::GetStyle().FramePadding) * 2.0f;
-	ImGui::Spacing();
-	ImGui::SameLine(ImGui::GetContentRegionAvail().x - buttonSize.x);
-	if (ImGui::Button("Refresh"))
-	{
-		rescanFiles();
-	}
-	
-	ImGui::BeginChild("list", glm::vec2(0), true);
-	switch (_currentResourceType)
-	{
-		case ResourceType::Mesh:
-			for (const std::string& mesh : _meshes)
-			{
-				ImGui::Selectable(mesh.c_str());
-				
-				if (ImGui::BeginDragDropSource())
+		ImGui::EndChild();
+
+		ImGui::SameLine();
+
+		ImGui::BeginGroup();
+
+		glm::vec2 buttonSize = glm::vec2(ImGui::CalcTextSize("Refresh")) + glm::vec2(ImGui::GetStyle().FramePadding) * 2.0f;
+		ImGui::Spacing();
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - buttonSize.x);
+		if (ImGui::Button("Refresh"))
+		{
+			rescanFiles();
+		}
+
+		ImGui::BeginChild("list", glm::vec2(0), true);
+		switch (_currentResourceType)
+		{
+			case ResourceType::Mesh:
+				for (const std::string& mesh : _meshes)
 				{
-					ImGui::Text("%s", mesh.c_str());
-					
-					const std::string* meshPtr = &mesh;
-					ImGui::SetDragDropPayload("MeshDragDrop", &meshPtr, sizeof(std::string*));
-					ImGui::EndDragDropSource();
+					ImGui::Selectable(mesh.c_str());
+
+					if (ImGui::BeginDragDropSource())
+					{
+						ImGui::Text("%s", mesh.c_str());
+
+						const std::string* meshPtr = &mesh;
+						ImGui::SetDragDropPayload("MeshDragDrop", &meshPtr, sizeof(std::string*));
+						ImGui::EndDragDropSource();
+					}
 				}
-			}
-			break;
-		case ResourceType::Material:
-			for (const std::string& material : _materials)
-			{
-				ImGui::Selectable(material.c_str());
-				
-				if (ImGui::BeginDragDropSource())
+				break;
+			case ResourceType::Material:
+				for (const std::string& material : _materials)
 				{
-					ImGui::Text("%s", material.c_str());
-					
-					const std::string* materialPtr = &material;
-					ImGui::SetDragDropPayload("MaterialDragDrop", &materialPtr, sizeof(std::string*));
-					ImGui::EndDragDropSource();
+					ImGui::Selectable(material.c_str());
+
+					if (ImGui::BeginDragDropSource())
+					{
+						ImGui::Text("%s", material.c_str());
+
+						const std::string* materialPtr = &material;
+						ImGui::SetDragDropPayload("MaterialDragDrop", &materialPtr, sizeof(std::string*));
+						ImGui::EndDragDropSource();
+					}
 				}
-			}
-			break;
-		case ResourceType::Skybox:
-			for (const std::string& skybox : _skyboxes)
-			{
-				ImGui::Selectable(skybox.c_str());
-				
-				if (ImGui::BeginDragDropSource())
+				break;
+			case ResourceType::Skybox:
+				for (const std::string& skybox : _skyboxes)
 				{
-					ImGui::Text("%s", skybox.c_str());
-					
-					const std::string* skyboxPtr = &skybox;
-					ImGui::SetDragDropPayload("SkyboxDragDrop", &skyboxPtr, sizeof(std::string*));
-					ImGui::EndDragDropSource();
+					ImGui::Selectable(skybox.c_str());
+
+					if (ImGui::BeginDragDropSource())
+					{
+						ImGui::Text("%s", skybox.c_str());
+
+						const std::string* skyboxPtr = &skybox;
+						ImGui::SetDragDropPayload("SkyboxDragDrop", &skyboxPtr, sizeof(std::string*));
+						ImGui::EndDragDropSource();
+					}
 				}
-			}
-			break;
+				break;
+		}
+		ImGui::EndChild();
+
+		ImGui::EndGroup();
 	}
-	ImGui::EndChild();
-	
-	ImGui::EndGroup();
 	
 	ImGui::End();
 }

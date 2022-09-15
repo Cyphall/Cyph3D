@@ -17,41 +17,37 @@ bool UIHierarchy::_createEntityRequested = false;
 
 void UIHierarchy::show()
 {
-	if (!ImGui::Begin("Hierarchy", nullptr))
+	if (ImGui::Begin("Hierarchy", nullptr))
 	{
-		ImGui::End();
-		return;
+		// Main context menu to add elements to the scene
+		if (ImGui::BeginPopupContextWindow("HierarchyAction"))
+		{
+			if (ImGui::MenuItem("Create Entity"))
+			{
+				_createEntityRequested = true;
+			}
+
+			std::any selected = UIInspector::getSelected();
+			bool entitySelected = selected.has_value() && selected.type() == typeid(Transform*);
+
+			if (ImGui::MenuItem("Delete Entity", nullptr, false, entitySelected))
+			{
+				_entityToDelete = std::any_cast<Transform*>(selected)->getOwner();
+			}
+
+			if (ImGui::MenuItem("Duplicate Entity", nullptr, false, entitySelected))
+			{
+				_entityToDuplicate = std::any_cast<Transform*>(selected)->getOwner();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		//Hierarchy tree creation
+		addRootToTree();
+
+		processHierarchyChanges();
 	}
-	
-	// Main context menu to add elements to the scene
-	if (ImGui::BeginPopupContextWindow("HierarchyAction"))
-	{
-		if (ImGui::MenuItem("Create Entity"))
-		{
-			_createEntityRequested = true;
-		}
-		
-		std::any selected = UIInspector::getSelected();
-		bool entitySelected = selected.has_value() && selected.type() == typeid(Transform*);
-		
-		if (ImGui::MenuItem("Delete Entity", nullptr, false, entitySelected))
-		{
-			_entityToDelete = std::any_cast<Transform*>(selected)->getOwner();
-		}
-		
-		if (ImGui::MenuItem("Duplicate Entity", nullptr, false, entitySelected))
-		{
-			_entityToDuplicate = std::any_cast<Transform*>(selected)->getOwner();
-		}
-		
-		ImGui::EndPopup();
-	}
-	
-	//Hierarchy tree creation
-	addRootToTree();
-	
-	processHierarchyChanges();
-	
 	
 	ImGui::End();
 }
