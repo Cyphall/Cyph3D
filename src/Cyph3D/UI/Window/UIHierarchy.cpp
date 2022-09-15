@@ -148,7 +148,7 @@ void UIHierarchy::addObjectToTree(Transform* transform)
 	bool open = ImGui::TreeNodeEx(transform, flags, "%s", transform->getOwner()->getName().c_str());
 	
 	//Select the item on click
-	if (ImGui::IsItemClicked())
+	if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
 	{
 		UIInspector::setSelected(transform->getOwner());
 	}
