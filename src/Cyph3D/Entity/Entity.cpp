@@ -195,6 +195,29 @@ void Entity::onDrawUi()
 			it = removeComponent(it);
 		}
 	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	float availableWidth = ImGui::GetWindowContentRegionWidth();
+	float buttonWidth = std::min(180.0f, availableWidth);
+	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ((availableWidth - buttonWidth) / 2));
+
+	if (ImGui::Button("Add Component", ImVec2(buttonWidth, 0)))
+		ImGui::OpenPopup("add_component");
+
+	if (ImGui::BeginPopup("add_component"))
+	{
+		for (auto it = Entity::allocators_begin(); it != Entity::allocators_end(); it++)
+		{
+			if (ImGui::Selectable(it->first.c_str()))
+			{
+				it->second(*this);
+			}
+		}
+		ImGui::EndPopup();
+	}
 	
 	ImGui::PopID();
 }
