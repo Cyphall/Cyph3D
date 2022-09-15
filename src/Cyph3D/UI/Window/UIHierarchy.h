@@ -1,7 +1,7 @@
 #pragma once
 
 #include <imgui.h>
-#include <optional>
+#include <functional>
 
 class Transform;
 class Entity;
@@ -14,12 +14,8 @@ public:
 private:
 	static constexpr ImGuiTreeNodeFlags BASE_FLAGS = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding;
 	
-	static std::optional<std::pair<Transform*, Transform*>> _entityToReparent;
-	static Entity* _entityToDelete;
-	static Entity* _entityToDuplicate;
-	static bool _createEntityRequested;
+	static std::function<void(void)> _task;
 	
-	static void processHierarchyChanges();
 	static void addRootToTree();
 	static void addObjectToTree(Transform* transform);
 };

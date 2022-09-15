@@ -10,111 +10,91 @@
 
 #include <imgui.h>
 
-std::optional<std::pair<Transform*, Transform*>> UIHierarchy::_entityToReparent;
-Entity* UIHierarchy::_entityToDelete = nullptr;
-Entity* UIHierarchy::_entityToDuplicate = nullptr;
-bool UIHierarchy::_createEntityRequested = false;
+std::function<void(void)> UIHierarchy::_task;
 
 void UIHierarchy::show()
 {
 	if (ImGui::Begin("Hierarchy", nullptr))
 	{
+		//Hierarchy tree creation
+		addRootToTree();
+		
 		// Main context menu to add elements to the scene
 		if (ImGui::BeginPopupContextWindow("HierarchyAction"))
 		{
 			if (ImGui::MenuItem("Create Entity"))
 			{
-				_createEntityRequested = true;
+				_task = []()
+				{
+					Entity& created = Engine::getScene().createEntity(Engine::getScene().getRoot());
+					UIInspector::setSelected(&created);
+				};
 			}
 
 			IInspectable* selectedObject = UIInspector::getSelected();
-			Entity* seledtedEntity = dynamic_cast<Entity*>(selectedObject);
+			Entity* selectedEntity = dynamic_cast<Entity*>(selectedObject);
 
-			if (ImGui::MenuItem("Delete Entity", nullptr, false, seledtedEntity != nullptr))
+			if (ImGui::MenuItem("Delete Entity", nullptr, false, selectedEntity != nullptr))
 			{
-				_entityToDelete = seledtedEntity;
+				_task = [selectedEntity]()
+				{
+					IInspectable* selected = UIInspector::getSelected();
+					if (selected == selectedEntity)
+					{
+						UIInspector::setSelected(nullptr);
+					}
+					
+					Scene& scene = Engine::getScene();
+					
+					auto it = scene.findEntity(*selectedEntity);
+					if (it == scene.entities_end())
+					{
+						throw;
+					}
+					scene.removeEntity(it);
+				};
 			}
 
-			if (ImGui::MenuItem("Duplicate Entity", nullptr, false, seledtedEntity != nullptr))
+			if (ImGui::MenuItem("Duplicate Entity", nullptr, false, selectedEntity != nullptr))
 			{
-				_entityToDuplicate = seledtedEntity;
+				_task = [selectedEntity]()
+				{
+					selectedEntity->duplicate(*selectedEntity->getTransform().getParent());
+				};
 			}
 
 			ImGui::EndPopup();
 		}
+	}
 
-		//Hierarchy tree creation
-		addRootToTree();
-
-		processHierarchyChanges();
+	if (_task)
+	{
+		_task();
+		_task = {};
 	}
 	
 	ImGui::End();
 }
 
-void UIHierarchy::processHierarchyChanges()
+static void reparent(Transform& reparented, Transform& newParent)
 {
-	Scene& scene = Engine::getScene();
-	
-	if (_entityToReparent.has_value())
+	// Check if the new parent is not a child of the dragged Transform
+	Transform* parent = &newParent;
+	while ((parent = parent->getParent()) != nullptr)
 	{
-		auto [dragged, newParent] = _entityToReparent.value();
-		
-		bool hierarchyLoop = false;
-		Transform* parent = newParent;
-		while ((parent = parent->getParent()) != nullptr)
+		if (parent == &reparented)
 		{
-			if (parent == dragged)
-			{
-				hierarchyLoop = true;
-				break;
-			}
+			return;
 		}
-		
-		// Check if the new parent is not a child of the dragged Transform
-		if (!hierarchyLoop)
-		{
-			// Check if the new parent is not already the current parent
-			if (newParent != dragged->getParent())
-			{
-				dragged->setParent(newParent);
-			}
-		}
-		
-		_entityToReparent.reset();
 	}
-	
-	if (_entityToDelete != nullptr)
+
+	// Check if the new parent is not already the current parent
+	if (&newParent == reparented.getParent())
 	{
-		IInspectable* selected = UIInspector::getSelected();
-		if (selected == _entityToDelete)
-		{
-			UIInspector::setSelected(nullptr);
-		}
-		
-		auto it = scene.findEntity(*_entityToDelete);
-		if (it == scene.entities_end())
-		{
-			throw;
-		}
-		scene.removeEntity(it);
-		
-		_entityToDelete = nullptr;
+		return;
 	}
-	
-	if (_entityToDuplicate != nullptr)
-	{
-		_entityToDuplicate->duplicate(*_entityToDuplicate->getTransform().getParent());
-		
-		_entityToDuplicate = nullptr;
-	}
-	
-	if (_createEntityRequested)
-	{
-		Entity& created = Engine::getScene().createEntity(Engine::getScene().getRoot());
-		UIInspector::setSelected(&created);
-		_createEntityRequested = false;
-	}
+
+	reparented.setParent(&newParent);
 }
 
 void UIHierarchy::addRootToTree()
@@ -128,7 +108,10 @@ void UIHierarchy::addRootToTree()
 		if (payload)
 		{
 			Transform* dropped = *static_cast<Transform**>(payload->Data);
-			_entityToReparent = std::make_optional<std::pair<Transform*, Transform*>>(dropped, &Engine::getScene().getRoot());
+			_task = [dropped]()
+			{
+				reparent(*dropped, Engine::getScene().getRoot());
+			};
 		}
 		ImGui::EndDragDropTarget();
 	}
@@ -184,7 +167,10 @@ void UIHierarchy::addObjectToTree(Transform* transform)
 		if (payload)
 		{
 			Transform* dropped = *static_cast<Transform**>(payload->Data);
-			_entityToReparent = std::make_optional<std::pair<Transform*, Transform*>>(dropped, transform);
+			_task = [dropped, transform]()
+			{
+				reparent(*dropped, *transform);
+			};
 		}
 		ImGui::EndDragDropTarget();
 	}
