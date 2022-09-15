@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/Scene/Transform.h"
+#include "Cyph3D/UI/IInspectable.h"
 
 #include <nlohmann/json.hpp>
 #include <memory>
@@ -14,7 +15,7 @@ class ComponentConstIterator;
 struct RenderContext;
 struct ObjectSerialization;
 
-class Entity
+class Entity : public IInspectable
 {
 public:
 	Entity(Transform& parent, Scene& scene);
@@ -40,7 +41,7 @@ public:
 	const std::string& getName() const;
 	void setName(std::string name);
 	
-	void onDrawUi();
+	void onDrawUi() override;
 	void onUpdate();
 	void onPreRender(RenderContext& context);
 	

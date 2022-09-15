@@ -122,7 +122,7 @@ Scene& Engine::getScene()
 
 void Engine::setScene(std::unique_ptr<Scene>&& scene)
 {
-	UIInspector::setSelected(std::any());
+	UIInspector::setSelected(nullptr);
 	_scene = std::move(scene);
 }
 

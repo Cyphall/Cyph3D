@@ -27,17 +27,17 @@ void UIHierarchy::show()
 				_createEntityRequested = true;
 			}
 
-			std::any selected = UIInspector::getSelected();
-			bool entitySelected = selected.has_value() && selected.type() == typeid(Transform*);
+			IInspectable* selectedObject = UIInspector::getSelected();
+			Entity* seledtedEntity = dynamic_cast<Entity*>(selectedObject);
 
-			if (ImGui::MenuItem("Delete Entity", nullptr, false, entitySelected))
+			if (ImGui::MenuItem("Delete Entity", nullptr, false, seledtedEntity != nullptr))
 			{
-				_entityToDelete = std::any_cast<Transform*>(selected)->getOwner();
+				_entityToDelete = seledtedEntity;
 			}
 
-			if (ImGui::MenuItem("Duplicate Entity", nullptr, false, entitySelected))
+			if (ImGui::MenuItem("Duplicate Entity", nullptr, false, seledtedEntity != nullptr))
 			{
-				_entityToDuplicate = std::any_cast<Transform*>(selected)->getOwner();
+				_entityToDuplicate = seledtedEntity;
 			}
 
 			ImGui::EndPopup();
@@ -86,10 +86,10 @@ void UIHierarchy::processHierarchyChanges()
 	
 	if (_entityToDelete != nullptr)
 	{
-		std::any selected = UIInspector::getSelected();
-		if (selected.has_value() && selected.type() == typeid(Transform*) && std::any_cast<Transform*>(selected) == &_entityToDelete->getTransform())
+		IInspectable* selected = UIInspector::getSelected();
+		if (selected == _entityToDelete)
 		{
-			UIInspector::setSelected(std::any());
+			UIInspector::setSelected(nullptr);
 		}
 		
 		for (auto it = scene.entities_begin(); it != scene.entities_end(); it++)
@@ -114,7 +114,7 @@ void UIHierarchy::processHierarchyChanges()
 	if (_createEntityRequested)
 	{
 		Entity& created = Engine::getScene().createEntity(Engine::getScene().getRoot());
-		UIInspector::setSelected(&created.getTransform());
+		UIInspector::setSelected(&created);
 		_createEntityRequested = false;
 	}
 }
@@ -157,8 +157,8 @@ void UIHierarchy::addObjectToTree(Transform* transform)
 {
 	ImGuiTreeNodeFlags flags = BASE_FLAGS;
 	
-	std::any selected = UIInspector::getSelected();
-	if (selected.has_value() && selected.type() == typeid(Transform*) && std::any_cast<Transform*>(selected) == transform)
+	IInspectable* selected = UIInspector::getSelected();
+	if (selected == transform->getOwner())
 		flags |= ImGuiTreeNodeFlags_Selected;
 	
 	if (transform->getChildren().empty())
@@ -169,7 +169,7 @@ void UIHierarchy::addObjectToTree(Transform* transform)
 	//Select the item on click
 	if (ImGui::IsItemClicked())
 	{
-		UIInspector::setSelected(transform);
+		UIInspector::setSelected(transform->getOwner());
 	}
 	
 	//Make the item a drag drop source and target for hierarchy change

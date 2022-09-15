@@ -124,8 +124,8 @@ void UIViewport::show()
 		_currentlyClicking = false;
 		if (ImGui::IsItemHovered() && glm::distance(_clickPos, viewportCursorPos) < 5)
 		{
-			Entity* entity = _renderer->getClickedEntity(_clickPos);
-			UIInspector::setSelected(entity ? &entity->getTransform() : std::any());
+			Entity* clickedEntity = _renderer->getClickedEntity(_clickPos);
+			UIInspector::setSelected(clickedEntity);
 		}
 	}
 	
@@ -147,14 +147,18 @@ void UIViewport::setCamera(Camera camera)
 
 void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 {
-	std::any selected = UIInspector::getSelected();
-	if (!selected.has_value()) return;
-	if (selected.type() != typeid(Transform*)) return;
+	IInspectable* selected = UIInspector::getSelected();
+	if (selected == nullptr)
+		return;
+	
+	Entity* entity = dynamic_cast<Entity*>(selected);
+	if (entity == nullptr)
+		return;
 	
 	ImGuizmo::SetRect(viewportStart.x, viewportStart.y, viewportSize.x, viewportSize.y);
 	
-	Transform* transform = std::any_cast<Transform*>(selected);
-	glm::mat4 worldModel = transform->getLocalToWorldMatrix();
+	Transform& transform = entity->getTransform();
+	glm::mat4 worldModel = transform.getLocalToWorldMatrix();
 	
 	glm::mat4 view = _camera.getView();
 	glm::mat4 projection = _camera.getProjection();
@@ -173,7 +177,7 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 	
 	if (changed)
 	{
-		glm::mat4 localModel = transform->getParent()->getWorldToLocalMatrix() * worldModel;
+		glm::mat4 localModel = transform.getParent()->getWorldToLocalMatrix() * worldModel;
 		
 		glm::vec3 position;
 		glm::vec3 rotation;
@@ -181,17 +185,17 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 		
 		ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localModel), glm::value_ptr(position), glm::value_ptr(rotation), glm::value_ptr(scale));
 		
-		if (position != transform->getLocalPosition())
+		if (position != transform.getLocalPosition())
 		{
-			transform->setLocalPosition(position);
+			transform.setLocalPosition(position);
 		}
-		else if (rotation != transform->getEulerLocalRotation())
+		else if (rotation != transform.getEulerLocalRotation())
 		{
-			transform->setEulerLocalRotation(rotation);
+			transform.setEulerLocalRotation(rotation);
 		}
-		else if (scale != transform->getLocalScale())
+		else if (scale != transform.getLocalScale())
 		{
-			transform->setLocalScale(scale);
+			transform.setLocalScale(scale);
 		}
 	}
 }

@@ -1,15 +1,15 @@
 #pragma once
 
-#include <any>
+#include "Cyph3D/UI/IInspectable.h"
 
 class UIInspector
 {
 public:
 	static void show();
 	
-	static const std::any& getSelected();
-	static void setSelected(const std::any& selected);
+	static IInspectable* getSelected();
+	static void setSelected(IInspectable* selected);
 
 private:
-	static std::any _selected;
+	static IInspectable* _selected;
 };

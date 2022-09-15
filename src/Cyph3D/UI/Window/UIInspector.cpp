@@ -9,14 +9,14 @@
 
 #include <imgui.h>
 
-std::any UIInspector::_selected;
+IInspectable* UIInspector::_selected = nullptr;
 
-const std::any& UIInspector::getSelected()
+IInspectable* UIInspector::getSelected()
 {
 	return _selected;
 }
 
-void UIInspector::setSelected(const std::any& selected)
+void UIInspector::setSelected(IInspectable* selected)
 {
 	_selected = selected;
 }
@@ -25,13 +25,13 @@ void UIInspector::show()
 {
 	if (ImGui::Begin("Inspector", nullptr))
 	{
-		if (_selected.has_value())
+		if (_selected != nullptr)
 		{
-			if (_selected.type() == typeid(Transform*))
+			_selected->onDrawUi();
+			
+			Entity* entity = dynamic_cast<Entity*>(_selected);
+			if (entity != nullptr)
 			{
-				Entity& entity = *std::any_cast<Transform*>(_selected)->getOwner();
-				entity.onDrawUi();
-
 				ImGui::Spacing();
 				ImGui::Separator();
 				ImGui::Spacing();
@@ -49,7 +49,7 @@ void UIInspector::show()
 					{
 						if (ImGui::Selectable(it->first.c_str()))
 						{
-							it->second(entity);
+							it->second(*entity);
 						}
 					}
 					ImGui::EndPopup();
