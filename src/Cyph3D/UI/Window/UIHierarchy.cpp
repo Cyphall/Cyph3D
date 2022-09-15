@@ -92,14 +92,12 @@ void UIHierarchy::processHierarchyChanges()
 			UIInspector::setSelected(nullptr);
 		}
 		
-		for (auto it = scene.entities_begin(); it != scene.entities_end(); it++)
+		auto it = scene.findEntity(*_entityToDelete);
+		if (it == scene.entities_end())
 		{
-			if (&(*it) == _entityToDelete)
-			{
-				scene.removeEntity(it);
-				break;
-			}
+			throw;
 		}
+		scene.removeEntity(it);
 		
 		_entityToDelete = nullptr;
 	}

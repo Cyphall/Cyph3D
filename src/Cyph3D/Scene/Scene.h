@@ -22,6 +22,7 @@ public:
 	void onPreRender(RenderContext& context);
 	
 	Entity& createEntity(Transform& parent);
+	EntityIterator findEntity(Entity& entity);
 	EntityIterator removeEntity(EntityIterator where);
 	
 	EntityIterator entities_begin();

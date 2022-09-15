@@ -51,19 +51,30 @@ Entity& Scene::createEntity(Transform& parent)
 	return *_entities.emplace_back(new Entity(parent, *this)).get();
 }
 
+EntityIterator Scene::findEntity(Entity& entity)
+{
+	for (auto it = entities_begin(); it != entities_end(); it++)
+	{
+		if (&(*it) == &entity)
+		{
+			return it;
+		}
+	}
+	
+	return entities_end();
+}
+
 EntityIterator Scene::removeEntity(EntityIterator where)
 {
 	std::vector<Transform*> children = where->getTransform().getChildren();
 	for (Transform* child : children)
 	{
-		for (auto it = _entities.begin(); it != _entities.end(); it++)
+		auto it = findEntity(*child->getOwner());
+		if (it == entities_end())
 		{
-			if (it->get() == child->getOwner())
-			{
-				removeEntity(EntityIterator(it));
-				break;
-			}
+			throw;
 		}
+		removeEntity(it);
 	}
 	
 	return EntityIterator(_entities.erase(where.getUnderlyingIterator()));
