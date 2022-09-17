@@ -106,7 +106,7 @@ static bool readProcessedTexture(const std::filesystem::path& path, std::vector<
 bool Image::load_step1_mt()
 {
 	std::filesystem::path path = std::format("resources/materials/{}", _name);
-	std::filesystem::path processedTexturePath = ("cache" / path).replace_extension(".c3da");
+	std::filesystem::path processedTexturePath = ("cache" / path).replace_extension(".c3dcache");
 
 	if (!std::filesystem::exists(processedTexturePath) || !readProcessedTexture(processedTexturePath, _loadData->compressedData))
 	{

@@ -77,7 +77,7 @@ static bool readProcessedMesh(const std::filesystem::path& path, std::vector<Mes
 void Model::load_step1_tp()
 {
 	std::filesystem::path path = std::format("resources/meshes/{}.obj", _name);
-	std::filesystem::path processedMeshPath = ("cache" / path).replace_extension(".c3da");
+	std::filesystem::path processedMeshPath = ("cache" / path).replace_extension(".c3dcache");
 	
 	if (!std::filesystem::exists(processedMeshPath) || !readProcessedMesh(processedMeshPath, _loadData->vertices, _loadData->indices))
 	{
