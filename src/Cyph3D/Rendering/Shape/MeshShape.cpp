@@ -76,7 +76,7 @@ void MeshShape::onDrawUi()
 {
 	const Model* model = getModel();
 	std::string modelName = model != nullptr ? model->getName() : "None";
-	ImGui::InputText("Mesh", &modelName, ImGuiInputTextFlags_ReadOnly);
+	ImGui::InputText("Model", &modelName, ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::BeginDragDropTarget())
 	{
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MeshDragDrop");
