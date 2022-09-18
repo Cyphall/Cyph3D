@@ -5,6 +5,8 @@
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/ResourceManagement/Model.h"
 #include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/Helper/FileHelper.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -31,7 +33,7 @@ void MeshShape::duplicate(ShapeRenderer& targetShapeRenderer) const
 ObjectSerialization MeshShape::serialize() const
 {
 	ObjectSerialization serialization;
-	serialization.version = 1;
+	serialization.version = 2;
 	serialization.identifier = getIdentifier();
 	
 	const Model* model = getModel();
@@ -53,7 +55,24 @@ void MeshShape::deserialize(const ObjectSerialization& serialization)
 	
 	if (!serialization.data["model"].is_null())
 	{
-		setModel(scene.getRM().requestModel(serialization.data["model"].get<std::string>()));
+		if (serialization.version <= 1)
+		{
+			Logger::info("MeshShape deseralization: converting model identifier from version 1.");
+			std::string oldName = serialization.data["model"].get<std::string>();
+			std::string convertedPath = std::format("meshes/{}.obj", oldName);
+			if (std::filesystem::exists(FileHelper::getResourcePath() / convertedPath))
+			{
+				setModel(scene.getRM().requestModel(convertedPath));
+			}
+			else
+			{
+				Logger::warning("MeshShape deseralization: unable to convert model identifier from version 1.");
+			}
+		}
+		else
+		{
+			setModel(scene.getRM().requestModel(serialization.data["model"].get<std::string>()));
+		}
 	}
 }
 
@@ -75,11 +94,11 @@ void MeshShape::setModel(const Model* model)
 void MeshShape::onDrawUi()
 {
 	const Model* model = getModel();
-	std::string modelName = model != nullptr ? model->getName() : "None";
-	ImGui::InputText("Model", &modelName, ImGuiInputTextFlags_ReadOnly);
+	std::string modelPath = model != nullptr ? model->getName() : "None";
+	ImGui::InputText("Model", &modelPath, ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::BeginDragDropTarget())
 	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MeshDragDrop");
+		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_model");
 		if (payload)
 		{
 			setModel(getShapeRenderer().getEntity().getScene().getRM().requestModel(*(*static_cast<const std::string**>(payload->Data))));

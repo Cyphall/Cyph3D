@@ -45,7 +45,7 @@ public:
 	explicit ResourceManager(int threadCount);
 	~ResourceManager();
 	
-	Model* requestModel(const std::string& name);
+	Model* requestModel(const std::string& path);
 	Image* requestImage(const std::string& name, ImageType type);
 	Skybox* requestSkybox(const std::string& name);
 	GLShaderProgram* requestShaderProgram(const ShaderProgramCreateInfo& createInfo);

@@ -18,12 +18,12 @@ _threadPool(threadCount)
 ResourceManager::~ResourceManager()
 {}
 
-Model* ResourceManager::requestModel(const std::string& name)
+Model* ResourceManager::requestModel(const std::string& path)
 {
-	auto it = _models.find(name);
+	auto it = _models.find(path);
 	if (it == _models.end())
 	{
-		it = _models.try_emplace(name, std::unique_ptr<Model>(new Model(name, *this))).first;
+		it = _models.try_emplace(path, std::unique_ptr<Model>(new Model(path, *this))).first;
 	}
 	
 	return it->second.get();

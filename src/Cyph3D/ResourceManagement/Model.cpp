@@ -29,8 +29,8 @@ struct Model::LoadData
 	// step 3: wait for the fence
 };
 
-Model::Model(const std::string& name, ResourceManager& rm):
-	Resource(name)
+Model::Model(const std::string& path, ResourceManager& rm):
+	Resource(path)
 {
 	_loadData = std::make_unique<LoadData>();
 	_loadData->rm = &rm;
@@ -76,14 +76,14 @@ static bool readProcessedMesh(const std::filesystem::path& path, std::vector<Mes
 
 void Model::load_step1_tp()
 {
-	std::filesystem::path path = std::format("resources/meshes/{}.obj", _name);
-	std::filesystem::path processedMeshPath = ("cache" / path).replace_extension(".c3dcache");
+	std::filesystem::path absolutePath = FileHelper::getResourcePath() / _name;
+	std::filesystem::path cachePath = FileHelper::getResourceCachePath() / (_name + ".c3dcache");
 	
-	if (!std::filesystem::exists(processedMeshPath) || !readProcessedMesh(processedMeshPath, _loadData->vertices, _loadData->indices))
+	if (!std::filesystem::exists(cachePath) || !readProcessedMesh(cachePath, _loadData->vertices, _loadData->indices))
 	{
 		Assimp::Importer importer;
 
-		const aiScene* scene = importer.ReadFile(path.generic_string(), aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+		const aiScene* scene = importer.ReadFile(absolutePath.generic_string(), aiProcess_CalcTangentSpace | aiProcess_Triangulate);
 		aiMesh* mesh = scene->mMeshes[0];
 
 		_loadData->vertices.resize(mesh->mNumVertices);
@@ -103,7 +103,7 @@ void Model::load_step1_tp()
 			std::memcpy(&_loadData->indices[i*3], mesh->mFaces[i].mIndices, 3 * sizeof(GLuint));
 		}
 
-		writeProcessedMesh(processedMeshPath, _loadData->vertices, _loadData->indices);
+		writeProcessedMesh(cachePath, _loadData->vertices, _loadData->indices);
 	}
 	
 	_loadData->rm->addMainThreadTask(&Model::load_step2_mt, this);
