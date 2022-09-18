@@ -84,18 +84,10 @@ void ShapeRenderer::deserialize(const ObjectSerialization& shapeRendererSerializ
 	{
 		setMaterial(scene.getRM().requestMaterial(shapeRendererSerialization.data["material"].get<std::string>()));
 	}
-	
-	if (shapeRendererSerialization.identifier == "MeshRenderer")
-	{
-		MeshShape& shape = setShape<MeshShape>();
-		shape.setModel(scene.getRM().requestModel(shapeRendererSerialization.data["model"].get<std::string>()));
-	}
-	else
-	{
-		ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(shapeRendererSerialization.data["shape"]);
-		Shape& shape = setShapeByIdentifier(shapeSerialization.identifier);
-		shape.deserialize(shapeSerialization);
-	}
+
+	ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(shapeRendererSerialization.data["shape"]);
+	Shape& shape = setShapeByIdentifier(shapeSerialization.identifier);
+	shape.deserialize(shapeSerialization);
 	
 	_selectedShape = getShape().getIdentifier();
 	
