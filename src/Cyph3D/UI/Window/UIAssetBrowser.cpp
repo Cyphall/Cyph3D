@@ -1,5 +1,7 @@
 #include "UIAssetBrowser.h"
 
+#include "Cyph3D/Helper/FileHelper.h"
+
 #include <imgui_internal.h>
 #include <algorithm>
 
@@ -95,7 +97,7 @@ void UIAssetBrowser::draw()
 void UIAssetBrowser::rescan()
 {
 	_root.reset();
-	_root = build("resources");
+	_root = build(FileHelper::getResourcePath());
 	_selected = _root.get();
 }
 
