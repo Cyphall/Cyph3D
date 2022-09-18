@@ -14,6 +14,9 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
+static std::filesystem::path resourcePath = std::filesystem::current_path() / "resources";
+static std::filesystem::path resourceCachePath = std::filesystem::current_path() / "cache/resources";
+
 std::string FileHelper::readAllText(const std::string& path)
 {
 	std::ifstream in(path, std::ios::in | std::ios::binary);
@@ -163,4 +166,14 @@ std::optional<std::filesystem::path> FileHelper::fileDialogSave(const std::vecto
 	}
 	
 	return res;
+}
+
+const std::filesystem::path& FileHelper::getResourcePath()
+{
+	return resourcePath;
+}
+
+const std::filesystem::path& FileHelper::getResourceCachePath()
+{
+	return resourceCachePath;
 }

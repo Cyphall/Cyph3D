@@ -16,9 +16,13 @@ class FileHelper
 {
 public:
 	static std::string readAllText(const std::string& path);
+	
 	static std::optional<std::filesystem::path> fileDialogOpen(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder);
 	static std::optional<std::filesystem::path> fileDialogSave(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName);
-
+	
+	static const std::filesystem::path& getResourcePath();
+	static const std::filesystem::path& getResourceCachePath();
+	
 	template<typename T>
 	static void read(std::ifstream& stream, T* data)
 	{
