@@ -200,7 +200,7 @@ void Entity::onDrawUi()
 	ImGui::Separator();
 	ImGui::Spacing();
 
-	float availableWidth = ImGui::GetWindowContentRegionWidth();
+	float availableWidth = ImGui::GetContentRegionAvail().x;
 	float buttonWidth = std::min(180.0f, availableWidth);
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ((availableWidth - buttonWidth) / 2));
 
