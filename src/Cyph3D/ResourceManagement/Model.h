@@ -10,14 +10,17 @@ class ResourceManager;
 class Model : public Resource<Mesh>
 {
 public:
-	Model(const std::string& name, ResourceManager& rm);
 	~Model() override;
 	
 private:
-	struct LoadData;
-	std::unique_ptr<LoadData> _loadData;
+	friend class ResourceManager;
 	
+	Model(const std::string& name, ResourceManager& rm);
+
 	void load_step1_tp();
 	bool load_step2_mt();
 	bool load_step3_mt();
+	
+	struct LoadData;
+	std::unique_ptr<LoadData> _loadData;
 };

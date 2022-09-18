@@ -8,18 +8,21 @@ class ResourceManager;
 class Skybox : public Resource<GLCubemap>
 {
 public:
-	Skybox(const std::string& name, ResourceManager& rm);
 	~Skybox() override;
 
 	float getRotation() const;
 	void setRotation(float rotation);
 
 private:
+	friend class ResourceManager;
+
+	Skybox(const std::string& name, ResourceManager& rm);
+
+	bool load_step1_mt();
+	bool load_step2_mt();
+	
 	struct LoadData;
 	std::unique_ptr<LoadData> _loadData;
 	
 	float _rotation = 0;
-
-	bool load_step1_mt();
-	bool load_step2_mt();
 };

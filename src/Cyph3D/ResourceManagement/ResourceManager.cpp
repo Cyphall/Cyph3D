@@ -23,7 +23,7 @@ Model* ResourceManager::requestModel(const std::string& name)
 	auto it = _models.find(name);
 	if (it == _models.end())
 	{
-		it = _models.try_emplace(name, std::make_unique<Model>(name, *this)).first;
+		it = _models.try_emplace(name, std::unique_ptr<Model>(new Model(name, *this))).first;
 	}
 	
 	return it->second.get();
@@ -34,7 +34,7 @@ Image* ResourceManager::requestImage(const std::string& name, ImageType type)
 	auto it = _images.find(name);
 	if (it == _images.end())
 	{
-		it = _images.try_emplace(name, std::make_unique<Image>(name, type, *this)).first;
+		it = _images.try_emplace(name, std::unique_ptr<Image>(new Image(name, type, *this))).first;
 	}
 
 	return it->second.get();
@@ -45,7 +45,7 @@ Skybox* ResourceManager::requestSkybox(const std::string& name)
 	auto it = _skyboxes.find(name);
 	if (it == _skyboxes.end())
 	{
-		it = _skyboxes.try_emplace(name, std::make_unique<Skybox>(name, *this)).first;
+		it = _skyboxes.try_emplace(name, std::unique_ptr<Skybox>(new Skybox(name, *this))).first;
 	}
 
 	return it->second.get();
@@ -53,24 +53,26 @@ Skybox* ResourceManager::requestSkybox(const std::string& name)
 
 GLShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateInfo& createInfo)
 {
-	if (!_shaderPrograms.contains(createInfo))
+	auto it = _shaderPrograms.find(createInfo);
+	if (it == _shaderPrograms.end())
 	{
 		Logger::info("Loading shader program");
-		_shaderPrograms[createInfo] = std::make_unique<GLShaderProgram>(createInfo);
-		Logger::info(std::format("Shader program loaded (id: {})", _shaderPrograms[createInfo]->getHandle()));
+		it = _shaderPrograms.try_emplace(createInfo, std::unique_ptr<GLShaderProgram>(new GLShaderProgram(createInfo))).first;
+		Logger::info(std::format("Shader program loaded (id: {})", it->second->getHandle()));
 	}
-	
-	return _shaderPrograms[createInfo].get();
+
+	return it->second.get();
 }
 
 Material* ResourceManager::requestMaterial(const std::string& name)
 {
-	if (!_materials.contains(name))
+	auto it = _materials.find(name);
+	if (it == _materials.end())
 	{
-		_materials[name] = std::unique_ptr<Material>(new Material(name, this));
+		it = _materials.try_emplace(name, std::unique_ptr<Material>(new Material(name, this))).first;
 	}
-	
-	return _materials[name].get();
+
+	return it->second.get();
 }
 
 void ResourceManager::onUpdate()

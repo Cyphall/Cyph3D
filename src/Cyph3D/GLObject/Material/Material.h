@@ -22,6 +22,10 @@ public:
 	static Material* getMissing();
 
 private:
+	friend class ResourceManager;
+
+	explicit Material(std::string name, ResourceManager* resourceManager);
+	
 	std::map<MaterialMapType, MaterialMap> _maps;
 	std::string _name;
 	
@@ -29,8 +33,4 @@ private:
 	static Material* _missing;
 	
 	static std::map<MaterialMapType, MaterialMapDefinition> _mapDefinitions;
-	
-	explicit Material(std::string name, ResourceManager* resourceManager);
-	
-	friend class ResourceManager;
 };

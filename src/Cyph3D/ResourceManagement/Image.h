@@ -9,13 +9,16 @@ class ResourceManager;
 class Image : public Resource<GLTexture>
 {
 public:
-	Image(const std::string& name, ImageType type, ResourceManager& rm);
 	~Image() override;
 	
 private:
-	struct LoadData;
-	std::unique_ptr<LoadData> _loadData;
-	
+	friend class ResourceManager;
+
+	Image(const std::string& name, ImageType type, ResourceManager& rm);
+
 	bool load_step1_mt();
 	bool load_step2_mt();
+	
+	struct LoadData;
+	std::unique_ptr<LoadData> _loadData;
 };

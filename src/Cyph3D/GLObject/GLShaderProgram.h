@@ -13,7 +13,6 @@ struct ShaderProgramCreateInfo;
 class GLShaderProgram : public GLObject
 {
 public:
-	explicit GLShaderProgram(const ShaderProgramCreateInfo& createInfo);
 	~GLShaderProgram() override;
 	
 	void bind();
@@ -94,8 +93,13 @@ public:
 #pragma endregion
 
 private:
-	std::map<std::string, int> _uniforms;
-	static GLuint loadShader(GLenum type, const std::vector<std::string>& files);
+	friend class ResourceManager;
 	
+	explicit GLShaderProgram(const ShaderProgramCreateInfo& createInfo);
+
+	static GLuint loadShader(GLenum type, const std::vector<std::string>& files);
+
 	int getUniformLocation(const char* name);
+	
+	std::map<std::string, int> _uniforms;
 };
