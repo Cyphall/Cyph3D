@@ -43,7 +43,7 @@ Skybox::Skybox(const std::string& name, ResourceManager& rm):
 	_loadData = std::make_unique<LoadData>();
 	_loadData->rm = &rm;
 
-	Logger::info(std::format("Loading skybox \"{}\"", getName()));
+	Logger::info(std::format("Loading skybox \"{}\"", _name));
 	_loadData->rm->addMainThreadTask(&Skybox::load_step1_mt, this);
 }
 
@@ -202,6 +202,6 @@ bool Skybox::load_step2_mt()
 
 	_loadData.reset();
 	_ready = true;
-	Logger::info(std::format("Skybox \"{}\" loaded", getName()));
+	Logger::info(std::format("Skybox \"{}\" loaded", _name));
 	return true;
 }

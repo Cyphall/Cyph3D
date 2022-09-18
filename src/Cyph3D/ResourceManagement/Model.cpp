@@ -35,7 +35,7 @@ Model::Model(const std::string& name, ResourceManager& rm):
 	_loadData = std::make_unique<LoadData>();
 	_loadData->rm = &rm;
 
-	Logger::info(std::format("Loading model \"{}\"", getName()));
+	Logger::info(std::format("Loading model \"{}\"", _name));
 	_loadData->rm->addThreadPoolTask(&Model::load_step1_tp, this);
 }
 
@@ -135,6 +135,6 @@ bool Model::load_step3_mt()
 	_resource = std::make_unique<Mesh>(std::move(_loadData->vertexBuffer), std::move(_loadData->indexBuffer));
 	_loadData.reset();
 	_ready = true;
-	Logger::info(std::format("Model \"{}\" loaded", getName()));
+	Logger::info(std::format("Model \"{}\" loaded", _name));
 	return true;
 }

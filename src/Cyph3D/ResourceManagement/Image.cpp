@@ -43,7 +43,7 @@ Image::Image(const std::string& name, ImageType type, ResourceManager& rm):
 	_loadData->rm = &rm;
 	_loadData->type = type;
 
-	Logger::info(std::format("Loading image \"{}\"", getName()));
+	Logger::info(std::format("Loading image \"{}\"", _name));
 	_loadData->rm->addMainThreadTask(&Image::load_step1_mt, this);
 }
 
@@ -188,6 +188,6 @@ bool Image::load_step2_mt()
 
 	_loadData.reset();
 	_ready = true;
-	Logger::info(std::format("Image \"{}\" loaded", getName()));
+	Logger::info(std::format("Image \"{}\" loaded", _name));
 	return true;
 }
