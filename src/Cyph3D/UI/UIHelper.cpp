@@ -8,6 +8,7 @@
 #include "Cyph3D/UI/Window/UIMisc.h"
 #include "Cyph3D/UI/Window/UIResourceExplorer.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
+#include "Cyph3D/UI/Window/UIAssetBrowser.h"
 #include "Cyph3D/Window.h"
 
 #include <ImGuizmo.h>
@@ -18,6 +19,8 @@
 
 ImGuiContext* UIHelper::_context = nullptr;
 bool UIHelper::_dockingLayoutInitialized = false;
+std::unique_ptr<UIAssetBrowser> UIHelper::_assetBrowser;
+ImFont* UIHelper::_bigFont = nullptr;
 
 void UIHelper::init()
 {
@@ -30,8 +33,10 @@ void UIHelper::init()
 	ImGui_ImplOpenGL3_Init("#version 460 core");
 	
 	initStyles();
+	initFonts();
 	
 	UIResourceExplorer::init();
+	_assetBrowser = std::make_unique<UIAssetBrowser>(_bigFont);
 }
 
 void UIHelper::render()
@@ -51,7 +56,8 @@ void UIHelper::render()
 		UIMisc::show();
 		UIHierarchy::show();
 		UIInspector::show();
-		UIResourceExplorer::show();
+//		UIResourceExplorer::show();
+		_assetBrowser->draw();
 	}
 
 	ImGui::Render();
@@ -101,7 +107,7 @@ void UIHelper::initDockingLayout(ImGuiID dockspaceId)
 	
 	ImGuiID resourcesId;
 	ImGui::DockBuilderSplitNode(remainingId, ImGuiDir_Down, 0.3f, &resourcesId, &remainingId);
-	ImGui::DockBuilderDockWindow("Resources", resourcesId);
+	ImGui::DockBuilderDockWindow("Asset Browser", resourcesId);
 	
 	ImGui::DockBuilderDockWindow("Viewport", remainingId);
 	
@@ -157,4 +163,34 @@ void UIHelper::initStyles()
 	style.Colors[ImGuiCol_Separator] = normalizeColor(110, 110, 110, 255);
 	style.Colors[ImGuiCol_SeparatorHovered] = normalizeColor(130, 130, 130, 255);
 	style.Colors[ImGuiCol_SeparatorActive] = normalizeColor(160, 160, 160, 255);
+}
+
+void UIHelper::initFonts()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	
+	// fonts
+	ImFontConfig config;
+
+	io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto-Regular.ttf", 14.0f, &config, io.Fonts->GetGlyphRangesDefault());
+
+	config.MergeMode = true;
+	config.GlyphOffset = ImVec2(0.0f, 1.0f);
+
+	static const ImWchar smallIconRange[] = {
+		0xF07B, 0xF07B,
+		0};
+	io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 14.0f, &config, smallIconRange);
+
+	io.Fonts->Build();
+
+	static const ImWchar largeIconRange[] = {
+		0xE209, 0xE209,
+		0xF07B, 0xF07B,
+		0xF15B, 0xF15B,
+		0xF1B2, 0xF1B2,
+		0xF43C, 0xF43C,
+		0};
+	
+	_bigFont = io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 48.0f, nullptr, largeIconRange);
 }

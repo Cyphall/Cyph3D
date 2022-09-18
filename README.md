@@ -59,3 +59,7 @@ Hold right click to control the camera and use ZQSD to move
 ## License
 
 This work by [Cyphall](https://github.com/Cyphall) is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0).
+
+## Dependencies Licenses
+
+Font Awesome Free is licensed under [SIL OFL license](https://scripts.sil.org/OFL), see more on their [official website](https://fontawesome.com/license/free).
