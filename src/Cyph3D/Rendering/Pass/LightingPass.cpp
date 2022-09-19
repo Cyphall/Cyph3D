@@ -7,7 +7,6 @@
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/Window.h"
 
 LightingPass::LightingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Lighting pass"),

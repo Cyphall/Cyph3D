@@ -5,7 +5,6 @@
 #include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"
-#include "Cyph3D/Window.h"
 
 #include <glm/gtx/transform.hpp>
 

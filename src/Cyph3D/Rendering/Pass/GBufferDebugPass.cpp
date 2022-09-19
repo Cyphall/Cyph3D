@@ -5,7 +5,6 @@
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/Window.h"
 
 GBufferDebugPass::GBufferDebugPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size) :
 RenderPass(textures, size, "GBuffer Debug pass"),

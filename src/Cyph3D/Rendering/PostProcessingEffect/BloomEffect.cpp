@@ -4,7 +4,6 @@
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Scene/Scene.h"
-#include "Cyph3D/Window.h"
 
 #include <format>
 

@@ -3,7 +3,6 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/Scene/Scene.h"
-#include "Cyph3D/Window.h"
 
 #include <glad/glad.h>
 
