@@ -1,6 +1,7 @@
 #include "UIAssetBrowser.h"
 
 #include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/Scene/Scene.h"
 
 #include <imgui_internal.h>
 #include <algorithm>
@@ -138,6 +139,10 @@ std::unique_ptr<UIAssetBrowser::Directory> UIAssetBrowser::build(const std::file
 			{
 				file.type = FileType::Skybox;
 			}
+			else if (extension == ".c3dscene")
+			{
+				file.type = FileType::Scene;
+			}
 		}
 	}
 
@@ -256,14 +261,10 @@ void UIAssetBrowser::drawRightPanel()
 
 	for (const File& file : _selected->files)
 	{
-		const char* icon;
-		const char* dragDropId;
+		const char* icon = "\uF15B";
+		const char* dragDropId = nullptr;
 		switch (file.type)
 		{
-			case FileType::Unknown:
-				icon = "\uF15B";
-				dragDropId = "asset_unknown";
-				break;
 			case FileType::Material:
 				icon = "\uF43C";
 				dragDropId = "asset_material";
@@ -276,18 +277,39 @@ void UIAssetBrowser::drawRightPanel()
 				icon = "\uE209";
 				dragDropId = "asset_skybox";
 				break;
+			case FileType::Scene:
+				icon = "\uE52f";
+				break;
+			default:
+				break;
 		}
-		drawRightPanelEntry(file.path, icon, file.truncatedName, usedWidth);
+		
+		bool doubleClicked = drawRightPanelEntry(file.path, icon, file.truncatedName, usedWidth);
 
-		if (ImGui::BeginDragDropSource())
+		if (dragDropId != nullptr)
 		{
-			float dragDropUsedWidth = 0;
-			drawRightPanelEntry(file.path, icon, file.truncatedName, dragDropUsedWidth);
+			if (ImGui::BeginDragDropSource())
+			{
+				float dragDropUsedWidth = 0;
+				drawRightPanelEntry(file.path, icon, file.truncatedName, dragDropUsedWidth);
 
-			const std::string* pathPtr = &file.path;
+				const std::string* pathPtr = &file.path;
 
-			ImGui::SetDragDropPayload(dragDropId, &pathPtr, sizeof(const std::string*));
-			ImGui::EndDragDropSource();
+				ImGui::SetDragDropPayload(dragDropId, &pathPtr, sizeof(const std::string*));
+				ImGui::EndDragDropSource();
+			}
+		}
+
+		if (doubleClicked)
+		{
+			switch (file.type)
+			{
+				case FileType::Scene:
+					Scene::load(file.path);
+					break;
+				default:
+					break;
+			}
 		}
 	}
 }

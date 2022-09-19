@@ -10,8 +10,20 @@
 
 bool UIMenuBar::_showDemoWindow = false;
 
+static bool isResourcePath(const std::filesystem::path& path)
+{
+	std::filesystem::path resourcePathCanonial = std::filesystem::weakly_canonical(FileHelper::getResourcePath());
+	std::filesystem::path pathCanonial = std::filesystem::weakly_canonical(std::filesystem::absolute(path));
+
+	auto it = std::search(pathCanonial.begin(), pathCanonial.end(), resourcePathCanonial.begin(), resourcePathCanonial.end());
+
+	return it == pathCanonial.begin();
+}
+
 void UIMenuBar::show()
 {
+	bool showPathOutsideError = false;
+	
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -33,7 +45,14 @@ void UIMenuBar::show()
 				
 				if (filePath.has_value())
 				{
-					Scene::load(filePath.value());
+					if (isResourcePath(filePath.value()))
+					{
+						Scene::load(filePath.value());
+					}
+					else
+					{
+						showPathOutsideError = true;
+					}
 				}
 			}
 			
@@ -49,10 +68,16 @@ void UIMenuBar::show()
 				
 				if (filePath.has_value())
 				{
-					scene.save(filePath.value());
+					if (isResourcePath(filePath.value()))
+					{
+						scene.save(filePath.value());
+					}
+					else
+					{
+						showPathOutsideError = true;
+					}
 				}
 			}
-			
 			ImGui::EndMenu();
 		}
 		
@@ -61,6 +86,23 @@ void UIMenuBar::show()
 			ImGui::Checkbox("Show ImGui Demo Window", &_showDemoWindow);
 			
 			ImGui::EndMenu();
+		}
+
+		if (showPathOutsideError)
+			ImGui::OpenPopup("Error###path_is_outside");
+
+		if (ImGui::BeginPopupModal("Error###path_is_outside", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("The selected path is outside the \"resources\" folder.");
+			
+			ImGui::NewLine();
+			ImGui::NewLine();
+
+			ImGui::SameLine(0, ImGui::GetContentRegionAvail().x / 2.0f - 40);
+			if (ImGui::Button("OK", ImVec2(80, 0)))
+				ImGui::CloseCurrentPopup();
+
+			ImGui::EndPopup();
 		}
 		
 		ImGui::EndMainMenuBar();

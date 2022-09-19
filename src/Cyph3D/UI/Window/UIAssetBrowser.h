@@ -24,7 +24,8 @@ private:
 		Unknown,
 		Material,
 		Model,
-		Skybox
+		Skybox,
+		Scene
 	};
 
 	struct File
