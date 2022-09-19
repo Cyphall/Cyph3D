@@ -1,7 +1,6 @@
 #include "SkyboxPass.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/Scene/Camera.h"
@@ -14,17 +13,16 @@ SkyboxPass::SkyboxPass(std::unordered_map<std::string, GLTexture*>& textures, gl
 RenderPass(textures, size, "Skybox pass"),
 _framebuffer(size),
 _vao(),
-_vbo(36, GL_DYNAMIC_STORAGE_BIT)
+_vbo(36, GL_DYNAMIC_STORAGE_BIT),
+_shader({
+	{GL_VERTEX_SHADER, "internal/skybox/skybox.vert"},
+	{GL_FRAGMENT_SHADER, "internal/skybox/skybox.frag"}
+})
 {
 	_framebuffer.attachColor(0, *textures["gbuffer_color"]);
 	_framebuffer.addToDrawBuffers(0, 0);
 	
 	_framebuffer.attachDepth(*textures["z-prepass_depth"]);
-	
-	ShaderProgramCreateInfo skyboxShaderProgramCreateInfo;
-	skyboxShaderProgramCreateInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/skybox/skybox");
-	skyboxShaderProgramCreateInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/skybox/skybox");
-	_shader = Engine::getGlobalRM().requestShaderProgram(skyboxShaderProgramCreateInfo);
 	
 	std::vector<SkyboxPass::VertexData> data = {
 			{{-1.0f,  1.0f, -1.0f}},
@@ -88,16 +86,16 @@ void SkyboxPass::renderImpl(std::unordered_map<std::string, GLTexture*>& texture
 {
 	_framebuffer.bindForDrawing();
 	
-	_shader->bind();
+	_shader.bind();
 	
 	glm::mat4 mvp =
 			camera.getProjection() *
 			glm::mat4(glm::mat3(camera.getView())) *
 			glm::rotate(glm::radians(Engine::getScene().getSkybox()->getRotation()), glm::vec3(0, 1, 0));
 	
-	_shader->setUniform("u_mvp", mvp);
+	_shader.setUniform("u_mvp", mvp);
 	
-	_shader->setUniform("u_skybox", Engine::getScene().getSkybox()->getResource().getBindlessTextureHandle());
+	_shader.setUniform("u_skybox", Engine::getScene().getSkybox()->getResource().getBindlessTextureHandle());
 	
 	_vao.bind();
 	

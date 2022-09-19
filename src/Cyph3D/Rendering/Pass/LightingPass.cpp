@@ -3,7 +3,6 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/GLCubemap.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
@@ -19,14 +18,12 @@ _rawRenderTexture(TextureCreateInfo
 {
  .size = size,
  .internalFormat = GL_RGBA16F
+}),
+_shader({
+	{GL_VERTEX_SHADER, "internal/fullscreen quad.vert"},
+	{GL_FRAGMENT_SHADER, "internal/lighting/lighting.frag"}
 })
 {
-	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
-	lightingShaderProgramCreateInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
-	lightingShaderProgramCreateInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/lighting/lighting");
-	
-	_shader = Engine::getGlobalRM().requestShaderProgram(lightingShaderProgramCreateInfo);
-	
 	_framebuffer.attachColor(0, _rawRenderTexture);
 	_framebuffer.addToDrawBuffers(0, 0);
 	
@@ -83,18 +80,18 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	_pointLightsBuffer.setData(pointLightData);
 	_pointLightsBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 0);
 	
-	_shader->setUniform("u_viewPos", camera.getPosition());
-	_shader->setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));
-	_shader->setUniform("u_time", (float)Engine::getTimer().time());
+	_shader.setUniform("u_viewPos", camera.getPosition());
+	_shader.setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));
+	_shader.setUniform("u_time", (float)Engine::getTimer().time());
 	
-	_shader->setUniform("u_normalTexture", textures["gbuffer_normal"]->getBindlessTextureHandle());
-	_shader->setUniform("u_colorTexture", textures["gbuffer_color"]->getBindlessTextureHandle());
-	_shader->setUniform("u_materialTexture", textures["gbuffer_material"]->getBindlessTextureHandle());
-	_shader->setUniform("u_geometryNormalTexture", textures["gbuffer_gemoetryNormal"]->getBindlessTextureHandle());
-	_shader->setUniform("u_depthTexture", textures["z-prepass_depth"]->getBindlessTextureHandle());
-	_shader->setUniform("u_position", textures["gbuffer_position"]->getBindlessTextureHandle());
+	_shader.setUniform("u_normalTexture", textures["gbuffer_normal"]->getBindlessTextureHandle());
+	_shader.setUniform("u_colorTexture", textures["gbuffer_color"]->getBindlessTextureHandle());
+	_shader.setUniform("u_materialTexture", textures["gbuffer_material"]->getBindlessTextureHandle());
+	_shader.setUniform("u_geometryNormalTexture", textures["gbuffer_gemoetryNormal"]->getBindlessTextureHandle());
+	_shader.setUniform("u_depthTexture", textures["z-prepass_depth"]->getBindlessTextureHandle());
+	_shader.setUniform("u_position", textures["gbuffer_position"]->getBindlessTextureHandle());
 	
-	_shader->bind();
+	_shader.bind();
 	_framebuffer.bindForDrawing();
 	
 	_rawRenderTexture.clear(GL_RGBA, GL_HALF_FLOAT, nullptr);

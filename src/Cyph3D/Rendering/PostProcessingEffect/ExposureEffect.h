@@ -2,9 +2,8 @@
 
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
-
-class GLShaderProgram;
 
 class ExposureEffect : public PostProcessingEffect
 {
@@ -16,5 +15,5 @@ public:
 private:
 	GLFramebuffer _framebuffer;
 	GLTexture _outputTexture;
-	GLShaderProgram* _shaderProgram;
+	GLShaderProgram _shaderProgram;
 };

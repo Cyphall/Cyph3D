@@ -1,13 +1,9 @@
 #include "ResourceManager.h"
 
 #include "Cyph3D/GLObject/Material/Material.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/ResourceManagement/Image.h"
 #include "Cyph3D/ResourceManagement/Model.h"
 #include "Cyph3D/ResourceManagement/Skybox.h"
-
-#include <format>
 
 ResourceManager::ResourceManager(int threadCount):
 _threadPool(threadCount)
@@ -46,19 +42,6 @@ Skybox* ResourceManager::requestSkybox(const std::string& name)
 	if (it == _skyboxes.end())
 	{
 		it = _skyboxes.try_emplace(name, std::unique_ptr<Skybox>(new Skybox(name, *this))).first;
-	}
-
-	return it->second.get();
-}
-
-GLShaderProgram* ResourceManager::requestShaderProgram(const ShaderProgramCreateInfo& createInfo)
-{
-	auto it = _shaderPrograms.find(createInfo);
-	if (it == _shaderPrograms.end())
-	{
-		Logger::info("Loading shader program");
-		it = _shaderPrograms.try_emplace(createInfo, std::unique_ptr<GLShaderProgram>(new GLShaderProgram(createInfo))).first;
-		Logger::info(std::format("Shader program loaded (id: {})", it->second->getHandle()));
 	}
 
 	return it->second.get();

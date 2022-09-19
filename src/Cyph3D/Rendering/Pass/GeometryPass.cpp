@@ -4,7 +4,6 @@
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Material/Material.h"
 #include "Cyph3D/GLObject/Mesh.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
@@ -44,6 +43,11 @@ _positionTexture(TextureCreateInfo
 {
 	.size = size,
 	.internalFormat = GL_RGBA32F
+}),
+_shaderProgram({
+	{GL_VERTEX_SHADER, "internal/g-buffer/render to GBuffer.vert"},
+	{GL_GEOMETRY_SHADER, "internal/g-buffer/render to GBuffer.geom"},
+	{GL_FRAGMENT_SHADER, "internal/g-buffer/render to GBuffer.frag"},
 })
 {
 	_gbuffer.attachColor(0, _normalTexture);
@@ -72,13 +76,6 @@ _positionTexture(TextureCreateInfo
 	_vao.defineFormat(0, 1, 2, GL_FLOAT, offsetof(Mesh::VertexData, uv));
 	_vao.defineFormat(0, 2, 3, GL_FLOAT, offsetof(Mesh::VertexData, normal));
 	_vao.defineFormat(0, 3, 3, GL_FLOAT, offsetof(Mesh::VertexData, tangent));
-	
-	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
-	createInfo.shadersFiles[GL_GEOMETRY_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
-	createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/g-buffer/render to GBuffer");
-	
-	_shaderProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
 }
 
 void GeometryPass::preparePipelineImpl()
@@ -107,7 +104,7 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	glm::vec3 pos = camera.getPosition();
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
-	_shaderProgram->bind();
+	_shaderProgram.bind();
 	
 	for (int i = 0; i < registry.shapes.size(); i++)
 	{
@@ -124,18 +121,18 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		_shaderProgram->setUniform("u_albedoMap", shapeData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle());
-		_shaderProgram->setUniform("u_normalMap", shapeData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle());
-		_shaderProgram->setUniform("u_roughnessMap", shapeData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle());
-		_shaderProgram->setUniform("u_metalnessMap", shapeData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle());
-		_shaderProgram->setUniform("u_displacementMap", shapeData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle());
-		_shaderProgram->setUniform("u_emissiveMap", shapeData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_albedoMap", shapeData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_normalMap", shapeData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_roughnessMap", shapeData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_metalnessMap", shapeData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_displacementMap", shapeData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_emissiveMap", shapeData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle());
 		
-		_shaderProgram->setUniform("u_normalMatrix", glm::inverseTranspose(glm::mat3(shapeData.matrix)));
-		_shaderProgram->setUniform("u_model", shapeData.matrix);
-		_shaderProgram->setUniform("u_mvp", vp * shapeData.matrix);
-		_shaderProgram->setUniform("u_viewPos", pos);
-		_shaderProgram->setUniform("u_objectIndex", i);
+		_shaderProgram.setUniform("u_normalMatrix", glm::inverseTranspose(glm::mat3(shapeData.matrix)));
+		_shaderProgram.setUniform("u_model", shapeData.matrix);
+		_shaderProgram.setUniform("u_mvp", vp * shapeData.matrix);
+		_shaderProgram.setUniform("u_viewPos", pos);
+		_shaderProgram.setUniform("u_objectIndex", i);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

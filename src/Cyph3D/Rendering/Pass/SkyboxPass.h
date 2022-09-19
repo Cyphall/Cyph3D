@@ -3,9 +3,8 @@
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/GLObject/GLVertexArray.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
-
-class GLShaderProgram;
 
 class SkyboxPass : public RenderPass
 {
@@ -23,7 +22,7 @@ private:
 	};
 	
 	GLFramebuffer _framebuffer;
-	GLShaderProgram* _shader;
+	GLShaderProgram _shader;
 	
 	GLVertexArray _vao;
 	GLImmutableBuffer<VertexData> _vbo;

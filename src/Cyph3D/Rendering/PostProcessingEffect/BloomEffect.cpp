@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Window.h"
@@ -55,7 +54,23 @@ _outputTexture(TextureCreateInfo
 	.size = size,
 	.internalFormat = GL_RGBA16F
 }),
-_kernelBuffer(GL_DYNAMIC_DRAW)
+_kernelBuffer(GL_DYNAMIC_DRAW),
+_extractBrightProgram({
+	{GL_VERTEX_SHADER, "internal/fullscreen quad.vert"},
+	{GL_FRAGMENT_SHADER, "internal/post-processing/bloom/extract bright.frag"}
+}),
+_blurProgram({
+	{GL_VERTEX_SHADER, "internal/fullscreen quad.vert"},
+	{GL_FRAGMENT_SHADER, "internal/post-processing/bloom/blur.frag"}
+}),
+_passthroughLevelProgram({
+	{GL_VERTEX_SHADER, "internal/fullscreen quad.vert"},
+	{GL_FRAGMENT_SHADER, "internal/post-processing/bloom/passthroughLevel.frag"}
+}),
+_combineProgram({
+	{GL_VERTEX_SHADER, "internal/fullscreen quad.vert"},
+	{GL_FRAGMENT_SHADER, "internal/post-processing/bloom/combine.frag"}
+})
 {
 	_extractBrightFramebuffer.attachColor(0, _nonBrightTexture);
 	_extractBrightFramebuffer.attachColor(1, _blurTextures[0]);
@@ -71,34 +86,6 @@ _kernelBuffer(GL_DYNAMIC_DRAW)
 	
 	_combineFramebuffer.attachColor(0, _outputTexture);
 	_combineFramebuffer.addToDrawBuffers(0, 0);
-	
-	{
-		ShaderProgramCreateInfo createInfo;
-		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
-		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/extract bright");
-		_extractBrightProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
-	}
-	
-	{
-		ShaderProgramCreateInfo createInfo;
-		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
-		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/blur");
-		_blurProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
-	}
-	
-	{
-		ShaderProgramCreateInfo createInfo;
-		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
-		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/combine");
-		_combineProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
-	}
-	
-	{
-		ShaderProgramCreateInfo createInfo;
-		createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/fullscreen quad");
-		createInfo.shadersFiles[GL_FRAGMENT_SHADER].emplace_back("internal/post-processing/bloom/passthroughLevel");
-		_passthroughLevelProgram = Engine::getGlobalRM().requestShaderProgram(createInfo);
-	}
 }
 
 GLTexture* BloomEffect::renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera)
@@ -142,8 +129,8 @@ void BloomEffect::extractBright(GLTexture* original)
 {
 	_extractBrightFramebuffer.bindForDrawing();
 	
-	_extractBrightProgram->setUniform("u_colorTexture", original->getBindlessTextureHandle());
-	_extractBrightProgram->bind();
+	_extractBrightProgram.setUniform("u_colorTexture", original->getBindlessTextureHandle());
+	_extractBrightProgram.bind();
 	
 	RenderHelper::drawScreenQuad();
 }
@@ -162,10 +149,10 @@ void BloomEffect::blur(int level)
 	_blurFramebuffers[level].attachColor(0, _blurTextures[1], level);
 	_blurFramebuffers[level].bindForDrawing();
 	
-	_blurProgram->setUniform("u_sourceTexture", _blurTextures[0].getBindlessTextureHandle());
-	_blurProgram->setUniform("u_horizontal", false);
-	_blurProgram->setUniform("u_mipmapLevel", level);
-	_blurProgram->bind();
+	_blurProgram.setUniform("u_sourceTexture", _blurTextures[0].getBindlessTextureHandle());
+	_blurProgram.setUniform("u_horizontal", false);
+	_blurProgram.setUniform("u_mipmapLevel", level);
+	_blurProgram.bind();
 	
 	RenderHelper::drawScreenQuad();
 	
@@ -173,10 +160,10 @@ void BloomEffect::blur(int level)
 	_blurFramebuffers[level].attachColor(0, _blurTextures[0], level);
 	_blurFramebuffers[level].bindForDrawing();
 	
-	_blurProgram->setUniform("u_sourceTexture", _blurTextures[1].getBindlessTextureHandle());
-	_blurProgram->setUniform("u_horizontal", true);
-	_blurProgram->setUniform("u_mipmapLevel", level);
-	_blurProgram->bind();
+	_blurProgram.setUniform("u_sourceTexture", _blurTextures[1].getBindlessTextureHandle());
+	_blurProgram.setUniform("u_horizontal", true);
+	_blurProgram.setUniform("u_mipmapLevel", level);
+	_blurProgram.bind();
 	
 	RenderHelper::drawScreenQuad();
 	
@@ -196,9 +183,9 @@ void BloomEffect::combineWithNextLevel(int level)
 	_blurFramebuffers[level-1].attachColor(0, _blurTextures[0], level-1);
 	_blurFramebuffers[level-1].bindForDrawing();
 	
-	_passthroughLevelProgram->setUniform("u_colorTexture", _blurTextures[0].getBindlessTextureHandle());
-	_passthroughLevelProgram->setUniform("u_level", level);
-	_passthroughLevelProgram->bind();
+	_passthroughLevelProgram.setUniform("u_colorTexture", _blurTextures[0].getBindlessTextureHandle());
+	_passthroughLevelProgram.setUniform("u_level", level);
+	_passthroughLevelProgram.bind();
 	
 	RenderHelper::drawScreenQuad();
 	
@@ -213,9 +200,9 @@ void BloomEffect::combine()
 {
 	_combineFramebuffer.bindForDrawing();
 	
-	_combineProgram->setUniform("u_colorTexture1", _nonBrightTexture.getBindlessTextureHandle());
-	_combineProgram->setUniform("u_colorTexture2", _blurTextures[0].getBindlessTextureHandle());
-	_combineProgram->bind();
+	_combineProgram.setUniform("u_colorTexture1", _nonBrightTexture.getBindlessTextureHandle());
+	_combineProgram.setUniform("u_colorTexture2", _blurTextures[0].getBindlessTextureHandle());
+	_combineProgram.bind();
 	
 	RenderHelper::drawScreenQuad();
 }

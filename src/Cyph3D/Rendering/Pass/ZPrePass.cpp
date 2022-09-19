@@ -4,7 +4,6 @@
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Mesh.h"
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/Shape.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
@@ -18,16 +17,14 @@ _depthTexture(TextureCreateInfo
 {
 	.size = size,
 	.internalFormat = GL_DEPTH_COMPONENT24
+}),
+_shader({
+	{GL_VERTEX_SHADER, "internal/z-prepass/z-prepass.vert"}
 })
 {
 	_framebuffer.attachDepth(_depthTexture);
 	
 	textures["z-prepass_depth"] = &_depthTexture;
-	
-	ShaderProgramCreateInfo createInfo;
-	createInfo.shadersFiles[GL_VERTEX_SHADER].emplace_back("internal/z-prepass/z-prepass");
-	
-	_shader = Engine::getGlobalRM().requestShaderProgram(createInfo);
 	
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
 }
@@ -46,7 +43,7 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures,
 	
 	_framebuffer.bindForDrawing();
 	_vao.bind();
-	_shader->bind();
+	_shader.bind();
 	
 	glm::mat4 vp = camera.getProjection() * camera.getView();
 	
@@ -65,7 +62,7 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures,
 		
 		glm::mat4 mvp = vp * shapeData.matrix;
 		
-		_shader->setUniform("u_mvp", mvp);
+		_shader.setUniform("u_mvp", mvp);
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}

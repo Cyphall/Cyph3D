@@ -3,10 +3,9 @@
 #include "Cyph3D/GLObject/Mesh.h"
 #include "Cyph3D/GLObject/GLMutableBuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
-
-class GLShaderProgram;
 
 class RaytracePass : public RenderPass
 {
@@ -81,7 +80,7 @@ private:
 		GLSL_bool contributeShadows;
 	};
 	
-	GLShaderProgram* _shader;
+	GLShaderProgram _shader;
 	GLTexture _rawRenderTexture;
 	GLTexture _objectIndexTexture;
 	

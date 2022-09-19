@@ -1,9 +1,8 @@
 #pragma once
 
 #include "Cyph3D/GLObject/GLVertexArray.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
-
-class GLShaderProgram;
 
 class ShadowMapPass : public RenderPass
 {
@@ -17,6 +16,6 @@ public:
 private:
 	GLVertexArray _vao;
 	
-	GLShaderProgram* _directionalLightShadowMappingProgram;
-	GLShaderProgram* _pointLightShadowMappingProgram;
+	GLShaderProgram _directionalLightShadowMappingProgram;
+	GLShaderProgram _pointLightShadowMappingProgram;
 };

@@ -7,12 +7,12 @@
 #include <map>
 #include <string>
 #include <vector>
-
-struct ShaderProgramCreateInfo;
+#include <unordered_map>
 
 class GLShaderProgram : public GLObject
 {
 public:
+	explicit GLShaderProgram(const std::unordered_map<GLenum, std::string>& shadersPaths);
 	~GLShaderProgram() override;
 	
 	void bind();
@@ -93,11 +93,7 @@ public:
 #pragma endregion
 
 private:
-	friend class ResourceManager;
-	
-	explicit GLShaderProgram(const ShaderProgramCreateInfo& createInfo);
-
-	static GLuint loadShader(GLenum type, const std::vector<std::string>& files);
+	static GLuint loadShader(GLenum type, const std::string& file);
 
 	int getUniformLocation(const char* name);
 	

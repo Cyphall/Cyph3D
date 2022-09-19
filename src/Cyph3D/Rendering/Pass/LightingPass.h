@@ -2,11 +2,10 @@
 
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/GLObject/GLMutableBuffer.h"
-
-class GLShaderProgram;
 
 class LightingPass : public RenderPass
 {
@@ -44,7 +43,7 @@ private:
 	GLMutableBuffer<GLSL_PointLight> _pointLightsBuffer;
 	GLMutableBuffer<GLSL_DirectionalLight> _directionalLightsBuffer;
 	
-	GLShaderProgram* _shader;
+	GLShaderProgram _shader;
 	GLFramebuffer _framebuffer;
 	GLTexture _rawRenderTexture;
 };

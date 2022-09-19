@@ -3,9 +3,8 @@
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/GLMutableBuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
-
-class GLShaderProgram;
 
 class BloomEffect : public PostProcessingEffect
 {
@@ -22,16 +21,16 @@ public:
 	
 private:
 	GLFramebuffer _extractBrightFramebuffer;
-	GLShaderProgram* _extractBrightProgram;
+	GLShaderProgram _extractBrightProgram;
 	GLTexture _nonBrightTexture;
 	
 	std::array<GLTexture, 2> _blurTextures;
 	std::array<GLFramebuffer, 6> _blurFramebuffers;
-	GLShaderProgram* _blurProgram;
-	GLShaderProgram* _passthroughLevelProgram;
+	GLShaderProgram _blurProgram;
+	GLShaderProgram _passthroughLevelProgram;
 	
 	GLFramebuffer _combineFramebuffer;
-	GLShaderProgram* _combineProgram;
+	GLShaderProgram _combineProgram;
 	GLTexture _outputTexture;
 	
 	GLMutableBuffer<float> _kernelBuffer;

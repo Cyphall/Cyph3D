@@ -3,9 +3,8 @@
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/GLObject/GLVertexArray.h"
+#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
-
-class GLShaderProgram;
 
 class ZPrePass : public RenderPass
 {
@@ -17,7 +16,7 @@ public:
 	void restorePipelineImpl() override;
 	
 private:
-	GLShaderProgram* _shader;
+	GLShaderProgram _shader;
 	GLFramebuffer _framebuffer;
 	GLTexture _depthTexture;
 	GLVertexArray _vao;

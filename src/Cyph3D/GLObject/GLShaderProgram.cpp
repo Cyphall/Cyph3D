@@ -1,8 +1,6 @@
 #include "GLShaderProgram.h"
 
-#include "Cyph3D/GLObject/CreateInfo/ShaderProgramCreateInfo.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Helper/ShaderHelper.h"
 #include "Cyph3D/Helper/StringHelper.h"
 #include "Cyph3D/Logging/Logger.h"
 
@@ -13,7 +11,7 @@
 #include <sstream>
 #include <stdexcept>
 
-GLShaderProgram::GLShaderProgram(const ShaderProgramCreateInfo& createInfo)
+GLShaderProgram::GLShaderProgram(const std::unordered_map<GLenum, std::string>& shadersPaths)
 {
 	_handle = glCreateProgram();
 	if (_handle == 0)
@@ -23,9 +21,9 @@ GLShaderProgram::GLShaderProgram(const ShaderProgramCreateInfo& createInfo)
 	
 	std::vector<GLuint> shaders;
 	
-	for (const auto& [type, files] : createInfo.shadersFiles)
+	for (const auto& [type, file] : shadersPaths)
 	{
-		GLuint shader = loadShader(type, files);
+		GLuint shader = loadShader(type, file);
 		glAttachShader(_handle, shader);
 		shaders.push_back(shader);
 	}
@@ -51,11 +49,9 @@ GLShaderProgram::GLShaderProgram(const ShaderProgramCreateInfo& createInfo)
 		glGetProgramInfoLog(_handle, length, nullptr, error.data());
 		
 		std::string formattedFiles;
-		for (const auto& [shaderType, files] : createInfo.shadersFiles)
+		for (const auto& [shaderType, file] : shadersPaths)
 		{
-			std::string extension = ShaderHelper::shaderTypeToExtension(shaderType);
-			for (const std::string& file : files)
-				formattedFiles += std::format("{}.{}\n", file, extension);
+			formattedFiles += std::format("{}\n", file);
 		}
 		
 		throw std::runtime_error(std::format("Error while linking shaders:\n{}{}", formattedFiles, error));
@@ -113,7 +109,7 @@ void GLShaderProgram::bind()
 	glUseProgram(_handle);
 }
 
-GLuint GLShaderProgram::loadShader(GLenum type, const std::vector<std::string>& files)
+GLuint GLShaderProgram::loadShader(GLenum type, const std::string& file)
 {
 	GLuint shader = glCreateShader(type);
 	
@@ -123,20 +119,14 @@ GLuint GLShaderProgram::loadShader(GLenum type, const std::vector<std::string>& 
 	}
 	
 	std::string source;
-	
-	std::string extension = ShaderHelper::shaderTypeToExtension(type);
-	
-	for (const std::string& file : files)
+	try
 	{
-		try
-		{
-			source += FileHelper::readAllText(std::format("resources/shaders/{}.{}", file, extension));
-		}
-		catch (const std::ios_base::failure& e)
-		{
-			Logger::error(std::format("Unable to open shader file \"{}.{}\"", file, extension));
-			throw e;
-		}
+		source = FileHelper::readAllText(std::format("resources/shaders/{}", file));
+	}
+	catch (const std::ios_base::failure& e)
+	{
+		Logger::error(std::format("Unable to open shader file \"{}\"", file));
+		throw e;
 	}
 	
 	const char* c_source = source.c_str();
@@ -155,11 +145,7 @@ GLuint GLShaderProgram::loadShader(GLenum type, const std::vector<std::string>& 
 		error.resize(length - 1);
 		glGetShaderInfoLog(shader, length, nullptr, error.data());
 		
-		std::string formattedFiles;
-		for (const std::string& file : files)
-			formattedFiles += std::format("{}.{}\n", file, extension);
-		
-		throw std::runtime_error(std::format("Error while compiling shaders:\n{}{}", formattedFiles, error));
+		throw std::runtime_error(std::format("Error while compiling shaders:\n{}\n{}", file, error));
 	}
 	
 	return shader;

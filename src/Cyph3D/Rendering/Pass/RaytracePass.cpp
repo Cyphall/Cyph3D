@@ -6,7 +6,6 @@
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
 #include "Cyph3D/GLObject/Material/Material.h"
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
 #include "Cyph3D/Rendering/Shape/PlaneShape.h"
@@ -36,13 +35,11 @@ _sphereBuffer(GL_STREAM_DRAW),
 _planeBuffer(GL_STREAM_DRAW),
 _meshBuffer(GL_STREAM_DRAW),
 _meshVertexDataBuffer(GL_STREAM_DRAW),
-_meshIndexDataBuffer(GL_STREAM_DRAW)
+_meshIndexDataBuffer(GL_STREAM_DRAW),
+_shader({
+	{GL_COMPUTE_SHADER, "internal/raytracing/raytrace.comp"}
+})
 {
-	ShaderProgramCreateInfo lightingShaderProgramCreateInfo;
-	lightingShaderProgramCreateInfo.shadersFiles[GL_COMPUTE_SHADER].emplace_back("internal/raytracing/raytrace");
-	
-	_shader = Engine::getGlobalRM().requestShaderProgram(lightingShaderProgramCreateInfo);
-	
 	textures["raw_render"] = &_rawRenderTexture;
 	textures["objectIndex"] = &_objectIndexTexture;
 }
@@ -59,11 +56,11 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	
 	const std::array<glm::vec3, 4>& cornerRays = camera.getCornerRays();
 	
-	_shader->setUniform("u_camera.position", camera.getPosition());
-	_shader->setUniform("u_camera.rayTL", cornerRays[0]);
-	_shader->setUniform("u_camera.rayTR", cornerRays[1]);
-	_shader->setUniform("u_camera.rayBL", cornerRays[2]);
-	_shader->setUniform("u_camera.rayBR", cornerRays[3]);
+	_shader.setUniform("u_camera.position", camera.getPosition());
+	_shader.setUniform("u_camera.rayTL", cornerRays[0]);
+	_shader.setUniform("u_camera.rayTR", cornerRays[1]);
+	_shader.setUniform("u_camera.rayBL", cornerRays[2]);
+	_shader.setUniform("u_camera.rayBR", cornerRays[3]);
 	
 #pragma endregion
 #pragma region Skybox
@@ -72,12 +69,12 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	
 	if (skybox && skybox->isResourceReady())
 	{
-		_shader->setUniform("u_skybox.enabled", true);
-		_shader->setUniform("u_skybox.cubemap", skybox->getResource().getBindlessTextureHandle());
+		_shader.setUniform("u_skybox.enabled", true);
+		_shader.setUniform("u_skybox.cubemap", skybox->getResource().getBindlessTextureHandle());
 	}
 	else
 	{
-		_shader->setUniform("u_skybox.enabled", false);
+		_shader.setUniform("u_skybox.enabled", false);
 	}
 
 #pragma endregion
@@ -241,12 +238,12 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	
 #pragma endregion
 	
-	_shader->setUniform("u_resolution", glm::uvec2(getSize()));
-	_shader->setUniform("o_renderImage", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
-	_shader->setUniform("o_objectIndexImage", _objectIndexTexture.getBindlessImageHandle(GL_R32I, GL_WRITE_ONLY));
+	_shader.setUniform("u_resolution", glm::uvec2(getSize()));
+	_shader.setUniform("o_renderImage", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
+	_shader.setUniform("o_objectIndexImage", _objectIndexTexture.getBindlessImageHandle(GL_R32I, GL_WRITE_ONLY));
 	
-	_shader->bind();
-	_shader->dispatchAuto(glm::ivec3(getSize(), 1));
+	_shader.bind();
+	_shader.dispatchAuto(glm::ivec3(getSize(), 1));
 	
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
