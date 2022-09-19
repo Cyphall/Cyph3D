@@ -1,0 +1,7 @@
+{
+	"albedo": "materials/LinkedToMesh/corridor/col.png",
+	"normal": "materials/LinkedToMesh/corridor/nrm.png",
+	"roughness": "materials/LinkedToMesh/corridor/rgh.png",
+	"metalness": "materials/LinkedToMesh/corridor/met.png",
+	"emissive": "materials/LinkedToMesh/corridor/emis.png"
+}

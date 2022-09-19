@@ -14,7 +14,7 @@ public:
 private:
 	friend class ResourceManager;
 
-	Image(const std::string& name, ImageType type, ResourceManager& rm);
+	Image(const std::string& path, ImageType type, ResourceManager& rm);
 
 	bool load_step1_mt();
 	bool load_step2_mt();

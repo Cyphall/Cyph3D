@@ -1,0 +1,5 @@
+{
+	"albedo": "materials/Fire/col.png",
+	"roughness": "materials/Fire/rgh.png",
+	"emissive": "materials/Fire/emis.png"
+}

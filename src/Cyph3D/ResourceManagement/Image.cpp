@@ -36,8 +36,8 @@ struct Image::LoadData
 	// step 3: wait for the fence
 };
 
-Image::Image(const std::string& name, ImageType type, ResourceManager& rm):
-	Resource(name)
+Image::Image(const std::string& path, ImageType type, ResourceManager& rm):
+	Resource(path)
 {
 	_loadData = std::make_unique<LoadData>();
 	_loadData->rm = &rm;
@@ -105,16 +105,16 @@ static bool readProcessedTexture(const std::filesystem::path& path, std::vector<
 
 bool Image::load_step1_mt()
 {
-	std::filesystem::path path = std::format("resources/materials/{}", _name);
-	std::filesystem::path processedTexturePath = ("cache" / path).replace_extension(".c3dcache");
+	std::filesystem::path absolutePath = FileHelper::getResourcePath() / _name;
+	std::filesystem::path cachePath = FileHelper::getResourceCachePath() / (_name + ".c3dcache");
 
-	if (!std::filesystem::exists(processedTexturePath) || !readProcessedTexture(processedTexturePath, _loadData->compressedData))
+	if (!std::filesystem::exists(cachePath) || !readProcessedTexture(cachePath, _loadData->compressedData))
 	{
-		StbImage imageData = StbImage(path);
+		StbImage imageData = StbImage(absolutePath);
 
 		if (!imageData.isValid())
 		{
-			throw std::runtime_error(std::format("Unable to load image {} from disk", path.generic_string()));
+			throw std::runtime_error(std::format("Unable to load image {} from disk", absolutePath.generic_string()));
 		}
 
 		TextureProperties textureProperties = TextureHelper::getTextureProperties(_loadData->type);
@@ -149,7 +149,7 @@ bool Image::load_step1_mt()
 			glGetTextureLevelParameteriv(compressorTexture.getHandle(), i, GL_TEXTURE_HEIGHT, &_loadData->compressedData[i].size.y);
 		}
 
-		writeProcessedTexture(processedTexturePath, _loadData->compressedData);
+		writeProcessedTexture(cachePath, _loadData->compressedData);
 	}
 
 	TextureProperties textureProperties = TextureHelper::getTextureProperties(_loadData->type);

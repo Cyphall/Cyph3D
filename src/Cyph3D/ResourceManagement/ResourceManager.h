@@ -20,9 +20,9 @@ public:
 	~ResourceManager();
 	
 	Model* requestModel(const std::string& path);
-	Image* requestImage(const std::string& name, ImageType type);
+	Image* requestImage(const std::string& path, ImageType type);
 	Skybox* requestSkybox(const std::string& path);
-	Material* requestMaterial(const std::string& name);
+	Material* requestMaterial(const std::string& path);
 	
 	void onUpdate();
 	

@@ -10,6 +10,8 @@
 #include "Cyph3D/Rendering/Shape/PlaneShape.h"
 #include "Cyph3D/Rendering/Shape/SphereShape.h"
 #include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/Helper/FileHelper.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -56,7 +58,7 @@ void ShapeRenderer::setContributeShadows(bool contributeShadows)
 ObjectSerialization ShapeRenderer::serialize() const
 {
 	ObjectSerialization serialization;
-	serialization.version = 1;
+	serialization.version = 2;
 	serialization.identifier = getIdentifier();
 	
 	serialization.data["shape"] = getShape().serialize().toJson();
@@ -64,7 +66,7 @@ ObjectSerialization ShapeRenderer::serialize() const
 	Material* material = getMaterial();
 	if (material)
 	{
-		serialization.data["material"] = material->getName();
+		serialization.data["material"] = material->getPath();
 	}
 	else
 	{
@@ -82,7 +84,25 @@ void ShapeRenderer::deserialize(const ObjectSerialization& shapeRendererSerializ
 	
 	if (!shapeRendererSerialization.data["material"].is_null())
 	{
-		setMaterial(scene.getRM().requestMaterial(shapeRendererSerialization.data["material"].get<std::string>()));
+		if (shapeRendererSerialization.version <= 1)
+		{
+			Logger::info("ShapeRenderer deseralization: converting material identifier from version 1.");
+			std::string oldName = shapeRendererSerialization.data["material"].get<std::string>();
+			std::string newFileName = std::filesystem::path(oldName).filename().generic_string();
+			std::string convertedPath = std::format("materials/{}/{}.c3dmaterial", oldName, newFileName);
+			if (std::filesystem::exists(FileHelper::getResourcePath() / convertedPath))
+			{
+				setMaterial(scene.getRM().requestMaterial(convertedPath));
+			}
+			else
+			{
+				Logger::warning("ShapeRenderer deseralization: unable to convert material identifier from version 1.");
+			}
+		}
+		else
+		{
+			setMaterial(scene.getRM().requestMaterial(shapeRendererSerialization.data["material"].get<std::string>()));
+		}
 	}
 
 	ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(shapeRendererSerialization.data["shape"]);
@@ -114,11 +134,11 @@ void ShapeRenderer::onPreRender(RenderContext& context)
 void ShapeRenderer::onDrawUi()
 {
 	Material* material = getDrawingMaterial();
-	std::string materialName = material->getName();
-	ImGui::InputText("Material", &materialName, ImGuiInputTextFlags_ReadOnly);
+	std::string materialPath = material->getPath();
+	ImGui::InputText("Material", &materialPath, ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::BeginDragDropTarget())
 	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MaterialDragDrop");
+		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_material");
 		if (payload)
 		{
 			std::string newMaterialName = *(*static_cast<const std::string**>(payload->Data));

@@ -1,0 +1,6 @@
+{
+	"albedo": "materials/Rocks/RockVerticalStreaks/col.png",
+	"normal": "materials/Rocks/RockVerticalStreaks/nrm.png",
+	"roughness": "materials/Rocks/RockVerticalStreaks/rgh.png",
+	"displacement": "materials/Rocks/RockVerticalStreaks/disp.png"
+}

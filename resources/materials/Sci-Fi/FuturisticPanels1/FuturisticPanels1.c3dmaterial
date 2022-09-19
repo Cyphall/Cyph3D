@@ -1,0 +1,7 @@
+{
+	"albedo": "materials/Sci-Fi/FuturisticPanels1/col.png",
+	"normal": "materials/Sci-Fi/FuturisticPanels1/nrm.png",
+	"roughness": "materials/Sci-Fi/FuturisticPanels1/rgh.png",
+	"metalness": "materials/Sci-Fi/FuturisticPanels1/met.png",
+	"displacement": "materials/Sci-Fi/FuturisticPanels1/disp.png"
+}

@@ -1,0 +1,6 @@
+{
+	"albedo": "materials/Metals/RustedMetal/col.png",
+	"normal": "materials/Metals/RustedMetal/nrm.png",
+	"roughness": "materials/Metals/RustedMetal/rgh.png",
+	"metalness": "materials/Metals/RustedMetal/met.png"
+}

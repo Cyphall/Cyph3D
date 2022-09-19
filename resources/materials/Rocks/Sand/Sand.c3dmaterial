@@ -1,0 +1,6 @@
+{
+	"albedo": "materials/Rocks/Sand/vd3lecfs_2K_Albedo.jpg",
+	"normal": "materials/Rocks/Sand/vd3lecfs_2K_Normal.jpg",
+	"roughness": "materials/Rocks/Sand/vd3lecfs_2K_Roughness.jpg",
+	"displacement": "materials/Rocks/Sand/vd3lecfs_2K_Displacement.jpg"
+}

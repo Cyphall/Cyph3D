@@ -1,0 +1,7 @@
+{
+	"albedo": "materials/Metals/OrnateBrass/col.png",
+	"normal": "materials/Metals/OrnateBrass/nrm.png",
+	"roughness": "materials/Metals/OrnateBrass/rgh.png",
+	"metalness": "materials/Metals/OrnateBrass/met.png",
+	"displacement": "materials/Metals/OrnateBrass/disp.png"
+}

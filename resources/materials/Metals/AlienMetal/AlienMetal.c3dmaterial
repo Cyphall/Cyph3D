@@ -1,0 +1,7 @@
+{
+	"albedo": "materials/Metals/AlienMetal/col.png",
+	"normal": "materials/Metals/AlienMetal/nrm.png",
+	"roughness": "materials/Metals/AlienMetal/rgh.png",
+	"metalness": "materials/Metals/AlienMetal/met.png",
+	"displacement": "materials/Metals/AlienMetal/disp.png"
+}

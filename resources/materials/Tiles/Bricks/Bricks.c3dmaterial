@@ -1,0 +1,6 @@
+{
+	"albedo": "materials/Tiles/Bricks/col.jpg",
+	"normal": "materials/Tiles/Bricks/nrm.jpg",
+	"roughness": "materials/Tiles/Bricks/rgh.jpg",
+	"displacement": "materials/Tiles/Bricks/disp.jpg"
+}

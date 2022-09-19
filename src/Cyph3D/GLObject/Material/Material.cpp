@@ -7,6 +7,7 @@
 #include "Cyph3D/Helper/TextureHelper.h"
 #include "Cyph3D/ResourceManagement/Image.h"
 #include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Helper/FileHelper.h"
 
 #include <glm/gtc/matrix_inverse.hpp>
 #include <format>
@@ -42,10 +43,10 @@ std::map<MaterialMapType, MaterialMapDefinition> Material::_mapDefinitions
 	}
 };
 
-Material::Material(std::string name, ResourceManager* resourceManager):
-_name(std::move(name))
+Material::Material(const std::string& path, ResourceManager* resourceManager):
+_path(path)
 {
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(std::format("resources/materials/{}/material.json", _name));
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getResourcePath() / _path);
 	
 	for (const auto& [mapType, mapDefinition] : _mapDefinitions)
 	{
@@ -68,26 +69,21 @@ _name(std::move(name))
 		if (jsonRoot.contains(mapDefinition.name))
 		{
 			materialMap.imageTexture = resourceManager->requestImage(
-					std::format("{}/{}", _name, jsonRoot[mapDefinition.name].get<std::string>()),
-					mapDefinition.type);
+				jsonRoot[mapDefinition.name].get<std::string>(),
+				mapDefinition.type);
 		}
 	}
 }
 
 void Material::initialize()
 {
-	_missing = Engine::getGlobalRM().requestMaterial("internal/Missing Material");
-	_default = Engine::getGlobalRM().requestMaterial("internal/Default Material");
+	_missing = Engine::getGlobalRM().requestMaterial("materials/internal/Missing Material/Missing Material.c3dmaterial");
+	_default = Engine::getGlobalRM().requestMaterial("materials/internal/Default Material/Default Material.c3dmaterial");
 }
 
-const std::string& Material::getName() const
+const std::string& Material::getPath() const
 {
-	return _name;
-}
-
-void Material::setName(std::string name)
-{
-	_name = std::move(name);
+	return _path;
 }
 
 Material* Material::getDefault()

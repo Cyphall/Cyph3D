@@ -1,0 +1,7 @@
+{
+	"albedo": "materials/Sci-Fi/SpaceCase2/col.png",
+	"normal": "materials/Sci-Fi/SpaceCase2/nrm.png",
+	"roughness": "materials/Sci-Fi/SpaceCase2/rgh.png",
+	"metalness": "materials/Sci-Fi/SpaceCase2/met.png",
+	"displacement": "materials/Sci-Fi/SpaceCase2/disp.png"
+}

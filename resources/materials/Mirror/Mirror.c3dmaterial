@@ -1,0 +1,5 @@
+{
+	"albedo": "materials/Mirror/col.png",
+	"roughness": "materials/Mirror/rgh.png",
+	"metalness": "materials/Mirror/met.png"
+}

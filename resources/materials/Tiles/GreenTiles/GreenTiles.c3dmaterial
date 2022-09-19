@@ -1,0 +1,6 @@
+{
+	"albedo": "materials/Tiles/GreenTiles/col.png",
+	"normal": "materials/Tiles/GreenTiles/nrm.png",
+	"roughness": "materials/Tiles/GreenTiles/rgh.png",
+	"displacement": "materials/Tiles/GreenTiles/disp.png"
+}

@@ -1,0 +1,5 @@
+{
+	"albedo": "materials/Metals/Gold/col.png",
+	"roughness": "materials/Metals/Gold/rgh.png",
+	"metalness": "materials/Metals/Gold/met.png"
+}

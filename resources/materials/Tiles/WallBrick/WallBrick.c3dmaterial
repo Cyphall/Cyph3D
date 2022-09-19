@@ -1,0 +1,6 @@
+{
+	"albedo": "materials/Tiles/WallBrick/col.png",
+	"normal": "materials/Tiles/WallBrick/nrm.png",
+	"roughness": "materials/Tiles/WallBrick/rgh.png",
+	"displacement": "materials/Tiles/WallBrick/disp.png"
+}

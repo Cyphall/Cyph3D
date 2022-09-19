@@ -11,8 +11,7 @@ class ResourceManager;
 class Material
 {
 public:
-	const std::string& getName() const;
-	void setName(std::string name);
+	const std::string& getPath() const;
 	
 	static void initialize();
 	
@@ -24,10 +23,10 @@ public:
 private:
 	friend class ResourceManager;
 
-	explicit Material(std::string name, ResourceManager* resourceManager);
+	explicit Material(const std::string& path, ResourceManager* resourceManager);
 	
 	std::map<MaterialMapType, MaterialMap> _maps;
-	std::string _name;
+	std::string _path;
 	
 	static Material* _default;
 	static Material* _missing;

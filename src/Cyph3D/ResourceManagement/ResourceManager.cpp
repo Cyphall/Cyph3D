@@ -25,12 +25,12 @@ Model* ResourceManager::requestModel(const std::string& path)
 	return it->second.get();
 }
 
-Image* ResourceManager::requestImage(const std::string& name, ImageType type)
+Image* ResourceManager::requestImage(const std::string& path, ImageType type)
 {
-	auto it = _images.find(name);
+	auto it = _images.find(path);
 	if (it == _images.end())
 	{
-		it = _images.try_emplace(name, std::unique_ptr<Image>(new Image(name, type, *this))).first;
+		it = _images.try_emplace(path, std::unique_ptr<Image>(new Image(path, type, *this))).first;
 	}
 
 	return it->second.get();
@@ -47,12 +47,12 @@ Skybox* ResourceManager::requestSkybox(const std::string& path)
 	return it->second.get();
 }
 
-Material* ResourceManager::requestMaterial(const std::string& name)
+Material* ResourceManager::requestMaterial(const std::string& path)
 {
-	auto it = _materials.find(name);
+	auto it = _materials.find(path);
 	if (it == _materials.end())
 	{
-		it = _materials.try_emplace(name, std::unique_ptr<Material>(new Material(name, this))).first;
+		it = _materials.try_emplace(path, std::unique_ptr<Material>(new Material(path, this))).first;
 	}
 
 	return it->second.get();

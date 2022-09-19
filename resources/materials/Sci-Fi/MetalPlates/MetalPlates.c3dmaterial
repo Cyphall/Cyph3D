@@ -1,0 +1,7 @@
+{
+	"albedo": "materials/Sci-Fi/MetalPlates/col.jpg",
+	"normal": "materials/Sci-Fi/MetalPlates/nrm.jpg",
+	"roughness": "materials/Sci-Fi/MetalPlates/rgh.jpg",
+	"metalness": "materials/Sci-Fi/MetalPlates/met.jpg",
+	"displacement": "materials/Sci-Fi/MetalPlates/disp.png"
+}
