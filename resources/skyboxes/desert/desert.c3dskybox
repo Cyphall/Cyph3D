@@ -1,0 +1,8 @@
+{
+	"left": "skyboxes/desert/left.png",
+	"front": "skyboxes/desert/front.png",
+	"right": "skyboxes/desert/right.png",
+	"back": "skyboxes/desert/back.png",
+	"up": "skyboxes/desert/up.png",
+	"down": "skyboxes/desert/down.png"
+}

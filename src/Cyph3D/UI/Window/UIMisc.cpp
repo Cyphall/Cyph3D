@@ -34,13 +34,13 @@ void UIMisc::show()
 		ImGui::Separator();
 
 		Skybox* currentSkybox = Engine::getScene().getSkybox();
-		const std::string& skyboxName = currentSkybox != nullptr ? currentSkybox->getName() : "None";
+		const std::string& skyboxPath = currentSkybox != nullptr ? currentSkybox->getName() : "None";
 
 		// Field is read-only anyway, we can safely remove the const from skyboxName
-		ImGui::InputText("Skybox", &const_cast<std::string&>(skyboxName), ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputText("Skybox", &const_cast<std::string&>(skyboxPath), ImGuiInputTextFlags_ReadOnly);
 		if (ImGui::BeginDragDropTarget())
 		{
-			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SkyboxDragDrop");
+			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_skybox");
 			if (payload)
 			{
 				Engine::getScene().setSkybox(Engine::getScene().getRM().requestSkybox(*(*static_cast<const std::string**>(payload->Data))));

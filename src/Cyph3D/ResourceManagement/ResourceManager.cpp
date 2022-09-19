@@ -36,12 +36,12 @@ Image* ResourceManager::requestImage(const std::string& name, ImageType type)
 	return it->second.get();
 }
 
-Skybox* ResourceManager::requestSkybox(const std::string& name)
+Skybox* ResourceManager::requestSkybox(const std::string& path)
 {
-	auto it = _skyboxes.find(name);
+	auto it = _skyboxes.find(path);
 	if (it == _skyboxes.end())
 	{
-		it = _skyboxes.try_emplace(name, std::unique_ptr<Skybox>(new Skybox(name, *this))).first;
+		it = _skyboxes.try_emplace(path, std::unique_ptr<Skybox>(new Skybox(path, *this))).first;
 	}
 
 	return it->second.get();

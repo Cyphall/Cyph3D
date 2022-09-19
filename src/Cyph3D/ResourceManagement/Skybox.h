@@ -16,7 +16,7 @@ public:
 private:
 	friend class ResourceManager;
 
-	Skybox(const std::string& name, ResourceManager& rm);
+	Skybox(const std::string& path, ResourceManager& rm);
 
 	bool load_step1_mt();
 	bool load_step2_mt();

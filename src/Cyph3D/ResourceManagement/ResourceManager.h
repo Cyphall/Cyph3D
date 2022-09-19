@@ -21,7 +21,7 @@ public:
 	
 	Model* requestModel(const std::string& path);
 	Image* requestImage(const std::string& name, ImageType type);
-	Skybox* requestSkybox(const std::string& name);
+	Skybox* requestSkybox(const std::string& path);
 	Material* requestMaterial(const std::string& name);
 	
 	void onUpdate();

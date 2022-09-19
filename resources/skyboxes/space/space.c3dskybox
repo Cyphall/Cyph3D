@@ -1,0 +1,8 @@
+{
+	"left": "skyboxes/space/space_left.png",
+	"front": "skyboxes/space/space_front.png",
+	"right": "skyboxes/space/space_right.png",
+	"back": "skyboxes/space/space_back.png",
+	"up": "skyboxes/space/space_up.png",
+	"down": "skyboxes/space/space_down.png"
+}

@@ -37,8 +37,8 @@ struct Skybox::LoadData
 	// step 3: wait for the fence
 };
 
-Skybox::Skybox(const std::string& name, ResourceManager& rm):
-	Resource(name)
+Skybox::Skybox(const std::string& path, ResourceManager& rm):
+	Resource(path)
 {
 	_loadData = std::make_unique<LoadData>();
 	_loadData->rm = &rm;
@@ -102,30 +102,31 @@ static bool readProcessedCubemapFace(const std::filesystem::path& path, CubemapF
 
 bool Skybox::load_step1_mt()
 {
-	std::string path = std::format("resources/skyboxes/{}", _name);
+	std::filesystem::path jsonAbsolutePath = FileHelper::getResourcePath() / _name;
 
-	nlohmann::ordered_json root = JsonHelper::loadJsonFromFile(std::format("{}/skybox.json", path));
+	nlohmann::ordered_json root = JsonHelper::loadJsonFromFile(jsonAbsolutePath);
 
 	std::string facePaths[6] = {
-		std::format("{}/{}", path, root["right"].get<std::string>()),
-		std::format("{}/{}", path, root["left"].get<std::string>()),
-		std::format("{}/{}", path, root["down"].get<std::string>()),
-		std::format("{}/{}", path, root["up"].get<std::string>()),
-		std::format("{}/{}", path, root["front"].get<std::string>()),
-		std::format("{}/{}", path, root["back"].get<std::string>())
+		root["right"].get<std::string>(),
+		root["left"].get<std::string>(),
+		root["down"].get<std::string>(),
+		root["up"].get<std::string>(),
+		root["front"].get<std::string>(),
+		root["back"].get<std::string>()
 	};
 	
 	for (int i = 0; i < 6; ++i)
 	{
-		std::filesystem::path processedCubemapFacePath = (std::filesystem::path("cache") / facePaths[i]).replace_extension(".c3dcache");
+		std::filesystem::path absolutePath = FileHelper::getResourcePath() / facePaths[i];
+		std::filesystem::path cachePath = FileHelper::getResourceCachePath() / (facePaths[i] + ".c3dcache");
 		
-		if (!std::filesystem::exists(processedCubemapFacePath) || !readProcessedCubemapFace(processedCubemapFacePath, _loadData->compressedData[i]))
+		if (!std::filesystem::exists(cachePath) || !readProcessedCubemapFace(cachePath, _loadData->compressedData[i]))
 		{
-			StbImage imageData(facePaths[i]);
+			StbImage imageData(absolutePath);
 
 			if (!imageData.isValid())
 			{
-				throw std::runtime_error(std::format("Unable to load image {} from disk", path));
+				throw std::runtime_error(std::format("Unable to load image {} from disk", facePaths[i]));
 			}
 
 			TextureProperties textureProperties = TextureHelper::getTextureProperties(COLOR_SRGB);
@@ -154,7 +155,7 @@ bool Skybox::load_step1_mt()
 
 			_loadData->compressedData[i].size = imageData.getSize();
 
-			writeProcessedCubemapFace(processedCubemapFacePath, _loadData->compressedData[i]);
+			writeProcessedCubemapFace(cachePath, _loadData->compressedData[i]);
 		}
 	}
 
