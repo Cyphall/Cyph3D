@@ -120,7 +120,8 @@ void Scene::load(const std::filesystem::path& path)
 		{
 			Logger::info("Scene deseralization: converting skybox identifier from version 1.");
 			std::string oldName = jsonSkybox["name"].get<std::string>();
-			std::string convertedPath = std::format("skyboxes/{}/{}.c3dskybox", oldName, oldName);
+			std::string newFileName = std::filesystem::path(oldName).filename().generic_string();
+			std::string convertedPath = std::format("skyboxes/{}/{}.c3dskybox", oldName, newFileName);
 			if (std::filesystem::exists(FileHelper::getResourcePath() / convertedPath))
 			{
 				scene.setSkybox(scene.getRM().requestSkybox(convertedPath));
