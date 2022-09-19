@@ -3,13 +3,12 @@
 #include <glm/glm.hpp>
 #include <functional>
 #include <memory>
-#include <string>
+#include <filesystem>
 
 class StbImage
 {
 public:
-	StbImage() = default;
-	explicit StbImage(const std::string& path, int desiredChannels = 0);
+	explicit StbImage(const std::filesystem::path& path, int desiredChannels = 0);
 	
 	void* getPtr() const;
 	int getBitPerChannel() const;

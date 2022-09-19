@@ -110,7 +110,7 @@ bool Image::load_step1_mt()
 
 	if (!std::filesystem::exists(processedTexturePath) || !readProcessedTexture(processedTexturePath, _loadData->compressedData))
 	{
-		StbImage imageData = StbImage(path.generic_string());
+		StbImage imageData = StbImage(path);
 
 		if (!imageData.isValid())
 		{

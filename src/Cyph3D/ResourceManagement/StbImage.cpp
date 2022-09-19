@@ -1,26 +1,29 @@
 #include "StbImage.h"
 
 #include <stb_image.h>
+#include <string>
 
-StbImage::StbImage(const std::string& path, int desiredChannels):
+StbImage::StbImage(const std::filesystem::path& path, int desiredChannels):
 _data8bit(nullptr, stbi_image_free),
 _data16bit(nullptr, stbi_image_free),
 _data32bit(nullptr, stbi_image_free)
 {
-	if (stbi_is_hdr(path.c_str()))
+	std::string pathStr = path.generic_string();
+	
+	if (stbi_is_hdr(pathStr.c_str()))
 	{
 		_bitPerChannel = 32;
-		_data32bit.reset(stbi_loadf(path.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
+		_data32bit.reset(stbi_loadf(pathStr.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
 	}
-	else if (stbi_is_16_bit(path.c_str()))
+	else if (stbi_is_16_bit(pathStr.c_str()))
 	{
 		_bitPerChannel = 16;
-		_data16bit.reset(stbi_load_16(path.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
+		_data16bit.reset(stbi_load_16(pathStr.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
 	}
 	else
 	{
 		_bitPerChannel = 8;
-		_data8bit.reset(stbi_load(path.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
+		_data8bit.reset(stbi_load(pathStr.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
 	}
 }
 
