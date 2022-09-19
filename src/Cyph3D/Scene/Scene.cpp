@@ -97,7 +97,7 @@ ResourceManager& Scene::getRM()
 
 void Scene::load(const std::filesystem::path& path)
 {
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(path.generic_string());
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(path);
 
 	int version = jsonRoot["version"].get<int>();
 	
