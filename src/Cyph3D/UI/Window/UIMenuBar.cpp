@@ -60,12 +60,6 @@ void UIMenuBar::show()
 		{
 			ImGui::Checkbox("Show ImGui Demo Window", &_showDemoWindow);
 			
-//			bool gbufferDebug = Engine::getRenderer().getDebug();
-//			if (ImGui::Checkbox("Show GBuffer Debug View", &gbufferDebug))
-//			{
-//				Engine::getRenderer().setDebug(gbufferDebug);
-//			}
-			
 			ImGui::EndMenu();
 		}
 		
