@@ -218,7 +218,9 @@ bool UIAssetBrowser::drawRightPanelEntry(const std::string& id, const char* icon
 	if (ImGui::IsItemHovered())
 	{
 		doubleClicked = ImGui::IsMouseDoubleClicked(0);
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(80, 80, 80, 255));
 		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBgHovered]));
+		ImGui::PopStyleColor();
 	}
 	
 	glm::vec3 iconColor = glm::vec4(style.Colors[ImGuiCol_Text]);
