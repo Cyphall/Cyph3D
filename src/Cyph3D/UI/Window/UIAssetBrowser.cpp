@@ -220,10 +220,15 @@ bool UIAssetBrowser::drawRightPanelEntry(const std::string& id, const char* icon
 		doubleClicked = ImGui::IsMouseDoubleClicked(0);
 		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBgHovered]));
 	}
+	
+	glm::vec3 iconColor = glm::vec4(style.Colors[ImGuiCol_Text]);
+	iconColor -= 0.5f;
+	iconColor *= 0.7f;
+	iconColor += 0.5f;
 
 	ImGui::PushFont(_bigFont);
 	glm::vec2 iconSize = ImGui::CalcTextSize(icon);
-	drawList->AddText(contentOrigin + iconOffset + (iconAvailableSize / 2.0f - iconSize / 2.0f), ImGui::GetColorU32(style.Colors[ImGuiCol_Text]), icon);
+	drawList->AddText(contentOrigin + iconOffset + (iconAvailableSize / 2.0f - iconSize / 2.0f), ImGui::GetColorU32(glm::vec4(iconColor, style.Colors[ImGuiCol_Text].w)), icon);
 	ImGui::PopFont();
 
 	glm::vec2 nameSize = ImGui::CalcTextSize(name.c_str());
