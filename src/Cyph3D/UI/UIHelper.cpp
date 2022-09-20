@@ -153,7 +153,7 @@ void UIHelper::initStyles()
 	style.Colors[ImGuiCol_ButtonActive] = normalizeColor(53, 53, 53, 255);
 	
 	style.Colors[ImGuiCol_Header] = normalizeColor(90, 90, 90, 255);
-	style.Colors[ImGuiCol_HeaderHovered] = normalizeColor(100, 100, 100, 255);
+	style.Colors[ImGuiCol_HeaderHovered] = normalizeColor(110, 110, 110, 255);
 	style.Colors[ImGuiCol_HeaderActive] = normalizeColor(70, 70, 70, 255);
 	
 	style.Colors[ImGuiCol_ResizeGrip] = normalizeColor(50, 50, 50, 255);
