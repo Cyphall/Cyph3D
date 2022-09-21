@@ -39,7 +39,7 @@ void UIMenuBar::show()
 				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogOpen({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",
-						.fileTypeExtensions = L"*.c3ds"
+						.fileTypeExtensions = L"*.c3dscene"
 					}
 				}, "resources/scenes");
 				
@@ -62,7 +62,7 @@ void UIMenuBar::show()
 				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",
-						.fileTypeExtensions = L"*.c3ds"
+						.fileTypeExtensions = L"*.c3dscene"
 					}
 				}, "resources/scenes", scene.getName());
 				
