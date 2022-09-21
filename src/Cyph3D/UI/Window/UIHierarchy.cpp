@@ -118,15 +118,13 @@ void UIHierarchy::addRootToTree()
 	
 	if (open)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
-		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 16);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 14 * Engine::getWindow().getPixelScale());
 		//Add root children
 		for (Transform* child : Engine::getScene().getRoot().getChildren())
 		{
 			addObjectToTree(child);
 		}
-		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 		
