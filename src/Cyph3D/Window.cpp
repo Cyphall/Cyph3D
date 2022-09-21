@@ -49,6 +49,13 @@ glm::ivec2 Window::getSize()
 	return size;
 }
 
+float Window::getPixelScale() const
+{
+	float pixelScale;
+	glfwGetWindowContentScale(_glfwWindow, nullptr, &pixelScale);
+	return pixelScale;
+}
+
 glm::dvec2 Window::getCursorPos() const
 {
 	glm::dvec2 pos;

@@ -16,6 +16,8 @@ public:
 	
 	glm::ivec2 getSize();
 	
+	float getPixelScale() const;
+	
 	glm::dvec2 getCursorPos() const;
 	void setCursorPos(const glm::dvec2& pos);
 	
