@@ -68,8 +68,8 @@ void UIAssetBrowser::draw()
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImRect boundingBox;
 		boundingBox.Min = glm::vec2(window->DC.CursorPos) + glm::vec2(_size1, 0.0f);
-		boundingBox.Max = glm::vec2(boundingBox.Min) + glm::vec2(ImGui::CalcItemSize({3.0f, -1.0f}, 0.0f, 0.0f));
-		ImGui::SplitterBehavior(boundingBox, window->GetID("asset_browser_splitter"), ImGuiAxis_X, &_size1, &_size2, 0, 0);
+		boundingBox.Max = glm::vec2(boundingBox.Min) + glm::vec2(ImGui::CalcItemSize({2.0f, -1.0f}, 0.0f, 0.0f));
+		ImGui::SplitterBehavior(boundingBox, window->GetID("asset_browser_splitter"), ImGuiAxis_X, &_size1, &_size2, 0, 0, 4.0f, 0.04f);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::BeginChild("asset_browser_left_panel", ImVec2(_size1, 0), true);
@@ -77,7 +77,7 @@ void UIAssetBrowser::draw()
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
 
-		ImGui::SameLine(0.0f, 3.0f);
+		ImGui::SameLine(0.0f, 2.0f);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 12));
 		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
