@@ -249,12 +249,12 @@ void UIViewport::drawHeader()
 	ImGui::SetNextItemWidth(130);
 	if (ImGui::BeginCombo("Renderer", _rendererType.c_str()))
 	{
-		for (auto it = _allocators.begin(); it != _allocators.end(); it++)
+		for (auto& [name, _] : _allocators)
 		{
-			const bool is_selected = (_rendererType == it->first);
-			if (ImGui::Selectable(it->first.c_str(), is_selected))
+			const bool is_selected = (name == _rendererType);
+			if (ImGui::Selectable(name.c_str(), is_selected))
 			{
-				_rendererType = it->first;
+				_rendererType = name;
 				invalidateRenderer();
 			}
 			
