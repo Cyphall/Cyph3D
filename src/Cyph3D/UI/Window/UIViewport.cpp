@@ -204,7 +204,7 @@ void UIViewport::drawHeader()
 {
 	ImGui::BeginChild("ViewportHeader", ImVec2(0, 30), false, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoScrollbar);
 	
-	ImGui::GetCurrentContext()->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
+	ImGui::GetCurrentWindow()->DC.LayoutType = ImGuiLayoutType_Horizontal;
 	
 	// gizmos
 	if (ImGui::Button("T"))
