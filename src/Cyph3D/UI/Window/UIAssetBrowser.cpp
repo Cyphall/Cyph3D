@@ -2,6 +2,8 @@
 
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Window.h"
 
 #include <imgui_internal.h>
 #include <algorithm>
@@ -38,7 +40,9 @@ static std::string truncate(const std::string& string, float maxWidth)
 }
 
 UIAssetBrowser::UIAssetBrowser(ImFont* bigFont):
-	_bigFont(bigFont)
+	_bigFont(bigFont),
+	_size1(250.0f * Engine::getWindow().getPixelScale()),
+	_previousWidth(_size1)
 {
 
 }
@@ -79,7 +83,7 @@ void UIAssetBrowser::draw()
 
 		ImGui::SameLine(0.0f, 2.0f);
 
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 12));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
 		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
 		drawRightPanel();
 		ImGui::EndChild();
@@ -106,7 +110,7 @@ std::unique_ptr<UIAssetBrowser::Directory> UIAssetBrowser::build(const std::file
 {
 	std::unique_ptr<Directory> directory = std::make_unique<UIAssetBrowser::Directory>();
 	directory->name = path.filename().generic_string();
-	directory->truncatedName = truncate(directory->name, 90);
+	directory->truncatedName = truncate(directory->name, 90 * Engine::getWindow().getPixelScale());
 	directory->path = std::filesystem::relative(path, FileHelper::getResourcePath()).generic_string();
 
 	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path))
@@ -119,7 +123,7 @@ std::unique_ptr<UIAssetBrowser::Directory> UIAssetBrowser::build(const std::file
 		{
 			File& file = directory->files.emplace_back();
 			file.name = entry.path().filename().generic_string();
-			file.truncatedName = truncate(file.name, 90);
+			file.truncatedName = truncate(file.name, 90 * Engine::getWindow().getPixelScale());
 			file.path = std::filesystem::relative(entry.path(), FileHelper::getResourcePath()).generic_string();
 
 			std::string extension = entry.path().extension().generic_string();
@@ -151,8 +155,8 @@ std::unique_ptr<UIAssetBrowser::Directory> UIAssetBrowser::build(const std::file
 
 void UIAssetBrowser::drawLeftPanel()
 {
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
-	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 14);
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 14 * Engine::getWindow().getPixelScale());
 	drawDirectoryNode(_root.get());
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
@@ -203,7 +207,7 @@ bool UIAssetBrowser::drawRightPanelEntry(const std::string& id, const char* icon
 	glm::vec2 entryOrigin = ImGui::GetCursorScreenPos();
 	glm::vec2 contentOrigin = entryOrigin + glm::vec2(style.FramePadding);
 
-	glm::vec2 contentSize(90.0f, _bigFont->FontSize + style.ItemInnerSpacing.y + ImGui::GetFontSize());
+	glm::vec2 contentSize(90.0f * Engine::getWindow().getPixelScale(), _bigFont->FontSize + style.ItemInnerSpacing.y + ImGui::GetFontSize());
 	glm::vec2 entrySize = contentSize + glm::vec2(style.FramePadding) * 2.0f;
 
 	glm::vec2 iconOffset(0, 0);

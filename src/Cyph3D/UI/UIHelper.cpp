@@ -163,24 +163,28 @@ void UIHelper::initStyles()
 	style.Colors[ImGuiCol_Separator] = normalizeColor(110, 110, 110, 255);
 	style.Colors[ImGuiCol_SeparatorHovered] = normalizeColor(130, 130, 130, 255);
 	style.Colors[ImGuiCol_SeparatorActive] = normalizeColor(160, 160, 160, 255);
+	
+	float pixelScale = Engine::getWindow().getPixelScale();
+	style.ScaleAllSizes(pixelScale);
 }
 
 void UIHelper::initFonts()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	
-	// fonts
+	float pixelScale = Engine::getWindow().getPixelScale();
+	
 	ImFontConfig config;
 
-	io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto-Regular.ttf", 14.0f, &config, io.Fonts->GetGlyphRangesDefault());
+	io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto-Regular.ttf", 14.0f * pixelScale, &config, io.Fonts->GetGlyphRangesDefault());
 
 	config.MergeMode = true;
-	config.GlyphOffset = ImVec2(0.0f, 1.0f);
+	config.GlyphOffset = ImVec2(0.0f, 1.0f * pixelScale);
 
 	static const ImWchar smallIconRange[] = {
 		0xF07B, 0xF07B,
 		0};
-	io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 14.0f, &config, smallIconRange);
+	io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 14.0f * pixelScale, &config, smallIconRange);
 
 	io.Fonts->Build();
 
@@ -192,6 +196,5 @@ void UIHelper::initFonts()
 		0xF1B2, 0xF1B2,
 		0xF43C, 0xF43C,
 		0};
-	
-	_bigFont = io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 48.0f, nullptr, largeIconRange);
+	_bigFont = io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 48.0f * pixelScale, nullptr, largeIconRange);
 }

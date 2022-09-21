@@ -202,6 +202,8 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 
 void UIViewport::drawHeader()
 {
+	float pixelScale = Engine::getWindow().getPixelScale();
+	
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImGui::BeginChild("ViewportHeader", ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2.0f + style.WindowPadding.y * 2.0f), false, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoScrollbar);
 	
@@ -223,7 +225,7 @@ void UIViewport::drawHeader()
 		_gizmoMode = ImGuizmo::SCALE;
 	}
 	
-	ImGui::Dummy(glm::vec2(20, 0));
+	ImGui::Dummy({20.0f * pixelScale, 0});
 	
 	if (ImGui::Button(_gizmoSpace == ImGuizmo::LOCAL ? "Local" : "Global"))
 	{
@@ -247,7 +249,7 @@ void UIViewport::drawHeader()
 	
 	ImGui::Separator();
 	
-	ImGui::SetNextItemWidth(130);
+	ImGui::SetNextItemWidth(130.0f * pixelScale);
 	if (ImGui::BeginCombo("Renderer", _rendererType.c_str()))
 	{
 		for (auto& [name, _] : _allocators)

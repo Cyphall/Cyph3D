@@ -60,9 +60,9 @@ private:
 	std::unique_ptr<Directory> _root;
 	const Directory* _selected = nullptr;
 
-	float _size1 = 250;
+	float _size1 = 0;
 	float _size2 = 0;
-	float _previousWidth = 250;
+	float _previousWidth = 0;
 
 	std::function<void(void)> _task;
 };
