@@ -202,7 +202,8 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 
 void UIViewport::drawHeader()
 {
-	ImGui::BeginChild("ViewportHeader", ImVec2(0, 30), false, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoScrollbar);
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImGui::BeginChild("ViewportHeader", ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2.0f + style.WindowPadding.y * 2.0f), false, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoScrollbar);
 	
 	ImGui::GetCurrentWindow()->DC.LayoutType = ImGuiLayoutType_Horizontal;
 	
@@ -265,6 +266,8 @@ void UIViewport::drawHeader()
 	}
 	
 	ImGui::EndChild();
+	
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() - style.ItemSpacing.y);
 }
 
 bool UIViewport::isFullscreen()
