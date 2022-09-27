@@ -138,7 +138,7 @@ bool Skybox::load_step1_mt()
 			textureCreateInfo.magFilter = GL_LINEAR;
 			textureCreateInfo.swizzle = textureProperties.swizzle;
 
-			PixelProperties pixelProperties = TextureHelper::getPixelProperties(imageData.getChannelCount(), imageData.getBitPerChannel());
+			PixelProperties pixelProperties = TextureHelper::getPixelProperties(imageData.getChannelCount(), imageData.getBitsPerChannel());
 
 			GLTexture threadTexture(textureCreateInfo);
 			threadTexture.setData(imageData.getPtr(), pixelProperties.format, pixelProperties.type);

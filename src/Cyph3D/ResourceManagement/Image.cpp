@@ -126,7 +126,7 @@ bool Image::load_step1_mt()
 		_loadData->textureCreateInfo.anisotropicFiltering = true;
 		_loadData->textureCreateInfo.swizzle = textureProperties.swizzle;
 
-		PixelProperties pixelProperties = TextureHelper::getPixelProperties(imageData.getChannelCount(), imageData.getBitPerChannel());
+		PixelProperties pixelProperties = TextureHelper::getPixelProperties(imageData.getChannelCount(), imageData.getBitsPerChannel());
 
 		GLTexture compressorTexture(_loadData->textureCreateInfo);
 		compressorTexture.setData(imageData.getPtr(), pixelProperties.format, pixelProperties.type);

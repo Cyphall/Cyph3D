@@ -10,24 +10,31 @@ _data32bit(nullptr, stbi_image_free)
 {
 	std::string pathStr = path.generic_string();
 	
+	int width;
+	int height;
+	int channelCount;
+	
 	if (stbi_is_hdr(pathStr.c_str()))
 	{
 		_bitPerChannel = 32;
-		_data32bit.reset(stbi_loadf(pathStr.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
+		_data32bit.reset(stbi_loadf(pathStr.c_str(), &width, &height, &channelCount, desiredChannels));
 	}
 	else if (stbi_is_16_bit(pathStr.c_str()))
 	{
 		_bitPerChannel = 16;
-		_data16bit.reset(stbi_load_16(pathStr.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
+		_data16bit.reset(stbi_load_16(pathStr.c_str(), &width, &height, &channelCount, desiredChannels));
 	}
 	else
 	{
 		_bitPerChannel = 8;
-		_data8bit.reset(stbi_load(pathStr.c_str(), &_size.x, &_size.y, &_channelCount, desiredChannels));
+		_data8bit.reset(stbi_load(pathStr.c_str(), &width, &height, &channelCount, desiredChannels));
 	}
+	
+	_size = {width, height};
+	_channelCount = channelCount;
 }
 
-void* StbImage::getPtr() const
+const void* StbImage::getPtr() const
 {
 	switch (_bitPerChannel)
 	{
@@ -42,32 +49,22 @@ void* StbImage::getPtr() const
 	return nullptr;
 }
 
-int StbImage::getBitPerChannel() const
+uint32_t StbImage::getBitsPerChannel() const
 {
 	return _bitPerChannel;
 }
 
-int StbImage::getBytePerChannel() const
-{
-	return _bitPerChannel / 8;
-}
-
-int StbImage::getBitPerPixel() const
+uint32_t StbImage::getBitsPerPixel() const
 {
 	return _bitPerChannel * _channelCount;
 }
 
-int StbImage::getBytePerPixel() const
-{
-	return _bitPerChannel * _channelCount / 8;
-}
-
-int StbImage::getChannelCount() const
+uint32_t StbImage::getChannelCount() const
 {
 	return _channelCount;
 }
 
-glm::ivec2 StbImage::getSize() const
+glm::uvec2 StbImage::getSize() const
 {
 	return _size;
 }
