@@ -1,8 +1,8 @@
 {
-	"left": "skyboxes/space2/left.png",
-	"front": "skyboxes/space2/front.png",
-	"right": "skyboxes/space2/right.png",
-	"back": "skyboxes/space2/back.png",
-	"up": "skyboxes/space2/top.png",
-	"down": "skyboxes/space2/bottom.png"
+	"pos_x": "skyboxes/space2/right.png",
+	"neg_x": "skyboxes/space2/left.png",
+	"pos_y": "skyboxes/space2/top.png",
+	"neg_y": "skyboxes/space2/bottom.png",
+	"pos_z": "skyboxes/space2/back.png",
+	"neg_z": "skyboxes/space2/front.png"
 }

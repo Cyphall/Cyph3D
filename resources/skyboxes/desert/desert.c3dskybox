@@ -1,8 +1,8 @@
 {
-	"left": "skyboxes/desert/left.png",
-	"front": "skyboxes/desert/front.png",
-	"right": "skyboxes/desert/right.png",
-	"back": "skyboxes/desert/back.png",
-	"up": "skyboxes/desert/up.png",
-	"down": "skyboxes/desert/down.png"
+	"pos_x": "skyboxes/desert/right.png",
+	"neg_x": "skyboxes/desert/left.png",
+	"pos_y": "skyboxes/desert/up.png",
+	"neg_y": "skyboxes/desert/down.png",
+	"pos_z": "skyboxes/desert/back.png",
+	"neg_z": "skyboxes/desert/front.png"
 }

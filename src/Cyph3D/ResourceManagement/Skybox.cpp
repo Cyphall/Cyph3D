@@ -107,12 +107,12 @@ bool Skybox::load_step1_mt()
 	nlohmann::ordered_json root = JsonHelper::loadJsonFromFile(jsonAbsolutePath);
 
 	std::string facePaths[6] = {
-		root["right"].get<std::string>(),
-		root["left"].get<std::string>(),
-		root["down"].get<std::string>(),
-		root["up"].get<std::string>(),
-		root["front"].get<std::string>(),
-		root["back"].get<std::string>()
+		root["pos_x"].get<std::string>(),
+		root["neg_x"].get<std::string>(),
+		root["neg_y"].get<std::string>(),
+		root["pos_y"].get<std::string>(),
+		root["pos_z"].get<std::string>(),
+		root["neg_z"].get<std::string>()
 	};
 	
 	for (int i = 0; i < 6; ++i)
