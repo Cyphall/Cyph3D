@@ -105,11 +105,30 @@ void Scene::load(const std::filesystem::path& path)
 	
 	Engine::setScene(std::make_unique<Scene>(path.filename().replace_extension().generic_string()));
 	Scene& scene = Engine::getScene();
-	
-	Camera camera(glm::make_vec3(jsonRoot["camera"]["position"].get<std::vector<float>>().data()),
-		glm::make_vec2(jsonRoot["camera"]["spherical_coords"].get<std::vector<float>>().data()));
 
-	camera.setExposure(jsonRoot["camera"]["exposure"].get<float>());
+	Camera camera;
+	const nlohmann::ordered_json& jsonCamera = jsonRoot["camera"];
+	
+	const nlohmann::ordered_json& jsonCameraPosition = jsonCamera["position"];
+	glm::vec3 cameraPosition = {
+		jsonCameraPosition.at(0).get<float>(),
+		jsonCameraPosition.at(1).get<float>(),
+		jsonCameraPosition.at(2).get<float>()
+	};
+	camera.setPosition(cameraPosition);
+	
+	const nlohmann::ordered_json& jsonCameraSphericalCoords = jsonCamera["spherical_coords"];
+	glm::vec2 cameraSphericalCoords = {
+		jsonCameraSphericalCoords.at(0).get<float>(),
+		jsonCameraSphericalCoords.at(1).get<float>()
+	};
+	if (version <= 2)
+	{
+		cameraSphericalCoords.x = 180.0f - cameraSphericalCoords.x;
+	}
+	camera.setSphericalCoords(cameraSphericalCoords);
+
+	camera.setExposure(jsonCamera["exposure"].get<float>());
 	
 	UIViewport::setCamera(camera);
 
@@ -164,7 +183,7 @@ void Scene::save(const std::filesystem::path& path)
 	
 	nlohmann::ordered_json jsonRoot;
 	
-	jsonRoot["version"] = 2;
+	jsonRoot["version"] = 3;
 	
 	const Camera& camera = UIViewport::getCamera();
 	nlohmann::ordered_json jsonCamera;

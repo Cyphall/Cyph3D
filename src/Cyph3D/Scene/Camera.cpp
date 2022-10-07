@@ -122,14 +122,17 @@ void Camera::update(glm::vec2 mousePosDelta)
 	}
 	if (Engine::getWindow().getKey(GLFW_KEY_A) == GLFW_PRESS)
 	{
-		setPosition(getPosition() + getSideOrientation() * ratio);
+		setPosition(getPosition() - getSideOrientation() * ratio);
 	}
 	if (Engine::getWindow().getKey(GLFW_KEY_D) == GLFW_PRESS)
 	{
-		setPosition(getPosition() - getSideOrientation() * ratio);
+		setPosition(getPosition() + getSideOrientation() * ratio);
 	}
 	
-	setSphericalCoords(getSphericalCoords() - mousePosDelta / 12.0f);
+	glm::vec2 sphericalCoords = getSphericalCoords();
+	sphericalCoords.x += mousePosDelta.x / 12.0f;
+	sphericalCoords.y -= mousePosDelta.y / 12.0f;
+	setSphericalCoords(sphericalCoords);
 }
 
 void Camera::recalculateOrientation() const
@@ -137,12 +140,16 @@ void Camera::recalculateOrientation() const
 	glm::vec2 sphericalCoordsRadians = glm::radians(_sphericalCoords);
 	
 	_orientation = glm::vec3(
-		glm::cos(sphericalCoordsRadians.y) * glm::sin(sphericalCoordsRadians.x),
+		glm::sin(sphericalCoordsRadians.x) * glm::cos(sphericalCoordsRadians.y),
 		glm::sin(sphericalCoordsRadians.y),
-		glm::cos(sphericalCoordsRadians.y) * glm::cos(sphericalCoordsRadians.x)
+		-glm::cos(sphericalCoordsRadians.x) * glm::cos(sphericalCoordsRadians.y)
 	);
-	
-	_sideOrientation = glm::normalize(glm::cross(glm::vec3(0, 1, 0), _orientation));
+
+	_sideOrientation = glm::vec3(
+		glm::cos(sphericalCoordsRadians.x),
+		0,
+		glm::sin(sphericalCoordsRadians.x)
+	);
 	
 	_orientationChanged = false;
 }
