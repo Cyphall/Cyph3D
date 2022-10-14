@@ -56,11 +56,6 @@ GLTexture::~GLTexture()
 	_handle = 0;
 }
 
-int GLTexture::calculateMipmapCount(const glm::ivec2& size)
-{
-	return (int)glm::floor(glm::log2((float)glm::max(size.x, size.y))) + 1;
-}
-
 GLuint64 GLTexture::getBindlessTextureHandle() const
 {
 	GLuint64 bindlessHandle = glGetTextureHandleARB(_handle);
@@ -81,6 +76,16 @@ GLuint64 GLTexture::getBindlessTextureHandle(const GLSampler& sampler) const
 	return bindlessHandle;
 }
 
+GLuint64 GLTexture::getBindlessImageHandle(GLenum format, GLenum access, int level) const
+{
+	GLuint64 bindlessHandle = glGetImageHandleARB(_handle, level, GL_FALSE, 0, format);
+	if (!glIsImageHandleResidentARB(bindlessHandle))
+	{
+		glMakeImageHandleResidentARB(bindlessHandle, access);
+	}
+	return bindlessHandle;
+}
+
 void GLTexture::setData(const void* data, GLenum format, GLenum type)
 {
 	glm::ivec2 size = getSize();
@@ -91,6 +96,13 @@ void GLTexture::setData(const void* data, GLenum format, GLenum type)
 void GLTexture::setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, GLint level, GLenum format)
 {
 	glCompressedTextureSubImage2D(_handle, level, 0, 0, size.x, size.y, format, dataByteSize, data);
+}
+
+void GLTexture::generateMipmaps()
+{
+	if (_levels == 1) return;
+
+	glGenerateTextureMipmap(_handle);
 }
 
 glm::ivec2 GLTexture::getSize(int level) const
@@ -111,19 +123,7 @@ void GLTexture::clear(GLenum format, GLenum type, void* clearData)
 	glClearTexImage(_handle, 0, format, type, clearData);
 }
 
-void GLTexture::generateMipmaps()
+int GLTexture::calculateMipmapCount(const glm::ivec2& size)
 {
-	if (_levels == 1) return;
-	
-	glGenerateTextureMipmap(_handle);
-}
-
-GLuint64 GLTexture::getBindlessImageHandle(GLenum format, GLenum access, int level) const
-{
-	GLuint64 bindlessHandle = glGetImageHandleARB(_handle, level, GL_FALSE, 0, format);
-	if (!glIsImageHandleResidentARB(bindlessHandle))
-	{
-		glMakeImageHandleResidentARB(bindlessHandle, access);
-	}
-	return bindlessHandle;
+	return (int)glm::floor(glm::log2((float)glm::max(size.x, size.y))) + 1;
 }
