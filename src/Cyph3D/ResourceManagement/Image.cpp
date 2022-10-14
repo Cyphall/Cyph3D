@@ -27,7 +27,6 @@ struct Image::LoadData
 	ImageType type;
 
 	// step 1: read the image and fill the properties
-	TextureCreateInfo textureCreateInfo;
 	std::vector<TextureLevel> compressedData;
 
 	// step 2: create GLTexture and fill it
@@ -119,17 +118,15 @@ bool Image::load_step1_mt()
 
 		TextureProperties textureProperties = TextureHelper::getTextureProperties(_loadData->type);
 
-		_loadData->textureCreateInfo.size = imageData.getSize();
-		_loadData->textureCreateInfo.internalFormat = textureProperties.internalFormat;
-		_loadData->textureCreateInfo.minFilter = GL_LINEAR_MIPMAP_LINEAR;
-		_loadData->textureCreateInfo.magFilter = GL_LINEAR;
-		_loadData->textureCreateInfo.anisotropicFiltering = true;
-		_loadData->textureCreateInfo.swizzle = textureProperties.swizzle;
+		TextureCreateInfo compressorTextureCreateInfo;
+		compressorTextureCreateInfo.size = imageData.getSize();
+		compressorTextureCreateInfo.internalFormat = textureProperties.internalFormat;
+		compressorTextureCreateInfo.levels = 0;
 
 		PixelProperties pixelProperties = TextureHelper::getPixelProperties(imageData.getChannelCount(), imageData.getBitsPerChannel());
 
-		GLTexture compressorTexture(_loadData->textureCreateInfo);
-		compressorTexture.setData(imageData.getPtr(), pixelProperties.format, pixelProperties.type);
+		GLTexture compressorTexture(compressorTextureCreateInfo);
+		compressorTexture.setData(imageData.getPtr(), 0, pixelProperties.format, pixelProperties.type);
 
 		int levels = compressorTexture.getLevels();
 		_loadData->compressedData.resize(levels);
@@ -154,14 +151,16 @@ bool Image::load_step1_mt()
 
 	TextureProperties textureProperties = TextureHelper::getTextureProperties(_loadData->type);
 
-	_loadData->textureCreateInfo.size = _loadData->compressedData[0].size;
-	_loadData->textureCreateInfo.internalFormat = textureProperties.internalFormat;
-	_loadData->textureCreateInfo.minFilter = GL_LINEAR_MIPMAP_LINEAR;
-	_loadData->textureCreateInfo.magFilter = GL_LINEAR;
-	_loadData->textureCreateInfo.anisotropicFiltering = true;
-	_loadData->textureCreateInfo.swizzle = textureProperties.swizzle;
+	TextureCreateInfo textureCreateInfo;
+	textureCreateInfo.size = _loadData->compressedData.front().size;
+	textureCreateInfo.internalFormat = textureProperties.internalFormat;
+	textureCreateInfo.minFilter = GL_LINEAR_MIPMAP_LINEAR;
+	textureCreateInfo.magFilter = GL_LINEAR;
+	textureCreateInfo.anisotropicFiltering = true;
+	textureCreateInfo.swizzle = textureProperties.swizzle;
+	textureCreateInfo.levels = _loadData->compressedData.size();
 
-	_resource = std::make_unique<GLTexture>(_loadData->textureCreateInfo);
+	_resource = std::make_unique<GLTexture>(textureCreateInfo);
 	for (int i = 0; i < _loadData->compressedData.size(); i++)
 	{
 		_resource->setCompressedData(

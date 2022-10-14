@@ -32,6 +32,15 @@ GLTexture::GLTexture(const TextureCreateInfo& settings)
 		glTextureParameteri(_handle, GL_TEXTURE_COMPARE_FUNC, settings.compareFunc);
 	}
 	
+	if (settings.levels == 0)
+	{
+		_levels = calculateMipmapCount(settings.size);
+	}
+	else
+	{
+		_levels = settings.levels;
+	}
+	
 	if (settings.anisotropicFiltering)
 	{
 		GLfloat anisoCount;
@@ -39,10 +48,6 @@ GLTexture::GLTexture(const TextureCreateInfo& settings)
 		glTextureParameterf(_handle, GL_TEXTURE_MAX_ANISOTROPY, anisoCount);
 		
 		_levels = calculateMipmapCount(settings.size);
-	}
-	else
-	{
-		_levels = settings.levels;
 	}
 	
 	glTextureParameteriv(_handle, GL_TEXTURE_SWIZZLE_RGBA, settings.swizzle.data());
@@ -86,10 +91,10 @@ GLuint64 GLTexture::getBindlessImageHandle(GLenum format, GLenum access, int lev
 	return bindlessHandle;
 }
 
-void GLTexture::setData(const void* data, GLenum format, GLenum type)
+void GLTexture::setData(const void* data, GLint level, GLenum format, GLenum type)
 {
 	glm::ivec2 size = getSize();
-	glTextureSubImage2D(_handle, 0, 0, 0, size.x, size.y, format, type, data);
+	glTextureSubImage2D(_handle, level, 0, 0, size.x, size.y, format, type, data);
 	generateMipmaps();
 }
 

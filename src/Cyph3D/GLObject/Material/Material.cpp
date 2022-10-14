@@ -64,7 +64,7 @@ _path(path)
 		materialMap.defaultTexture = std::make_unique<GLTexture>(createInfo);
 		
 		PixelProperties pixelProperties = TextureHelper::getPixelProperties(mapDefinition.defaultData.size(), 8);
-		materialMap.defaultTexture->setData(mapDefinition.defaultData.data(), pixelProperties.format, pixelProperties.type);
+		materialMap.defaultTexture->setData(mapDefinition.defaultData.data(), 0, pixelProperties.format, pixelProperties.type);
 		
 		if (jsonRoot.contains(mapDefinition.name))
 		{

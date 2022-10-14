@@ -6,8 +6,8 @@
 
 struct TextureCreateInfo
 {
-	glm::ivec2 size;
-	GLenum internalFormat = GL_RGB8;
+	glm::ivec2 size = {0, 0};
+	GLenum internalFormat = GL_R8;
 	GLenum minFilter = GL_NEAREST_MIPMAP_LINEAR;
 	GLenum magFilter = GL_LINEAR;
 	float minLod = -1000;
@@ -21,7 +21,7 @@ struct TextureCreateInfo
 	bool anisotropicFiltering = false;
 	std::array<GLint, 4> swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA};
 	int baseLevel = 0;
-	int levels = 1; // ignored if anisotropicFiltering == true
 	int maxLevel = 1000;
+	int levels = 1; // 0 = auto
 	GLenum depthStencilTextureMode = GL_DEPTH_COMPONENT;
 };

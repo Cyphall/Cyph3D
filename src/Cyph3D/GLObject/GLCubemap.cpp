@@ -3,25 +3,56 @@
 #include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
 #include "Cyph3D/GLObject/GLSampler.h"
 
-GLCubemap::GLCubemap(const CubemapCreateInfo& settings):
-_size(settings.size)
+GLCubemap::GLCubemap(const CubemapCreateInfo& settings)
 {
 	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &_handle);
-	
-	GLenum minFiltering = GL_LINEAR;
-	GLenum magFiltering = settings.textureFiltering;
-	
-	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, minFiltering);
-	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, magFiltering);
-	
-	glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTextureParameteri(_handle, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	
+
+	glTextureParameteri(_handle, GL_TEXTURE_MIN_FILTER, settings.minFilter);
+	glTextureParameteri(_handle, GL_TEXTURE_MAG_FILTER, settings.magFilter);
+
+	glTextureParameterf(_handle, GL_TEXTURE_MIN_LOD, settings.minLod);
+	glTextureParameterf(_handle, GL_TEXTURE_MAX_LOD, settings.maxLod);
+
+	glTextureParameterf(_handle, GL_TEXTURE_LOD_BIAS, settings.lodBias);
+
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_S, settings.wrapS);
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_T, settings.wrapT);
+	glTextureParameteri(_handle, GL_TEXTURE_WRAP_R, settings.wrapR);
+
+	glTextureParameterfv(_handle, GL_TEXTURE_BORDER_COLOR, settings.borderColor.data());
+
+	glTextureParameteri(_handle, GL_TEXTURE_BASE_LEVEL, settings.baseLevel);
+	glTextureParameteri(_handle, GL_TEXTURE_MAX_LEVEL, settings.maxLevel);
+
+	glTextureParameteri(_handle, GL_DEPTH_STENCIL_TEXTURE_MODE, settings.depthStencilTextureMode);
+
+	if (settings.compareFunc != GL_NONE)
+	{
+		glTextureParameteri(_handle, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+		glTextureParameteri(_handle, GL_TEXTURE_COMPARE_FUNC, settings.compareFunc);
+	}
+
+	if (settings.levels == 0)
+	{
+		_levels = calculateMipmapCount(settings.size);
+	}
+	else
+	{
+		_levels = settings.levels;
+	}
+
+	if (settings.anisotropicFiltering)
+	{
+		GLfloat anisoCount;
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &anisoCount);
+		glTextureParameterf(_handle, GL_TEXTURE_MAX_ANISOTROPY, anisoCount);
+
+		_levels = calculateMipmapCount(settings.size);
+	}
+
 	glTextureParameteriv(_handle, GL_TEXTURE_SWIZZLE_RGBA, settings.swizzle.data());
-	
-	
-	glTextureStorage2D(_handle, 1, settings.internalFormat, _size.x, _size.y);
+
+	glTextureStorage2D(_handle, _levels, settings.internalFormat, settings.size.x, settings.size.y);
 }
 
 GLCubemap::~GLCubemap()
@@ -50,27 +81,54 @@ GLuint64 GLCubemap::getBindlessTextureHandle(const GLSampler& sampler) const
 	return bindlessHandle;
 }
 
-void GLCubemap::setData(void* data, int face, GLenum format, GLenum type)
+GLuint64 GLCubemap::getBindlessImageHandle(GLenum format, GLenum access, int level) const
 {
-	glTextureSubImage3D(_handle, 0, 0, 0, face, _size.x, _size.y, 1, format, type, data);
+	GLuint64 bindlessHandle = glGetImageHandleARB(_handle, level, GL_FALSE, 0, format);
+	if (!glIsImageHandleResidentARB(bindlessHandle))
+	{
+		glMakeImageHandleResidentARB(bindlessHandle, access);
+	}
+	return bindlessHandle;
 }
 
-void GLCubemap::setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, GLint face, GLenum format)
+void GLCubemap::setData(const void* data, int face, GLint level, GLenum format, GLenum type)
 {
-	glCompressedTextureSubImage3D(_handle, 0, 0, 0, face, size.x, size.y, 1, format, dataByteSize, data);
+	glm::ivec2 size = getSize();
+	glTextureSubImage3D(_handle, level, 0, 0, face, size.x, size.y, 1, format, type, data);
+	generateMipmaps();
 }
 
-void GLCubemap::bind(GLuint unit)
+void GLCubemap::setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, int face, GLint level, GLenum format)
 {
-	glBindTextureUnit(unit, _handle);
+	glCompressedTextureSubImage3D(_handle, level, 0, 0, face, size.x, size.y, 1, format, dataByteSize, data);
 }
 
-glm::ivec2 GLCubemap::getSize() const
+void GLCubemap::generateMipmaps()
 {
-	return _size;
+	if (_levels == 1) return;
+
+	glGenerateTextureMipmap(_handle);
+}
+
+glm::ivec2 GLCubemap::getSize(int level) const
+{
+	glm::ivec2 size;
+	glGetTextureLevelParameteriv(_handle, level, GL_TEXTURE_WIDTH, &size.x);
+	glGetTextureLevelParameteriv(_handle, level, GL_TEXTURE_HEIGHT, &size.y);
+	return size;
+}
+
+int GLCubemap::getLevels() const
+{
+	return _levels;
 }
 
 void GLCubemap::clear(GLenum format, GLenum type, void* clearData)
 {
 	glClearTexImage(_handle, 0, format, type, clearData);
+}
+
+int GLCubemap::calculateMipmapCount(const glm::ivec2& size)
+{
+	return (int)glm::floor(glm::log2((float)glm::max(size.x, size.y))) + 1;
 }

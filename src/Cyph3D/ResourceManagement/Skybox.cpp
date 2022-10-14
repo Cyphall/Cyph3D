@@ -28,7 +28,6 @@ struct Skybox::LoadData
 	ResourceManager* rm;
 
 	// step 1: read the image and fill the properties
-	CubemapCreateInfo cubemapCreateInfo;
 	std::array<CubemapFace, 6> compressedData;
 
 	// step 2: create GLTexture and fill it
@@ -131,17 +130,14 @@ bool Skybox::load_step1_mt()
 
 			TextureProperties textureProperties = TextureHelper::getTextureProperties(COLOR_SRGB);
 
-			TextureCreateInfo textureCreateInfo;
-			textureCreateInfo.size = imageData.getSize();
-			textureCreateInfo.internalFormat = textureProperties.internalFormat;
-			textureCreateInfo.minFilter = GL_LINEAR;
-			textureCreateInfo.magFilter = GL_LINEAR;
-			textureCreateInfo.swizzle = textureProperties.swizzle;
+			TextureCreateInfo threadTextureCreateInfo;
+			threadTextureCreateInfo.size = imageData.getSize();
+			threadTextureCreateInfo.internalFormat = textureProperties.internalFormat;
 
 			PixelProperties pixelProperties = TextureHelper::getPixelProperties(imageData.getChannelCount(), imageData.getBitsPerChannel());
 
-			GLTexture threadTexture(textureCreateInfo);
-			threadTexture.setData(imageData.getPtr(), pixelProperties.format, pixelProperties.type);
+			GLTexture threadTexture(threadTextureCreateInfo);
+			threadTexture.setData(imageData.getPtr(), 0, pixelProperties.format, pixelProperties.type);
 
 			GLint actualFormat = -1;
 			glGetTextureLevelParameteriv(threadTexture.getHandle(), 0, GL_TEXTURE_INTERNAL_FORMAT, &actualFormat);
@@ -171,12 +167,16 @@ bool Skybox::load_step1_mt()
 
 	TextureProperties textureProperties = TextureHelper::getTextureProperties(COLOR_SRGB);
 
-	_loadData->cubemapCreateInfo.size = skyboxSize;
-	_loadData->cubemapCreateInfo.internalFormat = textureProperties.internalFormat;
-	_loadData->cubemapCreateInfo.textureFiltering = GL_LINEAR;
-	_loadData->cubemapCreateInfo.swizzle = textureProperties.swizzle;
+	CubemapCreateInfo cubemapCreateInfo;
+	cubemapCreateInfo.size = skyboxSize;
+	cubemapCreateInfo.internalFormat = textureProperties.internalFormat;
+	cubemapCreateInfo.swizzle = textureProperties.swizzle;
+	cubemapCreateInfo.wrapS = GL_CLAMP_TO_EDGE;
+	cubemapCreateInfo.wrapT = GL_CLAMP_TO_EDGE;
+	cubemapCreateInfo.wrapR = GL_CLAMP_TO_EDGE;
+	cubemapCreateInfo.levels = _loadData->compressedData.size();
 
-	_resource = std::make_unique<GLCubemap>(_loadData->cubemapCreateInfo);
+	_resource = std::make_unique<GLCubemap>(cubemapCreateInfo);
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -185,6 +185,7 @@ bool Skybox::load_step1_mt()
 			_loadData->compressedData[i].imageData.size(),
 			_loadData->compressedData[i].size,
 			i,
+			0,
 			_loadData->compressedData[i].format);
 	}
 

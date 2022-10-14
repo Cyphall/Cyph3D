@@ -16,12 +16,22 @@ public:
 	
 	GLuint64 getBindlessTextureHandle() const;
 	GLuint64 getBindlessTextureHandle(const GLSampler& sampler) const;
-	void setData(void* data, int face, GLenum format, GLenum type);
-	void setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, GLint face, GLenum format);
-	void bind(GLuint unit);
-	glm::ivec2 getSize() const;
+
+	GLuint64 getBindlessImageHandle(GLenum format, GLenum access, int level = 0) const;
+	
+	void setData(const void* data, int face, GLint level, GLenum format, GLenum type);
+	void setCompressedData(const void* data, GLsizei dataByteSize, glm::ivec2 size, GLint face, GLint level, GLenum format);
+
+	void generateMipmaps();
+	
+	glm::ivec2 getSize(int level = 0) const;
+
+	int getLevels() const;
+	
 	void clear(GLenum format, GLenum type, void* clearData);
 
+	static int calculateMipmapCount(const glm::ivec2& size);
+
 private:
-	glm::ivec2 _size;
+	int _levels;
 };
