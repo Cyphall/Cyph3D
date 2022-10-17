@@ -3,6 +3,7 @@
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Helper/StringHelper.h"
 #include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/GLObject/GLShader.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <format>
@@ -13,28 +14,27 @@
 
 GLShaderProgram::GLShaderProgram(const std::unordered_map<GLenum, std::string>& shadersPaths)
 {
-	_handle = glCreateProgram();
-	if (_handle == 0)
-	{
-		throw std::runtime_error("Unable to create shader program instance");
-	}
-	
-	std::vector<GLuint> shaders;
-	
+	std::vector<std::unique_ptr<GLShader>> shaders;
+	shaders.reserve(shadersPaths.size());
 	for (const auto& [type, file] : shadersPaths)
 	{
-		GLuint shader = loadShader(type, file);
-		glAttachShader(_handle, shader);
-		shaders.push_back(shader);
+		shaders.push_back(std::make_unique<GLShader>(type, file));
+	}
+	
+	_handle = glCreateProgram();
+
+	for (std::unique_ptr<GLShader>& shader : shaders)
+	{
+		glAttachShader(_handle, shader->getHandle());
 	}
 	
 	glLinkProgram(_handle);
 	
-	for (const GLuint shader : shaders)
+	for (std::unique_ptr<GLShader>& shader : shaders)
 	{
-		glDetachShader(_handle, shader);
-		glDeleteShader(shader);
+		glDetachShader(_handle, shader->getHandle());
 	}
+	shaders.clear();
 	
 	int linkSuccess;
 	glGetProgramiv(_handle, GL_LINK_STATUS, &linkSuccess);
@@ -54,6 +54,7 @@ GLShaderProgram::GLShaderProgram(const std::unordered_map<GLenum, std::string>& 
 			formattedFiles += std::format("{}\n", file);
 		}
 		
+		this->~GLShaderProgram();
 		throw std::runtime_error(std::format("Error while linking shaders:\n{}{}", formattedFiles, error));
 	}
 	
@@ -107,48 +108,6 @@ GLShaderProgram::~GLShaderProgram()
 void GLShaderProgram::bind()
 {
 	glUseProgram(_handle);
-}
-
-GLuint GLShaderProgram::loadShader(GLenum type, const std::string& file)
-{
-	GLuint shader = glCreateShader(type);
-	
-	if (shader == 0)
-	{
-		throw std::runtime_error("Unable to create shader instance");
-	}
-	
-	std::string source;
-	try
-	{
-		source = FileHelper::readAllText(std::format("resources/shaders/{}", file));
-	}
-	catch (const std::ios_base::failure& e)
-	{
-		Logger::error(std::format("Unable to open shader file \"{}\"", file));
-		throw e;
-	}
-	
-	const char* c_source = source.c_str();
-	glShaderSource(shader, 1, &c_source, nullptr);
-	glCompileShader(shader);
-	
-	GLint compileSuccess;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileSuccess);
-	
-	if(compileSuccess == GL_FALSE)
-	{
-		int length;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-		
-		std::string error;
-		error.resize(length - 1);
-		glGetShaderInfoLog(shader, length, nullptr, error.data());
-		
-		throw std::runtime_error(std::format("Error while compiling shaders:\n{}\n{}", file, error));
-	}
-	
-	return shader;
 }
 
 int GLShaderProgram::getUniformLocation(const char* name)

@@ -93,8 +93,6 @@ public:
 #pragma endregion
 
 private:
-	static GLuint loadShader(GLenum type, const std::string& file);
-
 	int getUniformLocation(const char* name);
 	
 	std::map<std::string, int> _uniforms;
