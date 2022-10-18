@@ -6,7 +6,6 @@
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/Shape.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Camera.h"
 
 ZPrePass::ZPrePass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size) :

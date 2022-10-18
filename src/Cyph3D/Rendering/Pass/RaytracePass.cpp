@@ -10,7 +10,6 @@
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
 #include "Cyph3D/Rendering/Shape/PlaneShape.h"
 #include "Cyph3D/Rendering/Shape/SphereShape.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"

@@ -7,7 +7,6 @@
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Camera.h"
 
 #include <glm/gtc/matrix_inverse.hpp>

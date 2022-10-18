@@ -9,7 +9,6 @@
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/Shape.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
 
 ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Shadow map pass"),

@@ -1,7 +1,6 @@
 #include "SkyboxPass.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"

@@ -5,7 +5,6 @@
 #include "Cyph3D/GLObject/GLCubemap.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
 #include "Cyph3D/Scene/Camera.h"
 
 LightingPass::LightingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):

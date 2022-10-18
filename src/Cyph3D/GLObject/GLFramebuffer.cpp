@@ -5,7 +5,6 @@
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/Helper/MathHelper.h"
 #include "Cyph3D/Helper/RenderHelper.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
 
 #include <format>
 #include <stdexcept>
