@@ -3,23 +3,23 @@
 #include <format>
 #include <stdexcept>
 
-TextureProperties TextureHelper::getTextureProperties(ImageType type)
+TextureProperties TextureHelper::getTextureProperties(TextureType type)
 {
 	switch (type)
 	{
-		case COLOR_SRGB:
+		case TextureType::ColorSrgb:
 			return TextureProperties
 			{
 					.internalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM,
 					.swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ONE}
 			};
-		case NORMAL_MAP:
+		case TextureType::NormalMap:
 			return TextureProperties
 			{
 					.internalFormat = GL_COMPRESSED_RG_RGTC2,
 					.swizzle = {GL_RED, GL_GREEN, GL_ZERO, GL_ZERO}
 			};
-		case GRAYSCALE:
+		case TextureType::Grayscale:
 			return TextureProperties
 			{
 					.internalFormat = GL_COMPRESSED_RED_RGTC1,

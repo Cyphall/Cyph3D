@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
-
 #include <nlohmann/json.hpp>
 #include <filesystem>
+#include <optional>
 
-class Skybox;
+class SkyboxAsset;
 class Transform;
 class Entity;
 class EntityIterator;
@@ -31,11 +30,13 @@ public:
 	EntityConstIterator entities_cend() const;
 	
 	Transform& getRoot();
+
+	const std::string* getSkyboxPath() const;
+	void setSkyboxPath(std::optional<std::string_view> path);
+	SkyboxAsset* getSkybox();
 	
-	Skybox* getSkybox();
-	void setSkybox(Skybox* skybox);
-	
-	ResourceManager& getRM();
+	float getSkyboxRotation() const;
+	void setSkyboxRotation(float rotation);
 	
 	static void load(const std::filesystem::path& path);
 	void save(const std::filesystem::path& path);
@@ -46,8 +47,10 @@ private:
 	std::unique_ptr<Transform> _root;
 	std::list<std::unique_ptr<Entity>> _entities;
 	std::string _name;
-	Skybox* _skybox = nullptr;
-	ResourceManager _resourceManager;
+	
+	std::optional<std::string> _skyboxPath;
+	SkyboxAsset* _skybox = nullptr;
+	float _skyboxRotation = 0;
 	
 	static void deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene);
 	nlohmann::ordered_json serializeEntity(const Entity& entity) const;

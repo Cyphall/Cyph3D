@@ -1,5 +1,25 @@
 {
-	"albedo": "materials/internal/Missing Material/col.png",
-	"roughness": "materials/internal/Missing Material/rgh.png",
-	"emissive": "materials/internal/Missing Material/emis.png"
+	"version": 2,
+	"albedo": {
+		"path": null,
+		"value": [1, 0, 1]
+	},
+	"normal": {
+		"path": null
+	},
+	"roughness": {
+		"path": null,
+		"value": 1
+	},
+	"metalness": {
+		"path": null,
+		"value": 0
+	},
+	"displacement": {
+		"path": null
+	},
+	"emissive": {
+		"path": null,
+		"value": 1
+	}
 }

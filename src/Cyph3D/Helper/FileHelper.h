@@ -20,8 +20,10 @@ public:
 	static std::optional<std::filesystem::path> fileDialogOpen(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder);
 	static std::optional<std::filesystem::path> fileDialogSave(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName);
 	
-	static const std::filesystem::path& getResourcePath();
-	static const std::filesystem::path& getResourceCachePath();
+	static const std::filesystem::path& getRootDirectoryPath();
+	static const std::filesystem::path& getAssetDirectoryPath();
+	static const std::filesystem::path& getCacheRootDirectoryPath();
+	static const std::filesystem::path& getCacheAssetDirectoryPath();
 	
 	template<typename T>
 	static void read(std::ifstream& stream, T* data)

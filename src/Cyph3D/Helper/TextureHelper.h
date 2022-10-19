@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Enums/ImageType.h"
+#include "Cyph3D/Enums/TextureType.h"
 
 #include <glad/glad.h>
 #include <array>
@@ -20,6 +20,6 @@ struct PixelProperties
 class TextureHelper
 {
 public:
-	static TextureProperties getTextureProperties(ImageType type);
+	static TextureProperties getTextureProperties(TextureType type);
 	static PixelProperties getPixelProperties(int channelCount, int bitPerChannel);
 };

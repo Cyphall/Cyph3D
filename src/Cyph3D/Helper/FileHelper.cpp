@@ -14,8 +14,11 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
-static std::filesystem::path resourcePath = std::filesystem::current_path() / "resources";
-static std::filesystem::path resourceCachePath = std::filesystem::current_path() / "cache/resources";
+static std::filesystem::path rootDirectoryPath = std::filesystem::current_path();
+static std::filesystem::path assetDirectoryPath = rootDirectoryPath / "resources";
+
+static std::filesystem::path cacheRootDirectoryPath = rootDirectoryPath / "cache";
+static std::filesystem::path cacheAssetDirectoryPath = cacheRootDirectoryPath / "assets";
 
 std::string FileHelper::readAllText(const std::string& path)
 {
@@ -168,12 +171,22 @@ std::optional<std::filesystem::path> FileHelper::fileDialogSave(const std::vecto
 	return res;
 }
 
-const std::filesystem::path& FileHelper::getResourcePath()
+const std::filesystem::path& FileHelper::getRootDirectoryPath()
 {
-	return resourcePath;
+	return rootDirectoryPath;
 }
 
-const std::filesystem::path& FileHelper::getResourceCachePath()
+const std::filesystem::path& FileHelper::getAssetDirectoryPath()
 {
-	return resourceCachePath;
+	return assetDirectoryPath;
+}
+
+const std::filesystem::path& FileHelper::getCacheRootDirectoryPath()
+{
+	return cacheRootDirectoryPath;
+}
+
+const std::filesystem::path& FileHelper::getCacheAssetDirectoryPath()
+{
+	return cacheAssetDirectoryPath;
 }

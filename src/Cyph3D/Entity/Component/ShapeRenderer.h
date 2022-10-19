@@ -5,8 +5,9 @@
 #include <glm/glm.hpp>
 #include <functional>
 #include <map>
+#include <optional>
 
-class Material;
+class MaterialAsset;
 class Shape;
 
 class ShapeRenderer : public Component
@@ -15,16 +16,17 @@ public:
 	struct RenderData
 	{
 		const Shape* shape;
-		Material* material;
+		MaterialAsset* material;
 		glm::mat4 matrix;
 		bool contributeShadows;
 		Entity* owner;
 	};
 	
 	explicit ShapeRenderer(Entity& entity);
-	
-	Material* getMaterial() const;
-	void setMaterial(Material* material);
+
+	const std::string* getMaterialPath() const;
+	void setMaterialPath(std::optional<std::string_view> path);
+	MaterialAsset* getMaterial() const;
 	
 	Shape& getShape();
 	const Shape& getShape() const;
@@ -53,7 +55,9 @@ public:
 	void deserialize(const ObjectSerialization& shapeRendererSerialization) override;
 
 private:
-	Material* _material = nullptr;
+	std::optional<std::string> _materialPath;
+	MaterialAsset* _material = nullptr;
+	
 	std::unique_ptr<Shape> _shape;
 	bool _contributeShadows = true;
 	std::string _selectedShape;
@@ -62,8 +66,6 @@ private:
 	
 	static std::map<std::string, std::function<Shape&(ShapeRenderer&)>> _allocators;
 	static void initAllocators();
-	
-	Material* getDrawingMaterial() const;
 	
 	friend class Engine;
 };

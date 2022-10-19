@@ -2,7 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/GLObject/Mesh.h"
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
@@ -117,16 +117,26 @@ void GeometryPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		
 		const GLBuffer<Mesh::VertexData>& vbo = mesh.getVBO();
 		const GLBuffer<GLuint>& ibo = mesh.getIBO();
+
+		MaterialAsset* material = shapeData.material;
+		if (material == nullptr)
+		{
+			material = MaterialAsset::getMissingMaterial();
+		}
+		else if (!material->isLoaded()) // should never happen, but we never know
+		{
+			material = MaterialAsset::getDefaultMaterial();
+		}
 		
 		_vao.bindBufferToSlot(vbo, 0);
 		_vao.bindIndexBuffer(ibo);
 		
-		_shaderProgram.setUniform("u_albedoMap", shapeData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle());
-		_shaderProgram.setUniform("u_normalMap", shapeData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle());
-		_shaderProgram.setUniform("u_roughnessMap", shapeData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle());
-		_shaderProgram.setUniform("u_metalnessMap", shapeData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle());
-		_shaderProgram.setUniform("u_displacementMap", shapeData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle());
-		_shaderProgram.setUniform("u_emissiveMap", shapeData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_albedoMap", material->getAlbedoTexture().getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_normalMap", material->getNormalTexture().getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_roughnessMap", material->getRoughnessTexture().getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_metalnessMap", material->getMetalnessTexture().getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_displacementMap", material->getDisplacementTexture().getBindlessTextureHandle());
+		_shaderProgram.setUniform("u_emissiveMap", material->getEmissiveTexture().getBindlessTextureHandle());
 		
 		_shaderProgram.setUniform("u_normalMatrix", glm::inverseTranspose(glm::mat3(shapeData.matrix)));
 		_shaderProgram.setUniform("u_model", shapeData.matrix);

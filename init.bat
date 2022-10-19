@@ -4,7 +4,7 @@ git clone https://github.com/Microsoft/vcpkg
 cd vcpkg
 git checkout 01b29f6d8212bc845da64773b18665d682f5ab66
 call bootstrap-vcpkg.bat
-vcpkg install glfw3 glm nlohmann-json assimp stb magic-enum freetype
+vcpkg install glfw3 glm nlohmann-json assimp stb magic-enum freetype sqlitecpp crossguid
 rmdir /s /q .git
 cd ..
 pause

@@ -12,6 +12,7 @@ in G2F
 
 uniform vec3 u_viewPos;
 uniform int  u_objectIndex;
+
 layout(bindless_sampler) uniform sampler2D u_albedoMap;
 layout(bindless_sampler) uniform sampler2D u_normalMap;
 layout(bindless_sampler) uniform sampler2D u_roughnessMap;
@@ -36,19 +37,34 @@ void main()
 	vec3 B = normalize(cross(g2f.N, g2f.T));
 	mat3 tangentToWorld = mat3(T, B, N);
 	mat3 worldToTangent = transpose(tangentToWorld);
+	vec2 texCoords = g2f.texCoords;
+	
+	// ----------------- displacement -----------------
 	
 	vec3 viewDir = normalize(u_viewPos - g2f.fragPos);
-	vec2 texCoords = POM(g2f.texCoords, normalize(worldToTangent * viewDir));
+	texCoords = POM(g2f.texCoords, normalize(worldToTangent * viewDir));
+	
+	// ----------------- albedo -----------------
 	
 	o_color = texture(u_albedoMap, texCoords).rgb;
 	
-	o_normal.xy = texture(u_normalMap, texCoords).rg * 2.0 - 1.0;
+	// ----------------- normal -----------------
+	
+	o_normal.xy = texture(u_normalMap, texCoords).rg * 2.0f - 1.0f;
 	o_normal.z = sqrt(1 - min(dot(o_normal.xy, o_normal.xy), 1));
 	o_normal = tangentToWorld * o_normal;
-	o_normal = (o_normal + 1) * 0.5;
+	o_normal = (o_normal + 1) * 0.5f;
+	
+	// ----------------- roughness -----------------
 	
 	o_material.r = texture(u_roughnessMap, texCoords).r;
+	
+	// ----------------- metalness -----------------
+	
 	o_material.g = texture(u_metalnessMap, texCoords).r;
+	
+	// ----------------- emissive -----------------
+	
 	o_material.b = texture(u_emissiveMap, texCoords).r;
 	
 	o_objectIndex = u_objectIndex;

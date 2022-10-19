@@ -3,16 +3,16 @@
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/GLFramebuffer.h"
-#include "Cyph3D/GLObject/Material/Material.h"
 #include "Cyph3D/Helper/GlfwHelper.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Logging/Logger.h"
-#include "Cyph3D/ResourceManagement/ResourceManager.h"
+#include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/UIHelper.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/Window.h"
+#include "Cyph3D/Helper/ThreadHelper.h"
 
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -21,7 +21,7 @@
 #include <stdexcept>
 
 std::unique_ptr<Window> Engine::_window;
-std::unique_ptr<ResourceManager> Engine::_globalResourceManager;
+std::unique_ptr<AssetManager> Engine::_assetManager;
 std::unique_ptr<Scene> Engine::_scene;
 
 Timer Engine::_timer;
@@ -53,7 +53,7 @@ void Engine::init()
 	
 	_window = std::make_unique<Window>();
 	
-	_globalResourceManager = std::make_unique<ResourceManager>(1);
+	_assetManager = std::make_unique<AssetManager>(std::max(ThreadHelper::getPhysicalCoreCount() - 1, 1));
 	
 	Logger::info(std::format("GLFW Version: {}", glfwGetVersionString()), "GLFW");
 	Logger::info(std::format("OpenGL Version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION))), "OPGL");
@@ -67,7 +67,7 @@ void Engine::init()
 	glDebugMessageCallback(messageCallback, nullptr);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
-	Material::initialize();
+	MaterialAsset::initialize();
 	RenderHelper::initDrawScreenQuad();
 	Entity::initAllocators();
 	ShapeRenderer::initAllocators();
@@ -86,8 +86,8 @@ void Engine::run()
 		
 		_timer.onNewFrame();
 		UIHelper::onNewFrame();
-		
-		_globalResourceManager->onUpdate();
+
+		_assetManager->onUpdate();
 		_scene->onUpdate();
 		
 		UIHelper::render();
@@ -100,7 +100,7 @@ void Engine::shutdown()
 {
 	UIHelper::shutdown();
 	_scene.reset();
-	_globalResourceManager.reset();
+	_assetManager.reset();
 	_window.reset();
 	glfwTerminate();
 }
@@ -110,9 +110,9 @@ Window& Engine::getWindow()
 	return *_window;
 }
 
-ResourceManager& Engine::getGlobalRM()
+AssetManager& Engine::getAssetManager()
 {
-	return *_globalResourceManager;
+	return *_assetManager;
 }
 
 Scene& Engine::getScene()

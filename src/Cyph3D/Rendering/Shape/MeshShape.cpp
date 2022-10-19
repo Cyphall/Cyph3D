@@ -3,10 +3,12 @@
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/ResourceManagement/Model.h"
+#include "Cyph3D/Asset/RuntimeAsset/ModelAsset.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Asset/AssetManager.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -19,6 +21,66 @@ Shape(shapeRenderer)
 
 }
 
+const std::string* MeshShape::getModelPath() const
+{
+	return _modelPath.has_value() ? &_modelPath.value() : nullptr;
+}
+
+void MeshShape::setModelPath(std::optional<std::string_view> path)
+{
+	if (path)
+	{
+		_modelPath = *path;
+		_model = Engine::getAssetManager().loadModel(*path);
+	}
+	else
+	{
+		_modelPath = std::nullopt;
+		_model = nullptr;
+	}
+}
+
+ModelAsset* MeshShape::getModel() const
+{
+	return _model;
+}
+
+bool MeshShape::isReadyForRasterisationRender() const
+{
+	ModelAsset* model = getModel();
+
+	return model != nullptr && model->isLoaded();
+}
+
+bool MeshShape::isReadyForRaytracingRender() const
+{
+	ModelAsset* model = getModel();
+
+	return model != nullptr && model->isLoaded();
+}
+
+const Mesh& MeshShape::getMeshToRender() const
+{
+	return getModel()->getMesh();
+}
+
+void MeshShape::onDrawUi()
+{
+	const char* modelPath = _modelPath.has_value() ? _modelPath.value().c_str() : "None";
+
+	// Field is read-only anyway, we can safely remove the const from skyboxName
+	ImGui::InputText("Model", const_cast<char*>(modelPath), ImGuiInputTextFlags_ReadOnly);
+	if (ImGui::BeginDragDropTarget())
+	{
+		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_model");
+		if (payload)
+		{
+			setModelPath(*(*static_cast<const std::string**>(payload->Data)));
+		}
+		ImGui::EndDragDropTarget();
+	}
+}
+
 const char* MeshShape::getIdentifier() const
 {
 	return identifier;
@@ -27,7 +89,10 @@ const char* MeshShape::getIdentifier() const
 void MeshShape::duplicate(ShapeRenderer& targetShapeRenderer) const
 {
 	MeshShape& newShape = targetShapeRenderer.setShape<MeshShape>();
-	newShape.setModel(getModel());
+	if (_modelPath)
+	{
+		newShape.setModelPath(_modelPath.value());
+	}
 }
 
 ObjectSerialization MeshShape::serialize() const
@@ -36,10 +101,10 @@ ObjectSerialization MeshShape::serialize() const
 	serialization.version = 2;
 	serialization.identifier = getIdentifier();
 	
-	const Model* model = getModel();
-	if (model)
+	const std::string* modelPath = getModelPath();
+	if (modelPath)
 	{
-		serialization.data["model"] = model->getName();
+		serialization.data["model"] = *modelPath;
 	}
 	else
 	{
@@ -53,16 +118,17 @@ void MeshShape::deserialize(const ObjectSerialization& serialization)
 {
 	Scene& scene = getShapeRenderer().getEntity().getScene();
 	
-	if (!serialization.data["model"].is_null())
+	const nlohmann::ordered_json& jsonModelPath = serialization.data["model"];
+	if (!jsonModelPath.is_null())
 	{
 		if (serialization.version <= 1)
 		{
 			Logger::info("MeshShape deseralization: converting model identifier from version 1.");
-			std::string oldName = serialization.data["model"].get<std::string>();
+			std::string oldName = jsonModelPath.get<std::string>();
 			std::string convertedPath = std::format("meshes/{}.obj", oldName);
-			if (std::filesystem::exists(FileHelper::getResourcePath() / convertedPath))
+			if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
 			{
-				setModel(scene.getRM().requestModel(convertedPath));
+				setModelPath(convertedPath);
 			}
 			else
 			{
@@ -71,57 +137,7 @@ void MeshShape::deserialize(const ObjectSerialization& serialization)
 		}
 		else
 		{
-			setModel(scene.getRM().requestModel(serialization.data["model"].get<std::string>()));
+			setModelPath(jsonModelPath.get<std::string>());
 		}
 	}
-}
-
-const Model* MeshShape::getModel()
-{
-	return _model;
-}
-
-const Model* MeshShape::getModel() const
-{
-	return _model;
-}
-
-void MeshShape::setModel(const Model* model)
-{
-	_model = model;
-}
-
-void MeshShape::onDrawUi()
-{
-	const Model* model = getModel();
-	std::string modelPath = model != nullptr ? model->getName() : "None";
-	ImGui::InputText("Model", &modelPath, ImGuiInputTextFlags_ReadOnly);
-	if (ImGui::BeginDragDropTarget())
-	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_model");
-		if (payload)
-		{
-			setModel(getShapeRenderer().getEntity().getScene().getRM().requestModel(*(*static_cast<const std::string**>(payload->Data))));
-		}
-		ImGui::EndDragDropTarget();
-	}
-}
-
-bool MeshShape::isReadyForRasterisationRender() const
-{
-	const Model* model = getModel();
-	
-	return model != nullptr && model->isResourceReady();
-}
-
-bool MeshShape::isReadyForRaytracingRender() const
-{
-	const Model* model = getModel();
-	
-	return model != nullptr && model->isResourceReady();
-}
-
-const Mesh& MeshShape::getMeshToRender() const
-{
-	return getModel()->getResource();
 }

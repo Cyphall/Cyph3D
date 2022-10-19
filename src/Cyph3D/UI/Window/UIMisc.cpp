@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/PerfCounter/PerfStep.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/Window.h"
@@ -33,27 +32,27 @@ void UIMisc::show()
 
 		ImGui::Separator();
 
-		Skybox* currentSkybox = Engine::getScene().getSkybox();
-		const std::string& skyboxPath = currentSkybox != nullptr ? currentSkybox->getName() : "None";
+		const std::string* currentSkyboxPath = Engine::getScene().getSkyboxPath();
+		const char* skyboxPath = currentSkyboxPath != nullptr ? currentSkyboxPath->c_str() : "None";
 
 		// Field is read-only anyway, we can safely remove the const from skyboxName
-		ImGui::InputText("Skybox", &const_cast<std::string&>(skyboxPath), ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputText("Skybox", const_cast<char*>(skyboxPath), ImGuiInputTextFlags_ReadOnly);
 		if (ImGui::BeginDragDropTarget())
 		{
 			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_skybox");
 			if (payload)
 			{
-				Engine::getScene().setSkybox(Engine::getScene().getRM().requestSkybox(*(*static_cast<const std::string**>(payload->Data))));
+				Engine::getScene().setSkyboxPath(*(*static_cast<const std::string**>(payload->Data)));
 			}
 			ImGui::EndDragDropTarget();
 		}
 
 		if (Engine::getScene().getSkybox() != nullptr)
 		{
-			float skyboxRotation = Engine::getScene().getSkybox()->getRotation();
+			float skyboxRotation = Engine::getScene().getSkyboxRotation();
 			if (ImGui::SliderFloat("Skybox rotation", &skyboxRotation, 0, 360))
 			{
-				Engine::getScene().getSkybox()->setRotation(skyboxRotation);
+				Engine::getScene().setSkyboxRotation(skyboxRotation);
 			}
 		}
 

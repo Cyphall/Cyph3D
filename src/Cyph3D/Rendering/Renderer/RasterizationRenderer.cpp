@@ -1,7 +1,8 @@
 #include "RasterizationRenderer.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
+#include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
 #include "Cyph3D/Scene/Scene.h"
 
 #include <glad/glad.h>
@@ -37,7 +38,7 @@ GLTexture& RasterizationRenderer::renderImpl(Camera& camera, Scene& scene, bool 
 		return *_textures["gbuffer_debug"];
 	}
 	
-	if (scene.getSkybox() != nullptr && scene.getSkybox()->isResourceReady())
+	if (scene.getSkybox() != nullptr && scene.getSkybox()->isLoaded())
 		Renderer::render(_skyboxPass, camera);
 	
 	Renderer::render(_lightingPass, camera);

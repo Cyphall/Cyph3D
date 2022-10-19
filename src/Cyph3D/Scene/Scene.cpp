@@ -10,30 +10,32 @@
 #include "Cyph3D/Iterator/EntityConstIterator.h"
 #include "Cyph3D/Iterator/EntityIterator.h"
 #include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/Logging/Logger.h"
+#include "Cyph3D/Asset/AssetManager.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <format>
 #include <stdexcept>
 
 Scene::Scene(std::string name):
-_root(Transform::createSceneRoot()), _name(std::move(name)), _resourceManager(std::max(ThreadHelper::getPhysicalCoreCount() - 2, 1))
+_root(Transform::createSceneRoot()), _name(std::move(name))
 {
 
 }
 
-Transform& Scene::getRoot()
+Scene::~Scene()
 {
-	return *_root;
+	_entities.clear();
+
+	_root.reset();
 }
 
 void Scene::onUpdate()
 {
-	_resourceManager.onUpdate();
 	for (auto it = entities_begin(); it != entities_end(); it++)
 	{
 		(*it).onUpdate();
@@ -82,24 +84,68 @@ EntityIterator Scene::removeEntity(EntityIterator where)
 	return EntityIterator(_entities.erase(where.getUnderlyingIterator()));
 }
 
-Skybox* Scene::getSkybox()
+EntityIterator Scene::entities_begin()
+{
+	return EntityIterator(_entities.begin());
+}
+
+EntityIterator Scene::entities_end()
+{
+	return EntityIterator(_entities.end());
+}
+
+EntityConstIterator Scene::entities_cbegin() const
+{
+	return EntityConstIterator(_entities.cbegin());
+}
+
+EntityConstIterator Scene::entities_cend() const
+{
+	return EntityConstIterator(_entities.cend());
+}
+
+Transform& Scene::getRoot()
+{
+	return *_root;
+}
+
+const std::string* Scene::getSkyboxPath() const
+{
+	return _skyboxPath ? &_skyboxPath.value() : nullptr;
+}
+
+void Scene::setSkyboxPath(std::optional<std::string_view> path)
+{
+	if (path)
+	{
+		_skyboxPath = *path;
+		_skybox = Engine::getAssetManager().loadSkybox(*path);
+	}
+	else
+	{
+		_skyboxPath = std::nullopt;
+		_skybox = nullptr;
+	}
+}
+
+SkyboxAsset* Scene::getSkybox()
 {
 	return _skybox;
 }
 
-void Scene::setSkybox(Skybox* skybox)
+float Scene::getSkyboxRotation() const
 {
-	_skybox = skybox;
+	return _skyboxRotation;
 }
 
-ResourceManager& Scene::getRM()
+void Scene::setSkyboxRotation(float rotation)
 {
-	return _resourceManager;
+	_skyboxRotation = rotation;
 }
 
 void Scene::load(const std::filesystem::path& path)
 {
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getResourcePath() / path);
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / path);
 
 	int version = jsonRoot["version"].get<int>();
 	
@@ -132,30 +178,46 @@ void Scene::load(const std::filesystem::path& path)
 	
 	UIViewport::setCamera(camera);
 
-	if (!jsonRoot["skybox"].is_null())
+	if (version <= 1)
 	{
 		nlohmann::ordered_json& jsonSkybox = jsonRoot["skybox"];
-		if (jsonRoot["version"].get<int>() <= 1)
+		if (!jsonSkybox.is_null())
 		{
 			Logger::info("Scene deseralization: converting skybox identifier from version 1.");
 			std::string oldName = jsonSkybox["name"].get<std::string>();
 			std::string newFileName = std::filesystem::path(oldName).filename().generic_string();
 			std::string convertedPath = std::format("skyboxes/{}/{}.c3dskybox", oldName, newFileName);
-			if (std::filesystem::exists(FileHelper::getResourcePath() / convertedPath))
+			if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
 			{
-				scene.setSkybox(scene.getRM().requestSkybox(convertedPath));
+				scene.setSkyboxPath(convertedPath);
 			}
 			else
 			{
 				Logger::warning("Scene deseralization: unable to convert skybox identifier from version 1.");
 			}
+
+			scene.setSkyboxRotation(jsonSkybox["rotation"].get<float>());
 		}
-		else
+	}
+	else if (version <= 3)
+	{
+		nlohmann::ordered_json& jsonSkybox = jsonRoot["skybox"];
+		if (!jsonSkybox.is_null())
 		{
-			scene.setSkybox(scene.getRM().requestSkybox(jsonSkybox["name"].get<std::string>()));
+			scene.setSkyboxPath(jsonSkybox["name"].get<std::string>());
+			
+			scene.setSkyboxRotation(jsonSkybox["rotation"].get<float>());
+		}
+	}
+	else
+	{
+		nlohmann::ordered_json& jsonSkyboxPath = jsonRoot["skybox"];
+		if (!jsonSkyboxPath.is_null())
+		{
+			scene.setSkyboxPath(jsonSkyboxPath.get<std::string>());
 		}
 		
-		scene.getSkybox()->setRotation(jsonSkybox["rotation"].get<float>());
+		scene.setSkyboxRotation(jsonRoot["skybox_rotation"].get<float>());
 	}
 
 	for (nlohmann::ordered_json& value : jsonRoot["entities"])
@@ -183,7 +245,7 @@ void Scene::save(const std::filesystem::path& path)
 	
 	nlohmann::ordered_json jsonRoot;
 	
-	jsonRoot["version"] = 3;
+	jsonRoot["version"] = 4;
 	
 	const Camera& camera = UIViewport::getCamera();
 	nlohmann::ordered_json jsonCamera;
@@ -195,13 +257,16 @@ void Scene::save(const std::filesystem::path& path)
 	
 	jsonRoot["camera"] = jsonCamera;
 	
-	nlohmann::ordered_json jsonSkybox;
-	if (_skybox != nullptr)
+	if (_skyboxPath)
 	{
-		jsonSkybox["name"] = _skybox->getName();
-		jsonSkybox["rotation"] = _skybox->getRotation();
+		jsonRoot["skybox"] = _skyboxPath.value();
 	}
-	jsonRoot["skybox"] = jsonSkybox;
+	else
+	{
+		jsonRoot["skybox"] = nullptr;
+	}
+	
+	jsonRoot["skybox_rotation"] = getSkyboxRotation();
 	
 	std::vector<nlohmann::ordered_json> entities;
 	entities.reserve(_root->getChildren().size());
@@ -231,34 +296,7 @@ nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const
 	return jsonData;
 }
 
-Scene::~Scene()
-{
-	_entities.clear();
-	
-	_root.reset();
-}
-
 const std::string& Scene::getName() const
 {
 	return _name;
-}
-
-EntityIterator Scene::entities_begin()
-{
-	return EntityIterator(_entities.begin());
-}
-
-EntityIterator Scene::entities_end()
-{
-	return EntityIterator(_entities.end());
-}
-
-EntityConstIterator Scene::entities_cbegin() const
-{
-	return EntityConstIterator(_entities.cbegin());
-}
-
-EntityConstIterator Scene::entities_cend() const
-{
-	return EntityConstIterator(_entities.cend());
 }

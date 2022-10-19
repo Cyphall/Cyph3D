@@ -102,7 +102,7 @@ void UIAssetBrowser::draw()
 void UIAssetBrowser::rescan()
 {
 	_root.reset();
-	_root = build(FileHelper::getResourcePath());
+	_root = build(FileHelper::getAssetDirectoryPath());
 	_selected = _root.get();
 }
 
@@ -111,7 +111,7 @@ std::unique_ptr<UIAssetBrowser::Directory> UIAssetBrowser::build(const std::file
 	std::unique_ptr<Directory> directory = std::make_unique<UIAssetBrowser::Directory>();
 	directory->name = path.filename().generic_string();
 	directory->truncatedName = truncate(directory->name, 90 * Engine::getWindow().getPixelScale());
-	directory->path = std::filesystem::relative(path, FileHelper::getResourcePath()).generic_string();
+	directory->path = std::filesystem::relative(path, FileHelper::getAssetDirectoryPath()).generic_string();
 
 	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path))
 	{
@@ -124,7 +124,7 @@ std::unique_ptr<UIAssetBrowser::Directory> UIAssetBrowser::build(const std::file
 			File& file = directory->files.emplace_back();
 			file.name = entry.path().filename().generic_string();
 			file.truncatedName = truncate(file.name, 90 * Engine::getWindow().getPixelScale());
-			file.path = std::filesystem::relative(entry.path(), FileHelper::getResourcePath()).generic_string();
+			file.path = std::filesystem::relative(entry.path(), FileHelper::getAssetDirectoryPath()).generic_string();
 
 			std::string extension = entry.path().extension().generic_string();
 			std::transform(

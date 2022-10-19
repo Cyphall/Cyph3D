@@ -2,7 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/RenderContext.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
@@ -12,6 +12,7 @@
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/Asset/AssetManager.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -22,17 +23,31 @@ std::map<std::string, std::function<Shape&(ShapeRenderer&)>> ShapeRenderer::_all
 ShapeRenderer::ShapeRenderer(Entity& entity):
 Component(entity), _shape(new MeshShape(*this)), _selectedShape(MeshShape::identifier)
 {
-	setMaterial(Material::getDefault());
+	setMaterialPath("materials/internal/Default Material/Default Material.c3dmaterial");
 }
 
-Material* ShapeRenderer::getMaterial() const
+const std::string* ShapeRenderer::getMaterialPath() const
+{
+	return _materialPath.has_value() ? &_materialPath.value() : nullptr;
+}
+
+void ShapeRenderer::setMaterialPath(std::optional<std::string_view> path)
+{
+	if (path)
+	{
+		_materialPath = *path;
+		_material = Engine::getAssetManager().loadMaterial(path.value());
+	}
+	else
+	{
+		_materialPath = std::nullopt;
+		_material = nullptr;
+	}
+}
+
+MaterialAsset* ShapeRenderer::getMaterial() const
 {
 	return _material;
-}
-
-void ShapeRenderer::setMaterial(Material* material)
-{
-	_material = material;
 }
 
 Shape& ShapeRenderer::getShape()
@@ -63,10 +78,10 @@ ObjectSerialization ShapeRenderer::serialize() const
 	
 	serialization.data["shape"] = getShape().serialize().toJson();
 	
-	Material* material = getMaterial();
-	if (material)
+	const std::string* materialPath = getMaterialPath();
+	if (materialPath)
 	{
-		serialization.data["material"] = material->getPath();
+		serialization.data["material"] = *materialPath;
 	}
 	else
 	{
@@ -90,9 +105,9 @@ void ShapeRenderer::deserialize(const ObjectSerialization& shapeRendererSerializ
 			std::string oldName = shapeRendererSerialization.data["material"].get<std::string>();
 			std::string newFileName = std::filesystem::path(oldName).filename().generic_string();
 			std::string convertedPath = std::format("materials/{}/{}.c3dmaterial", oldName, newFileName);
-			if (std::filesystem::exists(FileHelper::getResourcePath() / convertedPath))
+			if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
 			{
-				setMaterial(scene.getRM().requestMaterial(convertedPath));
+				setMaterialPath(convertedPath);
 			}
 			else
 			{
@@ -101,7 +116,7 @@ void ShapeRenderer::deserialize(const ObjectSerialization& shapeRendererSerializ
 		}
 		else
 		{
-			setMaterial(scene.getRM().requestMaterial(shapeRendererSerialization.data["material"].get<std::string>()));
+			setMaterialPath(shapeRendererSerialization.data["material"].get<std::string>());
 		}
 	}
 
@@ -114,15 +129,10 @@ void ShapeRenderer::deserialize(const ObjectSerialization& shapeRendererSerializ
 	setContributeShadows(shapeRendererSerialization.data["contribute_shadows"].get<bool>());
 }
 
-Material* ShapeRenderer::getDrawingMaterial() const
-{
-	return _material != nullptr ? _material : Material::getMissing();
-}
-
 void ShapeRenderer::onPreRender(RenderContext& context)
 {
 	RenderData data{};
-	data.material = getDrawingMaterial();
+	data.material = getMaterial();
 	data.shape = &getShape();
 	data.owner = &getEntity();
 	data.contributeShadows = getContributeShadows();
@@ -133,23 +143,16 @@ void ShapeRenderer::onPreRender(RenderContext& context)
 
 void ShapeRenderer::onDrawUi()
 {
-	Material* material = getDrawingMaterial();
-	std::string materialPath = material->getPath();
-	ImGui::InputText("Material", &materialPath, ImGuiInputTextFlags_ReadOnly);
+	const char* materialPath = _materialPath.has_value() ? _materialPath.value().c_str() : "None";
+
+	// Field is read-only anyway, we can safely remove the const from skyboxName
+	ImGui::InputText("Material", const_cast<char*>(materialPath), ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::BeginDragDropTarget())
 	{
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_material");
 		if (payload)
 		{
-			std::string newMaterialName = *(*static_cast<const std::string**>(payload->Data));
-			if (newMaterialName == "internal/Default Material")
-			{
-				setMaterial(Material::getDefault());
-			}
-			else
-			{
-				setMaterial(Engine::getScene().getRM().requestMaterial(newMaterialName));
-			}
+			setMaterialPath(*(*static_cast<const std::string**>(payload->Data)));
 		}
 		ImGui::EndDragDropTarget();
 	}
@@ -188,7 +191,10 @@ const char* ShapeRenderer::getIdentifier() const
 void ShapeRenderer::duplicate(Entity& targetEntity) const
 {
 	ShapeRenderer& newComponent = targetEntity.addComponent<ShapeRenderer>();
-	newComponent.setMaterial(getMaterial());
+	if (_materialPath)
+	{
+		newComponent.setMaterialPath(_materialPath.value());
+	}
 	getShape().duplicate(newComponent);
 	newComponent.setContributeShadows(getContributeShadows());
 }

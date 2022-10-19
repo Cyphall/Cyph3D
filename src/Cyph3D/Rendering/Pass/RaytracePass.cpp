@@ -4,13 +4,14 @@
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/Material/Material.h"
+#include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/GLObject/GLImmutableBuffer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
 #include "Cyph3D/Rendering/Shape/PlaneShape.h"
 #include "Cyph3D/Rendering/Shape/SphereShape.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
+#include "Cyph3D/GLObject/GLCubemap.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"
 
@@ -64,12 +65,12 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 #pragma endregion
 #pragma region Skybox
 	
-	Skybox* skybox = Engine::getScene().getSkybox();
+	SkyboxAsset* skybox = Engine::getScene().getSkybox();
 	
-	if (skybox && skybox->isResourceReady())
+	if (skybox && skybox->isLoaded())
 	{
 		_shader.setUniform("u_skybox.enabled", true);
-		_shader.setUniform("u_skybox.cubemap", skybox->getResource().getBindlessTextureHandle());
+		_shader.setUniform("u_skybox.cubemap", skybox->getCubemap().getBindlessTextureHandle());
 	}
 	else
 	{
@@ -129,17 +130,27 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 			continue;
 		
 		Transform& transform = renderData.owner->getTransform();
+
+		MaterialAsset* material = renderData.material;
+		if (material == nullptr)
+		{
+			material = MaterialAsset::getMissingMaterial();
+		}
+		else if (!material->isLoaded()) // should never happen, but we never know
+		{
+			material = MaterialAsset::getDefaultMaterial();
+		}
 		
 		const SphereShape* sphereShape = dynamic_cast<const SphereShape*>(renderData.shape);
 		if (sphereShape != nullptr)
 		{
 			GLSL_Sphere& glslSphere = glslSphereVec.emplace_back();
-			glslSphere.material.albedo = renderData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle();
-			glslSphere.material.normal = renderData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle();
-			glslSphere.material.roughness = renderData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle();
-			glslSphere.material.metalness = renderData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle();
-			glslSphere.material.displacement = renderData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle();
-			glslSphere.material.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
+			glslSphere.material.albedo = material->getAlbedoTexture().getBindlessTextureHandle();
+			glslSphere.material.normal = material->getNormalTexture().getBindlessTextureHandle();
+			glslSphere.material.roughness = material->getRoughnessTexture().getBindlessTextureHandle();
+			glslSphere.material.metalness = material->getMetalnessTexture().getBindlessTextureHandle();
+			glslSphere.material.displacement = material->getDisplacementTexture().getBindlessTextureHandle();
+			glslSphere.material.emissive = material->getEmissiveTexture().getBindlessTextureHandle();
 			glslSphere.transform.localToWorld = transform.getLocalToWorldMatrix();
 			glslSphere.transform.worldToLocal = transform.getWorldToLocalMatrix();
 			glslSphere.transform.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslSphere.transform.localToWorld));
@@ -151,12 +162,12 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		if (planeShape != nullptr)
 		{
 			GLSL_Plane& glslPlane = glslPlaneVec.emplace_back();
-			glslPlane.material.albedo = renderData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle();
-			glslPlane.material.normal = renderData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle();
-			glslPlane.material.roughness = renderData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle();
-			glslPlane.material.metalness = renderData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle();
-			glslPlane.material.displacement = renderData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle();
-			glslPlane.material.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
+			glslPlane.material.albedo = material->getAlbedoTexture().getBindlessTextureHandle();
+			glslPlane.material.normal = material->getNormalTexture().getBindlessTextureHandle();
+			glslPlane.material.roughness = material->getRoughnessTexture().getBindlessTextureHandle();
+			glslPlane.material.metalness = material->getMetalnessTexture().getBindlessTextureHandle();
+			glslPlane.material.displacement = material->getDisplacementTexture().getBindlessTextureHandle();
+			glslPlane.material.emissive = material->getEmissiveTexture().getBindlessTextureHandle();
 			glslPlane.transform.localToWorld = transform.getLocalToWorldMatrix();
 			glslPlane.transform.worldToLocal = transform.getWorldToLocalMatrix();
 			glslPlane.transform.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslPlane.transform.localToWorld));
@@ -169,12 +180,12 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		if (meshShape != nullptr)
 		{
 			GLSL_Mesh& glslMesh = glslMeshVec.emplace_back();
-			glslMesh.material.albedo = renderData.material->getTexture(MaterialMapType::ALBEDO).getBindlessTextureHandle();
-			glslMesh.material.normal = renderData.material->getTexture(MaterialMapType::NORMAL).getBindlessTextureHandle();
-			glslMesh.material.roughness = renderData.material->getTexture(MaterialMapType::ROUGHNESS).getBindlessTextureHandle();
-			glslMesh.material.metalness = renderData.material->getTexture(MaterialMapType::METALNESS).getBindlessTextureHandle();
-			glslMesh.material.displacement = renderData.material->getTexture(MaterialMapType::DISPLACEMENT).getBindlessTextureHandle();
-			glslMesh.material.emissive = renderData.material->getTexture(MaterialMapType::EMISSIVE).getBindlessTextureHandle();
+			glslMesh.material.albedo = material->getAlbedoTexture().getBindlessTextureHandle();
+			glslMesh.material.normal = material->getNormalTexture().getBindlessTextureHandle();
+			glslMesh.material.roughness = material->getRoughnessTexture().getBindlessTextureHandle();
+			glslMesh.material.metalness = material->getMetalnessTexture().getBindlessTextureHandle();
+			glslMesh.material.displacement = material->getDisplacementTexture().getBindlessTextureHandle();
+			glslMesh.material.emissive = material->getEmissiveTexture().getBindlessTextureHandle();
 			glslMesh.transform.localToWorld = transform.getLocalToWorldMatrix();
 			glslMesh.transform.worldToLocal = transform.getWorldToLocalMatrix();
 			glslMesh.transform.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslMesh.transform.localToWorld));

@@ -1,7 +1,9 @@
 #include "SkyboxPass.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/ResourceManagement/Skybox.h"
+#include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
+#include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
+#include "Cyph3D/GLObject/GLCubemap.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"
 
@@ -89,11 +91,11 @@ void SkyboxPass::renderImpl(std::unordered_map<std::string, GLTexture*>& texture
 	glm::mat4 mvp =
 			camera.getProjection() *
 			glm::mat4(glm::mat3(camera.getView())) *
-			glm::rotate(glm::radians(Engine::getScene().getSkybox()->getRotation()), glm::vec3(0, 1, 0));
+			glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
 	
 	_shader.setUniform("u_mvp", mvp);
 	
-	_shader.setUniform("u_skybox", Engine::getScene().getSkybox()->getResource().getBindlessTextureHandle());
+	_shader.setUniform("u_skybox", Engine::getScene().getSkybox()->getCubemap().getBindlessTextureHandle());
 	
 	_vao.bind();
 	
