@@ -2,12 +2,12 @@
 
 #include "Cyph3D/Asset/Processor/MeshData.h"
 
-#include <crossguid/guid.hpp>
+#include <string_view>
 
 class MeshProcessor
 {
 private:
 	friend class AssetManager;
 
-	static MeshData readMeshData(const xg::Guid& guid, std::string_view path);
+	static MeshData readMeshData(std::string_view path, std::string_view cachePath);
 };

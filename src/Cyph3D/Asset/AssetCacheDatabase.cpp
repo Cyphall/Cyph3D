@@ -29,52 +29,55 @@ AssetCacheDatabase::AssetCacheDatabase()
 	_database = std::make_unique<SQLite::Database>(databaseFilePath.generic_string(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_EXRESCODE);
 
 	_database->exec(
-		"CREATE TABLE IF NOT EXISTS Image"
-		"("
-		"	guid BINARY(16) NOT NULL PRIMARY KEY,"
-		"	path TEXT NOT NULL,"
-		"	lastWriteTime BIGINT NOT NULL,"
-		"	format INT NOT NULL,"
-		"	UNIQUE(path, lastWriteTime, format)"
+		"CREATE TABLE IF NOT EXISTS Image\n"
+		"(\n"
+		"	guid BINARY(16) NOT NULL PRIMARY KEY,\n"
+		"	path TEXT NOT NULL,\n"
+		"	lastWriteTime BIGINT NOT NULL,\n"
+		"	format INT NOT NULL,\n"
+		"	UNIQUE(path, lastWriteTime, format)\n"
 		") WITHOUT ROWID;");
 
 	_database->exec(
-		"CREATE TABLE IF NOT EXISTS Mesh"
-		"("
-		"	guid BINARY(16) NOT NULL PRIMARY KEY,"
-		"	path TEXT NOT NULL,"
-		"	lastWriteTime BIGINT NOT NULL,"
-		"	UNIQUE(path, lastWriteTime)"
+		"CREATE TABLE IF NOT EXISTS Mesh\n"
+		"(\n"
+		"	guid BINARY(16) NOT NULL PRIMARY KEY,\n"
+		"	path TEXT NOT NULL,\n"
+		"	lastWriteTime BIGINT NOT NULL,\n"
+		"	UNIQUE(path, lastWriteTime)\n"
 		") WITHOUT ROWID;");
 }
 
 AssetCacheDatabase::~AssetCacheDatabase()
 {}
 
-xg::Guid AssetCacheDatabase::getImageCacheGuid(std::string_view path, const GLenum& format)
+std::string AssetCacheDatabase::getImageCachePath(std::string_view path, const GLenum& format)
 {
-	int64_t lastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
-	
+	int64_t currentLastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
+
 	SQLite::Statement selectQuery(*_database,
-		"SELECT guid FROM Image\n"
-		"WHERE path=? AND lastWriteTime=? AND format=?;");
+		"SELECT guid, lastWriteTime FROM Image\n"
+		"WHERE path=? AND format=?;");
 
 	selectQuery.bind(1, path.data(), path.size());
-	selectQuery.bind(2, lastWriteTime);
-	selectQuery.bind(3, static_cast<uint32_t>(format));
+	selectQuery.bind(2, static_cast<uint32_t>(format));
 
 	xg::Guid guid;
-	
+	int64_t lastWriteTime;
+
 	if (selectQuery.executeStep())
 	{
 		guid = columnToGuid(selectQuery.getColumn(0));
+		lastWriteTime = selectQuery.getColumn(1).getInt64();
 	}
 	else
 	{
 		guid = xg::newGuid();
+		lastWriteTime = currentLastWriteTime;
 
 		SQLite::Statement insertQuery(*_database,
-			"INSERT INTO Image VALUES(?, ?, ?, ?);");
+			"INSERT INTO Image\n"
+			"VALUES(?, ?, ?, ?);");
 
 		insertQuery.bind(1, guid.bytes().data(), guid.bytes().size());
 		insertQuery.bind(2, path.data(), path.size());
@@ -83,33 +86,53 @@ xg::Guid AssetCacheDatabase::getImageCacheGuid(std::string_view path, const GLen
 
 		insertQuery.exec();
 	}
+	
+	std::string cachePath = std::format("images/{}.c3dcache", guid.str());
+	
+	if (currentLastWriteTime != lastWriteTime)
+	{
+		std::filesystem::remove(FileHelper::getCacheAssetDirectoryPath() / cachePath);
 
-	return guid;
+		SQLite::Statement updateQuery(*_database,
+			"UPDATE Image\n"
+			"SET lastWriteTime=?\n"
+			"WHERE guid=?;");
+
+		updateQuery.bind(1, currentLastWriteTime);
+		updateQuery.bind(2, guid.bytes().data(), guid.bytes().size());
+
+		updateQuery.exec();
+	}
+
+	return cachePath;
 }
 
-xg::Guid AssetCacheDatabase::getMeshCacheGuid(std::string_view path)
+std::string AssetCacheDatabase::getMeshCachePath(std::string_view path)
 {
-	int64_t lastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
+	int64_t currentLastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
 
 	SQLite::Statement selectQuery(*_database,
-		"SELECT guid FROM Mesh\n"
-		"WHERE path=? AND lastWriteTime=?;");
+		"SELECT guid, lastWriteTime FROM Mesh\n"
+		"WHERE path=?;");
 
 	selectQuery.bind(1, path.data(), path.size());
-	selectQuery.bind(2, lastWriteTime);
 
 	xg::Guid guid;
+	int64_t lastWriteTime;
 
 	if (selectQuery.executeStep())
 	{
 		guid = columnToGuid(selectQuery.getColumn(0));
+		lastWriteTime = selectQuery.getColumn(1).getInt64();
 	}
 	else
 	{
 		guid = xg::newGuid();
+		lastWriteTime = currentLastWriteTime;
 
 		SQLite::Statement insertQuery(*_database,
-			"INSERT INTO Mesh VALUES(?, ?, ?);");
+			"INSERT INTO Mesh\n"
+			"VALUES(?, ?, ?);");
 
 		insertQuery.bind(1, guid.bytes().data(), guid.bytes().size());
 		insertQuery.bind(2, path.data(), path.size());
@@ -118,5 +141,22 @@ xg::Guid AssetCacheDatabase::getMeshCacheGuid(std::string_view path)
 		insertQuery.exec();
 	}
 
-	return guid;
+	std::string cachePath = std::format("meshes/{}.c3dcache", guid.str());
+
+	if (currentLastWriteTime != lastWriteTime)
+	{
+		std::filesystem::remove(FileHelper::getCacheAssetDirectoryPath() / cachePath);
+
+		SQLite::Statement updateQuery(*_database,
+			"UPDATE Mesh\n"
+			"SET lastWriteTime=?\n"
+			"WHERE guid=?;");
+
+		updateQuery.bind(1, currentLastWriteTime);
+		updateQuery.bind(2, guid.bytes().data(), guid.bytes().size());
+
+		updateQuery.exec();
+	}
+
+	return cachePath;
 }

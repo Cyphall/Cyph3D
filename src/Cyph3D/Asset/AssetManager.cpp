@@ -14,14 +14,14 @@ AssetManager::~AssetManager()
 
 ImageData AssetManager::readImageData(std::string_view path, const GLenum& format)
 {
-	xg::Guid guid = _database.getImageCacheGuid(path, format);
-	return ImageProcessor::readImageData(guid, path, format);
+	std::string cachePath = _database.getImageCachePath(path, format);
+	return ImageProcessor::readImageData(path, format, cachePath);
 }
 
 MeshData AssetManager::readMeshData(std::string_view path)
 {
-	xg::Guid guid = _database.getMeshCacheGuid(path);
-	return MeshProcessor::readMeshData(guid, path);
+	std::string cachePath = _database.getMeshCachePath(path);
+	return MeshProcessor::readMeshData(path, cachePath);
 }
 
 TextureAsset* AssetManager::loadTexture(std::string_view path, TextureType type)

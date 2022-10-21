@@ -70,10 +70,10 @@ static MeshData processMesh(const std::filesystem::path& input, const std::files
 	return meshData;
 }
 
-MeshData MeshProcessor::readMeshData(const xg::Guid& guid, std::string_view path)
+MeshData MeshProcessor::readMeshData(std::string_view path, std::string_view cachePath)
 {
 	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
-	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / "meshes" / std::format("{}.c3dcache", guid.str());
+	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;
 
 	MeshData meshData;
 

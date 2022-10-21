@@ -3,7 +3,7 @@
 #include "Cyph3D/Enums/TextureType.h"
 
 #include <memory>
-#include <crossguid/guid.hpp>
+#include <string>
 #include <glad/glad.h>
 
 namespace SQLite
@@ -17,8 +17,8 @@ public:
 	AssetCacheDatabase();
 	~AssetCacheDatabase();
 
-	xg::Guid getImageCacheGuid(std::string_view path, const GLenum& format);
-	xg::Guid getMeshCacheGuid(std::string_view path);
+	std::string getImageCachePath(std::string_view path, const GLenum& format);
+	std::string getMeshCachePath(std::string_view path);
 	
 private:
 	std::unique_ptr<SQLite::Database> _database;

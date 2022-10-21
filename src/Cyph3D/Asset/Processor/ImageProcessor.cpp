@@ -106,10 +106,10 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 	return imageData;
 }
 
-ImageData ImageProcessor::readImageData(const xg::Guid& guid, std::string_view path, const GLenum& format)
+ImageData ImageProcessor::readImageData(std::string_view path, const GLenum& format, std::string_view cachePath)
 {
 	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
-	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / "images" / std::format("{}.c3dcache", guid.str());
+	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;
 
 	ImageData imageData;
 	
