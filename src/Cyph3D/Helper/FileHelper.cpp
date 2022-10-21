@@ -190,3 +190,13 @@ const std::filesystem::path& FileHelper::getCacheAssetDirectoryPath()
 {
 	return cacheAssetDirectoryPath;
 }
+
+bool FileHelper::isAssetPath(const std::filesystem::path& path)
+{
+	std::filesystem::path assetPathCanonial = std::filesystem::weakly_canonical(FileHelper::getAssetDirectoryPath());
+	std::filesystem::path pathCanonial = std::filesystem::weakly_canonical(std::filesystem::absolute(path));
+
+	auto it = std::search(pathCanonial.begin(), pathCanonial.end(), assetPathCanonial.begin(), assetPathCanonial.end());
+
+	return it == pathCanonial.begin();
+}

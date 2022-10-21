@@ -10,16 +10,6 @@
 
 bool UIMenuBar::_showDemoWindow = false;
 
-static bool isAssetPath(const std::filesystem::path& path)
-{
-	std::filesystem::path assetPathCanonial = std::filesystem::weakly_canonical(FileHelper::getAssetDirectoryPath());
-	std::filesystem::path pathCanonial = std::filesystem::weakly_canonical(std::filesystem::absolute(path));
-
-	auto it = std::search(pathCanonial.begin(), pathCanonial.end(), assetPathCanonial.begin(), assetPathCanonial.end());
-
-	return it == pathCanonial.begin();
-}
-
 void UIMenuBar::show()
 {
 	bool showPathOutsideError = false;
@@ -45,7 +35,7 @@ void UIMenuBar::show()
 				
 				if (filePath.has_value())
 				{
-					if (isAssetPath(filePath.value()))
+					if (FileHelper::isAssetPath(filePath.value()))
 					{
 						Scene::load(filePath.value());
 					}
@@ -68,7 +58,7 @@ void UIMenuBar::show()
 				
 				if (filePath.has_value())
 				{
-					if (isAssetPath(filePath.value()))
+					if (FileHelper::isAssetPath(filePath.value()))
 					{
 						scene.save(filePath.value());
 					}

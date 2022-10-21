@@ -24,6 +24,8 @@ public:
 	static const std::filesystem::path& getAssetDirectoryPath();
 	static const std::filesystem::path& getCacheRootDirectoryPath();
 	static const std::filesystem::path& getCacheAssetDirectoryPath();
+
+	static bool isAssetPath(const std::filesystem::path& path);
 	
 	template<typename T>
 	static void read(std::ifstream& stream, T* data)
