@@ -124,8 +124,8 @@ void SkyboxAsset::onPathChange()
 		_cubemap = _manager.loadCubemap(
 			_xposPath.value(),
 			_xnegPath.value(),
-			_yposPath.value(),
 			_ynegPath.value(),
+			_yposPath.value(),
 			_zposPath.value(),
 			_znegPath.value()
 			);
