@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <string>
-#include <vector>
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <functional>
@@ -12,53 +11,25 @@ class UIAssetBrowser
 {
 public:
 	explicit UIAssetBrowser(ImFont* bigFont);
+	~UIAssetBrowser();
 
 	void draw();
 
 private:
-	struct File;
-	struct Directory;
-
-	enum class FileType
-	{
-		Unknown,
-		Material,
-		Model,
-		Skybox,
-		Scene
-	};
-
-	struct File
-	{
-		std::string path;
-		std::string name;
-		std::string truncatedName;
-		FileType type = FileType::Unknown;
-	};
-
-	struct Directory
-	{
-		std::string path;
-		std::string name;
-		std::string truncatedName;
-		std::vector<File> files;
-		std::vector<std::unique_ptr<Directory>> subdirectories;
-	};
+	class Entry;
 
 	void rescan();
 
-	std::unique_ptr<Directory> build(const std::filesystem::path& path);
-
 	void drawLeftPanel();
-	void drawDirectoryNode(const Directory* directory);
+	void drawDirectoryNode(const Entry& directory);
 
 	void drawRightPanel();
 	bool drawRightPanelEntry(const std::string& id, const char* icon, const std::string& name, float& usedWidth);
 
 	ImFont* _bigFont;
 
-	std::unique_ptr<Directory> _root;
-	const Directory* _selected = nullptr;
+	std::unique_ptr<Entry> _root;
+	const Entry* _currentDirectory = nullptr;
 
 	float _size1 = 0;
 	float _size2 = 0;

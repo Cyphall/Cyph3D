@@ -72,7 +72,7 @@ void MeshShape::onDrawUi()
 	ImGui::InputText("Model", const_cast<char*>(modelPath), ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::BeginDragDropTarget())
 	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_model");
+		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_mesh");
 		if (payload)
 		{
 			setModelPath(*(*static_cast<const std::string**>(payload->Data)));

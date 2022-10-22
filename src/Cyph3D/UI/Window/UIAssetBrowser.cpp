@@ -7,42 +7,178 @@
 
 #include <imgui_internal.h>
 #include <algorithm>
+#include <set>
 
-static std::string truncate(const std::string& string, float maxWidth)
+enum class EntryType
 {
-	if (ImGui::CalcTextSize(string.c_str()).x > maxWidth)
-	{
-		std::vector<char> buffer(string.size() + 3, 0);
-		std::fill(buffer.begin(), buffer.begin() + 3, '.');
-		std::copy(string.begin(), string.end(), buffer.begin() + 3);
+	Directory,
+	
+	Unknown,
+	
+	Image,
+	Mesh,
+	
+	Material,
+	Skybox,
+	Scene
+};
 
-		int min = 0;
-		int max = buffer.size();
-		while (max - min > 1)
+class UIAssetBrowser::Entry
+{
+public:
+	struct EntryCompare
+	{
+		bool operator()(const std::unique_ptr<Entry>& left, const std::unique_ptr<Entry>& right) const
 		{
-			int middle = (min + max) / 2;
-			float width = ImGui::CalcTextSize(buffer.data(), buffer.data() + middle).x;
-			if (width > maxWidth)
+			if (left->type() == right->type())
 			{
-				max = middle;
+				return left->name() < right->name();
 			}
 			else
 			{
-				min = middle;
+				return left->type() < right->type();
 			}
 		}
-		return string.substr(0, min - 3) + "...";
-	}
-	else
+	};
+	
+	Entry(const std::filesystem::path& assetPath, EntryType type):
+		_assetPath(assetPath.generic_string()),
+		_name(assetPath.filename().generic_string()),
+		_truncatedName(truncate(_name, 90 * Engine::getWindow().getPixelScale())),
+		_type(type)
 	{
-		return string;
+		if (type == EntryType::Directory)
+		{
+			for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(FileHelper::getAssetDirectoryPath() / assetPath))
+			{
+				EntryType entryType;
+				
+				if (entry.is_directory())
+				{
+					entryType = EntryType::Directory;
+				}
+				else
+				{
+					std::string extension = entry.path().extension().generic_string();
+					std::transform(
+						extension.begin(), extension.end(),
+						extension.begin(),
+						[](char c){ return std::tolower(c); });
+					
+					if (extension == ".png" || extension == ".jpg")
+					{
+						entryType = EntryType::Image;
+					}
+					else if (extension == ".obj")
+					{
+						entryType = EntryType::Mesh;
+					}
+					else if (extension == ".c3dmaterial")
+					{
+						entryType = EntryType::Material;
+					}
+					else if (extension == ".c3dskybox")
+					{
+						entryType = EntryType::Skybox;
+					}
+					else if (extension == ".c3dscene")
+					{
+						entryType = EntryType::Scene;
+					}
+					else
+					{
+						entryType = EntryType::Unknown;
+					}
+				}
+
+				_entries.emplace(std::make_unique<Entry>(
+					std::filesystem::relative(entry.path(), FileHelper::getAssetDirectoryPath()),
+					entryType));
+			}
+		}
 	}
-}
+
+	Entry(const Entry& other) = delete;
+	Entry& operator=(const Entry& other) = delete;
+
+	const std::string& assetPath() const
+	{
+		return _assetPath;
+	}
+
+	const std::string& truncatedName() const
+	{
+		return _truncatedName;
+	}
+
+	const std::string& name() const
+	{
+		return _name;
+	}
+	
+	const EntryType& type() const
+	{
+		return _type;
+	}
+
+	std::set<std::unique_ptr<Entry>, EntryCompare>& entries()
+	{
+		return _entries;
+	}
+
+	const std::set<std::unique_ptr<Entry>, EntryCompare>& entries() const
+	{
+		return _entries;
+	}
+
+	static std::string truncate(const std::string& string, float maxWidth)
+	{
+		if (ImGui::CalcTextSize(string.c_str()).x > maxWidth)
+		{
+			std::vector<char> buffer(string.size() + 3, 0);
+			std::fill(buffer.begin(), buffer.begin() + 3, '.');
+			std::copy(string.begin(), string.end(), buffer.begin() + 3);
+
+			int min = 0;
+			int max = buffer.size();
+			while (max - min > 1)
+			{
+				int middle = (min + max) / 2;
+				float width = ImGui::CalcTextSize(buffer.data(), buffer.data() + middle).x;
+				if (width > maxWidth)
+				{
+					max = middle;
+				}
+				else
+				{
+					min = middle;
+				}
+			}
+			return string.substr(0, min - 3) + "...";
+		}
+		else
+		{
+			return string;
+		}
+	}
+
+private:
+	std::string _assetPath;
+	std::string _name;
+	std::string _truncatedName;
+	EntryType _type;
+	std::set<std::unique_ptr<Entry>, EntryCompare> _entries;
+};
 
 UIAssetBrowser::UIAssetBrowser(ImFont* bigFont):
 	_bigFont(bigFont),
 	_size1(250.0f * Engine::getWindow().getPixelScale()),
 	_previousWidth(_size1)
+{
+
+}
+
+UIAssetBrowser::~UIAssetBrowser()
 {
 
 }
@@ -102,93 +238,46 @@ void UIAssetBrowser::draw()
 void UIAssetBrowser::rescan()
 {
 	_root.reset();
-	_root = build(FileHelper::getAssetDirectoryPath());
-	_selected = _root.get();
-}
-
-std::unique_ptr<UIAssetBrowser::Directory> UIAssetBrowser::build(const std::filesystem::path& path)
-{
-	std::unique_ptr<Directory> directory = std::make_unique<UIAssetBrowser::Directory>();
-	directory->name = path.filename().generic_string();
-	directory->truncatedName = truncate(directory->name, 90 * Engine::getWindow().getPixelScale());
-	directory->path = std::filesystem::relative(path, FileHelper::getAssetDirectoryPath()).generic_string();
-
-	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path))
-	{
-		if (entry.is_directory())
-		{
-			directory->subdirectories.push_back(build(entry.path()));
-		}
-		else
-		{
-			File& file = directory->files.emplace_back();
-			file.name = entry.path().filename().generic_string();
-			file.truncatedName = truncate(file.name, 90 * Engine::getWindow().getPixelScale());
-			file.path = std::filesystem::relative(entry.path(), FileHelper::getAssetDirectoryPath()).generic_string();
-
-			std::string extension = entry.path().extension().generic_string();
-			std::transform(
-				extension.begin(), extension.end(),
-				extension.begin(),
-				[](char c){ return std::tolower(c); });
-			if (extension == ".c3dmaterial")
-			{
-				file.type = FileType::Material;
-			}
-			else if (extension == ".obj")
-			{
-				file.type = FileType::Model;
-			}
-			else if (extension == ".c3dskybox")
-			{
-				file.type = FileType::Skybox;
-			}
-			else if (extension == ".c3dscene")
-			{
-				file.type = FileType::Scene;
-			}
-		}
-	}
-
-	return directory;
+	_root = std::make_unique<UIAssetBrowser::Entry>(FileHelper::getAssetDirectoryPath(), EntryType::Directory);
+	_currentDirectory = _root.get();
 }
 
 void UIAssetBrowser::drawLeftPanel()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 14 * Engine::getWindow().getPixelScale());
-	drawDirectoryNode(_root.get());
+	drawDirectoryNode(*_root);
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
 }
 
-void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Directory* directory)
+void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 {
 	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
 
-	if (directory == _root.get())
+	if (&directory == _root.get())
 		flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-	if (directory == _selected)
+	if (&directory == _currentDirectory)
 		flags |= ImGuiTreeNodeFlags_Selected;
 
-	if (directory->subdirectories.empty())
+	if (directory.entries().empty())
 		flags |= ImGuiTreeNodeFlags_Leaf;
 
-	bool opened = ImGui::TreeNodeEx(directory->path.c_str(), flags, "\uF07B %s", directory->name.c_str());
+	bool opened = ImGui::TreeNodeEx(directory.assetPath().c_str(), flags, "\uF07B %s", directory.name().c_str());
 
 	//Select the item on click
 	if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 	{
-		_selected = directory;
+		_currentDirectory = &directory;
 	}
 
 	//Draw item children if the item is opened
 	if (opened)
 	{
-		for (const std::unique_ptr<Directory>& subdirectory : directory->subdirectories)
+		for (const std::unique_ptr<Entry>& entry : directory.entries())
 		{
-			drawDirectoryNode(subdirectory.get());
+			drawDirectoryNode(*entry);
 		}
 
 		ImGui::TreePop();
@@ -259,52 +348,54 @@ void UIAssetBrowser::drawRightPanel()
 {
 	float usedWidth = 0;
 
-	for (const std::unique_ptr<Directory>& subdirectory : _selected->subdirectories)
+	for (const std::unique_ptr<Entry>& entry : _currentDirectory->entries())
 	{
-		if (drawRightPanelEntry(subdirectory->path, "\uF07B", subdirectory->truncatedName, usedWidth))
+		const char* icon;
+		const char* dragDropId;
+		switch (entry->type())
 		{
-			_task = [this, &subdirectory]()
-			{
-				this->_selected = subdirectory.get();
-			};
-		}
-	}
-
-	for (const File& file : _selected->files)
-	{
-		const char* icon = "\uF15B";
-		const char* dragDropId = nullptr;
-		switch (file.type)
-		{
-			case FileType::Material:
+			case EntryType::Directory:
+				icon = "\uF07B";
+				dragDropId = nullptr;
+				break;
+			case EntryType::Unknown:
+				icon = "\uF15B";
+				dragDropId = nullptr;
+				break;
+			case EntryType::Image:
+				icon = "\uF03E";
+				dragDropId = "asset_image";
+				break;
+			case EntryType::Mesh:
+				icon = "\uF1B2";
+				dragDropId = "asset_mesh";
+				break;
+			case EntryType::Material:
 				icon = "\uF43C";
 				dragDropId = "asset_material";
 				break;
-			case FileType::Model:
-				icon = "\uF1B2";
-				dragDropId = "asset_model";
-				break;
-			case FileType::Skybox:
+			case EntryType::Skybox:
 				icon = "\uE209";
 				dragDropId = "asset_skybox";
 				break;
-			case FileType::Scene:
+			case EntryType::Scene:
 				icon = "\uE52f";
+				dragDropId = nullptr;
 				break;
 			default:
-				break;
+				throw;
 		}
 		
-		bool doubleClicked = drawRightPanelEntry(file.path, icon, file.truncatedName, usedWidth);
+		bool doubleClicked = drawRightPanelEntry(entry->assetPath(), icon, entry->truncatedName(), usedWidth);
 
 		if (dragDropId != nullptr)
 		{
 			if (ImGui::BeginDragDropSource())
 			{
 				float dragDropUsedWidth = 0;
-				drawRightPanelEntry(file.path, icon, file.truncatedName, dragDropUsedWidth);
+				drawRightPanelEntry(entry->assetPath(), icon, entry->truncatedName(), dragDropUsedWidth);
 
-				const std::string* pathPtr = &file.path;
+				const std::string* pathPtr = &entry->assetPath();
 
 				ImGui::SetDragDropPayload(dragDropId, &pathPtr, sizeof(const std::string*));
 				ImGui::EndDragDropSource();
@@ -313,10 +404,16 @@ void UIAssetBrowser::drawRightPanel()
 
 		if (doubleClicked)
 		{
-			switch (file.type)
+			switch (entry->type())
 			{
-				case FileType::Scene:
-					Scene::load(file.path);
+				case EntryType::Scene:
+					Scene::load(entry->assetPath());
+					break;
+				case EntryType::Directory:
+					_task = [this, &entry]()
+					{
+						this->_currentDirectory = entry.get();
+					};
 					break;
 				default:
 					break;
