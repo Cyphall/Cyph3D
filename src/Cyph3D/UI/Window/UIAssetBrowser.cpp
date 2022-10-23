@@ -221,7 +221,11 @@ void UIAssetBrowser::draw()
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
 		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
-		drawRightPanel();
+		bool anyWidgetClicked = drawRightPanel();
+		if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered() && !anyWidgetClicked)
+		{
+			_selectedEntry = nullptr;
+		}
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
 	}
@@ -240,6 +244,7 @@ void UIAssetBrowser::rescan()
 	_root.reset();
 	_root = std::make_unique<UIAssetBrowser::Entry>(FileHelper::getAssetDirectoryPath(), EntryType::Directory);
 	_currentDirectory = _root.get();
+	_selectedEntry = nullptr;
 }
 
 void UIAssetBrowser::drawLeftPanel()
@@ -284,11 +289,14 @@ void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 	}
 }
 
-bool UIAssetBrowser::drawRightPanelEntry(const std::string& id, const char* icon, const std::string& name, float& usedWidth)
+void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth, bool& clicked, bool& doubleClicked)
 {
+	clicked = false;
+	doubleClicked = false;
+	
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (window->SkipItems)
-		return false;
+		return;
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -305,15 +313,31 @@ bool UIAssetBrowser::drawRightPanelEntry(const std::string& id, const char* icon
 	glm::vec2 nameOffset(0, _bigFont->FontSize + style.ItemInnerSpacing.y);
 	glm::vec2 nameAvailableSize(contentSize.x, ImGui::GetFontSize());
 
-	ImGui::InvisibleButton(id.c_str(), entrySize);
-
-	bool doubleClicked = false;
-	if (ImGui::IsItemHovered())
+	ImGui::InvisibleButton(entry.assetPath().c_str(), entrySize);
+	
+	if (&entry == _selectedEntry)
 	{
-		doubleClicked = ImGui::IsMouseDoubleClicked(0);
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(100, 100, 100, 255));
+		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBgHovered]));
+		ImGui::PopStyleColor();
+	}
+	else if (ImGui::IsItemHovered())
+	{
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(80, 80, 80, 255));
 		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBgHovered]));
 		ImGui::PopStyleColor();
+	}
+
+	if (ImGui::IsItemHovered())
+	{
+		if (ImGui::IsMouseDoubleClicked(0))
+		{
+			doubleClicked = true;
+		}
+		else if (ImGui::IsMouseClicked(0))
+		{
+			clicked = true;
+		}
 	}
 	
 	glm::vec3 iconColor = glm::vec4(style.Colors[ImGuiCol_Text]);
@@ -326,8 +350,8 @@ bool UIAssetBrowser::drawRightPanelEntry(const std::string& id, const char* icon
 	drawList->AddText(contentOrigin + iconOffset + (iconAvailableSize / 2.0f - iconSize / 2.0f), ImGui::GetColorU32(glm::vec4(iconColor, style.Colors[ImGuiCol_Text].w)), icon);
 	ImGui::PopFont();
 
-	glm::vec2 nameSize = ImGui::CalcTextSize(name.c_str());
-	drawList->AddText(contentOrigin + nameOffset + (nameAvailableSize / 2.0f - nameSize / 2.0f), ImGui::GetColorU32(style.Colors[ImGuiCol_Text]), name.c_str());
+	glm::vec2 nameSize = ImGui::CalcTextSize(entry.truncatedName().c_str());
+	drawList->AddText(contentOrigin + nameOffset + (nameAvailableSize / 2.0f - nameSize / 2.0f), ImGui::GetColorU32(style.Colors[ImGuiCol_Text]), entry.truncatedName().c_str());
 
 	usedWidth += entrySize.x + style.ItemSpacing.x;
 
@@ -340,14 +364,12 @@ bool UIAssetBrowser::drawRightPanelEntry(const std::string& id, const char* icon
 	{
 		usedWidth = 0.0f;
 	}
-
-	return doubleClicked;
 }
 
-void UIAssetBrowser::drawRightPanel()
+bool UIAssetBrowser::drawRightPanel()
 {
 	float usedWidth = 0;
-
+	bool anyWidgetClicked = false;
 	for (const std::unique_ptr<Entry>& entry : _currentDirectory->entries())
 	{
 		const char* icon;
@@ -386,14 +408,15 @@ void UIAssetBrowser::drawRightPanel()
 				throw;
 		}
 		
-		bool doubleClicked = drawRightPanelEntry(entry->assetPath(), icon, entry->truncatedName(), usedWidth);
+		bool clicked;
+		bool doubleClicked;
+		drawRightPanelEntry(*entry, icon, usedWidth, clicked, doubleClicked);
 
 		if (dragDropId != nullptr)
 		{
 			if (ImGui::BeginDragDropSource())
 			{
-				float dragDropUsedWidth = 0;
-				drawRightPanelEntry(entry->assetPath(), icon, entry->truncatedName(), dragDropUsedWidth);
+				ImGui::TextUnformatted(entry->assetPath().c_str());
 
 				const std::string* pathPtr = &entry->assetPath();
 
@@ -401,8 +424,13 @@ void UIAssetBrowser::drawRightPanel()
 				ImGui::EndDragDropSource();
 			}
 		}
-
-		if (doubleClicked)
+		
+		if (clicked)
+		{
+			_selectedEntry = entry.get();
+			anyWidgetClicked = true;
+		}
+		else if (doubleClicked)
 		{
 			switch (entry->type())
 			{
@@ -420,4 +448,6 @@ void UIAssetBrowser::drawRightPanel()
 			}
 		}
 	}
+	
+	return anyWidgetClicked;
 }

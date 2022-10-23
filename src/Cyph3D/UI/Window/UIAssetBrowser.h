@@ -23,13 +23,14 @@ private:
 	void drawLeftPanel();
 	void drawDirectoryNode(const Entry& directory);
 
-	void drawRightPanel();
-	bool drawRightPanelEntry(const std::string& id, const char* icon, const std::string& name, float& usedWidth);
+	bool drawRightPanel();
+	void drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth, bool& clicked, bool& doubleClicked);
 
 	ImFont* _bigFont;
 
 	std::unique_ptr<Entry> _root;
 	const Entry* _currentDirectory = nullptr;
+	const Entry* _selectedEntry = nullptr;
 
 	float _size1 = 0;
 	float _size2 = 0;
