@@ -273,6 +273,11 @@ const float& MaterialAsset::getRoughnessValue() const
 void MaterialAsset::setRoughnessValue(const float& value)
 {
 	_roughnessValue = value;
+
+	if (_roughnessValueTexture)
+	{
+		_roughnessValueTexture->setData(&_roughnessValue, 0, GL_RED, GL_FLOAT);
+	}
 }
 
 const float& MaterialAsset::getMetalnessValue() const
@@ -283,6 +288,11 @@ const float& MaterialAsset::getMetalnessValue() const
 void MaterialAsset::setMetalnessValue(const float& value)
 {
 	_metalnessValue = value;
+
+	if (_metalnessValueTexture)
+	{
+		_metalnessValueTexture->setData(&_metalnessValue, 0, GL_RED, GL_FLOAT);
+	}
 }
 
 const float& MaterialAsset::getEmissiveValue() const
@@ -293,6 +303,11 @@ const float& MaterialAsset::getEmissiveValue() const
 void MaterialAsset::setEmissiveValue(const float& value)
 {
 	_emissiveValue = value;
+
+	if (_emissiveValueTexture)
+	{
+		_emissiveValueTexture->setData(&_emissiveValue, 0, GL_RED, GL_FLOAT);
+	}
 }
 
 void MaterialAsset::initialize()
@@ -323,6 +338,8 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		{
 			setAlbedoMapPath(std::nullopt);
 		}
+
+		setAlbedoValue({1, 1, 1});
 	}
 
 	{
@@ -347,6 +364,8 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		{
 			setRoughnessMapPath(std::nullopt);
 		}
+
+		setRoughnessValue(0.5f);
 	}
 
 	{
@@ -359,6 +378,8 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		{
 			setMetalnessMapPath(std::nullopt);
 		}
+
+		setMetalnessValue(0.0f);
 	}
 
 	{
@@ -383,6 +404,8 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		{
 			setEmissiveMapPath(std::nullopt);
 		}
+
+		setEmissiveValue(0.0f);
 	}
 }
 

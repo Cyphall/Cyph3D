@@ -111,10 +111,10 @@ private:
 	TextureAsset* _emissiveMap = nullptr;
 	std::unique_ptr<GLTexture> _emissiveValueTexture;
 
-	glm::vec3 _albedoValue = {1, 1, 1};
-	float _roughnessValue = 0.5f;
-	float _metalnessValue = 0.0f;
-	float _emissiveValue = 0.0f;
+	glm::vec3 _albedoValue{};
+	float _roughnessValue{};
+	float _metalnessValue{};
+	float _emissiveValue{};
 
 	static MaterialAsset* _defaultMaterial;
 	static MaterialAsset* _missingMaterial;
