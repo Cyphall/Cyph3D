@@ -53,7 +53,7 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Albedo");
 		
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getAlbedoMapPath(), "Map", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(getAlbedoMapPath(), "Image", "asset_image", newPath))
 		{
 			setAlbedoMapPath(newPath);
 		}
@@ -61,7 +61,7 @@ void MaterialAsset::onDrawUi()
 		if (_albedoMap == nullptr)
 		{
 			glm::vec3 value = getAlbedoValue();
-			if (ImGui::ColorEdit3("Value###albedo", glm::value_ptr(value), ImGuiColorEditFlags_Float))
+			if (ImGui::ColorEdit3("Value", glm::value_ptr(value), ImGuiColorEditFlags_Float))
 			{
 				setAlbedoValue(value);
 			}
@@ -74,7 +74,7 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Normal");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getNormalMapPath(), "Map", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(getNormalMapPath(), "Image", "asset_image", newPath))
 		{
 			setNormalMapPath(newPath);
 		}
@@ -86,7 +86,7 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Roughness");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getRoughnessMapPath(), "Map", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(getRoughnessMapPath(), "Image", "asset_image", newPath))
 		{
 			setRoughnessMapPath(newPath);
 		}
@@ -94,7 +94,7 @@ void MaterialAsset::onDrawUi()
 		if (_roughnessMap == nullptr)
 		{
 			float value = getRoughnessValue();
-			if (ImGui::SliderFloat("Value###roughness", &value, 0.0f, 1.0f))
+			if (ImGui::SliderFloat("Value", &value, 0.0f, 1.0f))
 			{
 				setRoughnessValue(value);
 			}
@@ -107,7 +107,7 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Metalness");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getMetalnessMapPath(), "Map", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(getMetalnessMapPath(), "Image", "asset_image", newPath))
 		{
 			setMetalnessMapPath(newPath);
 		}
@@ -115,7 +115,7 @@ void MaterialAsset::onDrawUi()
 		if (_metalnessMap == nullptr)
 		{
 			float value = getMetalnessValue();
-			if (ImGui::SliderFloat("Value###metalness", &value, 0.0f, 1.0f))
+			if (ImGui::SliderFloat("Value", &value, 0.0f, 1.0f))
 			{
 				setMetalnessValue(value);
 			}
@@ -128,7 +128,7 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Displacement");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getDisplacementMapPath(), "Map", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(getDisplacementMapPath(), "Image", "asset_image", newPath))
 		{
 			setDisplacementMapPath(newPath);
 		}
@@ -140,7 +140,7 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Emissive");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getEmissiveMapPath(), "Map", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(getEmissiveMapPath(), "Image", "asset_image", newPath))
 		{
 			setEmissiveMapPath(newPath);
 		}
@@ -148,7 +148,7 @@ void MaterialAsset::onDrawUi()
 		if (_emissiveMap == nullptr)
 		{
 			float value = getEmissiveValue();
-			if (ImGui::SliderFloat("Value###emissive", &value, 0.0f, 1.0f))
+			if (ImGui::SliderFloat("Value", &value, 0.0f, 1.0f))
 			{
 				setEmissiveValue(value);
 			}
