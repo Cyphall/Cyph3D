@@ -43,11 +43,12 @@ public:
 		}
 	};
 	
-	Entry(const std::filesystem::path& assetPath, EntryType type):
+	Entry(const std::filesystem::path& assetPath, EntryType type, Entry* parent):
 		_assetPath(assetPath.generic_string()),
 		_name(assetPath.filename().generic_string()),
 		_truncatedName(truncate(_name, 90 * Engine::getWindow().getPixelScale())),
-		_type(type)
+		_type(type),
+		_parent(parent)
 	{
 		if (type == EntryType::Directory)
 		{
@@ -95,7 +96,8 @@ public:
 
 				_entries.emplace(std::make_unique<Entry>(
 					std::filesystem::relative(entry.path(), FileHelper::getAssetDirectoryPath()),
-					entryType));
+					entryType,
+					this));
 			}
 		}
 	}
@@ -121,6 +123,11 @@ public:
 	const EntryType& type() const
 	{
 		return _type;
+	}
+	
+	Entry* parent() const
+	{
+		return _parent;
 	}
 
 	std::set<std::unique_ptr<Entry>, EntryCompare>& entries()
@@ -169,6 +176,7 @@ private:
 	std::string _name;
 	std::string _truncatedName;
 	EntryType _type;
+	Entry* _parent;
 	std::set<std::unique_ptr<Entry>, EntryCompare> _entries;
 };
 
@@ -223,7 +231,7 @@ void UIAssetBrowser::draw()
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
 		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
-		bool anyWidgetClicked = drawRightPanel();
+		bool anyWidgetClicked = drawRightPanelEntries();
 		if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered() && !anyWidgetClicked)
 		{
 			_selectedEntry = nullptr;
@@ -244,7 +252,7 @@ void UIAssetBrowser::draw()
 void UIAssetBrowser::rescan()
 {
 	_root.reset();
-	_root = std::make_unique<UIAssetBrowser::Entry>(FileHelper::getAssetDirectoryPath(), EntryType::Directory);
+	_root = std::make_unique<UIAssetBrowser::Entry>(FileHelper::getAssetDirectoryPath(), EntryType::Directory, nullptr);
 	_currentDirectory = _root.get();
 	_selectedEntry = nullptr;
 }
@@ -361,7 +369,7 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 	}
 }
 
-bool UIAssetBrowser::drawRightPanel()
+bool UIAssetBrowser::drawRightPanelEntries()
 {
 	float usedWidth = 0;
 	bool anyWidgetClicked = false;
