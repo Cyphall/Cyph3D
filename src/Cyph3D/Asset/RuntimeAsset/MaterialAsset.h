@@ -81,6 +81,8 @@ public:
 	static void initialize();
 	static MaterialAsset* getDefaultMaterial();
 	static MaterialAsset* getMissingMaterial();
+	
+	static void create(std::string_view path);
 
 private:
 	friend class AssetManager;

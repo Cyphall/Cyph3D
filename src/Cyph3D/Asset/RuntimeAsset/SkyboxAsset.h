@@ -60,6 +60,8 @@ public:
 	
 	const GLCubemap& getCubemap() const;
 
+	static void create(std::string_view path);
+
 private:
 	friend class AssetManager;
 

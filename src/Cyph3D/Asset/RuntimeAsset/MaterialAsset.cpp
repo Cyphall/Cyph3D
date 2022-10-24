@@ -435,6 +435,54 @@ MaterialAsset* MaterialAsset::getMissingMaterial()
 	return _missingMaterial;
 }
 
+void MaterialAsset::create(std::string_view path)
+{
+	nlohmann::ordered_json jsonRoot;
+	jsonRoot["version"] = 2;
+
+	{
+		nlohmann::ordered_json jsonMap;
+		jsonMap["path"] = nullptr;
+		jsonMap["value"] = {1.0f, 1.0f, 1.0f};
+		jsonRoot["albedo"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		jsonMap["path"] = nullptr;
+		jsonRoot["normal"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		jsonMap["path"] = nullptr;
+		jsonMap["value"] = 0.5f;
+		jsonRoot["roughness"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		jsonMap["path"] = nullptr;
+		jsonMap["value"] = 0.0f;
+		jsonRoot["metalness"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		jsonMap["path"] = nullptr;
+		jsonRoot["displacement"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		jsonMap["path"] = nullptr;
+		jsonMap["value"] = 0.0f;
+		jsonRoot["emissive"] = jsonMap;
+	}
+
+	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / path);
+}
+
 void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
 	{

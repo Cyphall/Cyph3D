@@ -190,6 +190,21 @@ const GLCubemap& SkyboxAsset::getCubemap() const
 	return _cubemap->getGLCubemap();
 }
 
+void SkyboxAsset::create(std::string_view path)
+{
+	nlohmann::ordered_json jsonRoot;
+	jsonRoot["version"] = 2;
+	
+	jsonRoot["pos_x"] = nullptr;
+	jsonRoot["neg_x"] = nullptr;
+	jsonRoot["pos_y"] = nullptr;
+	jsonRoot["neg_y"] = nullptr;
+	jsonRoot["pos_z"] = nullptr;
+	jsonRoot["neg_z"] = nullptr;
+
+	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / path);
+}
+
 void SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
 	setXposPath(jsonRoot["pos_x"].get<std::string>());

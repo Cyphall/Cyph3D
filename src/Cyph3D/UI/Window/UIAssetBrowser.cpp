@@ -283,6 +283,30 @@ void UIAssetBrowser::draw()
 		{
 			_selectedEntry = nullptr;
 		}
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		{
+			int i = 0;
+		}
+		if (ImGui::BeginPopupContextWindow("create_asset_popup", ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
+		{
+			if (ImGui::MenuItem("Create Material"))
+			{
+				_task = [this]()
+				{
+					std::filesystem::path assetPath = std::filesystem::path(_currentDirectory->assetPath()) / "New Material.c3dmaterial";
+					MaterialAsset::create(assetPath.generic_string());
+				};
+			}
+			if (ImGui::MenuItem("Create Skybox"))
+			{
+				_task = [this]()
+				{
+					std::filesystem::path assetPath = std::filesystem::path(_currentDirectory->assetPath()) / "New Skybox.c3dskybox";
+					SkyboxAsset::create(assetPath.generic_string());
+				};
+			}
+			ImGui::EndPopup();
+		}
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
 		ImGui::EndGroup();
