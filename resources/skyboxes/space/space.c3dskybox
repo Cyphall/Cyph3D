@@ -1,8 +1,1 @@
-{
-	"pos_x": "skyboxes/space/space_right.png",
-	"neg_x": "skyboxes/space/space_left.png",
-	"pos_y": "skyboxes/space/space_up.png",
-	"neg_y": "skyboxes/space/space_down.png",
-	"pos_z": "skyboxes/space/space_back.png",
-	"neg_z": "skyboxes/space/space_front.png"
-}
+{"version":2,"pos_x":"skyboxes/space/space_right.png","neg_x":"skyboxes/space/space_left.png","pos_y":"skyboxes/space/space_up.png","neg_y":"skyboxes/space/space_down.png","pos_z":"skyboxes/space/space_back.png","neg_z":"skyboxes/space/space_front.png"}

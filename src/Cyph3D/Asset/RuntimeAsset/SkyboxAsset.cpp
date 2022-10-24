@@ -3,34 +3,14 @@
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Helper/ImGuiHelper.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Window.h"
 
 SkyboxAsset::SkyboxAsset(AssetManager& manager, const SkyboxAssetSignature& signature):
 	RuntimeAsset(manager, signature)
 {
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / signature.path);
-
-	int version;
-	auto versionIt = jsonRoot.find("version");
-	if (versionIt != jsonRoot.end())
-	{
-		version = versionIt.value().get<int>();
-	}
-	else
-	{
-		version = 1;
-	}
-	
-	switch (version)
-	{
-		case 1:
-			deserializeFromVersion1(jsonRoot);
-			break;
-		case 2:
-			deserializeFromVersion2(jsonRoot);
-			break;
-		default:
-			throw;
-	}
+	reload();
 }
 
 SkyboxAsset::~SkyboxAsset()
@@ -39,6 +19,99 @@ SkyboxAsset::~SkyboxAsset()
 bool SkyboxAsset::isLoaded() const
 {
 	return _cubemap != nullptr && _cubemap->isLoaded();
+}
+
+void SkyboxAsset::onDrawUi()
+{
+	ImGuiHelper::TextCentered("Skybox");
+	ImGuiHelper::TextCentered(_signature.path.c_str());
+
+	ImGui::Separator();
+
+	if (ImGui::Button("Reset"))
+	{
+		reload();
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Save"))
+	{
+		save();
+	}
+
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Positive X");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getXposPath(), "Image", "asset_image", newPath))
+		{
+			setXposPath(newPath);
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Negative X");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getXnegPath(), "Image", "asset_image", newPath))
+		{
+			setXnegPath(newPath);
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Positive Y");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getYposPath(), "Image", "asset_image", newPath))
+		{
+			setYposPath(newPath);
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Negative Y");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getYnegPath(), "Image", "asset_image", newPath))
+		{
+			setYnegPath(newPath);
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Positive Z");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getZposPath(), "Image", "asset_image", newPath))
+		{
+			setZposPath(newPath);
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Negative Z");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getZnegPath(), "Image", "asset_image", newPath))
+		{
+			setZnegPath(newPath);
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
 }
 
 const std::string& SkyboxAsset::getPath() const
@@ -117,25 +190,6 @@ const GLCubemap& SkyboxAsset::getCubemap() const
 	return _cubemap->getGLCubemap();
 }
 
-void SkyboxAsset::onPathChange()
-{
-	if (_xposPath && _xnegPath && _yposPath && _ynegPath && _zposPath && _znegPath)
-	{
-		_cubemap = _manager.loadCubemap(
-			_xposPath.value(),
-			_xnegPath.value(),
-			_ynegPath.value(),
-			_yposPath.value(),
-			_zposPath.value(),
-			_znegPath.value()
-			);
-	}
-	else
-	{
-		_cubemap = nullptr;
-	}
-}
-
 void SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
 	setXposPath(jsonRoot["pos_x"].get<std::string>());
@@ -148,39 +202,202 @@ void SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot
 
 void SkyboxAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
 {
-	const nlohmann::ordered_json& xposPath = jsonRoot["pos_x"];
-	if (!xposPath.is_null())
 	{
-		setXposPath(xposPath.get<std::string>());
+		const nlohmann::ordered_json& path = jsonRoot["pos_x"];
+		if (!path.is_null())
+		{
+			setXposPath(path.get<std::string>());
+		}
+		else
+		{
+			setXposPath(std::nullopt);
+		}
 	}
 
-	const nlohmann::ordered_json& xnegPath = jsonRoot["neg_x"];
-	if (!xnegPath.is_null())
 	{
-		setXnegPath(xnegPath.get<std::string>());
+		const nlohmann::ordered_json& path = jsonRoot["neg_x"];
+		if (!path.is_null())
+		{
+			setXnegPath(path.get<std::string>());
+		}
+		else
+		{
+			setXnegPath(std::nullopt);
+		}
 	}
 
-	const nlohmann::ordered_json& yposPath = jsonRoot["pos_y"];
-	if (!yposPath.is_null())
 	{
-		setYposPath(yposPath.get<std::string>());
+		const nlohmann::ordered_json& path = jsonRoot["pos_y"];
+		if (!path.is_null())
+		{
+			setYposPath(path.get<std::string>());
+		}
+		else
+		{
+			setYposPath(std::nullopt);
+		}
 	}
 
-	const nlohmann::ordered_json& ynegPath = jsonRoot["neg_y"];
-	if (!ynegPath.is_null())
 	{
-		setYnegPath(ynegPath.get<std::string>());
+		const nlohmann::ordered_json& path = jsonRoot["neg_y"];
+		if (!path.is_null())
+		{
+			setYnegPath(path.get<std::string>());
+		}
+		else
+		{
+			setYnegPath(std::nullopt);
+		}
 	}
 
-	const nlohmann::ordered_json& zposPath = jsonRoot["pos_z"];
-	if (!zposPath.is_null())
 	{
-		setZposPath(zposPath.get<std::string>());
+		const nlohmann::ordered_json& path = jsonRoot["pos_z"];
+		if (!path.is_null())
+		{
+			setZposPath(path.get<std::string>());
+		}
+		else
+		{
+			setZposPath(std::nullopt);
+		}
 	}
 
-	const nlohmann::ordered_json& znegPath = jsonRoot["neg_z"];
-	if (!znegPath.is_null())
 	{
-		setZnegPath(znegPath.get<std::string>());
+		const nlohmann::ordered_json& path = jsonRoot["neg_z"];
+		if (!path.is_null())
+		{
+			setZnegPath(path.get<std::string>());
+		}
+		else
+		{
+			setZnegPath(std::nullopt);
+		}
+	}
+}
+
+void SkyboxAsset::save() const
+{
+	nlohmann::ordered_json jsonRoot;
+	jsonRoot["version"] = 2;
+
+	{
+		const std::string* path = getXposPath();
+		if (path != nullptr)
+		{
+			jsonRoot["pos_x"] = *path;
+		}
+		else
+		{
+			jsonRoot["pos_x"] = nullptr;
+		}
+	}
+
+	{
+		const std::string* path = getXnegPath();
+		if (path != nullptr)
+		{
+			jsonRoot["neg_x"] = *path;
+		}
+		else
+		{
+			jsonRoot["neg_x"] = nullptr;
+		}
+	}
+
+	{
+		const std::string* path = getYposPath();
+		if (path != nullptr)
+		{
+			jsonRoot["pos_y"] = *path;
+		}
+		else
+		{
+			jsonRoot["pos_y"] = nullptr;
+		}
+	}
+
+	{
+		const std::string* path = getYnegPath();
+		if (path != nullptr)
+		{
+			jsonRoot["neg_y"] = *path;
+		}
+		else
+		{
+			jsonRoot["neg_y"] = nullptr;
+		}
+	}
+
+	{
+		const std::string* path = getZposPath();
+		if (path != nullptr)
+		{
+			jsonRoot["pos_z"] = *path;
+		}
+		else
+		{
+			jsonRoot["pos_z"] = nullptr;
+		}
+	}
+
+	{
+		const std::string* path = getZnegPath();
+		if (path != nullptr)
+		{
+			jsonRoot["neg_z"] = *path;
+		}
+		else
+		{
+			jsonRoot["neg_z"] = nullptr;
+		}
+	}
+	
+	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / _signature.path);
+}
+
+void SkyboxAsset::reload()
+{
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / _signature.path);
+
+	int version;
+	auto versionIt = jsonRoot.find("version");
+	if (versionIt != jsonRoot.end())
+	{
+		version = versionIt.value().get<int>();
+	}
+	else
+	{
+		version = 1;
+	}
+
+	switch (version)
+	{
+		case 1:
+			deserializeFromVersion1(jsonRoot);
+			break;
+		case 2:
+			deserializeFromVersion2(jsonRoot);
+			break;
+		default:
+			throw;
+	}
+}
+
+void SkyboxAsset::onPathChange()
+{
+	if (_xposPath && _xnegPath && _yposPath && _ynegPath && _zposPath && _znegPath)
+	{
+		_cubemap = _manager.loadCubemap(
+			_xposPath.value(),
+			_xnegPath.value(),
+			_ynegPath.value(),
+			_yposPath.value(),
+			_zposPath.value(),
+			_znegPath.value()
+		);
+	}
+	else
+	{
+		_cubemap = nullptr;
 	}
 }

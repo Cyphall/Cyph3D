@@ -485,6 +485,9 @@ bool UIAssetBrowser::drawRightPanelEntries()
 				case EntryType::Material:
 					UIInspector::setSelected(Engine::getAssetManager().loadMaterial(entry->assetPath()));
 					break;
+				case EntryType::Skybox:
+					UIInspector::setSelected(Engine::getAssetManager().loadSkybox(entry->assetPath()));
+					break;
 				default:
 					break;
 			}
