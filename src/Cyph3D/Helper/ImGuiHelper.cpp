@@ -11,16 +11,17 @@ bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const ch
 {
 	bool assetChanged = false;
 	
-	const char* assetPath = currentAssetPath != nullptr ? currentAssetPath->c_str() : "None";
-	
 	float remainingWidth = ImGui::GetContentRegionAvail().x;
 	float textboxWidth = ImGui::CalcItemWidth() - ImGui::GetFrameHeight();
 	
 	ImGui::BeginGroup();
+
+	const char* assetPath = currentAssetPath != nullptr ? currentAssetPath->c_str() : "None";
+	size_t assetPathSize = currentAssetPath != nullptr ? currentAssetPath->size()+1 : 5;
 	
 	ImGui::SetNextItemWidth(textboxWidth);
-	// Field is read-only anyway, we can safely remove the const from skyboxName
-	ImGui::InputText(std::format("###{}", label).c_str(), const_cast<char*>(assetPath), ImGuiInputTextFlags_ReadOnly);
+	// Field is read-only anyway, we can safely remove the const from assetName
+	ImGui::InputText(std::format("###{}", label).c_str(), const_cast<char*>(assetPath), assetPathSize, ImGuiInputTextFlags_ReadOnly);
 
 	ImGui::SameLine(0.0f, 0.0f);
 
@@ -73,12 +74,17 @@ void ImGuiHelper::BeginGroupPanel(const char* label)
 	ImGuiStyle& style = ImGui::GetStyle();
 	GroupPanelInfo groupPanelInfo{};
 
-	groupPanelInfo.labelSize = label != nullptr ? ImGui::CalcTextSize(label) : ImVec2(0.0f, 0.0f);
+	groupPanelInfo.label = label;
+	groupPanelInfo.labelSize = groupPanelInfo.label != nullptr ? ImGui::CalcTextSize(groupPanelInfo.label) : ImVec2(0.0f, 0.0f);
+
+	if (groupPanelInfo.label != nullptr)
+	{
+		ImGui::PushID(groupPanelInfo.label);
+	}
 
 	ImGuiHelper::MoveCursorPos(glm::vec2(0, groupPanelInfo.labelSize.y / 2.0f));
 	
 	groupPanelInfo.initialCursorPos = ImGui::GetCursorScreenPos();
-	groupPanelInfo.label = label;
 	groupPanelInfoStack.push(groupPanelInfo);
 
 	ImGuiHelper::MoveCursorPos(glm::vec2(style.WindowPadding) + glm::vec2(0, groupPanelInfo.labelSize.y / 2.0f));
@@ -139,6 +145,11 @@ void ImGuiHelper::EndGroupPanel()
 
 	ImGui::SetCursorScreenPos(groupPanelInfo.initialCursorPos);
 	ImGui::Dummy({0, borderBottomRight.y - borderTopLeft.y});
+
+	if (groupPanelInfo.label != nullptr)
+	{
+		ImGui::PopID();
+	}
 }
 
 void ImGuiHelper::MoveCursorPos(const glm::vec2& offset)
