@@ -4,6 +4,8 @@
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Window.h"
+#include "Cyph3D/UI/Window/UIInspector.h"
+#include "Cyph3D/Asset/AssetManager.h"
 
 #include <imgui_internal.h>
 #include <algorithm>
@@ -313,7 +315,12 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 	glm::vec2 nameOffset(0, _bigFont->FontSize + style.ItemInnerSpacing.y);
 	glm::vec2 nameAvailableSize(contentSize.x, ImGui::GetFontSize());
 
-	ImGui::InvisibleButton(entry.assetPath().c_str(), entrySize);
+	clicked = ImGui::InvisibleButton(entry.assetPath().c_str(), entrySize);
+
+	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+	{
+		doubleClicked = true;
+	}
 	
 	if (&entry == _selectedEntry)
 	{
@@ -326,18 +333,6 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(80, 80, 80, 255));
 		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBgHovered]));
 		ImGui::PopStyleColor();
-	}
-
-	if (ImGui::IsItemHovered())
-	{
-		if (ImGui::IsMouseDoubleClicked(0))
-		{
-			doubleClicked = true;
-		}
-		else if (ImGui::IsMouseClicked(0))
-		{
-			clicked = true;
-		}
 	}
 	
 	glm::vec3 iconColor = glm::vec4(style.Colors[ImGuiCol_Text]);
@@ -429,6 +424,14 @@ bool UIAssetBrowser::drawRightPanel()
 		{
 			_selectedEntry = entry.get();
 			anyWidgetClicked = true;
+			switch (entry->type())
+			{
+				case EntryType::Material:
+					UIInspector::setSelected(Engine::getAssetManager().loadMaterial(entry->assetPath()));
+					break;
+				default:
+					break;
+			}
 		}
 		else if (doubleClicked)
 		{

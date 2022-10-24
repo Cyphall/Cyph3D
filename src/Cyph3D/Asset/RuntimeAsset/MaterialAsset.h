@@ -2,6 +2,7 @@
 
 #include "Cyph3D/Asset/RuntimeAsset/RuntimeAsset.h"
 #include "Cyph3D/HashBuilder.h"
+#include "Cyph3D/UI/IInspectable.h"
 
 #include <string>
 #include <memory>
@@ -30,12 +31,14 @@ struct std::hash<MaterialAssetSignature>
 	}
 };
 
-class MaterialAsset : public RuntimeAsset<MaterialAssetSignature>
+class MaterialAsset : public RuntimeAsset<MaterialAssetSignature>, public IInspectable
 {
 public:
 	~MaterialAsset() override;
 
 	bool isLoaded() const override;
+
+	void onDrawUi() override;
 
 	const std::string& getPath() const;
 
@@ -86,6 +89,9 @@ private:
 	
 	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
+	
+	void save() const;
+	void reload();
 	
 	std::optional<std::string> _albedoMapPath;
 	TextureAsset* _albedoMap = nullptr;

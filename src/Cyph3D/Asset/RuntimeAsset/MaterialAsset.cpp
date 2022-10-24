@@ -2,12 +2,15 @@
 
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Window.h"
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
+#include "Cyph3D/Helper/ImGuiHelper.h"
 
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
 
 MaterialAsset* MaterialAsset::_defaultMaterial = nullptr;
 MaterialAsset* MaterialAsset::_missingMaterial = nullptr;
@@ -15,30 +18,7 @@ MaterialAsset* MaterialAsset::_missingMaterial = nullptr;
 MaterialAsset::MaterialAsset(AssetManager& manager, const MaterialAssetSignature& signature):
 	RuntimeAsset(manager, signature)
 {
-	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / signature.path);
-
-	int version;
-	auto versionIt = jsonRoot.find("version");
-	if (versionIt != jsonRoot.end())
-	{
-		version = versionIt.value().get<int>();
-	}
-	else
-	{
-		version = 1;
-	}
-
-	switch (version)
-	{
-		case 1:
-			deserializeFromVersion1(jsonRoot);
-			break;
-		case 2:
-			deserializeFromVersion2(jsonRoot);
-			break;
-		default:
-			throw;
-	}
+	reload();
 }
 
 MaterialAsset::~MaterialAsset()
@@ -47,6 +27,135 @@ MaterialAsset::~MaterialAsset()
 bool MaterialAsset::isLoaded() const
 {
 	return true;
+}
+
+void MaterialAsset::onDrawUi()
+{
+	ImGuiHelper::TextCentered("Material");
+	ImGuiHelper::TextCentered(_signature.path.c_str());
+	
+	ImGui::Separator();
+	
+	if (ImGui::Button("Reset"))
+	{
+		reload();
+	}
+	
+	ImGui::SameLine();
+	
+	if (ImGui::Button("Save"))
+	{
+		save();
+	}
+	
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Albedo");
+		
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getAlbedoMapPath(), "Map", "asset_image", newPath))
+		{
+			setAlbedoMapPath(newPath);
+		}
+		
+		if (_albedoMap == nullptr)
+		{
+			glm::vec3 value = getAlbedoValue();
+			if (ImGui::ColorEdit3("Value###albedo", glm::value_ptr(value), ImGuiColorEditFlags_Float))
+			{
+				setAlbedoValue(value);
+			}
+		}
+		
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Normal");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getNormalMapPath(), "Map", "asset_image", newPath))
+		{
+			setNormalMapPath(newPath);
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Roughness");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getRoughnessMapPath(), "Map", "asset_image", newPath))
+		{
+			setRoughnessMapPath(newPath);
+		}
+
+		if (_roughnessMap == nullptr)
+		{
+			float value = getRoughnessValue();
+			if (ImGui::SliderFloat("Value###roughness", &value, 0.0f, 1.0f))
+			{
+				setRoughnessValue(value);
+			}
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Metalness");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getMetalnessMapPath(), "Map", "asset_image", newPath))
+		{
+			setMetalnessMapPath(newPath);
+		}
+
+		if (_metalnessMap == nullptr)
+		{
+			float value = getMetalnessValue();
+			if (ImGui::SliderFloat("Value###metalness", &value, 0.0f, 1.0f))
+			{
+				setMetalnessValue(value);
+			}
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Displacement");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getDisplacementMapPath(), "Map", "asset_image", newPath))
+		{
+			setDisplacementMapPath(newPath);
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
+	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	{
+		ImGuiHelper::BeginGroupPanel("Emissive");
+
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(getEmissiveMapPath(), "Map", "asset_image", newPath))
+		{
+			setEmissiveMapPath(newPath);
+		}
+
+		if (_emissiveMap == nullptr)
+		{
+			float value = getEmissiveValue();
+			if (ImGui::SliderFloat("Value###emissive", &value, 0.0f, 1.0f))
+			{
+				setEmissiveValue(value);
+			}
+		}
+
+		ImGuiHelper::EndGroupPanel();
+	}
 }
 
 const std::string& MaterialAsset::getPath() const
@@ -509,5 +618,143 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setEmissiveValue(jsonValue.get<float>());
+	}
+}
+
+void MaterialAsset::save() const
+{
+	nlohmann::ordered_json jsonRoot;
+	jsonRoot["version"] = 2;
+
+	{
+		nlohmann::ordered_json jsonMap;
+		const std::string* path = getAlbedoMapPath();
+		if (path != nullptr)
+		{
+			jsonMap["path"] = *path;
+		}
+		else
+		{
+			jsonMap["path"] = nullptr;
+		}
+
+		const glm::vec3& value = getAlbedoValue();
+		jsonMap["value"] = {value.x, value.y, value.z};
+		
+		jsonRoot["albedo"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		const std::string* path = getNormalMapPath();
+		if (path != nullptr)
+		{
+			jsonMap["path"] = *path;
+		}
+		else
+		{
+			jsonMap["path"] = nullptr;
+		}
+
+		jsonRoot["normal"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		const std::string* path = getRoughnessMapPath();
+		if (path != nullptr)
+		{
+			jsonMap["path"] = *path;
+		}
+		else
+		{
+			jsonMap["path"] = nullptr;
+		}
+
+		const float& value = getRoughnessValue();
+		jsonMap["value"] = value;
+
+		jsonRoot["roughness"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		const std::string* path = getMetalnessMapPath();
+		if (path != nullptr)
+		{
+			jsonMap["path"] = *path;
+		}
+		else
+		{
+			jsonMap["path"] = nullptr;
+		}
+
+		const float& value = getMetalnessValue();
+		jsonMap["value"] = value;
+
+		jsonRoot["metalness"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		const std::string* path = getDisplacementMapPath();
+		if (path != nullptr)
+		{
+			jsonMap["path"] = *path;
+		}
+		else
+		{
+			jsonMap["path"] = nullptr;
+		}
+
+		jsonRoot["displacement"] = jsonMap;
+	}
+
+	{
+		nlohmann::ordered_json jsonMap;
+		const std::string* path = getEmissiveMapPath();
+		if (path != nullptr)
+		{
+			jsonMap["path"] = *path;
+		}
+		else
+		{
+			jsonMap["path"] = nullptr;
+		}
+
+		const float& value = getEmissiveValue();
+		jsonMap["value"] = value;
+
+		jsonRoot["emissive"] = jsonMap;
+	}
+	
+	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / _signature.path);
+}
+
+void MaterialAsset::reload()
+{
+	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / _signature.path);
+
+	int version;
+	auto versionIt = jsonRoot.find("version");
+	if (versionIt != jsonRoot.end())
+	{
+		version = versionIt.value().get<int>();
+	}
+	else
+	{
+		version = 1;
+	}
+
+	switch (version)
+	{
+		case 1:
+			deserializeFromVersion1(jsonRoot);
+			break;
+		case 2:
+			deserializeFromVersion2(jsonRoot);
+			break;
+		default:
+			throw;
 	}
 }
