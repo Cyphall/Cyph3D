@@ -13,6 +13,7 @@
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Helper/ImGuiHelper.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -143,18 +144,10 @@ void ShapeRenderer::onPreRender(RenderContext& context)
 
 void ShapeRenderer::onDrawUi()
 {
-	const char* materialPath = _materialPath.has_value() ? _materialPath.value().c_str() : "None";
-
-	// Field is read-only anyway, we can safely remove the const from skyboxName
-	ImGui::InputText("Material", const_cast<char*>(materialPath), ImGuiInputTextFlags_ReadOnly);
-	if (ImGui::BeginDragDropTarget())
+	std::optional<std::string_view> newPath;
+	if (ImGuiHelper::AssetInputWidget(getMaterialPath(), "Material", "asset_material", newPath))
 	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_material");
-		if (payload)
-		{
-			setMaterialPath(*(*static_cast<const std::string**>(payload->Data)));
-		}
-		ImGui::EndDragDropTarget();
+		setMaterialPath(newPath);
 	}
 	
 	bool contributeShadows = getContributeShadows();

@@ -5,6 +5,7 @@
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/Window.h"
+#include "Cyph3D/Helper/ImGuiHelper.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -32,19 +33,10 @@ void UIMisc::show()
 
 		ImGui::Separator();
 
-		const std::string* currentSkyboxPath = Engine::getScene().getSkyboxPath();
-		const char* skyboxPath = currentSkyboxPath != nullptr ? currentSkyboxPath->c_str() : "None";
-
-		// Field is read-only anyway, we can safely remove the const from skyboxName
-		ImGui::InputText("Skybox", const_cast<char*>(skyboxPath), ImGuiInputTextFlags_ReadOnly);
-		if (ImGui::BeginDragDropTarget())
+		std::optional<std::string_view> newPath;
+		if (ImGuiHelper::AssetInputWidget(Engine::getScene().getSkyboxPath(), "Skybox", "asset_skybox", newPath))
 		{
-			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_skybox");
-			if (payload)
-			{
-				Engine::getScene().setSkyboxPath(*(*static_cast<const std::string**>(payload->Data)));
-			}
-			ImGui::EndDragDropTarget();
+			Engine::getScene().setSkyboxPath(newPath);
 		}
 
 		if (Engine::getScene().getSkybox() != nullptr)

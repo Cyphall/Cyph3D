@@ -9,6 +9,7 @@
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Helper/ImGuiHelper.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -66,18 +67,10 @@ const Mesh& MeshShape::getMeshToRender() const
 
 void MeshShape::onDrawUi()
 {
-	const char* modelPath = _modelPath.has_value() ? _modelPath.value().c_str() : "None";
-
-	// Field is read-only anyway, we can safely remove the const from skyboxName
-	ImGui::InputText("Model", const_cast<char*>(modelPath), ImGuiInputTextFlags_ReadOnly);
-	if (ImGui::BeginDragDropTarget())
+	std::optional<std::string_view> newPath;
+	if (ImGuiHelper::AssetInputWidget(getModelPath(), "Model", "asset_mesh", newPath))
 	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_mesh");
-		if (payload)
-		{
-			setModelPath(*(*static_cast<const std::string**>(payload->Data)));
-		}
-		ImGui::EndDragDropTarget();
+		setModelPath(newPath);
 	}
 }
 
