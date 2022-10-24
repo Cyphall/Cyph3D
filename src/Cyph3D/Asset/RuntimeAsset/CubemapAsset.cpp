@@ -57,7 +57,7 @@ bool CubemapAsset::load_step1_mt()
 		else
 		{
 			if (size != imageDataList[i].levels.front().size)
-				throw;
+				throw std::runtime_error("All 6 faces of a cubemap must have the same texture size.");
 			if (levelCount != imageDataList[i].levels.size())
 				throw;
 		}
