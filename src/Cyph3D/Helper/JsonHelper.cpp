@@ -19,7 +19,7 @@ void JsonHelper::saveJsonToFile(const nlohmann::ordered_json& json, const std::f
 	std::ofstream jsonFile(path);
 	if (beautify)
 	{
-		jsonFile << std::setw(4);
+		jsonFile << std::setfill('\t') << std::setw(1);
 	}
 	jsonFile << json;
 	jsonFile.close();
