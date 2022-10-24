@@ -9,6 +9,8 @@
 
 bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const char* label, const char* dragDropId, std::optional<std::string_view>& result)
 {
+	ImGui::PushID(label);
+	
 	bool assetChanged = false;
 	
 	float remainingWidth = ImGui::GetContentRegionAvail().x;
@@ -56,6 +58,8 @@ bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const ch
 	ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
 
 	ImGui::TextUnformatted(label);
+	
+	ImGui::PopID();
 	
 	return assetChanged;
 }
