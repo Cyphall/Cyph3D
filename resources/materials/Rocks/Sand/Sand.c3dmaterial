@@ -1,6 +1,1 @@
-{
-	"albedo": "materials/Rocks/Sand/vd3lecfs_2K_Albedo.jpg",
-	"normal": "materials/Rocks/Sand/vd3lecfs_2K_Normal.jpg",
-	"roughness": "materials/Rocks/Sand/vd3lecfs_2K_Roughness.jpg",
-	"displacement": "materials/Rocks/Sand/vd3lecfs_2K_Displacement.jpg"
-}
+{"version":2,"albedo":{"path":"materials/Rocks/Sand/vd3lecfs_2K_Albedo.jpg","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Rocks/Sand/vd3lecfs_2K_Normal.jpg"},"roughness":{"path":"materials/Rocks/Sand/vd3lecfs_2K_Roughness.jpg","value":0.5},"metalness":{"path":null,"value":0.0},"displacement":{"path":"materials/Rocks/Sand/vd3lecfs_2K_Displacement.jpg"},"emissive":{"path":null,"value":0.0}}

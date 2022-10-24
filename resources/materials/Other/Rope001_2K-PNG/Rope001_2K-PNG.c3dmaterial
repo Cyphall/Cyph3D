@@ -1,5 +1,1 @@
-{
-	"albedo": "materials/Other/Rope001_2K-PNG/col.png",
-	"normal": "materials/Other/Rope001_2K-PNG/nrm.png",
-	"roughness": "materials/Other/Rope001_2K-PNG/rgh.png"
-}
+{"version":2,"albedo":{"path":"materials/Other/Rope001_2K-PNG/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Other/Rope001_2K-PNG/nrm.png"},"roughness":{"path":"materials/Other/Rope001_2K-PNG/rgh.png","value":0.5},"metalness":{"path":null,"value":0.0},"displacement":{"path":null},"emissive":{"path":null,"value":0.0}}

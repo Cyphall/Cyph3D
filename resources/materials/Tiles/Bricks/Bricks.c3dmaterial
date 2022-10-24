@@ -1,6 +1,1 @@
-{
-	"albedo": "materials/Tiles/Bricks/col.jpg",
-	"normal": "materials/Tiles/Bricks/nrm.jpg",
-	"roughness": "materials/Tiles/Bricks/rgh.jpg",
-	"displacement": "materials/Tiles/Bricks/disp.jpg"
-}
+{"version":2,"albedo":{"path":"materials/Tiles/Bricks/col.jpg","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Tiles/Bricks/nrm.jpg"},"roughness":{"path":"materials/Tiles/Bricks/rgh.jpg","value":0.5},"metalness":{"path":null,"value":0.0},"displacement":{"path":"materials/Tiles/Bricks/disp.jpg"},"emissive":{"path":null,"value":0.0}}

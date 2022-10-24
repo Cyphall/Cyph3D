@@ -1,6 +1,1 @@
-{
-	"albedo": "materials/Tiles/WallBrick/col.png",
-	"normal": "materials/Tiles/WallBrick/nrm.png",
-	"roughness": "materials/Tiles/WallBrick/rgh.png",
-	"displacement": "materials/Tiles/WallBrick/disp.png"
-}
+{"version":2,"albedo":{"path":"materials/Tiles/WallBrick/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Tiles/WallBrick/nrm.png"},"roughness":{"path":"materials/Tiles/WallBrick/rgh.png","value":0.5},"metalness":{"path":null,"value":0.0},"displacement":{"path":"materials/Tiles/WallBrick/disp.png"},"emissive":{"path":null,"value":0.0}}

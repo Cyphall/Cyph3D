@@ -1,6 +1,1 @@
-{
-	"albedo": "materials/Rocks/RockVerticalStreaks/col.png",
-	"normal": "materials/Rocks/RockVerticalStreaks/nrm.png",
-	"roughness": "materials/Rocks/RockVerticalStreaks/rgh.png",
-	"displacement": "materials/Rocks/RockVerticalStreaks/disp.png"
-}
+{"version":2,"albedo":{"path":"materials/Rocks/RockVerticalStreaks/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Rocks/RockVerticalStreaks/nrm.png"},"roughness":{"path":"materials/Rocks/RockVerticalStreaks/rgh.png","value":0.5},"metalness":{"path":null,"value":0.0},"displacement":{"path":"materials/Rocks/RockVerticalStreaks/disp.png"},"emissive":{"path":null,"value":0.0}}

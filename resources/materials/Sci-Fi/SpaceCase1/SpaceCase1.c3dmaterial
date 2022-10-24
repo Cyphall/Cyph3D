@@ -1,7 +1,1 @@
-{
-	"albedo": "materials/Sci-Fi/SpaceCase1/col.png",
-	"normal": "materials/Sci-Fi/SpaceCase1/nrm.png",
-	"roughness": "materials/Sci-Fi/SpaceCase1/rgh.png",
-	"metalness": "materials/Sci-Fi/SpaceCase1/met.png",
-	"displacement": "materials/Sci-Fi/SpaceCase1/disp.png"
-}
+{"version":2,"albedo":{"path":"materials/Sci-Fi/SpaceCase1/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Sci-Fi/SpaceCase1/nrm.png"},"roughness":{"path":"materials/Sci-Fi/SpaceCase1/rgh.png","value":0.5},"metalness":{"path":"materials/Sci-Fi/SpaceCase1/met.png","value":0.0},"displacement":{"path":"materials/Sci-Fi/SpaceCase1/disp.png"},"emissive":{"path":null,"value":0.0}}

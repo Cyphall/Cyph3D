@@ -1,6 +1,1 @@
-{
-	"albedo": "materials/Tiles/GreenTiles/col.png",
-	"normal": "materials/Tiles/GreenTiles/nrm.png",
-	"roughness": "materials/Tiles/GreenTiles/rgh.png",
-	"displacement": "materials/Tiles/GreenTiles/disp.png"
-}
+{"version":2,"albedo":{"path":"materials/Tiles/GreenTiles/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Tiles/GreenTiles/nrm.png"},"roughness":{"path":"materials/Tiles/GreenTiles/rgh.png","value":0.5},"metalness":{"path":null,"value":0.0},"displacement":{"path":"materials/Tiles/GreenTiles/disp.png"},"emissive":{"path":null,"value":0.0}}

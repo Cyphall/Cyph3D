@@ -1,7 +1,1 @@
-{
-	"albedo": "materials/Metals/AlienMetal/col.png",
-	"normal": "materials/Metals/AlienMetal/nrm.png",
-	"roughness": "materials/Metals/AlienMetal/rgh.png",
-	"metalness": "materials/Metals/AlienMetal/met.png",
-	"displacement": "materials/Metals/AlienMetal/disp.png"
-}
+{"version":2,"albedo":{"path":"materials/Metals/AlienMetal/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Metals/AlienMetal/nrm.png"},"roughness":{"path":"materials/Metals/AlienMetal/rgh.png","value":0.5},"metalness":{"path":"materials/Metals/AlienMetal/met.png","value":0.0},"displacement":{"path":"materials/Metals/AlienMetal/disp.png"},"emissive":{"path":null,"value":0.0}}

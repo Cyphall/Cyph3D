@@ -1,6 +1,1 @@
-{
-	"albedo": "materials/Tiles/ModernTiles/col.png",
-	"normal": "materials/Tiles/ModernTiles/nrm.png",
-	"roughness": "materials/Tiles/ModernTiles/rgh.png",
-	"displacement": "materials/Tiles/ModernTiles/disp.png"
-}
+{"version":2,"albedo":{"path":"materials/Tiles/ModernTiles/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Tiles/ModernTiles/nrm.png"},"roughness":{"path":"materials/Tiles/ModernTiles/rgh.png","value":0.5},"metalness":{"path":null,"value":0.0},"displacement":{"path":"materials/Tiles/ModernTiles/disp.png"},"emissive":{"path":null,"value":0.0}}

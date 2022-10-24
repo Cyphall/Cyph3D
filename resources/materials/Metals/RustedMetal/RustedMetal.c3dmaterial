@@ -1,6 +1,1 @@
-{
-	"albedo": "materials/Metals/RustedMetal/col.png",
-	"normal": "materials/Metals/RustedMetal/nrm.png",
-	"roughness": "materials/Metals/RustedMetal/rgh.png",
-	"metalness": "materials/Metals/RustedMetal/met.png"
-}
+{"version":2,"albedo":{"path":"materials/Metals/RustedMetal/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Metals/RustedMetal/nrm.png"},"roughness":{"path":"materials/Metals/RustedMetal/rgh.png","value":0.5},"metalness":{"path":"materials/Metals/RustedMetal/met.png","value":0.0},"displacement":{"path":null},"emissive":{"path":null,"value":0.0}}
