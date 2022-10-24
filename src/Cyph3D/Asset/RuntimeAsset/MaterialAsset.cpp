@@ -183,7 +183,7 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 		
 		TextureCreateInfo createInfo;
 		createInfo.size = {1, 1};
-		createInfo.internalFormat = GL_RGB8;
+		createInfo.internalFormat = GL_SRGB8;
 
 		_albedoValueTexture = std::make_unique<GLTexture>(createInfo);
 		setAlbedoValue(getAlbedoValue()); // updates the texture with the current value
