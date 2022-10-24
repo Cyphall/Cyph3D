@@ -1,4 +1,25 @@
 {
-	"albedo": "materials/Plastic/red_plastic/col.png",
-	"roughness": "materials/Plastic/red_plastic/rgh.png"
+	"version": 2,
+	"albedo": {
+		"path": null,
+		"value": [1, 0, 0]
+	},
+	"normal": {
+		"path": null
+	},
+	"roughness": {
+		"path": null,
+		"value": 0.15
+	},
+	"metalness": {
+		"path": null,
+		"value": 0
+	},
+	"displacement": {
+		"path": null
+	},
+	"emissive": {
+		"path": null,
+		"value": 0
+	}
 }
