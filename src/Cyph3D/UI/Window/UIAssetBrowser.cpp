@@ -279,7 +279,7 @@ void UIAssetBrowser::draw()
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
 		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
 		bool anyWidgetClicked = drawRightPanelEntries();
-		if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered() && !anyWidgetClicked)
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !anyWidgetClicked)
 		{
 			_selectedEntry = nullptr;
 		}
@@ -324,10 +324,20 @@ void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 	if (&directory == _currentDirectory)
 		flags |= ImGuiTreeNodeFlags_Selected;
 
-	if (directory.entries().empty())
+	bool anyDirectory = false;
+	for (const std::unique_ptr<Entry>& entry : directory.entries())
+	{
+		if (entry->type() == EntryType::Directory)
+		{
+			anyDirectory = true;
+			break;
+		}
+	}
+	if (!anyDirectory)
 		flags |= ImGuiTreeNodeFlags_Leaf;
 
-	bool opened = ImGui::TreeNodeEx(directory.displayAssetPath().c_str(), flags, "\uF07B %s", directory.name().c_str());
+	const char* name = &directory == _root.get() ? "resources" : directory.name().c_str();
+	bool opened = ImGui::TreeNodeEx(directory.displayAssetPath().c_str(), flags, "\uF07B %s", name);
 
 	//Select the item on click
 	if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
@@ -338,9 +348,15 @@ void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 	//Draw item children if the item is opened
 	if (opened)
 	{
-		for (const std::unique_ptr<Entry>& entry : directory.entries())
+		if (anyDirectory)
 		{
-			drawDirectoryNode(*entry);
+			for (const std::unique_ptr<Entry>& entry : directory.entries())
+			{
+				if (entry->type() == EntryType::Directory)
+				{
+					drawDirectoryNode(*entry);
+				}
+			}
 		}
 
 		ImGui::TreePop();
@@ -373,7 +389,7 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 
 	clicked = ImGui::InvisibleButton(entry.assetPath().c_str(), entrySize);
 
-	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 	{
 		doubleClicked = true;
 	}
