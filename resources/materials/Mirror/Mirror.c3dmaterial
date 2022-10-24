@@ -1,5 +1,1 @@
-{
-	"albedo": "materials/Mirror/col.png",
-	"roughness": "materials/Mirror/rgh.png",
-	"metalness": "materials/Mirror/met.png"
-}
+{"version":2,"albedo":{"path":null,"value":[1.0,1.0,1.0]},"normal":{"path":null},"roughness":{"path":null,"value":0.15000000596046448},"metalness":{"path":null,"value":1.0},"displacement":{"path":null},"emissive":{"path":null,"value":0.0}}

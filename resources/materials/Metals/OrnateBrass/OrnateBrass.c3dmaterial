@@ -1,7 +1,1 @@
-{
-	"albedo": "materials/Metals/OrnateBrass/col.png",
-	"normal": "materials/Metals/OrnateBrass/nrm.png",
-	"roughness": "materials/Metals/OrnateBrass/rgh.png",
-	"metalness": "materials/Metals/OrnateBrass/met.png",
-	"displacement": "materials/Metals/OrnateBrass/disp.png"
-}
+{"version":2,"albedo":{"path":"materials/Metals/OrnateBrass/col.png","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Metals/OrnateBrass/nrm.png"},"roughness":{"path":"materials/Metals/OrnateBrass/rgh.png","value":0.5},"metalness":{"path":null,"value":1.0},"displacement":{"path":"materials/Metals/OrnateBrass/disp.png"},"emissive":{"path":null,"value":0.0}}
