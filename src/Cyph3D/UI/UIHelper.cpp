@@ -183,6 +183,8 @@ void UIHelper::initFonts()
 
 	static const ImWchar smallIconRange[] = {
 		0xF00D, 0xF00D,
+		0xF021, 0xF021,
+		0xF062, 0xF062,
 		0xF07B, 0xF07B,
 		0};
 	io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 14.0f * pixelScale, &config, smallIconRange);

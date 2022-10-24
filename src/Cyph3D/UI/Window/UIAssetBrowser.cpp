@@ -45,6 +45,7 @@ public:
 	
 	Entry(const std::filesystem::path& assetPath, EntryType type, Entry* parent):
 		_assetPath(assetPath.generic_string()),
+		_displayAssetPath(std::format("{}/", _assetPath)),
 		_name(assetPath.filename().generic_string()),
 		_truncatedName(truncate(_name, 90 * Engine::getWindow().getPixelScale())),
 		_type(type),
@@ -110,6 +111,11 @@ public:
 		return _assetPath;
 	}
 
+	const std::string& displayAssetPath() const
+	{
+		return _displayAssetPath;
+	}
+
 	const std::string& truncatedName() const
 	{
 		return _truncatedName;
@@ -173,6 +179,7 @@ public:
 
 private:
 	std::string _assetPath;
+	std::string _displayAssetPath;
 	std::string _name;
 	std::string _truncatedName;
 	EntryType _type;
@@ -202,9 +209,14 @@ void UIAssetBrowser::draw()
 
 	if (ImGui::Begin("Asset Browser"))
 	{
-		if (ImGui::Button("Refresh"))
+		if (ImGui::Button("\uF021"))
 		{
 			rescan();
+		}
+		
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("%s", "Refresh");
 		}
 
 		float currentWidth = ImGui::GetContentRegionAvail().x;
@@ -228,7 +240,42 @@ void UIAssetBrowser::draw()
 		ImGui::PopStyleVar();
 
 		ImGui::SameLine(0.0f, 2.0f);
+		
+		ImGui::BeginGroup();
 
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0, 0});
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
+		
+		bool disabled = _currentDirectory == _root.get();
+		if (disabled)
+		{
+			ImGui::BeginDisabled();
+		}
+		
+		if (ImGui::Button("\uF062", {ImGui::GetFrameHeight(), ImGui::GetFrameHeight()}))
+		{
+			_currentDirectory = _currentDirectory->parent();
+		}
+
+		if (disabled)
+		{
+			ImGui::EndDisabled();
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("%s", "Parent directory");
+		}
+		
+		ImGui::SameLine();
+
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		// Field is read-only anyway, we can safely remove the const
+		ImGui::InputText("###current_directory", const_cast<char*>(_currentDirectory->displayAssetPath().c_str()), _currentDirectory->displayAssetPath().size()+1, ImGuiInputTextFlags_ReadOnly);
+
+		ImGui::PopStyleVar();
+		ImGui::PopStyleVar();
+		
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
 		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
 		bool anyWidgetClicked = drawRightPanelEntries();
@@ -238,6 +285,7 @@ void UIAssetBrowser::draw()
 		}
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
+		ImGui::EndGroup();
 	}
 
 	ImGui::End();
@@ -252,7 +300,7 @@ void UIAssetBrowser::draw()
 void UIAssetBrowser::rescan()
 {
 	_root.reset();
-	_root = std::make_unique<UIAssetBrowser::Entry>(FileHelper::getAssetDirectoryPath(), EntryType::Directory, nullptr);
+	_root = std::make_unique<UIAssetBrowser::Entry>("", EntryType::Directory, nullptr);
 	_currentDirectory = _root.get();
 	_selectedEntry = nullptr;
 }
@@ -279,7 +327,7 @@ void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 	if (directory.entries().empty())
 		flags |= ImGuiTreeNodeFlags_Leaf;
 
-	bool opened = ImGui::TreeNodeEx(directory.assetPath().c_str(), flags, "\uF07B %s", directory.name().c_str());
+	bool opened = ImGui::TreeNodeEx(directory.displayAssetPath().c_str(), flags, "\uF07B %s", directory.name().c_str());
 
 	//Select the item on click
 	if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
