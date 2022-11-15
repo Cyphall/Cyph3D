@@ -26,8 +26,12 @@ void UIHelper::init()
 {
 	_context = ImGui::CreateContext();
 	ImGui::SetCurrentContext(_context);
-	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	ImGuizmo::SetImGuiContext(_context);
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.HoverDelayNormal = 0.6f;
 	
 	ImGui_ImplGlfw_InitForOpenGL(Engine::getWindow().getHandle(), true);
 	ImGui_ImplOpenGL3_Init("#version 460 core");
