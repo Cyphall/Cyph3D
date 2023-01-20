@@ -6,6 +6,8 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <string>
+#include <memory>
 
 class MaterialAsset;
 class Shape;
