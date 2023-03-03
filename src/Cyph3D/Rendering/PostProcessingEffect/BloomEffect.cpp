@@ -7,6 +7,9 @@
 
 #include <format>
 
+static const float KERNEL_NORMALIZED_SIGMA = 5.0f / 1080.0f; // normalized to sigma 5 at 1080p
+static const float KERNEL_NORMALIZED_RADIUS = 20.0f / 1080.0f; // normalized to 20 pixels at 1080p
+
 BloomEffect::BloomEffect(glm::ivec2 size):
 PostProcessingEffect("Bloom", size),
 _extractBrightFramebuffer(size),
@@ -20,8 +23,8 @@ _blurTextures{
 	{
 		.size = size,
 		.internalFormat = GL_RGBA16F,
-		.minFilter = GL_NEAREST_MIPMAP_NEAREST,
-		.magFilter = GL_NEAREST,
+		.minFilter = GL_LINEAR_MIPMAP_NEAREST,
+		.magFilter = GL_LINEAR,
 		.wrapS = GL_CLAMP_TO_BORDER,
 		.wrapT = GL_CLAMP_TO_BORDER,
 		.borderColor = {0, 0, 0, 1},
@@ -31,8 +34,8 @@ _blurTextures{
 	{
 		.size = size,
 		.internalFormat = GL_RGBA16F,
-		.minFilter = GL_NEAREST_MIPMAP_NEAREST,
-		.magFilter = GL_NEAREST,
+		.minFilter = GL_LINEAR_MIPMAP_NEAREST,
+		.magFilter = GL_LINEAR,
 		.wrapS = GL_CLAMP_TO_BORDER,
 		.wrapT = GL_CLAMP_TO_BORDER,
 		.borderColor = {0, 0, 0, 1},
@@ -53,7 +56,6 @@ _outputTexture(TextureCreateInfo
 	.size = size,
 	.internalFormat = GL_RGBA16F
 }),
-_kernelBuffer(GL_DYNAMIC_DRAW),
 _extractBrightProgram({
 	{GL_VERTEX_SHADER, "internal/fullscreen quad.vert"},
 	{GL_FRAGMENT_SHADER, "internal/post-processing/bloom/extract bright.frag"}
@@ -85,6 +87,47 @@ _combineProgram({
 	
 	_combineFramebuffer.attachColor(0, _outputTexture);
 	_combineFramebuffer.addToDrawBuffers(0, 0);
+	
+	// adjust kernel radius to closest even number
+	float rawKernelRadius = KERNEL_NORMALIZED_RADIUS * size.y;
+	rawKernelRadius /= 2.0f;
+	rawKernelRadius = glm::round(rawKernelRadius);
+	rawKernelRadius *= 2.0f;
+	int adjustedKernelRadius = static_cast<int>(glm::round(rawKernelRadius)); // another round just to make sure the cast works as expected
+	
+	float adjustmentScale = adjustedKernelRadius / rawKernelRadius;
+	
+	// calculate raw kernel
+	std::vector<float> kernel = gaussianKernel(adjustedKernelRadius, KERNEL_NORMALIZED_SIGMA * size.y * adjustmentScale);
+	
+	// convert raw kernel to optimized kernel for linear sampling
+	std::vector<KernelSampleInfo> kernelSamples(1 + (adjustedKernelRadius/2.0f));
+	
+	kernelSamples[0] = KernelSampleInfo{
+		.weight = kernel[adjustedKernelRadius],
+		.offset = 0.0f
+	};
+	
+	for (int i = 0; i < kernelSamples.size() - 1; i++)
+	{
+		int offset0 = 1 + i * 2 + 0;
+		int offset1 = 1 + i * 2 + 1;
+		
+		float weight0 = kernel[adjustedKernelRadius + offset0];
+		float weight1 = kernel[adjustedKernelRadius + offset1];
+
+		float weight = weight0 + weight1;
+		float offset = (offset0 * weight0 + offset1 * weight1) / weight;
+
+		kernelSamples[1 + i] = KernelSampleInfo{
+			.weight = weight,
+			.offset = offset
+		};
+	}
+	
+	// upload optimized kernel
+	_kernelBuffer = std::make_unique<GLImmutableBuffer<KernelSampleInfo>>(kernelSamples.size(), GL_DYNAMIC_STORAGE_BIT);
+	_kernelBuffer->setData(kernelSamples);
 }
 
 GLTexture* BloomEffect::renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera)
@@ -97,10 +140,7 @@ GLTexture* BloomEffect::renderImpl(GLTexture* currentRenderTexture, std::unorder
 	downsample();
 	glPopDebugGroup();
 	
-	if (_kernelChanged)
-		recalculateGaussianKernel();
-	
-	_kernelBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 2);
+	_kernelBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
 	
 	for (int i = 5; i > 0; i--)
 	{
@@ -229,40 +269,4 @@ std::vector<float> BloomEffect::gaussianKernel(int kernelRadius, float sigma)
 	for (float& value : kernel)
 		value /= sum;
 	return kernel;
-}
-
-void BloomEffect::recalculateGaussianKernel()
-{
-	std::vector<float> kernel = gaussianKernel(_kernelRadius, _kernelSigma);
-	std::span<const float> span(kernel.data() + _kernelRadius, _kernelRadius+1);
-	_kernelBuffer.resize(span.size());
-	_kernelBuffer.setData(span);
-	
-	_kernelChanged = false;
-}
-
-int BloomEffect::getKernelRadius() const
-{
-	return _kernelRadius;
-}
-
-void BloomEffect::setKernelRadius(int kernelRadius)
-{
-	if (kernelRadius == _kernelRadius) return;
-	
-	_kernelRadius = kernelRadius;
-	_kernelChanged = true;
-}
-
-float BloomEffect::getKernelSigma() const
-{
-	return _kernelSigma;
-}
-
-void BloomEffect::setKernelSigma(float kernelSigma)
-{
-	if (kernelSigma == _kernelSigma) return;
-	
-	_kernelSigma = kernelSigma;
-	_kernelChanged = true;
 }

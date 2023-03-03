@@ -5,32 +5,40 @@ layout(bindless_sampler) uniform sampler2D u_sourceTexture;
 uniform bool u_horizontal;
 uniform int u_mipmapLevel;
 
+struct KernelSampleInfo
+{
+	float weight;
+	float offset;
+};
+
 layout(std430, binding = 2) buffer UselessNameBecauseItIsNeverUsedAnywhere1
 {
-	float weight[];
+	KernelSampleInfo samples[];
 };
 
 out vec3 o_color;
 
 void main()
 {
-	ivec2 texelPos = ivec2(gl_FragCoord);
-	vec3 result = texelFetch(u_sourceTexture, texelPos, u_mipmapLevel).rgb * weight[0]; // current fragment's contribution
+	vec2 pixelSize = 1.0f / textureSize(u_sourceTexture, u_mipmapLevel);
+	vec2 fragmentPos = vec2(gl_FragCoord) * pixelSize;
+	
+	vec3 result = textureLod(u_sourceTexture, fragmentPos, u_mipmapLevel).rgb * samples[0].weight; // current fragment's contribution
 	
 	if(u_horizontal)
 	{
-		for(int i = 1; i < weight.length(); ++i)
+		for(int i = 1; i < samples.length(); ++i)
 		{
-			result += texelFetch(u_sourceTexture, texelPos + ivec2(i, 0), u_mipmapLevel).rgb * weight[i];
-			result += texelFetch(u_sourceTexture, texelPos - ivec2(i, 0), u_mipmapLevel).rgb * weight[i];
+			result += textureLod(u_sourceTexture, fragmentPos + vec2(samples[i].offset * pixelSize.x, 0), u_mipmapLevel).rgb * samples[i].weight;
+			result += textureLod(u_sourceTexture, fragmentPos - vec2(samples[i].offset * pixelSize.x, 0), u_mipmapLevel).rgb * samples[i].weight;
 		}
 	}
 	else
 	{
-		for(int i = 1; i < weight.length(); ++i)
+		for(int i = 1; i < samples.length(); ++i)
 		{
-			result += texelFetch(u_sourceTexture, texelPos + ivec2(0, i), u_mipmapLevel).rgb * weight[i];
-			result += texelFetch(u_sourceTexture, texelPos - ivec2(0, i), u_mipmapLevel).rgb * weight[i];
+			result += textureLod(u_sourceTexture, fragmentPos + vec2(0, samples[i].offset * pixelSize.y), u_mipmapLevel).rgb * samples[i].weight;
+			result += textureLod(u_sourceTexture, fragmentPos - vec2(0, samples[i].offset * pixelSize.y), u_mipmapLevel).rgb * samples[i].weight;
 		}
 	}
 	
