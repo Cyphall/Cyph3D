@@ -142,7 +142,7 @@ Camera& UIViewport::getCamera()
 void UIViewport::setCamera(Camera camera)
 {
 	_camera = camera;
-	_rendererSize = glm::vec2(0);
+	_camera.setAspectRatio(_rendererSize.x / _rendererSize.y);
 }
 
 void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
