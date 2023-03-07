@@ -4,8 +4,8 @@
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/Scene/Scene.h"
 
-Renderer::Renderer(const char* name):
-_name(name)
+Renderer::Renderer(const char* name, glm::ivec2 size):
+_name(name), _size(size)
 {
 
 }
@@ -34,6 +34,11 @@ void Renderer::requestLightRendering(DirectionalLight::RenderData data)
 void Renderer::requestLightRendering(PointLight::RenderData data)
 {
 	_registry.pointLights.push_back(data);
+}
+
+glm::ivec2 Renderer::getSize() const
+{
+	return _size;
 }
 
 std::pair<GLTexture*, const PerfStep*> Renderer::render(Camera& camera, bool debugView)

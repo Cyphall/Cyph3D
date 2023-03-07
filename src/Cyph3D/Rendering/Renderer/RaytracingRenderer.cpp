@@ -3,7 +3,7 @@
 const char* RaytracingRenderer::identifier = "Raytracing";
 
 RaytracingRenderer::RaytracingRenderer(glm::ivec2 size):
-Renderer("Raytracing Renderer"),
+Renderer("Raytracing Renderer", size),
 _raytracePass(_textures, size),
 _postProcessingPass(_textures, size),
 _objectIndexFramebuffer(size)
@@ -25,7 +25,7 @@ Entity* RaytracingRenderer::getClickedEntity(glm::ivec2 clickPos)
 	int objectIndex;
 	_objectIndexFramebuffer.bindForReading();
 	// shift origin from bottom left to top left
-	clickPos.y = _objectIndexFramebuffer.getSize().y - clickPos.y;
+	clickPos.y = _size.y - clickPos.y;
 	
 	glReadPixels(clickPos.x, clickPos.y, 1, 1, GL_RED_INTEGER, GL_INT, &objectIndex);
 	

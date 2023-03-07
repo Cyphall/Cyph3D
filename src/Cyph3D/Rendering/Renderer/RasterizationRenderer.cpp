@@ -10,7 +10,7 @@
 const char* RasterizationRenderer::identifier = "Rasterisation";
 
 RasterizationRenderer::RasterizationRenderer(glm::ivec2 size):
-Renderer("Rasterization Renderer"),
+Renderer("Rasterization Renderer", size),
 _zPrePass(_textures, size),
 _shadowMapPass(_textures, size),
 _geometryPass(_textures, size),
@@ -58,7 +58,7 @@ Entity* RasterizationRenderer::getClickedEntity(glm::ivec2 clickPos)
 	int objectIndex;
 	_objectIndexFramebuffer.bindForReading();
 	// shift origin from bottom left to top left
-	clickPos.y = _objectIndexFramebuffer.getSize().y - clickPos.y;
+	clickPos.y = _size.y - clickPos.y;
 	
 	glReadPixels(clickPos.x, clickPos.y, 1, 1, GL_RED_INTEGER, GL_INT, &objectIndex);
 	
