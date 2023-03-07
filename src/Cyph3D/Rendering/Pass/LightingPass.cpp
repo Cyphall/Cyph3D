@@ -92,7 +92,7 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	_shader.bind();
 	_framebuffer.bindForDrawing();
 	
-	_rawRenderTexture.clear(GL_RGBA, GL_HALF_FLOAT, nullptr);
+	_rawRenderTexture.clear(nullptr, GL_RGBA, GL_HALF_FLOAT);
 	
 	RenderHelper::drawScreenQuad();
 }

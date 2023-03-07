@@ -28,7 +28,7 @@ public:
 
 	int getLevels() const;
 	
-	void clear(GLenum format, GLenum type, void* clearData);
+	void clear(void* clearData, GLenum format, GLenum type, int level = 0);
 
 	static int calculateMipmapCount(const glm::ivec2& size);
 

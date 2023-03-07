@@ -123,9 +123,9 @@ int GLTexture::getLevels() const
 	return _levels;
 }
 
-void GLTexture::clear(GLenum format, GLenum type, void* clearData)
+void GLTexture::clear(void* clearData, GLenum format, GLenum type, int level)
 {
-	glClearTexImage(_handle, 0, format, type, clearData);
+	glClearTexImage(_handle, level, format, type, clearData);
 }
 
 int GLTexture::calculateMipmapCount(const glm::ivec2& size)

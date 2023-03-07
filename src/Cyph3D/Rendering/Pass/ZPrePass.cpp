@@ -37,7 +37,7 @@ void ZPrePass::preparePipelineImpl()
 void ZPrePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
 	float clearDepth = 1;
-	_depthTexture.clear(GL_DEPTH_COMPONENT, GL_FLOAT, &clearDepth);
+	_depthTexture.clear(&clearDepth, GL_DEPTH_COMPONENT, GL_FLOAT);
 	
 	_framebuffer.bindForDrawing();
 	_vao.bind();

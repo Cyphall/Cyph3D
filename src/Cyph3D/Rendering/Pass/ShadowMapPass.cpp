@@ -45,7 +45,7 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& text
 		renderData.shadowMapFramebuffer->bindForDrawing();
 		
 		float depthColor = 1;
-		renderData.shadowMapTexture->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
+		renderData.shadowMapTexture->clear(&depthColor, GL_DEPTH_COMPONENT, GL_FLOAT);
 		
 		for (auto& shapeData : registry.shapes)
 		{
@@ -85,7 +85,7 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& text
 		_pointLightShadowMappingProgram.setUniform("u_far", renderData.far);
 		
 		float depthColor = 1;
-		renderData.shadowMapTexture->clear(GL_DEPTH_COMPONENT, GL_FLOAT, &depthColor);
+		renderData.shadowMapTexture->clear(&depthColor, GL_DEPTH_COMPONENT, GL_FLOAT);
 		
 		for (auto& shapeData : registry.shapes)
 		{

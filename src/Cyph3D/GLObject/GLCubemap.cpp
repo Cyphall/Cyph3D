@@ -123,9 +123,9 @@ int GLCubemap::getLevels() const
 	return _levels;
 }
 
-void GLCubemap::clear(GLenum format, GLenum type, void* clearData)
+void GLCubemap::clear(void* clearData, GLenum format, GLenum type, int level)
 {
-	glClearTexImage(_handle, 0, format, type, clearData);
+	glClearTexImage(_handle, level, format, type, clearData);
 }
 
 int GLCubemap::calculateMipmapCount(const glm::ivec2& size)

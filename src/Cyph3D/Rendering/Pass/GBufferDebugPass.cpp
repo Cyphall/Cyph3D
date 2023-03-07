@@ -45,7 +45,7 @@ void GBufferDebugPass::renderImpl(std::unordered_map<std::string, GLTexture*>& t
 	_shader.bind();
 	_framebuffer.bindForDrawing();
 	
-	_debugTexture.clear(GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	_debugTexture.clear(nullptr, GL_RGBA, GL_UNSIGNED_BYTE);
 	
 	RenderHelper::drawScreenQuad();
 }
