@@ -8,7 +8,6 @@
 
 ExposureEffect::ExposureEffect(glm::ivec2 size):
 PostProcessingEffect("Exposure", size),
-_framebuffer(size),
 _outputTexture(TextureCreateInfo
 {
 	.size = size,

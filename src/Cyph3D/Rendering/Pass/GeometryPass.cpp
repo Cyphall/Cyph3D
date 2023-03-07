@@ -13,7 +13,6 @@
 
 GeometryPass::GeometryPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Geometry pass"),
-_gbuffer(size),
 _normalTexture(TextureCreateInfo
 {
    .size = size,

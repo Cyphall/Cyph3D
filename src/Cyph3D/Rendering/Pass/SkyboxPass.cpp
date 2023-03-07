@@ -11,7 +11,6 @@
 
 SkyboxPass::SkyboxPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
 RenderPass(textures, size, "Skybox pass"),
-_framebuffer(size),
 _vao(),
 _vbo(36, GL_DYNAMIC_STORAGE_BIT),
 _shader({

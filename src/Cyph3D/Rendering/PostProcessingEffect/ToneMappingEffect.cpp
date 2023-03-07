@@ -7,7 +7,6 @@
 
 ToneMappingEffect::ToneMappingEffect(glm::ivec2 size):
 PostProcessingEffect("Tonemapping", size),
-_framebuffer(size),
 _outputTexture(TextureCreateInfo
 {
 	.size = size,

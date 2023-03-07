@@ -10,13 +10,9 @@
 #include <stdexcept>
 #include <vector>
 
-GLFramebuffer::GLFramebuffer(glm::ivec2 size):
-_size(size)
+GLFramebuffer::GLFramebuffer()
 {
 	glCreateFramebuffers(1, &_handle);
-	
-	glNamedFramebufferParameteri(_handle, GL_FRAMEBUFFER_DEFAULT_WIDTH, _size.x);
-	glNamedFramebufferParameteri(_handle, GL_FRAMEBUFFER_DEFAULT_HEIGHT, _size.y);
 }
 
 GLFramebuffer::~GLFramebuffer()
@@ -45,11 +41,6 @@ void GLFramebuffer::bindForReading()
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, _handle);
 }
 
-glm::ivec2 GLFramebuffer::getSize()
-{
-	return _size;
-}
-
 void GLFramebuffer::checkDrawCompleteness()
 {
 	GLenum state = glCheckNamedFramebufferStatus(_handle, GL_DRAW_FRAMEBUFFER);
@@ -65,14 +56,6 @@ void GLFramebuffer::checkReadCompleteness()
 	if (state != GL_FRAMEBUFFER_COMPLETE)
 	{
 		throw std::runtime_error(std::format("Framebuffer is incomplete for reading: {}", state));
-	}
-}
-
-void GLFramebuffer::verifySize(glm::ivec2 size)
-{
-	if (size != _size)
-	{
-		throw std::runtime_error(std::format("The texture size ({}x{}) does not match the framebuffer size ({}x{})", size.x, size.y, _size.x, _size.y));
 	}
 }
 
@@ -169,8 +152,6 @@ void GLFramebuffer::updateReadBuffer()
 
 void GLFramebuffer::attachColor(int attachmentSlot, const GLTexture& texture, int level)
 {
-	verifySize(texture.getSize(level));
-	
 	attachColorImpl(attachmentSlot, texture.getHandle(), std::nullopt, level);
 	
 	verifyColorAttachmentSlots();
@@ -178,7 +159,6 @@ void GLFramebuffer::attachColor(int attachmentSlot, const GLTexture& texture, in
 
 void GLFramebuffer::attachColor(int attachmentSlot, const GLCubemap& cubemap, std::optional<int> face, int level)
 {
-	verifySize(cubemap.getSize());
 	if (face.has_value())
 	{
 		verifyFace(face.value());
@@ -196,15 +176,11 @@ void GLFramebuffer::detachColor(int attachmentSlot)
 
 void GLFramebuffer::attachDepth(const GLTexture& texture, int level)
 {
-	verifySize(texture.getSize(level));
-	
 	attachDepthImpl(texture.getHandle(), std::nullopt, level);
 }
 
 void GLFramebuffer::attachDepth(const GLCubemap& cubemap, std::optional<int> face, int level)
 {
-	verifySize(cubemap.getSize());
-	
 	if (face.has_value())
 	{
 		verifyFace(face.value());
@@ -220,15 +196,11 @@ void GLFramebuffer::detachDepth()
 
 void GLFramebuffer::attachStencil(const GLTexture& texture, int level)
 {
-	verifySize(texture.getSize(level));
-	
 	attachStencilImpl(texture.getHandle(), std::nullopt, level);
 }
 
 void GLFramebuffer::attachStencil(const GLCubemap& cubemap, std::optional<int> face, int level)
 {
-	verifySize(cubemap.getSize());
-	
 	if (face.has_value())
 	{
 		verifyFace(face.value());

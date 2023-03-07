@@ -5,8 +5,7 @@ const char* RaytracingRenderer::identifier = "Raytracing";
 RaytracingRenderer::RaytracingRenderer(glm::ivec2 size):
 Renderer("Raytracing Renderer", size),
 _raytracePass(_textures, size),
-_postProcessingPass(_textures, size),
-_objectIndexFramebuffer(size)
+_postProcessingPass(_textures, size)
 {
 	_objectIndexFramebuffer.attachColor(0, *_textures["objectIndex"]);
 	_objectIndexFramebuffer.setReadBuffer(0);

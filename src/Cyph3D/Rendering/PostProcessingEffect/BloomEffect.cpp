@@ -12,7 +12,6 @@ static const float KERNEL_NORMALIZED_RADIUS = 20.0f / 1080.0f; // normalized to 
 
 BloomEffect::BloomEffect(glm::ivec2 size):
 PostProcessingEffect("Bloom", size),
-_extractBrightFramebuffer(size),
 _nonBrightTexture(TextureCreateInfo
 {
 	.size = size,
@@ -42,15 +41,6 @@ _blurTextures{
 		.levels = 6
 	})
 },
-_blurFramebuffers{
-	GLFramebuffer(_blurTextures[0].getSize(0)),
-	GLFramebuffer(_blurTextures[0].getSize(1)),
-	GLFramebuffer(_blurTextures[0].getSize(2)),
-	GLFramebuffer(_blurTextures[0].getSize(3)),
-	GLFramebuffer(_blurTextures[0].getSize(4)),
-	GLFramebuffer(_blurTextures[0].getSize(5))
-},
-_combineFramebuffer(size),
 _outputTexture(TextureCreateInfo
 {
 	.size = size,

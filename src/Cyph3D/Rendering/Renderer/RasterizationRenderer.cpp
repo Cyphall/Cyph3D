@@ -17,8 +17,7 @@ _geometryPass(_textures, size),
 _gBufferDebugPass(_textures, size),
 _skyboxPass(_textures, size),
 _lightingPass(_textures, size),
-_postProcessingPass(_textures, size),
-_objectIndexFramebuffer(size)
+_postProcessingPass(_textures, size)
 {
 	_objectIndexFramebuffer.attachColor(0, *_textures["gbuffer_objectIndex"]);
 	_objectIndexFramebuffer.setReadBuffer(0);

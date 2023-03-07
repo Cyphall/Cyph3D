@@ -11,7 +11,6 @@ LightingPass::LightingPass(std::unordered_map<std::string, GLTexture*>& textures
 RenderPass(textures, size, "Lighting pass"),
 _pointLightsBuffer(GL_DYNAMIC_DRAW),
 _directionalLightsBuffer(GL_DYNAMIC_DRAW),
-_framebuffer(size),
 _rawRenderTexture(TextureCreateInfo
 {
  .size = size,

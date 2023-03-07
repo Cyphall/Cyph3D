@@ -10,7 +10,6 @@
 
 ZPrePass::ZPrePass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size) :
 RenderPass(textures, size, "Z prepass"),
-_framebuffer(size),
 _depthTexture(TextureCreateInfo
 {
 	.size = size,

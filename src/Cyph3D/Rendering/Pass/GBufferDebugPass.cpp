@@ -7,7 +7,6 @@
 
 GBufferDebugPass::GBufferDebugPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size) :
 RenderPass(textures, size, "GBuffer Debug pass"),
-_framebuffer(size),
 _debugTexture(TextureCreateInfo
 {
 	.size = size,

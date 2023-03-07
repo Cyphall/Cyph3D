@@ -32,10 +32,10 @@ void DirectionalLight::setCastShadows(bool value)
 	
 	if (value)
 	{
-		_shadowMapFb = std::make_unique<GLFramebuffer>(glm::ivec2(_resolution));
+		_shadowMapFb = std::make_unique<GLFramebuffer>();
 		
 		TextureCreateInfo textureCreateInfo;
-		textureCreateInfo.size = _shadowMapFb->getSize();
+		textureCreateInfo.size = glm::ivec2(_resolution);
 		textureCreateInfo.internalFormat = GL_DEPTH_COMPONENT32;
 		textureCreateInfo.minFilter = GL_NEAREST;
 		textureCreateInfo.magFilter = GL_NEAREST;

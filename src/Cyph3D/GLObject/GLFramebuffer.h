@@ -12,12 +12,11 @@ class GLCubemap;
 class GLFramebuffer : public GLObject
 {
 public:
-	explicit GLFramebuffer(glm::ivec2 size);
+	explicit GLFramebuffer();
 	~GLFramebuffer() override;
 	
 	void bindForDrawing();
 	void bindForReading();
-	glm::ivec2 getSize();
 	
 	void attachColor(int attachmentSlot, const GLTexture& texture, int level = 0);
 	void attachColor(int attachmentSlot, const GLCubemap& cubemap, std::optional<int> face = std::nullopt, int level = 0);
@@ -38,8 +37,6 @@ public:
 	void removeReadBuffer();
 	
 private:
-	glm::ivec2 _size;
-	
 	std::array<std::optional<int>, 32> _colorAttachments;
 	std::optional<int> _readBuffer;
 	
@@ -64,8 +61,7 @@ private:
 	
 	void checkDrawCompleteness();
 	void checkReadCompleteness();
-	
-	void verifySize(glm::ivec2 size);
+
 	void verifyDrawBufferCount();
 	void verifyColorAttachmentSlots();
 	static void verifyFace(int face);
