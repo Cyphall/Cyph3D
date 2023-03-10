@@ -45,12 +45,20 @@ public:
 	
 	Entry(const std::filesystem::path& assetPath, EntryType type, Entry* parent):
 		_assetPath(assetPath.generic_string()),
-		_displayAssetPath(std::format("{}/", _assetPath)),
 		_name(assetPath.filename().generic_string()),
 		_truncatedName(truncate(_name, 90 * Engine::getWindow().getPixelScale())),
 		_type(type),
 		_parent(parent)
 	{
+		if (type == EntryType::Directory && parent != nullptr)
+		{
+			_displayAssetPath = std::format("/{}/", _assetPath);
+		}
+		else
+		{
+			_displayAssetPath = std::format("/{}", _assetPath);
+		}
+
 		if (type == EntryType::Directory)
 		{
 			for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(FileHelper::getAssetDirectoryPath() / assetPath))
