@@ -366,7 +366,7 @@ const glm::vec3& MaterialAsset::getAlbedoValue() const
 
 void MaterialAsset::setAlbedoValue(const glm::vec3& value)
 {
-	_albedoValue = value;
+	_albedoValue = glm::clamp(value, glm::vec3(0.0f), glm::vec3(1.0f));
 	
 	if (_albedoValueTexture)
 	{
@@ -381,7 +381,7 @@ const float& MaterialAsset::getRoughnessValue() const
 
 void MaterialAsset::setRoughnessValue(const float& value)
 {
-	_roughnessValue = value;
+	_roughnessValue = glm::clamp(value, 0.0f, 1.0f);
 
 	if (_roughnessValueTexture)
 	{
@@ -396,7 +396,7 @@ const float& MaterialAsset::getMetalnessValue() const
 
 void MaterialAsset::setMetalnessValue(const float& value)
 {
-	_metalnessValue = value;
+	_metalnessValue = glm::clamp(value, 0.0f, 1.0f);;
 
 	if (_metalnessValueTexture)
 	{
@@ -411,7 +411,7 @@ const float& MaterialAsset::getEmissiveValue() const
 
 void MaterialAsset::setEmissiveValue(const float& value)
 {
-	_emissiveValue = value;
+	_emissiveValue = glm::clamp(value, 0.0f, 1.0f);;
 
 	if (_emissiveValueTexture)
 	{
