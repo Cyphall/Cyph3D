@@ -348,7 +348,7 @@ void UIAssetBrowser::drawLeftPanel()
 
 void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 {
-	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
 	if (&directory == _root.get())
 		flags |= ImGuiTreeNodeFlags_DefaultOpen;
