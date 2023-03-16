@@ -114,7 +114,7 @@ void BloomEffect::upsampleAndBlur(GLTexture& texture, int destLevel, float bloom
 
 	_upsampleAndBlurProgram.setUniform("u_srcTexture", texture.getBindlessTextureHandle());
 	_upsampleAndBlurProgram.setUniform("u_srcLevel", destLevel+1);
-	_upsampleAndBlurProgram.setUniform("u_bloomRadius", bloomRadius);
+	_upsampleAndBlurProgram.setUniform("u_bloomRadius", glm::clamp(bloomRadius, 0.0f, 1.0f));
 	_upsampleAndBlurProgram.setUniform("u_srcPixelSize", glm::vec2(1.0f) / glm::vec2(_workTexture.getSize(destLevel+1)));
 
 	_upsampleAndBlurProgram.bind();
@@ -132,7 +132,7 @@ void BloomEffect::compose(GLTexture& sourceA, GLTexture& sourceB, float factor)
 
 	_composeProgram.setUniform("u_srcATexture", sourceA.getBindlessTextureHandle());
 	_composeProgram.setUniform("u_srcBTexture", sourceB.getBindlessTextureHandle());
-	_composeProgram.setUniform("u_factor", factor);
+	_composeProgram.setUniform("u_factor", glm::clamp(factor, 0.0f, 1.0f));
 
 	_composeProgram.bind();
 

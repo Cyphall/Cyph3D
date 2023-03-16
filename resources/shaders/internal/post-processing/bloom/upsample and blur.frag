@@ -28,5 +28,5 @@ void main()
 	result += textureLod(u_srcTexture, v2f.texCoords + u_srcPixelSize * vec2( 0, +1), u_srcLevel).rgb * (0.0625f * 2);
 	result += textureLod(u_srcTexture, v2f.texCoords + u_srcPixelSize * vec2(+1, +1), u_srcLevel).rgb * (0.0625f * 1);
 	
-	o_color = vec4(result, clamp(u_bloomRadius, 0.0f, 1.0f));
+	o_color = vec4(result, u_bloomRadius);
 }
