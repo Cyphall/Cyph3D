@@ -48,7 +48,9 @@ void GlfwHelper::EnsureGpuIsCompatible()
 	}
 	
 	std::string requiredExtensions[] = {
-			"GL_ARB_bindless_texture"
+		"GL_ARB_bindless_texture",
+		"GL_EXT_texture_compression_s3tc",
+		"GL_EXT_texture_sRGB"
 	};
 	
 	for (const std::string& extension : requiredExtensions)
