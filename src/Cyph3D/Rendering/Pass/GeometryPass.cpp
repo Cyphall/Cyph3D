@@ -88,10 +88,10 @@ void GeometryPass::preparePipelineImpl()
 
 void GeometryPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
 {
-	_normalTexture.clear(nullptr, GL_RGBA, GL_UNSIGNED_BYTE);
-	_colorTexture.clear(nullptr, GL_RGBA, GL_UNSIGNED_BYTE);
+	_normalTexture.clear(nullptr, GL_RGBA, GL_HALF_FLOAT);
+	_colorTexture.clear(nullptr, GL_RGBA, GL_HALF_FLOAT);
 	_materialTexture.clear(nullptr, GL_RGBA, GL_UNSIGNED_BYTE);
-	_geometryNormalTexture.clear(nullptr, GL_RGBA, GL_UNSIGNED_BYTE);
+	_geometryNormalTexture.clear(nullptr, GL_RGBA, GL_HALF_FLOAT);
 	_positionTexture.clear(nullptr, GL_RGBA, GL_FLOAT);
 	
 	int clearIndex = -1;
