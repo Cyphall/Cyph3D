@@ -13,7 +13,7 @@ RenderPass(textures, size, "Z prepass"),
 _depthTexture(TextureCreateInfo
 {
 	.size = size,
-	.internalFormat = GL_DEPTH_COMPONENT24
+	.internalFormat = GL_DEPTH_COMPONENT32
 }),
 _shader({
 	{GL_VERTEX_SHADER, "internal/z-prepass/z-prepass.vert"}
