@@ -82,9 +82,10 @@ void Engine::run()
 {
 	while (!_window->shouldClose())
 	{
-		glfwPollEvents();
-		
 		_timer.onNewFrame();
+
+		glfwPollEvents();
+
 		UIHelper::onNewFrame();
 
 		_assetManager->onUpdate();

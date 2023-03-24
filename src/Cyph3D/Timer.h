@@ -11,10 +11,8 @@ public:
 	double time() const;
 
 private:
-	std::chrono::time_point<std::chrono::steady_clock> _startTime = std::chrono::steady_clock::now();
-	std::chrono::time_point<std::chrono::steady_clock> _lastFrameTime;
-	
-	bool _firstFrame = true;
+	std::chrono::time_point<std::chrono::high_resolution_clock> _startTime = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point<std::chrono::high_resolution_clock> _lastFrameTime = _startTime;
 	
 	double _deltaTime = 0;
 };

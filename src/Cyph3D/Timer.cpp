@@ -2,17 +2,9 @@
 
 void Timer::onNewFrame()
 {
-	auto currentTime = std::chrono::steady_clock::now();
-	
-	if (_firstFrame)
-	{
-		_deltaTime = 0;
-		_firstFrame = false;
-	}
-	else
-	{
-		_deltaTime = std::chrono::duration<double>(currentTime - _lastFrameTime).count();
-	}
+	auto currentTime = std::chrono::high_resolution_clock::now();
+
+	_deltaTime = std::chrono::duration<double>(currentTime - _lastFrameTime).count();
 	
 	_lastFrameTime = currentTime;
 }
