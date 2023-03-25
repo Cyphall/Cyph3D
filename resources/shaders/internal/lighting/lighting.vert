@@ -9,21 +9,21 @@ uniform mat3 u_normalMatrix;
 uniform mat4 u_model;
 uniform mat4 u_mvp;
 
-out V2G
+out V2F
 {
 	vec3 fragPos;
 	vec2 texCoords;
 	vec3 T;
 	vec3 N;
-} v2g;
+} v2f;
 
 void main()
 {
-	v2g.texCoords = a_uv;
-	v2g.fragPos = (u_model * vec4(a_position, 1.0)).xyz;
+	v2f.texCoords = a_uv;
+	v2f.fragPos = (u_model * vec4(a_position, 1.0)).xyz;
 	
-	v2g.T = normalize(u_normalMatrix * a_tangent);
-	v2g.N = normalize(u_normalMatrix * a_normal);
+	v2f.T = normalize(u_normalMatrix * a_tangent);
+	v2f.N = normalize(u_normalMatrix * a_normal);
 	
 	gl_Position = u_mvp * vec4(a_position, 1.0);
 }

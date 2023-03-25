@@ -16,7 +16,6 @@ LightingPass::LightingPass(std::unordered_map<std::string, GLTexture*>& textures
 	_directionalLightsBuffer(GL_DYNAMIC_DRAW),
 	_shader({
 		{GL_VERTEX_SHADER, "internal/lighting/lighting.vert"},
-		{GL_GEOMETRY_SHADER, "internal/lighting/lighting.geom"},
 		{GL_FRAGMENT_SHADER, "internal/lighting/lighting.frag"},
 	}),
 	_rawRenderTexture(TextureCreateInfo

@@ -45,14 +45,13 @@ struct FragData
 } fragData;
 
 /* ------ inputs ------ */
-in G2F
+in V2F
 {
 	vec3 fragPos;
 	vec2 texCoords;
 	vec3 T;
 	vec3 N;
-	vec3 flatNormal_WS;
-} g2f;
+} v2f;
 
 /* ------ uniforms ------ */
 layout(std430, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere1
@@ -101,16 +100,16 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 // Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
 void main()
 {
-	vec3 T = normalize(g2f.T);
-	vec3 N = normalize(g2f.N);
-	vec3 B = normalize(cross(g2f.N, g2f.T));
+	vec3 T = normalize(v2f.T);
+	vec3 N = normalize(v2f.N);
+	vec3 B = normalize(cross(v2f.N, v2f.T));
 	mat3 tangentToWorld = mat3(T, B, N);
 	mat3 worldToTangent = transpose(tangentToWorld);
-	vec3 viewDir = normalize(u_viewPos - g2f.fragPos);
+	vec3 viewDir = normalize(u_viewPos - v2f.fragPos);
 	
 	// ----------------- displacement -----------------
 	
-	vec2 texCoords = POM(g2f.texCoords, normalize(worldToTangent * viewDir));
+	vec2 texCoords = POM(v2f.texCoords, normalize(worldToTangent * viewDir));
 	
 	// ----------------- albedo -----------------
 	
@@ -141,11 +140,11 @@ void main()
 	
 	// ----------------- geometry normal -----------------
 	
-	vec3 geometryNormal = g2f.flatNormal_WS;
+	vec3 geometryNormal = normalize(cross(dFdx(v2f.fragPos), dFdy(v2f.fragPos)));
 	
 	// ----------------- position -----------------
 	
-	vec3 position = g2f.fragPos;
+	vec3 position = v2f.fragPos;
 	
 	// ----------------- position -----------------
 	
