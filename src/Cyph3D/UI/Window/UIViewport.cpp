@@ -21,7 +21,6 @@ glm::dvec2 UIViewport::_lockedCursorPos;
 glm::vec2 UIViewport::_rendererSize(0);
 bool UIViewport::_currentlyClicking = false;
 glm::vec2 UIViewport::_clickPos;
-bool UIViewport::_gbufferDebugView = false;
 bool UIViewport::_fullscreen = false;
 
 bool UIViewport::_rendererIsInvalidated = true;
@@ -100,7 +99,7 @@ void UIViewport::show()
 	};
 	Engine::getScene().onPreRender(context);
 	
-	auto [texture, perfStep] = _renderer->render(_camera, _gbufferDebugView);
+	auto [texture, perfStep] = _renderer->render(_camera);
 	
 	_perfStep = perfStep;
 	
@@ -241,10 +240,6 @@ void UIViewport::drawHeader()
 	
 	ImGui::Separator();
 	
-	ImGui::Checkbox("GBuffer Debug View", &_gbufferDebugView);
-	
-	ImGui::Separator();
-	
 	ImGui::Checkbox("Fullscreen", &_fullscreen);
 	
 	ImGui::Separator();
@@ -320,7 +315,7 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 	};
 	Engine::getScene().onPreRender(context);
 	
-	auto [texture, perfStep] = renderer.render(camera, false);
+	auto [texture, perfStep] = renderer.render(camera);
 	
 	glm::ivec2 textureSize = texture->getSize();
 	std::vector<glm::u8vec3> textureData(textureSize.x * textureSize.y);

@@ -21,7 +21,7 @@ _postProcessingPass(_textures, size)
 	_objectIndexFramebuffer.setReadBuffer(0);
 }
 
-GLTexture& RasterizationRenderer::renderImpl(Camera& camera, Scene& scene, bool debugView)
+GLTexture& RasterizationRenderer::renderImpl(Camera& camera, Scene& scene)
 {
 	Renderer::render(_zPrePass, camera);
 	Renderer::render(_shadowMapPass, camera);
