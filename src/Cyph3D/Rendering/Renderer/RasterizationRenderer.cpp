@@ -13,13 +13,11 @@ RasterizationRenderer::RasterizationRenderer(glm::ivec2 size):
 Renderer("Rasterization Renderer", size),
 _zPrePass(_textures, size),
 _shadowMapPass(_textures, size),
-_geometryPass(_textures, size),
-_gBufferDebugPass(_textures, size),
-_skyboxPass(_textures, size),
 _lightingPass(_textures, size),
+_skyboxPass(_textures, size),
 _postProcessingPass(_textures, size)
 {
-	_objectIndexFramebuffer.attachColor(0, *_textures["gbuffer_objectIndex"]);
+	_objectIndexFramebuffer.attachColor(0, *_textures["object_index"]);
 	_objectIndexFramebuffer.setReadBuffer(0);
 }
 
@@ -27,20 +25,11 @@ GLTexture& RasterizationRenderer::renderImpl(Camera& camera, Scene& scene, bool 
 {
 	Renderer::render(_zPrePass, camera);
 	Renderer::render(_shadowMapPass, camera);
-	
-	Renderer::render(_geometryPass, camera);
-	
-	if (debugView)
-	{
-		Renderer::render(_gBufferDebugPass, camera);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		return *_textures["gbuffer_debug"];
-	}
+
+	Renderer::render(_lightingPass, camera);
 	
 	if (scene.getSkybox() != nullptr && scene.getSkybox()->isLoaded())
 		Renderer::render(_skyboxPass, camera);
-	
-	Renderer::render(_lightingPass, camera);
 	
 	Renderer::render(_postProcessingPass, camera);
 	

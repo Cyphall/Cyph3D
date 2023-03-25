@@ -20,7 +20,7 @@ out V2G
 void main()
 {
 	v2g.texCoords = a_uv;
-	v2g.fragPos = vec3(u_model * vec4(a_position, 1.0));
+	v2g.fragPos = (u_model * vec4(a_position, 1.0)).xyz;
 	
 	v2g.T = normalize(u_normalMatrix * a_tangent);
 	v2g.N = normalize(u_normalMatrix * a_normal);
