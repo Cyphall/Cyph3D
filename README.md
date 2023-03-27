@@ -11,7 +11,6 @@ Hold right click to control the camera and use ZQSD to move
 
 ### Core
 
-- [x] Deferred Lighting
 - [x] Scene Architecture
 - [x] Entity-Component architecture
 
