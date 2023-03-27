@@ -41,7 +41,7 @@ glm::ivec2 Renderer::getSize() const
 	return _size;
 }
 
-std::pair<GLTexture*, const PerfStep*> Renderer::render(Camera& camera, bool debugView)
+std::pair<GLTexture*, const PerfStep*> Renderer::render(Camera& camera)
 {
 	Scene& scene = Engine::getScene();
 	
@@ -50,7 +50,7 @@ std::pair<GLTexture*, const PerfStep*> Renderer::render(Camera& camera, bool deb
 	
 	_perfCounter.start();
 	
-	GLTexture& result = renderImpl(camera, scene, debugView);
+	GLTexture& result = renderImpl(camera, scene);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	

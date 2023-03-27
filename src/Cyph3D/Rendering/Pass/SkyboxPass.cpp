@@ -18,11 +18,11 @@ _shader({
 	{GL_FRAGMENT_SHADER, "internal/skybox/skybox.frag"}
 })
 {
-	_framebuffer.attachColor(0, *textures["gbuffer_color"]);
+	_framebuffer.attachColor(0, *textures["raw_render"]);
 	_framebuffer.addToDrawBuffers(0, 0);
-	
+
 	_framebuffer.attachDepth(*textures["z-prepass_depth"]);
-	
+
 	std::vector<SkyboxPass::VertexData> data = {
 			{{-1.0f,  1.0f, -1.0f}},
 			{{-1.0f, -1.0f, -1.0f}},

@@ -30,20 +30,14 @@ struct DirectionalLight
 	float mapDepth;
 };
 
-struct FragData
+/* ------ inputs ------ */
+in V2F
 {
-	ivec2 texCoords;
-	float depth;
-	vec3  pos;
-	vec3  viewDir;
-	vec3  normal;
-	vec3  geometryNormal;
-	float roughness;
-	float metalness;
-	vec3  color;
-	float emissiveIntensity;
-	vec3  F0;
-} fragData;
+	vec3 fragPos;
+	vec2 texCoords;
+	vec3 T;
+	vec3 N;
+} v2f;
 
 /* ------ uniforms ------ */
 layout(std430, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere1
@@ -56,39 +50,32 @@ layout(std430, binding = 1) buffer UselessNameBecauseItIsNeverUsedAnywhere2
 	DirectionalLight directionalLights[];
 };
 
-layout(bindless_sampler) uniform sampler2D u_normalTexture;
-layout(bindless_sampler) uniform sampler2D u_colorTexture;
-layout(bindless_sampler) uniform sampler2D u_materialTexture;
-layout(bindless_sampler) uniform sampler2D u_geometryNormalTexture;
-layout(bindless_sampler) uniform sampler2D u_depthTexture;
-layout(bindless_sampler) uniform sampler2D u_position;
+layout(bindless_sampler) uniform sampler2D u_albedoMap;
+layout(bindless_sampler) uniform sampler2D u_normalMap;
+layout(bindless_sampler) uniform sampler2D u_roughnessMap;
+layout(bindless_sampler) uniform sampler2D u_metalnessMap;
+layout(bindless_sampler) uniform sampler2D u_displacementMap;
+layout(bindless_sampler) uniform sampler2D u_emissiveMap;
 
 uniform mat4  u_viewProjectionInv;
 uniform vec3  u_viewPos;
-uniform float u_time;
+uniform int   u_objectIndex;
 
 /* ------ outputs ------ */
 layout(location = 0) out vec4 o_color;
+layout(location = 1) out int o_objectIndex;
 
 /* ------ function declarations ------ */
-vec4 lighting();
+float getDepth(vec2 texCoords);
+vec2 POM(vec2 texCoords, vec3 viewDir);
 
 vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi);
 float InterleavedGradientNoise(vec2 position_screen);
 
-float isInDirectionalShadow(int lightIndex);
-float isInPointShadow(int lightIndex);
-vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 halfwayDir);
-vec3 calculateBRDF(vec3 lightDir, vec3 halfwayDir);
-
-vec3 getPosition();
-vec3 getColor();
-vec3 getNormal();
-vec3 getGeometryNormal();
-float getRoughness();
-float getMetallic();
-float getEmissive();
-float getDepth();
+float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal);
+float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal);
+vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 viewDir, vec3 halfwayDir, vec3 albedo, vec3 normal, float roughness, float metalness, vec3 F0);
+vec3 calculateBRDF(vec3 lightDir, vec3 viewDir, vec3 halfwayDir, vec3 albedo, vec3 normal, float roughness, float metalness, vec3 F0);
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -99,56 +86,167 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 // Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
 void main()
 {
-	fragData.texCoords         = ivec2(gl_FragCoord.xy);
-	fragData.color             = getColor();
-	fragData.depth             = getDepth();
-	fragData.pos               = getPosition();
-	fragData.viewDir           = normalize(u_viewPos - fragData.pos);
-	fragData.normal            = getNormal();
-	fragData.geometryNormal    = getGeometryNormal();
-	fragData.roughness         = getRoughness();
-	fragData.metalness         = getMetallic();
-	fragData.emissiveIntensity = getEmissive();
-	fragData.F0                = mix(vec3(0.04), fragData.color, fragData.metalness);
+	vec3 T = normalize(v2f.T);
+	vec3 N = normalize(v2f.N);
+	vec3 B = normalize(cross(v2f.N, v2f.T));
+	mat3 tangentToWorld = mat3(T, B, N);
+	mat3 worldToTangent = transpose(tangentToWorld);
+	vec3 viewDir = normalize(u_viewPos - v2f.fragPos);
 	
-	if (fragData.depth == 1)
-	{
-		o_color = vec4(fragData.color, 1);
-		return;
-	}
+	// ----------------- displacement -----------------
+	
+	vec2 texCoords = POM(v2f.texCoords, normalize(worldToTangent * viewDir));
+	
+	// ----------------- albedo -----------------
+	
+	vec3 albedo = texture(u_albedoMap, texCoords).rgb;
+	
+	// ----------------- normal -----------------
+	
+	vec3 normal = vec3(0);
+	normal.xy = texture(u_normalMap, texCoords).rg * 2.0 - 1.0;
+	normal.z = sqrt(1 - min(dot(normal.xy, normal.xy), 1));
+	normal = tangentToWorld * normal;
+	
+	// ----------------- roughness -----------------
+	
+	float roughness = texture(u_roughnessMap, texCoords).r;
+	
+	// ----------------- metalness -----------------
+	
+	float metalness = texture(u_metalnessMap, texCoords).r;
+	
+	// ----------------- emissive -----------------
+	
+	float emissive = texture(u_emissiveMap, texCoords).r;
+	
+	// ----------------- object index -----------------
+	
+	o_objectIndex = u_objectIndex;
+	
+	// ----------------- geometry normal -----------------
+	
+	vec3 geometryNormal = normalize(cross(dFdx(v2f.fragPos), dFdy(v2f.fragPos)));
+	
+	// ----------------- position -----------------
+	
+	vec3 fragPos = v2f.fragPos;
+	
+	// ----------------- position -----------------
+	
+	float depth = gl_FragCoord.z;
+	
+	
+	vec3 F0 = mix(vec3(0.04), albedo, metalness);
 	
 	// aka Lo
-	vec3 finalColor = fragData.color * fragData.emissiveIntensity;
+	vec3 finalColor = albedo * emissive;
 	
 	// Point Light calculation
 	for (int i = 0; i < pointLights.length(); ++i)
 	{
-		float shadow = pointLights[i].castShadows ? isInPointShadow(i) : 0;
+		float shadow = pointLights[i].castShadows ? isInPointShadow(i, fragPos, geometryNormal) : 0;
 		
 		// calculate light parameters
-		vec3  lightDir    = normalize(pointLights[i].pos - fragData.pos);
-		vec3  halfwayDir  = normalize(fragData.viewDir + lightDir);
-		float distance    = length(pointLights[i].pos - fragData.pos);
+		vec3  lightDir    = normalize(pointLights[i].pos - fragPos);
+		vec3  halfwayDir  = normalize(viewDir + lightDir);
+		float distance    = length(pointLights[i].pos - fragPos);
 		float attenuation = 1.0 / (1 + distance * distance);
 		vec3  radiance    = pointLights[i].color * pointLights[i].intensity * attenuation;
 		
-		finalColor += calculateLighting(radiance, lightDir, halfwayDir) * (1 - shadow);
+		finalColor += calculateLighting(radiance, lightDir, viewDir, halfwayDir, albedo, normal, roughness, metalness, F0) * (1 - shadow);
 	}
 	
 	// Directional Light calculation
 	for (int i = 0; i < directionalLights.length(); ++i)
 	{
-		float shadow = directionalLights[i].castShadows ? isInDirectionalShadow(i) : 0;
+		float shadow = directionalLights[i].castShadows ? isInDirectionalShadow(i, fragPos, geometryNormal) : 0;
 		
 		// calculate light parameters
 		vec3 lightDir    = directionalLights[i].fragToLightDirection;
-		vec3 halfwayDir  = normalize(fragData.viewDir + lightDir);
+		vec3 halfwayDir  = normalize(viewDir + lightDir);
 		vec3 radiance    = directionalLights[i].color * directionalLights[i].intensity;
 		
-		finalColor += calculateLighting(radiance, lightDir, halfwayDir) * (1 - shadow);
+		finalColor += calculateLighting(radiance, lightDir, viewDir, halfwayDir, albedo, normal, roughness, metalness, F0) * (1 - shadow);
 	}
 	
 	o_color = vec4(finalColor, 1);
+}
+
+float getDepth(vec2 texCoords)
+{
+	return 1 - texture(u_displacementMap, texCoords).r;
+}
+
+vec2 POM(vec2 texCoords, vec3 viewDir)
+{
+	const float depthScale     = 0.05;
+	const int   linearSamples  = 8;
+	const int   binarySamples  = 6;
+	
+	// Initial sampling pass
+	vec2 currentTexCoords = texCoords;
+	
+	float currentTexDepth  = getDepth(currentTexCoords);
+	float previousTexDepth;
+	
+	if (currentTexDepth == 0 || linearSamples == 0) return texCoords;
+	
+	if (viewDir.z <= 0) return texCoords;
+	
+	// Offsets applied at each steps
+	vec2  texCoordsStepOffset = -(viewDir.xy / viewDir.z) / linearSamples * depthScale;
+	float depthStepOffset     = 1.0 / linearSamples;
+	
+	float currentDepth = 0;
+	
+	while (currentDepth < currentTexDepth)
+	{
+		currentTexCoords += texCoordsStepOffset;
+		
+		previousTexDepth = currentTexDepth;
+		currentTexDepth = getDepth(currentTexCoords);
+		
+		currentDepth += depthStepOffset;
+	}
+	
+	vec2 previousTexCoords = currentTexCoords - texCoordsStepOffset;
+	float previousDepth = currentDepth - depthStepOffset;
+	
+	// Resampling pass
+	
+	for (int i = 0; i < binarySamples; i++)
+	{
+		texCoordsStepOffset *= 0.5;
+		depthStepOffset *= 0.5;
+		
+		vec2  halfwayTexCoords = previousTexCoords + texCoordsStepOffset;
+		float halfwayTexDepth  = getDepth(halfwayTexCoords);
+		float halfwayDepth     = previousDepth + depthStepOffset;
+		
+		// If we are still above the surface
+		if (halfwayDepth < halfwayTexDepth)
+		{
+			previousTexCoords = halfwayTexCoords;
+			previousTexDepth  = halfwayTexDepth;
+			previousDepth     = halfwayDepth;
+		}
+		else
+		{
+			currentTexCoords = halfwayTexCoords;
+			currentTexDepth  = halfwayTexDepth;
+			currentDepth     = halfwayDepth;
+		}
+	}
+	
+	// Interpolation
+	float afterDepth  = currentTexDepth - currentDepth;
+	float beforeDepth = previousTexDepth - currentDepth + depthStepOffset;
+	
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	texCoords = previousTexCoords * weight + currentTexCoords * (1.0 - weight);
+	
+	return texCoords;
 }
 
 // Based on the code at https://www.gamedev.net/tutorials/programming/graphics/contact-hardening-soft-shadows-made-fast-r4906/
@@ -183,14 +281,14 @@ vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelSize_WS, flo
 	return fragNormal * (finalRadius * sin(angle)) + fragNormal * texelSize_WS;
 }
 
-float isInDirectionalShadow(int lightIndex)
+float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 {
 	float texelSize = 1.0 / textureSize(directionalLights[lightIndex].shadowMap, 0).x;
 	float texelSize_WS = texelSize * directionalLights[lightIndex].mapSize;
 	
 	float samplingRadius = 3;
 	
-	vec3 fragPos = fragData.pos + calculateNormalBias(fragData.geometryNormal, directionalLights[lightIndex].fragToLightDirection, texelSize_WS, samplingRadius);
+	fragPos += calculateNormalBias(geometryNormal, directionalLights[lightIndex].fragToLightDirection, texelSize_WS, samplingRadius);
 	
 	vec4 shadowMapSpacePos = directionalLights[lightIndex].lightViewProjection * vec4(fragPos, 1);
 	vec3 projCoords = shadowMapSpacePos.xyz / shadowMapSpacePos.w;
@@ -223,17 +321,17 @@ float isInDirectionalShadow(int lightIndex)
 	return shadow;
 }
 
-float isInPointShadow(int lightIndex)
+float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 {
 	// get vector between fragment position and light position
-	vec3 lightToFrag = fragData.pos - pointLights[lightIndex].pos;
+	vec3 lightToFrag = fragPos - pointLights[lightIndex].pos;
 	float fragDist = length(lightToFrag);
 	
 	float texelSize_WS = pointLights[lightIndex].maxTexelSizeAtUnitDistance * fragDist;
 	
 	float samplingRadius = 3;
 	
-	vec3 fragPos = fragData.pos + calculateNormalBias(fragData.geometryNormal, -lightToFrag / fragDist, texelSize_WS, samplingRadius);
+	fragPos += calculateNormalBias(geometryNormal, -lightToFrag / fragDist, texelSize_WS, samplingRadius);
 	
 	// recalculate with normal-biased frag position
 	lightToFrag = fragPos - pointLights[lightIndex].pos;
@@ -272,79 +370,39 @@ float isInPointShadow(int lightIndex)
 	return shadow;
 }
 
-vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 halfwayDir)
+vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 viewDir, vec3 halfwayDir, vec3 albedo, vec3 normal, float roughness, float metalness, vec3 F0)
 {
-	vec3 brdf = calculateBRDF(lightDir, halfwayDir);
+	vec3 brdf = calculateBRDF(lightDir, viewDir, halfwayDir, albedo, normal, roughness, metalness, F0);
 	
-	return brdf * radiance * max(dot(fragData.normal, lightDir), 0.0);
+	return brdf * radiance * max(dot(normal, lightDir), 0.0);
 }
 
 // Cook-Torrance
-vec3 calculateBRDF(vec3 lightDir, vec3 halfwayDir)
+vec3 calculateBRDF(vec3 lightDir, vec3 viewDir, vec3 halfwayDir, vec3 albedo, vec3 normal, float roughness, float metalness, vec3 F0)
 {
 	// ---------- Specular part ----------
 	
-	float D = DistributionGGX(fragData.normal, halfwayDir, fragData.roughness);
-	vec3  F = fresnelSchlick(max(dot(halfwayDir, fragData.viewDir), 0.0), fragData.F0);
-	float G = GeometrySmith(fragData.normal, fragData.viewDir, lightDir, fragData.roughness);
+	float D = DistributionGGX(normal, halfwayDir, roughness);
+	vec3  F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), F0);
+	float G = GeometrySmith(normal, viewDir, lightDir, roughness);
 	
 	vec3  numerator   = D * F * G;
-	float denominator = 4.0 * max(dot(fragData.normal, fragData.viewDir), 0.0) * max(dot(fragData.normal, lightDir), 0.0);
+	float denominator = 4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0);
 	vec3  specular    = numerator / max(denominator, 0.001);
 	
 	vec3 specularWeight = F;
 	
 	// ---------- Diffuse part ----------
 	
-	vec3 diffuse = fragData.color / PI;
+	vec3 diffuse = albedo / PI;
 	
 	vec3 diffuseWeight = vec3(1.0) - specularWeight;
-	diffuseWeight *= 1.0 - fragData.metalness; // Metals have no diffuse
+	diffuseWeight *= 1.0 - metalness; // Metals have no diffuse
 	
 	// ---------- Final result ----------
 	
 	// specularWeight already integrated to specular
 	return (diffuseWeight * diffuse) + (specular);
-}
-
-vec3 getPosition()
-{
-	return texelFetch(u_position, fragData.texCoords, 0).rgb;
-}
-
-vec3 getColor()
-{
-	return texelFetch(u_colorTexture, fragData.texCoords, 0).rgb;
-}
-
-vec3 getNormal()
-{
-	return normalize(texelFetch(u_normalTexture, fragData.texCoords, 0).rgb * 2.0 - 1.0);
-}
-
-vec3 getGeometryNormal()
-{
-	return normalize(texelFetch(u_geometryNormalTexture, fragData.texCoords, 0).rgb * 2.0 - 1.0);
-}
-
-float getRoughness()
-{
-	return texelFetch(u_materialTexture, fragData.texCoords, 0).r;
-}
-
-float getMetallic()
-{
-	return texelFetch(u_materialTexture, fragData.texCoords, 0).g;
-}
-
-float getEmissive()
-{
-	return texelFetch(u_materialTexture, fragData.texCoords, 0).b;
-}
-
-float getDepth()
-{
-	return texelFetch(u_depthTexture, fragData.texCoords, 0).r;
 }
 
 // Normal Distribution Function

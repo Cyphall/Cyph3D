@@ -1,14 +1,12 @@
 #pragma once
 
-#include "Cyph3D/GLObject/GLFramebuffer.h"
-#include "Cyph3D/Rendering/Pass/GBufferDebugPass.h"
-#include "Cyph3D/Rendering/Pass/GeometryPass.h"
-#include "Cyph3D/Rendering/Pass/LightingPass.h"
-#include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
-#include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
-#include "Cyph3D/Rendering/Pass/SkyboxPass.h"
-#include "Cyph3D/Rendering/Pass/ZPrePass.h"
 #include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Rendering/Pass/ZPrePass.h"
+#include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
+#include "Cyph3D/Rendering/Pass/LightingPass.h"
+#include "Cyph3D/Rendering/Pass/SkyboxPass.h"
+#include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
+#include "Cyph3D/GLObject/GLFramebuffer.h"
 
 class RasterizationRenderer : public Renderer
 {
@@ -24,13 +22,11 @@ public:
 private:
 	ZPrePass _zPrePass;
 	ShadowMapPass _shadowMapPass;
-	GeometryPass _geometryPass;
-	GBufferDebugPass _gBufferDebugPass;
-	SkyboxPass _skyboxPass;
 	LightingPass _lightingPass;
+	SkyboxPass _skyboxPass;
 	PostProcessingPass _postProcessingPass;
 	
 	GLFramebuffer _objectIndexFramebuffer;
 	
-	GLTexture& renderImpl(Camera& camera, Scene& scene, bool debugView) override;
+	GLTexture& renderImpl(Camera& camera, Scene& scene) override;
 };

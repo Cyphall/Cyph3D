@@ -17,7 +17,7 @@ public:
 	Renderer(const char* name, glm::ivec2 size);
 	virtual ~Renderer() = default;
 	
-	std::pair<GLTexture*, const PerfStep*> render(Camera& camera, bool debugView);
+	std::pair<GLTexture*, const PerfStep*> render(Camera& camera);
 	
 	virtual void onNewFrame();
 	
@@ -39,6 +39,6 @@ protected:
 	PerfStep _renderPerf;
 	GpuPerfCounter _perfCounter;
 	
-	virtual GLTexture& renderImpl(Camera& camera, Scene& scene, bool debugView) = 0;
+	virtual GLTexture& renderImpl(Camera& camera, Scene& scene) = 0;
 	void render(RenderPass& pass, Camera& camera);
 };
