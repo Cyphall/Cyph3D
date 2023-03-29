@@ -43,7 +43,13 @@ static void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 
 void Engine::init()
 {
-	GlfwHelper::Init();
+	glfwInit();
+
+	glfwSetErrorCallback([](int code, const char* message) {
+		Logger::error(message, "GLFW");
+	});
+
+	GlfwHelper::ensureGpuIsCompatible();
 	
 	stbi_set_flip_vertically_on_load(true);
 	stbi_flip_vertically_on_write(true);

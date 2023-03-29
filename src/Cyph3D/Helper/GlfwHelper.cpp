@@ -1,26 +1,12 @@
 #include "GlfwHelper.h"
 
-#include "Cyph3D/Exception/OpenGLException.h"
-#include "Cyph3D/Logging/Logger.h"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <sstream>
 
 #define VERSION(major, minor, revision) ((major) * 100 + (minor) * 10 + (revision))
 
-void GlfwHelper::Init()
-{
-	glfwInit();
-	
-	glfwSetErrorCallback([](int code, const char* message) {
-		Logger::error(message, "GLFW");
-	});
-	
-	EnsureGpuIsCompatible();
-}
-
-void GlfwHelper::EnsureGpuIsCompatible()
+void GlfwHelper::ensureGpuIsCompatible()
 {
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_VISIBLE, false);
@@ -75,6 +61,6 @@ void GlfwHelper::EnsureGpuIsCompatible()
 	
 	if (error)
 	{
-		throw OpenGLException(errorMessage.str());
+		throw std::runtime_error(errorMessage.str());
 	}
 }

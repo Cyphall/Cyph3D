@@ -3,8 +3,5 @@
 class GlfwHelper
 {
 public:
-	static void Init();
-
-private:
-	static void EnsureGpuIsCompatible();
+	static void ensureGpuIsCompatible();
 };

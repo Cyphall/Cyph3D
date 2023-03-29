@@ -1,5 +1,4 @@
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Exception/OpenGLException.h"
 #include "Cyph3D/Logging/Logger.h"
 
 int main(int argc, char** argv)
@@ -9,13 +8,6 @@ int main(int argc, char** argv)
 		Engine::init();
 		Engine::run();
 		Engine::shutdown();
-	}
-	catch (const OpenGLException& e)
-	{
-		Logger::error(e.what(), "OPGL");
-		Engine::shutdown();
-		system("pause");
-		return EXIT_FAILURE;
 	}
 	catch (const std::exception& e)
 	{
