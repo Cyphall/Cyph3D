@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
 #include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/Helper/GlfwHelper.h"
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Logging/Logger.h"
