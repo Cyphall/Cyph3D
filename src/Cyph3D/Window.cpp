@@ -2,12 +2,6 @@
 
 #include <GLFW/glfw3.h>
 
-static void windowResizeCallback(GLFWwindow* glfwWindow, int width, int height)
-{
-	Window& window = *(Window*)glfwGetWindowUserPointer(glfwWindow);
-	window.resizeEvent().invoke(glm::ivec2(width, height));
-}
-
 Window::Window()
 {
 	glfwDefaultWindowHints();
@@ -28,18 +22,11 @@ Window::Window()
 	glfwMakeContextCurrent(_glfwWindow);
 	
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
-	
-	setCallbacks();
 }
 
 Window::~Window()
 {
 	glfwDestroyWindow(_glfwWindow);
-}
-
-void Window::setCallbacks()
-{
-	glfwSetWindowSizeCallback(_glfwWindow, windowResizeCallback);
 }
 
 glm::ivec2 Window::getSize()
@@ -96,11 +83,6 @@ void Window::swapBuffers()
 GLFWwindow* Window::getHandle()
 {
 	return _glfwWindow;
-}
-
-Event<glm::ivec2>& Window::resizeEvent()
-{
-	return _resizeEvent;
 }
 
 int Window::getInputMode() const
