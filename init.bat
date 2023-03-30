@@ -7,7 +7,6 @@ call bootstrap-vcpkg.bat
 vcpkg install glfw3 glm nlohmann-json assimp stb magic-enum freetype sqlitecpp crossguid
 rmdir /s /q .git
 rmdir /s /q packages
-rmdir /s /q buildtrees
 rmdir /s /q downloads
 cd ..
 pause
