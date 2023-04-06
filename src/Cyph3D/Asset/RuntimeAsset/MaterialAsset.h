@@ -78,7 +78,7 @@ public:
 	const float& getEmissiveValue() const;
 	void setEmissiveValue(const float& value);
 	
-	static void initialize();
+	static void initDefaultAndMissing();
 	static MaterialAsset* getDefaultMaterial();
 	static MaterialAsset* getMissingMaterial();
 	

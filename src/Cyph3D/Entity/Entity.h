@@ -52,8 +52,8 @@ public:
 	ObjectSerialization serialize() const;
 	void deserialize(const ObjectSerialization& entitySerialization);
 	
-	static std::map<std::string, std::function<Component&(Entity&)>>::iterator allocators_begin();
-	static std::map<std::string, std::function<Component&(Entity&)>>::iterator allocators_end();
+	static std::map<std::string, std::function<Component&(Entity&)>>::iterator componentFactories_begin();
+	static std::map<std::string, std::function<Component&(Entity&)>>::iterator componentFactories_end();
 
 private:
 	std::string _name = "New Entity";
@@ -63,8 +63,8 @@ private:
 	
 	Component& addComponentByIdentifier(const std::string& identifier);
 	
-	static std::map<std::string, std::function<Component&(Entity&)>> _allocators;
-	static void initAllocators();
+	static std::map<std::string, std::function<Component&(Entity&)>> _componentFactories;
+	static void initComponentFactories();
 	
 	friend class Engine;
 };

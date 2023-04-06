@@ -19,7 +19,7 @@
 #include <imgui_stdlib.h>
 
 const char* ShapeRenderer::identifier = "ShapeRenderer";
-std::map<std::string, std::function<Shape&(ShapeRenderer&)>> ShapeRenderer::_allocators;
+std::map<std::string, std::function<Shape&(ShapeRenderer&)>> ShapeRenderer::_shapeFactories;
 
 ShapeRenderer::ShapeRenderer(Entity& entity):
 Component(entity), _shape(new MeshShape(*this)), _selectedShape(MeshShape::identifier)
@@ -158,7 +158,7 @@ void ShapeRenderer::onDrawUi()
 	
 	if (ImGui::BeginCombo("Shape", _selectedShape.c_str()))
 	{
-		for (auto it = _allocators.begin(); it != _allocators.end(); it++)
+		for (auto it = _shapeFactories.begin(); it != _shapeFactories.end(); it++)
 		{
 			const bool is_selected = (_selectedShape == it->first);
 			if (ImGui::Selectable(it->first.c_str(), is_selected))
@@ -192,14 +192,14 @@ void ShapeRenderer::duplicate(Entity& targetEntity) const
 	newComponent.setContributeShadows(getContributeShadows());
 }
 
-void ShapeRenderer::initAllocators()
+void ShapeRenderer::initShapeFactories()
 {
-	_allocators[MeshShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<MeshShape>();};
-	_allocators[SphereShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<SphereShape>();};
-	_allocators[PlaneShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<PlaneShape>();};
+	_shapeFactories[MeshShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<MeshShape>();};
+	_shapeFactories[SphereShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<SphereShape>();};
+	_shapeFactories[PlaneShape::identifier] = [](ShapeRenderer& shapeRenderer) -> decltype(auto) {return shapeRenderer.setShape<PlaneShape>();};
 }
 
 Shape& ShapeRenderer::setShapeByIdentifier(const std::string& shapeIdentifier)
 {
-	return _allocators[shapeIdentifier](*this);
+	return _shapeFactories[shapeIdentifier](*this);
 }

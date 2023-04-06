@@ -66,8 +66,8 @@ private:
 	
 	Shape& setShapeByIdentifier(const std::string& shapeIdentifier);
 	
-	static std::map<std::string, std::function<Shape&(ShapeRenderer&)>> _allocators;
-	static void initAllocators();
+	static std::map<std::string, std::function<Shape&(ShapeRenderer&)>> _shapeFactories;
+	static void initShapeFactories();
 	
 	friend class Engine;
 };

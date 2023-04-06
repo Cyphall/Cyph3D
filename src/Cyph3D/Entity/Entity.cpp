@@ -13,7 +13,7 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
-std::map<std::string, std::function<Component&(Entity&)>> Entity::_allocators;
+std::map<std::string, std::function<Component&(Entity&)>> Entity::_componentFactories;
 
 Entity::Entity(Transform& parent, Scene& scene):
 _transform(this, &parent), _scene(scene)
@@ -209,7 +209,7 @@ void Entity::onDrawUi()
 
 	if (ImGui::BeginPopup("add_component"))
 	{
-		for (auto it = Entity::allocators_begin(); it != Entity::allocators_end(); it++)
+		for (auto it = Entity::componentFactories_begin(); it != Entity::componentFactories_end(); it++)
 		{
 			if (ImGui::Selectable(it->first.c_str()))
 			{
@@ -222,27 +222,27 @@ void Entity::onDrawUi()
 	ImGui::PopID();
 }
 
-void Entity::initAllocators()
+void Entity::initComponentFactories()
 {
-	_allocators[ShapeRenderer::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ShapeRenderer>();};
-	_allocators[Animator::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<Animator>();};
-	_allocators[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<PointLight>();};
-	_allocators[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<DirectionalLight>();};
+	_componentFactories[ShapeRenderer::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ShapeRenderer>();};
+	_componentFactories[Animator::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<Animator>();};
+	_componentFactories[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<PointLight>();};
+	_componentFactories[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<DirectionalLight>();};
 }
 
 Component& Entity::addComponentByIdentifier(const std::string& identifier)
 {
-	return _allocators[identifier](*this);
+	return _componentFactories[identifier](*this);
 }
 
-std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::allocators_begin()
+std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::componentFactories_begin()
 {
-	return _allocators.begin();
+	return _componentFactories.begin();
 }
 
-std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::allocators_end()
+std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::componentFactories_end()
 {
-	return _allocators.end();
+	return _componentFactories.end();
 }
 
 void Entity::duplicate(Transform& parent) const

@@ -72,11 +72,11 @@ void Engine::init()
 	glDebugMessageCallback(messageCallback, nullptr);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
-	MaterialAsset::initialize();
+	MaterialAsset::initDefaultAndMissing();
 	RenderHelper::initDrawScreenQuad();
-	Entity::initAllocators();
-	ShapeRenderer::initAllocators();
-	UIViewport::initAllocators();
+	Entity::initComponentFactories();
+	ShapeRenderer::initShapeFactories();
+	UIViewport::initRendererFactories();
 	
 	_scene = std::make_unique<Scene>();
 	

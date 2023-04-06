@@ -28,7 +28,7 @@ bool UIViewport::_rendererIsInvalidated = true;
 std::string UIViewport::_rendererType = RasterizationRenderer::identifier;
 const PerfStep* UIViewport::_perfStep = nullptr;
 
-std::map<std::string, std::function<void(void)>> UIViewport::_allocators;
+std::map<std::string, std::function<std::unique_ptr<Renderer>(void)>> UIViewport::_rendererFactories;
 
 ImGuizmo::OPERATION UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
 ImGuizmo::MODE UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
@@ -86,7 +86,8 @@ void UIViewport::show()
 	
 	if (_rendererIsInvalidated)
 	{
-		_allocators[_rendererType]();
+		_renderer.reset();
+		_renderer = _rendererFactories[_rendererType]();
 		_rendererIsInvalidated = false;
 	}
 	
@@ -247,7 +248,7 @@ void UIViewport::drawHeader()
 	ImGui::SetNextItemWidth(130.0f * pixelScale);
 	if (ImGui::BeginCombo("Renderer", _rendererType.c_str()))
 	{
-		for (auto& [name, _] : _allocators)
+		for (auto& [name, _] : _rendererFactories)
 		{
 			const bool is_selected = (name == _rendererType);
 			if (ImGui::Selectable(name.c_str(), is_selected))
@@ -277,10 +278,10 @@ void UIViewport::invalidateRenderer()
 	_rendererIsInvalidated = true;
 }
 
-void UIViewport::initAllocators()
+void UIViewport::initRendererFactories()
 {
-	_allocators[RasterizationRenderer::identifier] = []() -> decltype(auto) {UIViewport::_renderer = std::make_unique<RasterizationRenderer>(UIViewport::_rendererSize);};
-	_allocators[RaytracingRenderer::identifier] = []() -> decltype(auto) {UIViewport::_renderer = std::make_unique<RaytracingRenderer>(UIViewport::_rendererSize);};
+	_rendererFactories[RasterizationRenderer::identifier] = []() -> decltype(auto) { return std::make_unique<RasterizationRenderer>(UIViewport::_rendererSize);};
+	_rendererFactories[RaytracingRenderer::identifier] = []() -> decltype(auto) { return std::make_unique<RaytracingRenderer>(UIViewport::_rendererSize);};
 }
 
 void UIViewport::renderToFile(glm::ivec2 resolution)

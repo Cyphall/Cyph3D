@@ -42,8 +42,8 @@ private:
 	
 	static const PerfStep* _perfStep;
 	
-	static std::map<std::string, std::function<void(void)>> _allocators;
-	static void initAllocators();
+	static std::map<std::string, std::function<std::unique_ptr<Renderer>(void)>> _rendererFactories;
+	static void initRendererFactories();
 	
 	static ImGuizmo::OPERATION _gizmoMode;
 	static ImGuizmo::MODE _gizmoSpace;

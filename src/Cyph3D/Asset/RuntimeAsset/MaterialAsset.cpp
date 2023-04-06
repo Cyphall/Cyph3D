@@ -419,7 +419,7 @@ void MaterialAsset::setEmissiveValue(const float& value)
 	}
 }
 
-void MaterialAsset::initialize()
+void MaterialAsset::initDefaultAndMissing()
 {
 	_defaultMaterial = Engine::getAssetManager().loadMaterial("materials/internal/Default Material/Default Material.c3dmaterial");
 	_missingMaterial = Engine::getAssetManager().loadMaterial("materials/internal/Missing Material/Missing Material.c3dmaterial");
