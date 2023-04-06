@@ -3,12 +3,12 @@
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
 #include "Cyph3D/Rendering/Pass/RaytracePass.h"
-#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 
-class RaytracingRenderer : public Renderer
+class RaytracingSceneRenderer : public SceneRenderer
 {
 public:
-	explicit RaytracingRenderer(glm::ivec2 size);
+	explicit RaytracingSceneRenderer(glm::ivec2 size);
 	
 	Entity* getClickedEntity(glm::ivec2 clickPos) override;
 	

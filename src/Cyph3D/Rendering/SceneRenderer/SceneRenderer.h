@@ -11,11 +11,11 @@ class Scene;
 class GLTexture;
 class Camera;
 
-class Renderer
+class SceneRenderer
 {
 public:
-	Renderer(const char* name, glm::ivec2 size);
-	virtual ~Renderer() = default;
+	SceneRenderer(const char* name, glm::ivec2 size);
+	virtual ~SceneRenderer() = default;
 	
 	std::pair<GLTexture*, const PerfStep*> render(Camera& camera);
 	

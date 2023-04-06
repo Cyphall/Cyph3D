@@ -5,7 +5,7 @@
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/RenderContext.h"
-#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
 #include "Cyph3D/Rendering/Shape/PlaneShape.h"
 #include "Cyph3D/Rendering/Shape/SphereShape.h"

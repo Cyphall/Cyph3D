@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Rendering/Pass/ZPrePass.h"
 #include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
 #include "Cyph3D/Rendering/Pass/LightingPass.h"
@@ -8,10 +8,10 @@
 #include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 
-class RasterizationRenderer : public Renderer
+class RasterizationSceneRenderer : public SceneRenderer
 {
 public:
-	explicit RasterizationRenderer(glm::ivec2 size);
+	explicit RasterizationSceneRenderer(glm::ivec2 size);
 	
 	void onNewFrame() override;
 	

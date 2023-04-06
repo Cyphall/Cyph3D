@@ -76,7 +76,7 @@ void Engine::init()
 	RenderHelper::initDrawScreenQuad();
 	Entity::initComponentFactories();
 	ShapeRenderer::initShapeFactories();
-	UIViewport::initRendererFactories();
+	UIViewport::initSceneRendererFactories();
 	
 	_scene = std::make_unique<Scene>();
 	

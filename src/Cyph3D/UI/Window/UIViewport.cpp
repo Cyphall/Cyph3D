@@ -4,8 +4,8 @@
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/RenderContext.h"
-#include "Cyph3D/Rendering/Renderer/RasterizationRenderer.h"
-#include "Cyph3D/Rendering/Renderer/RaytracingRenderer.h"
+#include "Cyph3D/Rendering/SceneRenderer/RasterizationSceneRenderer.h"
+#include "Cyph3D/Rendering/SceneRenderer/RaytracingSceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/Window.h"
@@ -14,21 +14,21 @@
 #include <stb_image_write.h>
 #include <GLFW/glfw3.h>
 
-std::unique_ptr<Renderer> UIViewport::_renderer;
+std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
 Camera UIViewport::_camera;
 bool UIViewport::_cameraFocused = false;
 glm::dvec2 UIViewport::_lockedCursorPos;
-glm::vec2 UIViewport::_rendererSize(0);
+glm::vec2 UIViewport::_sceneRendererSize(0);
 bool UIViewport::_currentlyClicking = false;
 glm::vec2 UIViewport::_clickPos;
 bool UIViewport::_fullscreen = false;
 
-bool UIViewport::_rendererIsInvalidated = true;
+bool UIViewport::_sceneRendererIsInvalidated = true;
 
-std::string UIViewport::_rendererType = RasterizationRenderer::identifier;
+std::string UIViewport::_sceneRendererType = RasterizationSceneRenderer::identifier;
 const PerfStep* UIViewport::_perfStep = nullptr;
 
-std::map<std::string, std::function<std::unique_ptr<Renderer>(void)>> UIViewport::_rendererFactories;
+std::map<std::string, std::function<std::unique_ptr<SceneRenderer>(void)>> UIViewport::_sceneRendererFactories;
 
 ImGuizmo::OPERATION UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
 ImGuizmo::MODE UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
@@ -57,16 +57,16 @@ void UIViewport::show()
 	glm::vec2 viewportStartGlobal = ImGui::GetCursorScreenPos();
 	glm::vec2 viewportEndGlobal = viewportStartGlobal + viewportSize;
 	
-	if (viewportSize != _rendererSize)
+	if (viewportSize != _sceneRendererSize)
 	{
 		if (viewportSize.x <= 0 || viewportSize.y <= 0)
 		{
 			ImGui::End();
 			return;
 		}
-		invalidateRenderer();
+		invalidateSceneRenderer();
 		_camera.setAspectRatio(viewportSize.x / viewportSize.y);
-		_rendererSize = viewportSize;
+		_sceneRendererSize = viewportSize;
 	}
 	
 	glm::vec2 viewportCursorPos = glm::vec2(ImGui::GetIO().MousePos) - viewportStartGlobal;
@@ -84,23 +84,23 @@ void UIViewport::show()
 		Engine::getWindow().setCursorPos(_lockedCursorPos);
 	}
 	
-	if (_rendererIsInvalidated)
+	if (_sceneRendererIsInvalidated)
 	{
-		_renderer.reset();
-		_renderer = _rendererFactories[_rendererType]();
-		_rendererIsInvalidated = false;
+		_sceneRenderer.reset();
+		_sceneRenderer = _sceneRendererFactories[_sceneRendererType]();
+		_sceneRendererIsInvalidated = false;
 	}
 	
-	_renderer->onNewFrame();
+	_sceneRenderer->onNewFrame();
 	
 	RenderContext context
 	{
-		.renderer = *_renderer,
+		.renderer = *_sceneRenderer,
 		.camera = _camera
 	};
 	Engine::getScene().onPreRender(context);
 	
-	auto [texture, perfStep] = _renderer->render(_camera);
+	auto [texture, perfStep] = _sceneRenderer->render(_camera);
 	
 	_perfStep = perfStep;
 	
@@ -124,7 +124,7 @@ void UIViewport::show()
 		_currentlyClicking = false;
 		if (ImGui::IsItemHovered() && glm::distance(_clickPos, viewportCursorPos) < 5)
 		{
-			Entity* clickedEntity = _renderer->getClickedEntity(_clickPos);
+			Entity* clickedEntity = _sceneRenderer->getClickedEntity(_clickPos);
 			UIInspector::setSelected(clickedEntity);
 		}
 	}
@@ -142,7 +142,7 @@ Camera& UIViewport::getCamera()
 void UIViewport::setCamera(Camera camera)
 {
 	_camera = camera;
-	_camera.setAspectRatio(_rendererSize.x / _rendererSize.y);
+	_camera.setAspectRatio(_sceneRendererSize.x / _sceneRendererSize.y);
 }
 
 void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
@@ -246,15 +246,15 @@ void UIViewport::drawHeader()
 	ImGui::Separator();
 	
 	ImGui::SetNextItemWidth(130.0f * pixelScale);
-	if (ImGui::BeginCombo("Renderer", _rendererType.c_str()))
+	if (ImGui::BeginCombo("SceneRenderer", _sceneRendererType.c_str()))
 	{
-		for (auto& [name, _] : _rendererFactories)
+		for (auto& [name, _] : _sceneRendererFactories)
 		{
-			const bool is_selected = (name == _rendererType);
+			const bool is_selected = (name == _sceneRendererType);
 			if (ImGui::Selectable(name.c_str(), is_selected))
 			{
-				_rendererType = name;
-				invalidateRenderer();
+				_sceneRendererType = name;
+				invalidateSceneRenderer();
 			}
 			
 			if (is_selected)
@@ -273,15 +273,15 @@ bool UIViewport::isFullscreen()
 	return _fullscreen;
 }
 
-void UIViewport::invalidateRenderer()
+void UIViewport::invalidateSceneRenderer()
 {
-	_rendererIsInvalidated = true;
+	_sceneRendererIsInvalidated = true;
 }
 
-void UIViewport::initRendererFactories()
+void UIViewport::initSceneRendererFactories()
 {
-	_rendererFactories[RasterizationRenderer::identifier] = []() -> decltype(auto) { return std::make_unique<RasterizationRenderer>(UIViewport::_rendererSize);};
-	_rendererFactories[RaytracingRenderer::identifier] = []() -> decltype(auto) { return std::make_unique<RaytracingRenderer>(UIViewport::_rendererSize);};
+	_sceneRendererFactories[RasterizationSceneRenderer::identifier] = []() -> decltype(auto) { return std::make_unique<RasterizationSceneRenderer>(UIViewport::_sceneRendererSize);};
+	_sceneRendererFactories[RaytracingSceneRenderer::identifier] = []() -> decltype(auto) { return std::make_unique<RaytracingSceneRenderer>(UIViewport::_sceneRendererSize);};
 }
 
 void UIViewport::renderToFile(glm::ivec2 resolution)
@@ -302,7 +302,7 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 		return;
 	}
 	
-	RaytracingRenderer renderer(resolution);
+	RaytracingSceneRenderer renderer(resolution);
 	
 	Camera camera(_camera);
 	camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));

@@ -1,10 +1,10 @@
 #pragma once
 
-class Renderer;
+class SceneRenderer;
 class Camera;
 
 struct RenderContext
 {
-	Renderer& renderer;
+	SceneRenderer& renderer;
 	Camera& camera;
 };

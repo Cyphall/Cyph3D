@@ -7,7 +7,7 @@
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/RenderContext.h"
-#include "Cyph3D/Rendering/Renderer/Renderer.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
 
 #include <glm/gtc/integer.hpp>
