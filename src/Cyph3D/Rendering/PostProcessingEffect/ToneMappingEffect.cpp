@@ -10,7 +10,7 @@ PostProcessingEffect("Tonemapping", size),
 _outputTexture(TextureCreateInfo
 {
 	.size = size,
-	.internalFormat = GL_RGB8
+	.internalFormat = GL_RGBA8
 }),
 _shaderProgram({
 	{GL_VERTEX_SHADER, "internal/fullscreen quad.vert"},

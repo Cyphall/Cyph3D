@@ -4,7 +4,7 @@
 layout(bindless_sampler) uniform sampler2D u_colorTexture;
 uniform float u_exposure;
 
-out vec3 o_color;
+out vec4 o_color;
 
 void main()
 {
@@ -12,5 +12,5 @@ void main()
 	
 	color *= pow(2, u_exposure);
 	
-	o_color = color;
+	o_color = vec4(color, 1);
 }
