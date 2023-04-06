@@ -428,15 +428,11 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 	
 	if (&entry == _selectedEntry)
 	{
-		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(100, 100, 100, 255));
-		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBgHovered]));
-		ImGui::PopStyleColor();
+		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, IM_COL32(100, 100, 100, 255));
 	}
 	else if (ImGui::IsItemHovered())
 	{
-		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(80, 80, 80, 255));
-		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBgHovered]));
-		ImGui::PopStyleColor();
+		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, IM_COL32(80, 80, 80, 255));
 	}
 	
 	glm::vec3 iconColor = glm::vec4(style.Colors[ImGuiCol_Text]);
