@@ -10,7 +10,7 @@
 #include <string>
 
 class SceneRenderer;
-struct PerfStep;
+class PerfStep;
 
 class UIViewport
 {
@@ -22,34 +22,32 @@ public:
 	
 	static bool isFullscreen();
 	
-	static void renderToFile(glm::ivec2 resolution);
+	static void renderToFile(glm::uvec2 resolution);
 	
 	static const PerfStep* getPreviousFramePerfStep();
-	
-	static void initSceneRendererFactories();
 
 private:
+	enum class RendererType
+	{
+		Rasterization,
+		Raytracing
+	};
+	
 	static std::unique_ptr<SceneRenderer> _sceneRenderer;
+	static RendererType _sceneRendererType;
+	
 	static Camera _camera;
-	static glm::vec2 _sceneRendererSize;
-	static bool _currentlyClicking;
-	static glm::vec2 _clickPos;
 	static bool _cameraFocused;
-	static glm::dvec2 _lockedCursorPos;
+	static glm::vec2 _lockedCursorPos;
+	
 	static bool _fullscreen;
 	
-	static bool _sceneRendererIsInvalidated;
-	
-	static std::string _sceneRendererType;
-	
-	static const PerfStep* _perfStep;
-	
-	static std::map<std::string, std::function<std::unique_ptr<SceneRenderer>(void)>> _sceneRendererFactories;
+	static bool _leftClickPressedOnViewport;
+	static glm::vec2 _leftClickPressPos;
 	
 	static ImGuizmo::OPERATION _gizmoMode;
 	static ImGuizmo::MODE _gizmoSpace;
 	
 	static void drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize);
 	static void drawHeader();
-	static void invalidateSceneRenderer();
 };

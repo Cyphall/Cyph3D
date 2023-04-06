@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-struct PerfStep;
+class PerfStep;
 
 class UIMisc
 {

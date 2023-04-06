@@ -8,11 +8,9 @@
 class RaytracingSceneRenderer : public SceneRenderer
 {
 public:
-	explicit RaytracingSceneRenderer(glm::ivec2 size);
+	explicit RaytracingSceneRenderer(glm::uvec2 size);
 	
-	Entity* getClickedEntity(glm::ivec2 clickPos) override;
-	
-	static const char* identifier;
+	Entity* getClickedEntity(glm::uvec2 clickPos) override;
 
 private:
 	RaytracePass _raytracePass;

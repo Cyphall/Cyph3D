@@ -27,7 +27,7 @@ public:
 
 	explicit DirectionalLight(Entity& entity);
 	
-	void onPreRender(RenderContext& context) override;
+	void onPreRender(SceneRenderer& sceneRenderer, Camera& camera) override;
 	void onDrawUi() override;
 	
 	static const char* identifier;

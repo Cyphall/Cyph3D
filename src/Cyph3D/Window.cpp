@@ -22,6 +22,9 @@ Window::Window()
 	glfwMakeContextCurrent(_glfwWindow);
 	
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
+	
+	_previousFrameMouseButtonsPressed.fill(false);
+	_currentFrameMouseButtonsPressed.fill(false);
 }
 
 Window::~Window()
@@ -43,14 +46,14 @@ float Window::getPixelScale() const
 	return pixelScale;
 }
 
-glm::dvec2 Window::getCursorPos() const
+glm::vec2 Window::getCursorPos() const
 {
 	glm::dvec2 pos;
 	glfwGetCursorPos(_glfwWindow, &pos.x, &pos.y);
 	return pos;
 }
 
-void Window::setCursorPos(const glm::dvec2& pos)
+void Window::setCursorPos(const glm::vec2& pos)
 {
 	glfwSetCursorPos(_glfwWindow, pos.x, pos.y);
 }
@@ -65,24 +68,9 @@ void Window::setShouldClose(bool value)
 	glfwSetWindowShouldClose(_glfwWindow, value);
 }
 
-int Window::getKey(int key)
-{
-	return glfwGetKey(_glfwWindow, key);
-}
-
-int Window::getMouseButton(int button)
-{
-	return glfwGetMouseButton(_glfwWindow, button);
-}
-
 void Window::swapBuffers()
 {
 	glfwSwapBuffers(_glfwWindow);
-}
-
-GLFWwindow* Window::getHandle()
-{
-	return _glfwWindow;
 }
 
 int Window::getInputMode() const
@@ -93,4 +81,48 @@ int Window::getInputMode() const
 void Window::setInputMode(int inputMode)
 {
 	glfwSetInputMode(_glfwWindow, GLFW_CURSOR, inputMode);
+}
+
+int Window::getKey(int key)
+{
+	return glfwGetKey(_glfwWindow, key);
+}
+
+Window::MouseButtonState Window::getMouseButtonState(int button)
+{
+	int previousState = _previousFrameMouseButtonsPressed[button];
+	int currentState = _currentFrameMouseButtonsPressed[button];
+	
+	if (previousState == GLFW_RELEASE && currentState == GLFW_PRESS)
+	{
+		return MouseButtonState::Clicked;
+	}
+	if (previousState == GLFW_PRESS && currentState == GLFW_PRESS)
+	{
+		return MouseButtonState::Held;
+	}
+	if (previousState == GLFW_PRESS && currentState == GLFW_RELEASE)
+	{
+		return MouseButtonState::Released;
+	}
+	if (previousState == GLFW_RELEASE && currentState == GLFW_RELEASE)
+	{
+		return MouseButtonState::None;
+	}
+	
+	throw;
+}
+
+GLFWwindow* Window::getHandle()
+{
+	return _glfwWindow;
+}
+
+void Window::onPollEvents()
+{
+	_previousFrameMouseButtonsPressed = _currentFrameMouseButtonsPressed;
+	for (int i = 0; i < _currentFrameMouseButtonsPressed.size(); i++)
+	{
+		_currentFrameMouseButtonsPressed[i] = glfwGetMouseButton(_glfwWindow, i) == GLFW_PRESS;
+	}
 }

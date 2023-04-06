@@ -27,12 +27,12 @@ void PostProcessingPass::renderImpl(std::unordered_map<std::string, GLTexture*>&
 	
 	glm::ivec2 size = getSize();
 	
-	for (auto& effect : _effects)
+	for (std::unique_ptr<PostProcessingEffect>& effect : _effects)
 	{
 		glViewport(0, 0, size.x, size.y);
-		auto pair = effect->render(renderTexture, textures, camera);
-		renderTexture = pair.first;
-		previousFramePerfStep.subSteps.push_back(pair.second);
+		auto [outputTexture, effectPerf] = effect->render(renderTexture, textures, camera);
+		renderTexture = outputTexture;
+		previousFramePerfStep.addSubstep(effectPerf);
 	}
 	
 	textures["final"] = renderTexture;

@@ -6,7 +6,6 @@
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/RenderContext.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"
@@ -110,7 +109,7 @@ void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 	}
 }
 
-void DirectionalLight::onPreRender(RenderContext& context)
+void DirectionalLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 {
 	RenderData data{};
 	data.fragToLightDirection = -getLightDirection();
@@ -122,8 +121,8 @@ void DirectionalLight::onPreRender(RenderContext& context)
 	{
 		data.lightViewProjection = _projection *
 								   glm::lookAt(
-									   context.camera.getPosition(),
-									   context.camera.getPosition() + getLightDirection(),
+									   camera.getPosition(),
+									   camera.getPosition() + getLightDirection(),
 									   glm::vec3(0, 1, 0));
 		data.shadowMapTexture = _shadowMap.get();
 		data.shadowMapFramebuffer = _shadowMapFb.get();
@@ -132,7 +131,7 @@ void DirectionalLight::onPreRender(RenderContext& context)
 		data.mapDepth = _mapDepth;
 	}
 	
-	context.renderer.requestLightRendering(data);
+	sceneRenderer.requestLightRendering(data);
 }
 
 void DirectionalLight::onDrawUi()

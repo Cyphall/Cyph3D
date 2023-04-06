@@ -2,7 +2,8 @@
 
 class Entity;
 class Transform;
-struct RenderContext;
+class SceneRenderer;
+class Camera;
 struct ObjectSerialization;
 
 class Component
@@ -21,7 +22,7 @@ public:
 	Transform& getTransform() const;
 	
 	virtual void onUpdate();
-	virtual void onPreRender(RenderContext& context);
+	virtual void onPreRender(SceneRenderer& sceneRenderer, Camera& camera);
 	virtual void onDrawUi();
 	
 	virtual const char* getIdentifier() const = 0;

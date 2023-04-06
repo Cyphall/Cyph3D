@@ -4,21 +4,20 @@
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/Scene/Scene.h"
 
-SceneRenderer::SceneRenderer(const char* name, glm::ivec2 size):
-_name(name), _size(size)
+SceneRenderer::SceneRenderer(std::string_view name, glm::uvec2 size):
+_name(name), _size(size), _renderPerf(name)
 {
 
 }
 
 void SceneRenderer::render(RenderPass& pass, Camera& camera)
 {
-	_renderPerf.subSteps.push_back(pass.render(_textures, _registry, camera));
+	_renderPerf.addSubstep(pass.render(_textures, _registry, camera));
 }
 
 void SceneRenderer::onNewFrame()
 {
 	_registry.clear();
-	_renderPerf = PerfStep();
 }
 
 void SceneRenderer::requestShapeRendering(ShapeRenderer::RenderData request)
@@ -36,17 +35,22 @@ void SceneRenderer::requestLightRendering(PointLight::RenderData data)
 	_registry.pointLights.push_back(data);
 }
 
-glm::ivec2 SceneRenderer::getSize() const
+glm::uvec2 SceneRenderer::getSize() const
 {
 	return _size;
 }
 
-std::pair<GLTexture*, const PerfStep*> SceneRenderer::render(Camera& camera)
+const PerfStep& SceneRenderer::getRenderPerf()
+{
+	return _renderPerf;
+}
+
+GLTexture& SceneRenderer::render(Camera& camera)
 {
 	Scene& scene = Engine::getScene();
 	
-	_renderPerf.name = _name;
-	_renderPerf.durationInMs = _perfCounter.retrieve();
+	_renderPerf.clear();
+	_renderPerf.setDuration(_perfCounter.retrieve());
 	
 	_perfCounter.start();
 	
@@ -56,5 +60,5 @@ std::pair<GLTexture*, const PerfStep*> SceneRenderer::render(Camera& camera)
 	
 	_perfCounter.stop();
 	
-	return std::make_pair(&result, &_renderPerf);
+	return result;
 }

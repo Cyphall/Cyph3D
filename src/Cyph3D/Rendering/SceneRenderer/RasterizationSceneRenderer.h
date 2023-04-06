@@ -11,13 +11,11 @@
 class RasterizationSceneRenderer : public SceneRenderer
 {
 public:
-	explicit RasterizationSceneRenderer(glm::ivec2 size);
+	explicit RasterizationSceneRenderer(glm::uvec2 size);
 	
 	void onNewFrame() override;
 	
-	Entity* getClickedEntity(glm::ivec2 clickPos) override;
-	
-	static const char* identifier;
+	Entity* getClickedEntity(glm::uvec2 clickPos) override;
 
 private:
 	ZPrePass _zPrePass;

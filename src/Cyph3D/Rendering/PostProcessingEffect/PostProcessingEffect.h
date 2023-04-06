@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 
 #include <glm/glm.hpp>
@@ -8,7 +9,6 @@
 
 class Camera;
 class GLTexture;
-struct PerfStep;
 
 class PostProcessingEffect
 {
@@ -18,7 +18,7 @@ public:
 	
 	glm::ivec2 getSize() const;
 	
-	std::pair<GLTexture*, PerfStep> render(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera);
+	std::pair<GLTexture*, const PerfStep&> render(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera);
 
 protected:
 	virtual GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) = 0;
@@ -26,5 +26,6 @@ protected:
 private:
 	const char* _name;
 	glm::ivec2 _size;
+	PerfStep _effectPerf;
 	GpuPerfCounter _perfCounter;
 };

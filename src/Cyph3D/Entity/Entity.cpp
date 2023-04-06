@@ -69,11 +69,11 @@ void Entity::onUpdate()
 	}
 }
 
-void Entity::onPreRender(RenderContext& context)
+void Entity::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 {
 	for (auto it = components_begin(); it != components_end(); it++)
 	{
-		it->onPreRender(context);
+		it->onPreRender(sceneRenderer, camera);
 	}
 }
 

@@ -7,9 +7,7 @@
 
 #include <glad/glad.h>
 
-const char* RasterizationSceneRenderer::identifier = "Rasterisation";
-
-RasterizationSceneRenderer::RasterizationSceneRenderer(glm::ivec2 size):
+RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Rasterization SceneRenderer", size),
 	_zPrePass(_textures, size),
 	_shadowMapPass(_textures, size),
@@ -41,7 +39,7 @@ void RasterizationSceneRenderer::onNewFrame()
 	SceneRenderer::onNewFrame();
 }
 
-Entity* RasterizationSceneRenderer::getClickedEntity(glm::ivec2 clickPos)
+Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 {
 	int objectIndex;
 	_objectIndexFramebuffer.bindForReading();

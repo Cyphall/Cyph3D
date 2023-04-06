@@ -9,6 +9,7 @@
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
+#include <glm/gtc/type_ptr.hpp>
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
 
@@ -61,7 +62,9 @@ void UIMisc::show()
 
 		const PerfStep* perfStep = UIViewport::getPreviousFramePerfStep();
 		if (perfStep)
+		{
 			displayPerfStep(*perfStep);
+		}
 	}
 	
 	ImGui::End();
@@ -69,11 +72,11 @@ void UIMisc::show()
 
 void UIMisc::displayPerfStep(const PerfStep& perfStep)
 {
-	if (!perfStep.subSteps.empty())
+	if (!perfStep.getSubsteps().empty())
 	{
-		if (ImGui::TreeNodeEx(perfStep.name, 0, "%s: %.3fms", perfStep.name, perfStep.durationInMs))
+		if (ImGui::TreeNodeEx(perfStep.getName().c_str(), 0, "%s: %.3fms", perfStep.getName().c_str(), perfStep.getDuration()))
 		{
-			for (const PerfStep& perfSubstep : perfStep.subSteps)
+			for (const PerfStep& perfSubstep : perfStep.getSubsteps())
 			{
 				displayPerfStep(perfSubstep);
 			}
@@ -82,7 +85,7 @@ void UIMisc::displayPerfStep(const PerfStep& perfStep)
 	}
 	else
 	{
-		ImGui::TreeNodeEx(perfStep.name, ImGuiTreeNodeFlags_Leaf, "%s: %.3fms", perfStep.name, perfStep.durationInMs);
+		ImGui::TreeNodeEx(perfStep.getName().c_str(), ImGuiTreeNodeFlags_Leaf, "%s: %.3fms", perfStep.getName().c_str(), perfStep.getDuration());
 		ImGui::TreePop();
 	}
 }

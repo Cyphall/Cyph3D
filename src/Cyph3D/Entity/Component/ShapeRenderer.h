@@ -45,7 +45,7 @@ public:
 	bool getContributeShadows() const;
 	void setContributeShadows(bool contributeShadows);
 	
-	void onPreRender(RenderContext& context) override;
+	void onPreRender(SceneRenderer& sceneRenderer, Camera& camera) override;
 	void onDrawUi() override;
 	
 	void duplicate(Entity& targetEntity) const override;

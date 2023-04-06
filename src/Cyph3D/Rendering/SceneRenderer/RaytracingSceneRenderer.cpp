@@ -1,8 +1,6 @@
 #include "RaytracingSceneRenderer.h"
 
-const char* RaytracingSceneRenderer::identifier = "Raytracing";
-
-RaytracingSceneRenderer::RaytracingSceneRenderer(glm::ivec2 size):
+RaytracingSceneRenderer::RaytracingSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Raytracing SceneRenderer", size),
 	_raytracePass(_textures, size),
 	_postProcessingPass(_textures, size)
@@ -19,7 +17,7 @@ GLTexture& RaytracingSceneRenderer::renderImpl(Camera& camera, Scene& scene)
 	return *_textures["final"];
 }
 
-Entity* RaytracingSceneRenderer::getClickedEntity(glm::ivec2 clickPos)
+Entity* RaytracingSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 {
 	int objectIndex;
 	_objectIndexFramebuffer.bindForReading();

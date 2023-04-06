@@ -3,7 +3,6 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/RenderContext.h"
 #include "Cyph3D/Rendering/SceneRenderer/RasterizationSceneRenderer.h"
 #include "Cyph3D/Rendering/SceneRenderer/RaytracingSceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
@@ -13,22 +12,20 @@
 #include <imgui_internal.h>
 #include <stb_image_write.h>
 #include <GLFW/glfw3.h>
+#include <magic_enum.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
+UIViewport::RendererType UIViewport::_sceneRendererType = UIViewport::RendererType::Rasterization;
+
 Camera UIViewport::_camera;
 bool UIViewport::_cameraFocused = false;
-glm::dvec2 UIViewport::_lockedCursorPos;
-glm::vec2 UIViewport::_sceneRendererSize(0);
-bool UIViewport::_currentlyClicking = false;
-glm::vec2 UIViewport::_clickPos;
+glm::vec2 UIViewport::_lockedCursorPos;
+
 bool UIViewport::_fullscreen = false;
 
-bool UIViewport::_sceneRendererIsInvalidated = true;
-
-std::string UIViewport::_sceneRendererType = RasterizationSceneRenderer::identifier;
-const PerfStep* UIViewport::_perfStep = nullptr;
-
-std::map<std::string, std::function<std::unique_ptr<SceneRenderer>(void)>> UIViewport::_sceneRendererFactories;
+bool UIViewport::_leftClickPressedOnViewport = false;
+glm::vec2 UIViewport::_leftClickPressPos;
 
 ImGuizmo::OPERATION UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
 ImGuizmo::MODE UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
@@ -41,95 +38,95 @@ void UIViewport::show()
 	
 	ImGui::PopStyleVar();
 	
-	if (!open)
+	if (open)
 	{
-		ImGui::End();
-		return;
-	}
-	
-	drawHeader();
-	
-	glm::vec2 viewportStartLocal = ImGui::GetCursorPos();
-	glm::vec2 viewportEndLocal = ImGui::GetWindowContentRegionMax();
-	
-	glm::vec2 viewportSize = viewportEndLocal - viewportStartLocal;
-	
-	glm::vec2 viewportStartGlobal = ImGui::GetCursorScreenPos();
-	glm::vec2 viewportEndGlobal = viewportStartGlobal + viewportSize;
-	
-	if (viewportSize != _sceneRendererSize)
-	{
-		if (viewportSize.x <= 0 || viewportSize.y <= 0)
+		drawHeader();
+		
+		glm::ivec2 viewportStartLocal = glm::vec2(ImGui::GetCursorPos());
+		glm::ivec2 viewportEndLocal = glm::vec2(ImGui::GetWindowContentRegionMax());
+		
+		glm::uvec2 viewportSize = glm::max(viewportEndLocal - viewportStartLocal, glm::ivec2(0));
+		
+		glm::ivec2 viewportStartGlobal = glm::vec2(ImGui::GetCursorScreenPos());
+		glm::ivec2 viewportEndGlobal = viewportStartGlobal + glm::ivec2(viewportSize);
+		
+		if (_sceneRenderer && _sceneRenderer->getSize() != viewportSize)
 		{
-			ImGui::End();
-			return;
+			_sceneRenderer.reset();
 		}
-		invalidateSceneRenderer();
-		_camera.setAspectRatio(viewportSize.x / viewportSize.y);
-		_sceneRendererSize = viewportSize;
-	}
-	
-	glm::vec2 viewportCursorPos = glm::vec2(ImGui::GetIO().MousePos) - viewportStartGlobal;
-	
-	if (Engine::getWindow().getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
-	{
-		_cameraFocused = false;
-		_lockedCursorPos = Engine::getWindow().getCursorPos();
-		Engine::getWindow().setInputMode(GLFW_CURSOR_NORMAL);
-	}
-	
-	if (_cameraFocused)
-	{
-		_camera.update(Engine::getWindow().getCursorPos() - _lockedCursorPos);
-		Engine::getWindow().setCursorPos(_lockedCursorPos);
-	}
-	
-	if (_sceneRendererIsInvalidated)
-	{
-		_sceneRenderer.reset();
-		_sceneRenderer = _sceneRendererFactories[_sceneRendererType]();
-		_sceneRendererIsInvalidated = false;
-	}
-	
-	_sceneRenderer->onNewFrame();
-	
-	RenderContext context
-	{
-		.renderer = *_sceneRenderer,
-		.camera = _camera
-	};
-	Engine::getScene().onPreRender(context);
-	
-	auto [texture, perfStep] = _sceneRenderer->render(_camera);
-	
-	_perfStep = perfStep;
-	
-	ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture->getHandle())), glm::vec2(texture->getSize()), ImVec2(0, 1), ImVec2(1, 0));
-	
-	if (Engine::getWindow().getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && ImGui::IsItemHovered())
-	{
-		_cameraFocused = true;
-		_currentlyClicking = false;
-		Engine::getWindow().setInputMode(GLFW_CURSOR_DISABLED);
-	}
-	
-	if (!_cameraFocused && !_currentlyClicking && Engine::getWindow().getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && ImGui::IsItemHovered())
-	{
-		_currentlyClicking = true;
-		_clickPos = viewportCursorPos;
-	}
-	
-	if (_currentlyClicking && Engine::getWindow().getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
-	{
-		_currentlyClicking = false;
-		if (ImGui::IsItemHovered() && glm::distance(_clickPos, viewportCursorPos) < 5)
+		
+		Window& window = Engine::getWindow();
+		
+		if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Released)
 		{
-			Entity* clickedEntity = _sceneRenderer->getClickedEntity(_clickPos);
-			UIInspector::setSelected(clickedEntity);
+			_cameraFocused = false;
+			window.setInputMode(GLFW_CURSOR_NORMAL);
+			window.setCursorPos(_lockedCursorPos);
+		}
+		
+		if (viewportSize.x > 0 && viewportSize.y > 0)
+		{
+			if (!_sceneRenderer)
+			{
+				switch (_sceneRendererType)
+				{
+					case RendererType::Rasterization:
+						_sceneRenderer = std::make_unique<RasterizationSceneRenderer>(viewportSize);
+						break;
+					case RendererType::Raytracing:
+						_sceneRenderer = std::make_unique<RaytracingSceneRenderer>(viewportSize);
+						break;
+				}
+				
+				_camera.setAspectRatio(static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y));
+			}
+			
+			if (_cameraFocused)
+			{
+				_camera.update(window.getCursorPos() - _lockedCursorPos);
+				window.setCursorPos(_lockedCursorPos);
+			}
+			
+			_sceneRenderer->onNewFrame();
+			Engine::getScene().onPreRender(*_sceneRenderer, _camera);
+			GLTexture& texture = _sceneRenderer->render(_camera);
+			
+			ImGui::Image(
+				reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.getHandle())),
+				glm::vec2(texture.getSize()),
+				ImVec2(0, 1),
+				ImVec2(1, 0));
+			
+			if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
+			{
+				_cameraFocused = true;
+				_lockedCursorPos = window.getCursorPos();
+				window.setInputMode(GLFW_CURSOR_DISABLED);
+				
+				_leftClickPressedOnViewport = false;
+			}
+			
+			glm::vec2 viewportCursorPos = window.getCursorPos() - glm::vec2(viewportStartGlobal);
+			
+			if (!_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
+			{
+				_leftClickPressedOnViewport = true;
+				_leftClickPressPos = viewportCursorPos;
+			}
+			
+			if (_leftClickPressedOnViewport && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::Released)
+			{
+				_leftClickPressedOnViewport = false;
+				if (ImGui::IsItemHovered() && glm::distance(_leftClickPressPos, viewportCursorPos) < 5.0f)
+				{
+					Entity* clickedEntity = _sceneRenderer->getClickedEntity(glm::uvec2(viewportCursorPos));
+					UIInspector::setSelected(clickedEntity);
+				}
+			}
+			
+			drawGizmo(viewportStartGlobal, viewportSize);
 		}
 	}
-	
-	drawGizmo(viewportStartGlobal, viewportSize);
 	
 	ImGui::End();
 }
@@ -142,7 +139,12 @@ Camera& UIViewport::getCamera()
 void UIViewport::setCamera(Camera camera)
 {
 	_camera = camera;
-	_camera.setAspectRatio(_sceneRendererSize.x / _sceneRendererSize.y);
+	
+	if (_sceneRenderer)
+	{
+		glm::uvec2 framebufferSize = _sceneRenderer->getSize();
+		_camera.setAspectRatio(static_cast<float>(framebufferSize.x) / static_cast<float>(framebufferSize.y));
+	}
 }
 
 void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
@@ -246,15 +248,15 @@ void UIViewport::drawHeader()
 	ImGui::Separator();
 	
 	ImGui::SetNextItemWidth(130.0f * pixelScale);
-	if (ImGui::BeginCombo("SceneRenderer", _sceneRendererType.c_str()))
+	if (ImGui::BeginCombo("SceneRenderer", magic_enum::enum_name(_sceneRendererType).data()))
 	{
-		for (auto& [name, _] : _sceneRendererFactories)
+		for (UIViewport::RendererType sceneRendererType : magic_enum::enum_values<UIViewport::RendererType>())
 		{
-			const bool is_selected = (name == _sceneRendererType);
-			if (ImGui::Selectable(name.c_str(), is_selected))
+			const bool is_selected = (sceneRendererType == _sceneRendererType);
+			if (ImGui::Selectable(magic_enum::enum_name(sceneRendererType).data(), is_selected))
 			{
-				_sceneRendererType = name;
-				invalidateSceneRenderer();
+				_sceneRenderer.reset();
+				_sceneRendererType = sceneRendererType;
 			}
 			
 			if (is_selected)
@@ -273,18 +275,7 @@ bool UIViewport::isFullscreen()
 	return _fullscreen;
 }
 
-void UIViewport::invalidateSceneRenderer()
-{
-	_sceneRendererIsInvalidated = true;
-}
-
-void UIViewport::initSceneRendererFactories()
-{
-	_sceneRendererFactories[RasterizationSceneRenderer::identifier] = []() -> decltype(auto) { return std::make_unique<RasterizationSceneRenderer>(UIViewport::_sceneRendererSize);};
-	_sceneRendererFactories[RaytracingSceneRenderer::identifier] = []() -> decltype(auto) { return std::make_unique<RaytracingSceneRenderer>(UIViewport::_sceneRendererSize);};
-}
-
-void UIViewport::renderToFile(glm::ivec2 resolution)
+void UIViewport::renderToFile(glm::uvec2 resolution)
 {
 	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 		FileDialogFilter{
@@ -309,19 +300,14 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 	
 	renderer.onNewFrame();
 	
-	RenderContext context
-	{
-		.renderer = renderer,
-		.camera = camera
-	};
-	Engine::getScene().onPreRender(context);
+	Engine::getScene().onPreRender(renderer, camera);
 	
-	auto [texture, perfStep] = renderer.render(camera);
+	GLTexture& texture = renderer.render(camera);
 	
-	glm::ivec2 textureSize = texture->getSize();
+	glm::ivec2 textureSize = texture.getSize();
 	std::vector<glm::u8vec3> textureData(textureSize.x * textureSize.y);
 	
-	glGetTextureImage(texture->getHandle(), 0, GL_RGB, GL_UNSIGNED_BYTE, textureData.size() * sizeof(glm::u8vec3), textureData.data());
+	glGetTextureImage(texture.getHandle(), 0, GL_RGB, GL_UNSIGNED_BYTE, textureData.size() * sizeof(glm::u8vec3), textureData.data());
 	
 	if (filePath->extension() == ".png")
 	{
@@ -335,5 +321,5 @@ void UIViewport::renderToFile(glm::ivec2 resolution)
 
 const PerfStep* UIViewport::getPreviousFramePerfStep()
 {
-	return _perfStep;
+	return _sceneRenderer ? &_sceneRenderer->getRenderPerf() : nullptr;
 }

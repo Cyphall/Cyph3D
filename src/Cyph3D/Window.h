@@ -1,12 +1,21 @@
 #pragma once
 
-#include <glm/ext.hpp>
+#include <glm/glm.hpp>
+#include <array>
 
 struct GLFWwindow;
 
 class Window
 {
 public:
+	enum class MouseButtonState
+	{
+		Clicked,
+		Held,
+		Released,
+		None
+	};
+	
 	explicit Window();
 	~Window();
 	
@@ -14,8 +23,8 @@ public:
 	
 	float getPixelScale() const;
 	
-	glm::dvec2 getCursorPos() const;
-	void setCursorPos(const glm::dvec2& pos);
+	glm::vec2 getCursorPos() const;
+	void setCursorPos(const glm::vec2& pos);
 	
 	bool shouldClose() const;
 	void setShouldClose(bool value);
@@ -26,10 +35,16 @@ public:
 	void setInputMode(int inputMode);
 	
 	int getKey(int key);
-	int getMouseButton(int button);
+	
+	MouseButtonState getMouseButtonState(int button);
 	
 	GLFWwindow* getHandle();
+	
+	void onPollEvents();
 
 private:
 	GLFWwindow* _glfwWindow;
+	
+	std::array<bool, 8> _previousFrameMouseButtonsPressed;
+	std::array<bool, 8> _currentFrameMouseButtonsPressed;
 };

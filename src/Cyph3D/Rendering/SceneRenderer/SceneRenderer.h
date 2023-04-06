@@ -5,6 +5,8 @@
 #include "Cyph3D/Rendering/RenderRegistry.h"
 
 #include <glm/glm.hpp>
+#include <string>
+#include <string_view>
 
 class RenderPass;
 class Scene;
@@ -14,10 +16,10 @@ class Camera;
 class SceneRenderer
 {
 public:
-	SceneRenderer(const char* name, glm::ivec2 size);
+	SceneRenderer(std::string_view name, glm::uvec2 size);
 	virtual ~SceneRenderer() = default;
 	
-	std::pair<GLTexture*, const PerfStep*> render(Camera& camera);
+	GLTexture& render(Camera& camera);
 	
 	virtual void onNewFrame();
 	
@@ -25,16 +27,18 @@ public:
 	void requestLightRendering(DirectionalLight::RenderData data);
 	void requestLightRendering(PointLight::RenderData data);
 
-	glm::ivec2 getSize() const;
+	glm::uvec2 getSize() const;
 	
-	virtual Entity* getClickedEntity(glm::ivec2 clickPos) = 0;
+	const PerfStep& getRenderPerf();
+	
+	virtual Entity* getClickedEntity(glm::uvec2 clickPos) = 0;
 	
 protected:
 	std::unordered_map<std::string, GLTexture*> _textures;
 	RenderRegistry _registry;
 	
-	const char* _name;
-	glm::ivec2 _size;
+	std::string _name;
+	glm::uvec2 _size;
 
 	PerfStep _renderPerf;
 	GpuPerfCounter _perfCounter;

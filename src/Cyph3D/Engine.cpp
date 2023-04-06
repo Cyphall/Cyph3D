@@ -76,7 +76,6 @@ void Engine::init()
 	RenderHelper::initDrawScreenQuad();
 	Entity::initComponentFactories();
 	ShapeRenderer::initShapeFactories();
-	UIViewport::initSceneRendererFactories();
 	
 	_scene = std::make_unique<Scene>();
 	
@@ -90,6 +89,7 @@ void Engine::run()
 		_timer.onNewFrame();
 
 		glfwPollEvents();
+		_window->onPollEvents();
 
 		UIHelper::onNewFrame();
 

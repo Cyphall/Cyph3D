@@ -6,7 +6,6 @@
 #include "Cyph3D/GLObject/GLCubemap.h"
 #include "Cyph3D/GLObject/GLFramebuffer.h"
 #include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/RenderContext.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
 
@@ -104,7 +103,7 @@ void PointLight::deserialize(const ObjectSerialization& serialization)
 	}
 }
 
-void PointLight::onPreRender(RenderContext& context)
+void PointLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 {
 	RenderData data{};
 	data.pos = getTransform().getWorldPosition();
@@ -132,7 +131,7 @@ void PointLight::onPreRender(RenderContext& context)
 		data.far = FAR_DISTANCE;
 	}
 	
-	context.renderer.requestLightRendering(data);
+	sceneRenderer.requestLightRendering(data);
 }
 
 void PointLight::onDrawUi()

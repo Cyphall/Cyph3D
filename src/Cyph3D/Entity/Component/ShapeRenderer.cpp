@@ -4,7 +4,6 @@
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/RenderContext.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Rendering/Shape/MeshShape.h"
 #include "Cyph3D/Rendering/Shape/PlaneShape.h"
@@ -130,7 +129,7 @@ void ShapeRenderer::deserialize(const ObjectSerialization& shapeRendererSerializ
 	setContributeShadows(shapeRendererSerialization.data["contribute_shadows"].get<bool>());
 }
 
-void ShapeRenderer::onPreRender(RenderContext& context)
+void ShapeRenderer::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 {
 	RenderData data{};
 	data.material = getMaterial();
@@ -139,7 +138,7 @@ void ShapeRenderer::onPreRender(RenderContext& context)
 	data.contributeShadows = getContributeShadows();
 	data.matrix = getTransform().getLocalToWorldMatrix();
 	
-	context.renderer.requestShapeRendering(data);
+	sceneRenderer.requestShapeRendering(data);
 }
 
 void ShapeRenderer::onDrawUi()

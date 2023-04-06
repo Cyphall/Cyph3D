@@ -42,11 +42,11 @@ void Scene::onUpdate()
 	}
 }
 
-void Scene::onPreRender(RenderContext& context)
+void Scene::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 {
 	for (auto it = entities_begin(); it != entities_end(); it++)
 	{
-		(*it).onPreRender(context);
+		(*it).onPreRender(sceneRenderer, camera);
 	}
 }
 

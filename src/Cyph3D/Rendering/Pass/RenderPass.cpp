@@ -3,16 +3,15 @@
 #include "Cyph3D/PerfCounter/PerfStep.h"
 
 RenderPass::RenderPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size, const char* name):
-_name(name), _size(size)
+_name(name), _size(size), _renderPassPerf(name)
 {
 
 }
 
-PerfStep RenderPass::render(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera)
+const PerfStep& RenderPass::render(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera)
 {
-	PerfStep perfStep{};
-	perfStep.name = _name;
-	perfStep.durationInMs = _perfCounter.retrieve();
+	_renderPassPerf.clear();
+	_renderPassPerf.setDuration(_perfCounter.retrieve());
 	
 	_perfCounter.start();
 	
@@ -26,7 +25,7 @@ PerfStep RenderPass::render(std::unordered_map<std::string, GLTexture*>& texture
 	glPopDebugGroup();
 	
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Render");
-	renderImpl(textures, objects, camera, perfStep);
+	renderImpl(textures, objects, camera, _renderPassPerf);
 	glPopDebugGroup();
 	
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Restore pipeline");
@@ -37,7 +36,7 @@ PerfStep RenderPass::render(std::unordered_map<std::string, GLTexture*>& texture
 	
 	_perfCounter.stop();
 	
-	return perfStep;
+	return _renderPassPerf;
 }
 
 glm::ivec2 RenderPass::getSize() const

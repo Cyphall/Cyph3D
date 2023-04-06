@@ -12,7 +12,8 @@ class Scene;
 class Component;
 class ComponentIterator;
 class ComponentConstIterator;
-struct RenderContext;
+class SceneRenderer;
+class Camera;
 struct ObjectSerialization;
 
 class Entity : public IInspectable
@@ -43,7 +44,7 @@ public:
 	
 	void onDrawUi() override;
 	void onUpdate();
-	void onPreRender(RenderContext& context);
+	void onPreRender(SceneRenderer& sceneRenderer, Camera& camera);
 	
 	Scene& getScene() const;
 	

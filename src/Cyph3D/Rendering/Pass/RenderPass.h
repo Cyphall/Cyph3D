@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 
 #include <glm/glm.hpp>
@@ -9,7 +10,6 @@
 class GLTexture;
 class Camera;
 struct RenderRegistry;
-struct PerfStep;
 
 class RenderPass
 {
@@ -20,7 +20,7 @@ public:
 	
 	glm::ivec2 getSize() const;
 	
-	PerfStep render(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera);
+	const PerfStep& render(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera);
 
 protected:
 	virtual void preparePipelineImpl() = 0;
@@ -30,5 +30,6 @@ protected:
 private:
 	const char* _name;
 	glm::ivec2 _size;
+	PerfStep _renderPassPerf;
 	GpuPerfCounter _perfCounter;
 };
