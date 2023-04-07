@@ -6,7 +6,6 @@
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIMenuBar.h"
 #include "Cyph3D/UI/Window/UIMisc.h"
-#include "Cyph3D/UI/Window/UIResourceExplorer.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/UI/Window/UIAssetBrowser.h"
 #include "Cyph3D/Window.h"
@@ -39,7 +38,6 @@ void UIHelper::init()
 	initStyles();
 	initFonts();
 	
-	UIResourceExplorer::init();
 	_assetBrowser = std::make_unique<UIAssetBrowser>(_bigFont);
 }
 
@@ -60,7 +58,6 @@ void UIHelper::render()
 		UIMisc::show();
 		UIHierarchy::show();
 		UIInspector::show();
-//		UIResourceExplorer::show();
 		_assetBrowser->draw();
 	}
 
