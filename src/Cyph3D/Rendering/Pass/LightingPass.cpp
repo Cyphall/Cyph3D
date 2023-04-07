@@ -10,8 +10,8 @@
 
 #include <glm/gtc/matrix_inverse.hpp>
 
-LightingPass::LightingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
-	RenderPass(textures, size, "Lighting pass"),
+LightingPass::LightingPass(glm::uvec2 size):
+	RenderPass(size, "Lighting pass"),
 	_pointLightsBuffer(GL_DYNAMIC_DRAW),
 	_directionalLightsBuffer(GL_DYNAMIC_DRAW),
 	_shader({
@@ -31,13 +31,9 @@ LightingPass::LightingPass(std::unordered_map<std::string, GLTexture*>& textures
 {
 	_framebuffer.attachColor(0, _rawRenderTexture);
 	_framebuffer.attachColor(1, _objectIndexTexture);
-	_framebuffer.attachDepth(*textures["z-prepass_depth"]);
 
 	_framebuffer.addToDrawBuffers(0, 0);
 	_framebuffer.addToDrawBuffers(1, 1);
-
-	textures["raw_render"] = &_rawRenderTexture;
-	textures["object_index"] = &_objectIndexTexture;
 
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
 	_vao.defineFormat(0, 1, 2, GL_FLOAT, offsetof(Mesh::VertexData, uv));
@@ -45,20 +41,17 @@ LightingPass::LightingPass(std::unordered_map<std::string, GLTexture*>& textures
 	_vao.defineFormat(0, 3, 3, GL_FLOAT, offsetof(Mesh::VertexData, tangent));
 }
 
-void LightingPass::preparePipelineImpl()
+LightingPassOutput LightingPass::renderImpl(LightingPassInput& input)
 {
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_EQUAL);
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_DITHER);
-}
-
-void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
-{
+	
 	std::vector<GLSL_DirectionalLight> directionalLightData;
-	directionalLightData.reserve(registry.directionalLights.size());
-	for (DirectionalLight::RenderData& renderData : registry.directionalLights)
+	directionalLightData.reserve(input.registry.directionalLights.size());
+	for (DirectionalLight::RenderData& renderData : input.registry.directionalLights)
 	{
 		GLSL_DirectionalLight data{};
 		data.fragToLightDirection = renderData.fragToLightDirection;
@@ -79,8 +72,8 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	_directionalLightsBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 1);
 
 	std::vector<GLSL_PointLight> pointLightData;
-	pointLightData.reserve(registry.pointLights.size());
-	for (PointLight::RenderData& renderData : registry.pointLights)
+	pointLightData.reserve(input.registry.pointLights.size());
+	for (PointLight::RenderData& renderData : input.registry.pointLights)
 	{
 		GLSL_PointLight data{};
 		data.pos = renderData.pos;
@@ -104,19 +97,20 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	int clearIndex = -1;
 	_objectIndexTexture.clear(&clearIndex, GL_RED_INTEGER, GL_INT);
 	
+	_framebuffer.attachDepth(input.depth);
 	_framebuffer.bindForDrawing();
 	_vao.bind();
 
-	_shader.setUniform("u_viewProjectionInv", glm::inverse(camera.getProjection() * camera.getView()));
-	_shader.setUniform("u_viewPos", camera.getPosition());
+	_shader.setUniform("u_viewProjectionInv", glm::inverse(input.camera.getProjection() * input.camera.getView()));
+	_shader.setUniform("u_viewPos", input.camera.getPosition());
 
-	glm::mat4 vp = camera.getProjection() * camera.getView();
+	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
 	_shader.bind();
 	
-	for (int i = 0; i < registry.shapes.size(); i++)
+	for (int i = 0; i < input.registry.shapes.size(); i++)
 	{
-		ShapeRenderer::RenderData shapeData = registry.shapes[i];
+		ShapeRenderer::RenderData shapeData = input.registry.shapes[i];
 		
 		if (!shapeData.shape->isReadyForRasterisationRender())
 			continue;
@@ -154,13 +148,15 @@ void LightingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}
-}
-
-void LightingPass::restorePipelineImpl()
-{
+	
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_DITHER);
+	
+	return LightingPassOutput{
+		.rawRender = _rawRenderTexture,
+		.objectIndex = _objectIndexTexture
+	};
 }

@@ -1,4 +1,4 @@
-#include "ZPrePass.h"
+#include "ZPrepass.h"
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
@@ -8,8 +8,8 @@
 #include "Cyph3D/Rendering/Shape/Shape.h"
 #include "Cyph3D/Scene/Camera.h"
 
-ZPrePass::ZPrePass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size) :
-RenderPass(textures, size, "Z prepass"),
+ZPrepass::ZPrepass(glm::uvec2 size) :
+RenderPass(size, "Z prepass"),
 _depthTexture(TextureCreateInfo
 {
 	.size = size,
@@ -21,20 +21,15 @@ _shader({
 {
 	_framebuffer.attachDepth(_depthTexture);
 	
-	textures["z-prepass_depth"] = &_depthTexture;
-	
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
 }
 
-void ZPrePass::preparePipelineImpl()
+ZPrepassOutput ZPrepass::renderImpl(ZPrepassInput& input)
 {
 	glEnable(GL_DEPTH_TEST);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glEnable(GL_CULL_FACE);
-}
-
-void ZPrePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
-{
+	
 	float clearDepth = 1;
 	_depthTexture.clear(&clearDepth, GL_DEPTH_COMPONENT, GL_FLOAT);
 	
@@ -42,9 +37,9 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures,
 	_vao.bind();
 	_shader.bind();
 	
-	glm::mat4 vp = camera.getProjection() * camera.getView();
+	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
-	for (const ShapeRenderer::RenderData& shapeData : registry.shapes)
+	for (const ShapeRenderer::RenderData& shapeData : input.registry.shapes)
 	{
 		if (!shapeData.shape->isReadyForRasterisationRender())
 			continue;
@@ -63,11 +58,12 @@ void ZPrePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures,
 		
 		glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 	}
-}
-
-void ZPrePass::restorePipelineImpl()
-{
+	
 	glDisable(GL_DEPTH_TEST);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDisable(GL_CULL_FACE);
+	
+	return ZPrepassOutput{
+		.depth = _depthTexture
+	};
 }

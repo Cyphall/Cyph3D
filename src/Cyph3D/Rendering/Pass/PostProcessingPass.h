@@ -5,18 +5,28 @@
 #include <memory>
 
 class PostProcessingEffect;
+class GLTexture;
+class Camera;
 
-class PostProcessingPass : public RenderPass
+struct PostProcessingPassInput
+{
+	GLTexture& rawRender;
+	Camera& camera;
+};
+
+struct PostProcessingPassOutput
+{
+	GLTexture& postProcessedRender;
+};
+
+class PostProcessingPass : public RenderPass<PostProcessingPassInput, PostProcessingPassOutput>
 {
 public:
-	PostProcessingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size);
+	explicit PostProcessingPass(glm::uvec2 size);
 	~PostProcessingPass() override;
 
 private:
-	
-	void preparePipelineImpl() override;
-	void renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep) override;
-	void restorePipelineImpl() override;
-	
 	std::vector<std::unique_ptr<PostProcessingEffect>> _effects;
+	
+	PostProcessingPassOutput renderImpl(PostProcessingPassInput& input) override;
 };

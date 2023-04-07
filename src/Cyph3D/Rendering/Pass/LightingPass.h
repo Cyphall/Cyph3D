@@ -8,14 +8,26 @@
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
-class LightingPass : public RenderPass
+struct RenderRegistry;
+class Camera;
+
+struct LightingPassInput
+{
+	GLTexture& depth;
+	RenderRegistry& registry;
+	Camera& camera;
+};
+
+struct LightingPassOutput
+{
+	GLTexture& rawRender;
+	GLTexture& objectIndex;
+};
+
+class LightingPass : public RenderPass<LightingPassInput, LightingPassOutput>
 {
 public:
-	LightingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size);
-
-	void preparePipelineImpl() override;
-	void renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep) override;
-	void restorePipelineImpl() override;
+	explicit LightingPass(glm::uvec2 size);
 
 private:
 	struct GLSL_PointLight
@@ -52,4 +64,6 @@ private:
 
 	GLTexture _rawRenderTexture;
 	GLTexture _objectIndexTexture;
+	
+	LightingPassOutput renderImpl(LightingPassInput& input) override;
 };

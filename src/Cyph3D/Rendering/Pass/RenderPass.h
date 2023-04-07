@@ -7,29 +7,44 @@
 #include <unordered_map>
 #include <string>
 
-class GLTexture;
-class Camera;
-struct RenderRegistry;
-
+template<typename TInput, typename TOutput>
 class RenderPass
 {
 public:
-	RenderPass() = delete;
-	RenderPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size, const char* name);
+	RenderPass(glm::uvec2 size, const char* name):
+		_name(name), _size(size), _renderPassPerf(name)
+	{
+	
+	}
+	
 	virtual ~RenderPass() = default;
 	
-	glm::ivec2 getSize() const;
-	
-	const PerfStep& render(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera);
+	TOutput render(TInput& input, PerfStep& parentPerfStep)
+	{
+		_renderPassPerf.clear();
+		_renderPassPerf.setDuration(_perfCounter.retrieve());
+		parentPerfStep.addSubstep(_renderPassPerf);
+		
+		glViewport(0, 0, _size.x, _size.y);
+		
+		_perfCounter.start();
+		
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, _name);
+		TOutput output = renderImpl(input);
+		glPopDebugGroup();
+		
+		_perfCounter.stop();
+		
+		return output;
+	}
 
 protected:
-	virtual void preparePipelineImpl() = 0;
-	virtual void renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep) = 0;
-	virtual void restorePipelineImpl() = 0;
+	glm::uvec2 _size;
+	PerfStep _renderPassPerf;
+	
+	virtual TOutput renderImpl(TInput& input) = 0;
 	
 private:
 	const char* _name;
-	glm::ivec2 _size;
-	PerfStep _renderPassPerf;
 	GpuPerfCounter _perfCounter;
 };

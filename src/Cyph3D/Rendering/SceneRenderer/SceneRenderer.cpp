@@ -5,14 +5,9 @@
 #include "Cyph3D/Scene/Scene.h"
 
 SceneRenderer::SceneRenderer(std::string_view name, glm::uvec2 size):
-_name(name), _size(size), _renderPerf(name)
+	_size(size), _renderPerf(name)
 {
 
-}
-
-void SceneRenderer::render(RenderPass& pass, Camera& camera)
-{
-	_renderPerf.addSubstep(pass.render(_textures, _registry, camera));
 }
 
 void SceneRenderer::onNewFrame()
@@ -47,14 +42,12 @@ const PerfStep& SceneRenderer::getRenderPerf()
 
 GLTexture& SceneRenderer::render(Camera& camera)
 {
-	Scene& scene = Engine::getScene();
-	
 	_renderPerf.clear();
 	_renderPerf.setDuration(_perfCounter.retrieve());
 	
 	_perfCounter.start();
 	
-	GLTexture& result = renderImpl(camera, scene);
+	GLTexture& result = renderImpl(camera);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	

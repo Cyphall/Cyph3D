@@ -13,19 +13,18 @@ class GLTexture;
 class PostProcessingEffect
 {
 public:
-	PostProcessingEffect(const char* name, glm::ivec2 size);
+	PostProcessingEffect(const char* name, glm::uvec2 size);
 	virtual ~PostProcessingEffect() = default;
 	
-	glm::ivec2 getSize() const;
-	
-	std::pair<GLTexture*, const PerfStep&> render(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera);
+	GLTexture& render(GLTexture& input, Camera& camera, PerfStep& parentPerfStep);
 
 protected:
-	virtual GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) = 0;
+	glm::uvec2 _size;
+	
+	virtual GLTexture& renderImpl(GLTexture& input, Camera& camera) = 0;
 
 private:
 	const char* _name;
-	glm::ivec2 _size;
 	PerfStep _effectPerf;
 	GpuPerfCounter _perfCounter;
 };

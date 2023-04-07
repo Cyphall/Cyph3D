@@ -9,29 +9,61 @@
 
 RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Rasterization SceneRenderer", size),
-	_zPrePass(_textures, size),
-	_shadowMapPass(_textures, size),
-	_lightingPass(_textures, size),
-	_skyboxPass(_textures, size),
-	_postProcessingPass(_textures, size)
+	_zPrepass(size),
+	_shadowMapPass(size),
+	_lightingPass(size),
+	_skyboxPass(size),
+	_postProcessingPass(size)
 {
-	_objectIndexFramebuffer.attachColor(0, *_textures["object_index"]);
 	_objectIndexFramebuffer.setReadBuffer(0);
 }
 
-GLTexture& RasterizationSceneRenderer::renderImpl(Camera& camera, Scene& scene)
+GLTexture& RasterizationSceneRenderer::renderImpl(Camera& camera)
 {
-	SceneRenderer::render(_zPrePass, camera);
-	SceneRenderer::render(_shadowMapPass, camera);
-
-	SceneRenderer::render(_lightingPass, camera);
+	ZPrepassInput zPrepassInput{
+		.registry = _registry,
+		.camera = camera
+	};
+	
+	ZPrepassOutput zPrepassOutput = _zPrepass.render(zPrepassInput, _renderPerf);
+	
+	ShadowMapPassInput shadowMapPassInput{
+		.registry = _registry,
+		.camera = camera
+	};
+	
+	_shadowMapPass.render(shadowMapPassInput, _renderPerf);
+	
+	LightingPassInput lightingPassInput{
+		.depth = zPrepassOutput.depth,
+		.registry = _registry,
+		.camera = camera
+	};
+	
+	LightingPassOutput lightingPassOutput = _lightingPass.render(lightingPassInput, _renderPerf);
+	_objectIndexFramebuffer.attachColor(0, lightingPassOutput.objectIndex);
+	
+	Scene& scene = Engine::getScene();
 	
 	if (scene.getSkybox() != nullptr && scene.getSkybox()->isLoaded())
-		SceneRenderer::render(_skyboxPass, camera);
+	{
+		SkyboxPassInput skyboxPassInput{
+			.camera = camera,
+			.rawRender = lightingPassOutput.rawRender,
+			.depth = zPrepassOutput.depth
+		};
+		
+		_skyboxPass.render(skyboxPassInput, _renderPerf);
+	}
 	
-	SceneRenderer::render(_postProcessingPass, camera);
+	PostProcessingPassInput postProcessingPassInput{
+		.rawRender = lightingPassOutput.rawRender,
+		.camera = camera
+	};
 	
-	return *_textures["final"];
+	PostProcessingPassOutput postProcessingPassOutput = _postProcessingPass.render(postProcessingPassInput, _renderPerf);
+	
+	return postProcessingPassOutput.postProcessedRender;
 }
 
 void RasterizationSceneRenderer::onNewFrame()

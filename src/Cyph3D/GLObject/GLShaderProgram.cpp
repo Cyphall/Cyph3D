@@ -116,17 +116,17 @@ int GLShaderProgram::getUniformLocation(const char* name)
 	return it != _uniforms.end() ? it->second : -1;
 }
 
-void GLShaderProgram::dispatch(glm::ivec3 groups)
+void GLShaderProgram::dispatch(glm::uvec3 groups)
 {
 	glDispatchCompute(groups.x, groups.y, groups.z);
 }
 
-void GLShaderProgram::dispatchAuto(glm::ivec3 workResolution)
+void GLShaderProgram::dispatchAuto(glm::uvec3 workResolution)
 {
-	dispatch(glm::ivec3(glm::ceil(glm::vec3(workResolution) / glm::vec3(getWorkGroupSize()))));
+	dispatch(glm::uvec3(glm::ceil(glm::vec3(workResolution) / glm::vec3(getWorkGroupSize()))));
 }
 
-glm::ivec3 GLShaderProgram::getWorkGroupSize() const
+glm::uvec3 GLShaderProgram::getWorkGroupSize() const
 {
 	glm::ivec3 workGroupSize;
 	glGetProgramiv(_handle, GL_COMPUTE_WORK_GROUP_SIZE, glm::value_ptr(workGroupSize));

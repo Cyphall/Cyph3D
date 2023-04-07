@@ -9,7 +9,7 @@
 static const float BLOOM_RADIUS = 0.85f;
 static const float BLOOM_STRENGTH = 0.5f;
 
-BloomEffect::BloomEffect(glm::ivec2 size):
+BloomEffect::BloomEffect(glm::uvec2 size):
 PostProcessingEffect("Bloom", size),
 _workTexture(TextureCreateInfo
 {
@@ -46,11 +46,11 @@ _composeProgram({
 	_composeFramebuffer.addToDrawBuffers(0, 0);
 }
 
-GLTexture* BloomEffect::renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera)
+GLTexture& BloomEffect::renderImpl(GLTexture& input, Camera& camera)
 {
 	// copy input texture level 0 to work texture level 0
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "copyTextureBaseLevel");
-	copyTextureBaseLevel(*currentRenderTexture, _workTexture);
+	copyTextureBaseLevel(input, _workTexture);
 	glPopDebugGroup();
 
 	// downsample work texture
@@ -71,10 +71,10 @@ GLTexture* BloomEffect::renderImpl(GLTexture* currentRenderTexture, std::unorder
 
 	// compose input texture level 0 and work texture level 0 to output texture level 0
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "compose");
-	compose(*currentRenderTexture, _workTexture, BLOOM_STRENGTH);
+	compose(input, _workTexture, BLOOM_STRENGTH);
 	glPopDebugGroup();
 
-	return &_outputTexture;
+	return _outputTexture;
 }
 
 void BloomEffect::copyTextureBaseLevel(GLTexture& source, GLTexture& destination)

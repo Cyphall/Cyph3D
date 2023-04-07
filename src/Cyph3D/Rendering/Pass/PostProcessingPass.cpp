@@ -1,12 +1,11 @@
 #include "PostProcessingPass.h"
 
-#include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/BloomEffect.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/ExposureEffect.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/ToneMappingEffect.h"
 
-PostProcessingPass::PostProcessingPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
-RenderPass(textures, size, "Post-processing pass")
+PostProcessingPass::PostProcessingPass(glm::uvec2 size):
+RenderPass(size, "Post-processing pass")
 {
 	_effects.push_back(std::make_unique<ExposureEffect>(size));
 	_effects.push_back(std::make_unique<BloomEffect>(size));
@@ -16,29 +15,20 @@ RenderPass(textures, size, "Post-processing pass")
 PostProcessingPass::~PostProcessingPass()
 {}
 
-void PostProcessingPass::preparePipelineImpl()
+PostProcessingPassOutput PostProcessingPass::renderImpl(PostProcessingPassInput& input)
 {
 	glEnable(GL_CULL_FACE);
-}
-
-void PostProcessingPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
-{
-	GLTexture* renderTexture = textures["raw_render"];
 	
-	glm::ivec2 size = getSize();
+	GLTexture* renderTexture = &input.rawRender;
 	
 	for (std::unique_ptr<PostProcessingEffect>& effect : _effects)
 	{
-		glViewport(0, 0, size.x, size.y);
-		auto [outputTexture, effectPerf] = effect->render(renderTexture, textures, camera);
-		renderTexture = outputTexture;
-		previousFramePerfStep.addSubstep(effectPerf);
+		renderTexture = &effect->render(*renderTexture, input.camera, _renderPassPerf);
 	}
 	
-	textures["final"] = renderTexture;
-}
-
-void PostProcessingPass::restorePipelineImpl()
-{
 	glDisable(GL_CULL_FACE);
+	
+	return PostProcessingPassOutput{
+		.postProcessedRender = *renderTexture
+	};
 }

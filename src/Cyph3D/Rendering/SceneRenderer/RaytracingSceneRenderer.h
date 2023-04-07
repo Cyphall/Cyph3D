@@ -18,5 +18,5 @@ private:
 	
 	GLFramebuffer _objectIndexFramebuffer;
 	
-	GLTexture& renderImpl(Camera& camera, Scene& scene) override;
+	GLTexture& renderImpl(Camera& camera) override;
 };

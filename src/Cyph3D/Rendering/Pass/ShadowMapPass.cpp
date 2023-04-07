@@ -10,8 +10,8 @@
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/Shape/Shape.h"
 
-ShadowMapPass::ShadowMapPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
-RenderPass(textures, size, "Shadow map pass"),
+ShadowMapPass::ShadowMapPass(glm::uvec2 size):
+RenderPass(size, "Shadow map pass"),
 _directionalLightShadowMappingProgram({
 	{GL_VERTEX_SHADER, "internal/shadow mapping/directional light.vert"}
 }),
@@ -24,19 +24,16 @@ _pointLightShadowMappingProgram({
 	_vao.defineFormat(0, 0, 3, GL_FLOAT, offsetof(Mesh::VertexData, position));
 }
 
-void ShadowMapPass::preparePipelineImpl()
+ShadowMapPassOutput ShadowMapPass::renderImpl(ShadowMapPassInput& input)
 {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-}
-
-void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep)
-{
+	
 	_vao.bind();
 	
 	_directionalLightShadowMappingProgram.bind();
-	for (DirectionalLight::RenderData& renderData : registry.directionalLights)
+	for (DirectionalLight::RenderData& renderData : input.registry.directionalLights)
 	{
 		if (!renderData.castShadows) continue;
 		
@@ -47,7 +44,7 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& text
 		float depthColor = 1;
 		renderData.shadowMapTexture->clear(&depthColor, GL_DEPTH_COMPONENT, GL_FLOAT);
 		
-		for (auto& shapeData : registry.shapes)
+		for (auto& shapeData : input.registry.shapes)
 		{
 			if (!shapeData.contributeShadows) continue;
 			
@@ -70,7 +67,7 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& text
 	}
 	
 	_pointLightShadowMappingProgram.bind();
-	for (PointLight::RenderData& renderData : registry.pointLights)
+	for (PointLight::RenderData& renderData : input.registry.pointLights)
 	{
 		if (!renderData.castShadows) continue;
 		
@@ -87,7 +84,7 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& text
 		float depthColor = 1;
 		renderData.shadowMapTexture->clear(&depthColor, GL_DEPTH_COMPONENT, GL_FLOAT);
 		
-		for (auto& shapeData : registry.shapes)
+		for (auto& shapeData : input.registry.shapes)
 		{
 			if (!shapeData.contributeShadows) continue;
 			
@@ -106,14 +103,12 @@ void ShadowMapPass::renderImpl(std::unordered_map<std::string, GLTexture*>& text
 			glDrawElements(GL_TRIANGLES, ibo.getCount(), GL_UNSIGNED_INT, nullptr);
 		}
 	}
-}
-
-void ShadowMapPass::restorePipelineImpl()
-{
+	
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	
-	glm::ivec2 size = getSize();
-	glViewport(0, 0, size.x, size.y);
+	return ShadowMapPassOutput{
+	
+	};
 }

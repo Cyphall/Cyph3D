@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
-#include "Cyph3D/Rendering/Pass/ZPrePass.h"
+#include "Cyph3D/Rendering/Pass/ZPrepass.h"
 #include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
 #include "Cyph3D/Rendering/Pass/LightingPass.h"
 #include "Cyph3D/Rendering/Pass/SkyboxPass.h"
@@ -18,7 +18,7 @@ public:
 	Entity* getClickedEntity(glm::uvec2 clickPos) override;
 
 private:
-	ZPrePass _zPrePass;
+	ZPrepass _zPrepass;
 	ShadowMapPass _shadowMapPass;
 	LightingPass _lightingPass;
 	SkyboxPass _skyboxPass;
@@ -26,5 +26,5 @@ private:
 	
 	GLFramebuffer _objectIndexFramebuffer;
 	
-	GLTexture& renderImpl(Camera& camera, Scene& scene) override;
+	GLTexture& renderImpl(Camera& camera) override;
 };

@@ -8,7 +8,6 @@
 #include <string>
 #include <string_view>
 
-class RenderPass;
 class Scene;
 class GLTexture;
 class Camera;
@@ -34,15 +33,12 @@ public:
 	virtual Entity* getClickedEntity(glm::uvec2 clickPos) = 0;
 	
 protected:
-	std::unordered_map<std::string, GLTexture*> _textures;
 	RenderRegistry _registry;
 	
-	std::string _name;
 	glm::uvec2 _size;
 
 	PerfStep _renderPerf;
 	GpuPerfCounter _perfCounter;
 	
-	virtual GLTexture& renderImpl(Camera& camera, Scene& scene) = 0;
-	void render(RenderPass& pass, Camera& camera);
+	virtual GLTexture& renderImpl(Camera& camera) = 0;
 };

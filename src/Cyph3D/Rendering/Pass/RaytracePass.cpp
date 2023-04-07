@@ -17,8 +17,8 @@
 
 #include <glm/gtc/matrix_inverse.hpp>
 
-RaytracePass::RaytracePass(std::unordered_map<std::string, GLTexture*>& textures, const glm::ivec2& size):
-RenderPass(textures, size, "Raytrace pass"),
+RaytracePass::RaytracePass(const glm::uvec2& size):
+RenderPass(size, "Raytrace pass"),
 _rawRenderTexture(TextureCreateInfo
 {
 	.size = size,
@@ -40,23 +40,17 @@ _shader({
 	{GL_COMPUTE_SHADER, "internal/raytracing/raytrace.comp"}
 })
 {
-	textures["raw_render"] = &_rawRenderTexture;
-	textures["objectIndex"] = &_objectIndexTexture;
-}
-
-void RaytracePass::preparePipelineImpl()
-{
 
 }
 
-void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
+RaytracePassOutput RaytracePass::renderImpl(RaytracePassInput& input)
 {
 
 #pragma region Camera
 	
-	const std::array<glm::vec3, 4>& cornerRays = camera.getCornerRays();
+	const std::array<glm::vec3, 4>& cornerRays = input.camera.getCornerRays();
 	
-	_shader.setUniform("u_camera.position", camera.getPosition());
+	_shader.setUniform("u_camera.position", input.camera.getPosition());
 	_shader.setUniform("u_camera.rayTL", cornerRays[0]);
 	_shader.setUniform("u_camera.rayTR", cornerRays[1]);
 	_shader.setUniform("u_camera.rayBL", cornerRays[2]);
@@ -81,7 +75,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 #pragma region DirectionalLight
 	
 	std::vector<GLSL_DirectionalLight> glslDirectionalLights;
-	for (const DirectionalLight::RenderData& renderData : objects.directionalLights)
+	for (const DirectionalLight::RenderData& renderData : input.registry.directionalLights)
 	{
 		GLSL_DirectionalLight& glslDirectionalLight = glslDirectionalLights.emplace_back();
 		glslDirectionalLight.fragToLightDirection = renderData.fragToLightDirection;
@@ -98,7 +92,7 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 #pragma region PointLight
 	
 	std::vector<GLSL_PointLight> glslPointLights;
-	for (const PointLight::RenderData& renderData : objects.pointLights)
+	for (const PointLight::RenderData& renderData : input.registry.pointLights)
 	{
 		GLSL_PointLight& glslPointLight = glslPointLights.emplace_back();
 		glslPointLight.position = renderData.pos;
@@ -122,9 +116,9 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	GLsizeiptr totalVertexCount = 0;
 	GLsizeiptr totalIndexCount = 0;
 	
-	for (int i = 0; i < objects.shapes.size(); i++)
+	for (int i = 0; i < input.registry.shapes.size(); i++)
 	{
-		const ShapeRenderer::RenderData& renderData = objects.shapes[i];
+		const ShapeRenderer::RenderData& renderData = input.registry.shapes[i];
 		
 		if (!renderData.shape->isReadyForRaytracingRender())
 			continue;
@@ -248,17 +242,17 @@ void RaytracePass::renderImpl(std::unordered_map<std::string, GLTexture*>& textu
 	
 #pragma endregion
 	
-	_shader.setUniform("u_resolution", glm::uvec2(getSize()));
+	_shader.setUniform("u_resolution", _size);
 	_shader.setUniform("o_renderImage", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
 	_shader.setUniform("o_objectIndexImage", _objectIndexTexture.getBindlessImageHandle(GL_R32I, GL_WRITE_ONLY));
 	
 	_shader.bind();
-	_shader.dispatchAuto(glm::ivec3(getSize(), 1));
+	_shader.dispatchAuto(glm::uvec3(_size, 1));
 	
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-}
-
-void RaytracePass::restorePipelineImpl()
-{
-
+	
+	return RaytracePassOutput{
+		.rawRender = _rawRenderTexture,
+		.objectIndex = _objectIndexTexture
+	};
 }

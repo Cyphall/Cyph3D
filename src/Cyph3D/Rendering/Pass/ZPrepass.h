@@ -6,18 +6,30 @@
 #include "Cyph3D/GLObject/GLShaderProgram.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
-class ZPrePass : public RenderPass
+struct RenderRegistry;
+class Camera;
+
+struct ZPrepassInput
+{
+	RenderRegistry& registry;
+	Camera& camera;
+};
+
+struct ZPrepassOutput
+{
+	GLTexture& depth;
+};
+
+class ZPrepass : public RenderPass<ZPrepassInput, ZPrepassOutput>
 {
 public:
-	ZPrePass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size);
-	
-	void preparePipelineImpl() override;
-	void renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& registry, Camera& camera, PerfStep& previousFramePerfStep) override;
-	void restorePipelineImpl() override;
+	explicit ZPrepass(glm::uvec2 size);
 	
 private:
 	GLShaderProgram _shader;
 	GLFramebuffer _framebuffer;
 	GLTexture _depthTexture;
 	GLVertexArray _vao;
+	
+	ZPrepassOutput renderImpl(ZPrepassInput& input) override;
 };

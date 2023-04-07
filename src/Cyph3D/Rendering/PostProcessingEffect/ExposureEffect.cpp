@@ -6,7 +6,7 @@
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"
 
-ExposureEffect::ExposureEffect(glm::ivec2 size):
+ExposureEffect::ExposureEffect(glm::uvec2 size):
 PostProcessingEffect("Exposure", size),
 _outputTexture(TextureCreateInfo
 {
@@ -22,9 +22,9 @@ _shaderProgram({
 	_framebuffer.addToDrawBuffers(0, 0);
 }
 
-GLTexture* ExposureEffect::renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera)
+GLTexture& ExposureEffect::renderImpl(GLTexture& input, Camera& camera)
 {
-	_shaderProgram.setUniform("u_colorTexture", currentRenderTexture->getBindlessTextureHandle());
+	_shaderProgram.setUniform("u_colorTexture", input.getBindlessTextureHandle());
 	_shaderProgram.setUniform("u_exposure", camera.getExposure());
 	
 	_framebuffer.bindForDrawing();
@@ -32,5 +32,5 @@ GLTexture* ExposureEffect::renderImpl(GLTexture* currentRenderTexture, std::unor
 	
 	RenderHelper::drawScreenQuad();
 	
-	return &_outputTexture;
+	return _outputTexture;
 }

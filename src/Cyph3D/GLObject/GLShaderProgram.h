@@ -16,9 +16,9 @@ public:
 	~GLShaderProgram() override;
 	
 	void bind();
-	void dispatch(glm::ivec3 groups);
-	void dispatchAuto(glm::ivec3 workResolution);
-	glm::ivec3 getWorkGroupSize() const;
+	void dispatch(glm::uvec3 groups);
+	void dispatchAuto(glm::uvec3 workResolution);
+	glm::uvec3 getWorkGroupSize() const;
 
 #pragma region float
 	

@@ -9,9 +9,9 @@
 class BloomEffect : public PostProcessingEffect
 {
 public:
-	explicit BloomEffect(glm::ivec2 size);
-
-	GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) override;
+	explicit BloomEffect(glm::uvec2 size);
+	
+	GLTexture& renderImpl(GLTexture& input, Camera& camera) override;
 
 private:
 	GLTexture _workTexture;

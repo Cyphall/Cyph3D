@@ -8,9 +8,9 @@
 class ExposureEffect : public PostProcessingEffect
 {
 public:
-	explicit ExposureEffect(glm::ivec2 size);
+	explicit ExposureEffect(glm::uvec2 size);
 	
-	GLTexture* renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera) override;
+	GLTexture& renderImpl(GLTexture& input, Camera& camera) override;
 
 private:
 	GLFramebuffer _framebuffer;

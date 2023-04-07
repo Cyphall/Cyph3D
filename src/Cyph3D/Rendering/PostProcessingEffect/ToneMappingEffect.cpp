@@ -5,7 +5,7 @@
 #include "Cyph3D/Helper/RenderHelper.h"
 #include "Cyph3D/Scene/Scene.h"
 
-ToneMappingEffect::ToneMappingEffect(glm::ivec2 size):
+ToneMappingEffect::ToneMappingEffect(glm::uvec2 size):
 PostProcessingEffect("Tonemapping", size),
 _outputTexture(TextureCreateInfo
 {
@@ -21,14 +21,14 @@ _shaderProgram({
 	_framebuffer.addToDrawBuffers(0, 0);
 }
 
-GLTexture* ToneMappingEffect::renderImpl(GLTexture* currentRenderTexture, std::unordered_map<std::string, GLTexture*>& textures, Camera& camera)
+GLTexture& ToneMappingEffect::renderImpl(GLTexture& input, Camera& camera)
 {
-	_shaderProgram.setUniform("u_colorTexture", currentRenderTexture->getBindlessTextureHandle());
+	_shaderProgram.setUniform("u_colorTexture", input.getBindlessTextureHandle());
 	
 	_framebuffer.bindForDrawing();
 	_shaderProgram.bind();
 	
 	RenderHelper::drawScreenQuad();
 	
-	return &_outputTexture;
+	return _outputTexture;
 }

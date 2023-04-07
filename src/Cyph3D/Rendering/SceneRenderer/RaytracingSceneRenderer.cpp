@@ -2,19 +2,30 @@
 
 RaytracingSceneRenderer::RaytracingSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Raytracing SceneRenderer", size),
-	_raytracePass(_textures, size),
-	_postProcessingPass(_textures, size)
+	_raytracePass(size),
+	_postProcessingPass(size)
 {
-	_objectIndexFramebuffer.attachColor(0, *_textures["objectIndex"]);
 	_objectIndexFramebuffer.setReadBuffer(0);
 }
 
-GLTexture& RaytracingSceneRenderer::renderImpl(Camera& camera, Scene& scene)
+GLTexture& RaytracingSceneRenderer::renderImpl(Camera& camera)
 {
-	SceneRenderer::render(_raytracePass, camera);
-	SceneRenderer::render(_postProcessingPass, camera);
+	RaytracePassInput raytracePassInput{
+		.registry = _registry,
+		.camera = camera
+	};
 	
-	return *_textures["final"];
+	RaytracePassOutput raytracePassOutput = _raytracePass.render(raytracePassInput, _renderPerf);
+	_objectIndexFramebuffer.attachColor(0, raytracePassOutput.objectIndex);
+	
+	PostProcessingPassInput postProcessingPassInput{
+		.rawRender = raytracePassOutput.rawRender,
+		.camera = camera
+	};
+	
+	PostProcessingPassOutput postProcessingPassOutput = _postProcessingPass.render(postProcessingPassInput, _renderPerf);
+	
+	return postProcessingPassOutput.postProcessedRender;
 }
 
 Entity* RaytracingSceneRenderer::getClickedEntity(glm::uvec2 clickPos)

@@ -7,14 +7,25 @@
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
-class RaytracePass : public RenderPass
+struct RenderRegistry;
+class Camera;
+
+struct RaytracePassInput
+{
+	RenderRegistry& registry;
+	Camera& camera;
+};
+
+struct RaytracePassOutput
+{
+	GLTexture& rawRender;
+	GLTexture& objectIndex;
+};
+
+class RaytracePass : public RenderPass<RaytracePassInput, RaytracePassOutput>
 {
 public:
-	RaytracePass(std::unordered_map<std::string, GLTexture*>& textures, const glm::ivec2& size);
-	
-	void preparePipelineImpl() override;
-	void renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep) override;
-	void restorePipelineImpl() override;
+	explicit RaytracePass(const glm::uvec2& size);
 
 private:
 	struct GLSL_Material
@@ -91,4 +102,6 @@ private:
 	GLMutableBuffer<GLSL_Mesh> _meshBuffer;
 	GLMutableBuffer<Mesh::VertexData> _meshVertexDataBuffer;
 	GLMutableBuffer<GLuint> _meshIndexDataBuffer;
+	
+	RaytracePassOutput renderImpl(RaytracePassInput& input) override;
 };

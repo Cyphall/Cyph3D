@@ -9,8 +9,8 @@
 
 #include <glm/gtx/transform.hpp>
 
-SkyboxPass::SkyboxPass(std::unordered_map<std::string, GLTexture*>& textures, glm::ivec2 size):
-RenderPass(textures, size, "Skybox pass"),
+SkyboxPass::SkyboxPass(glm::uvec2 size):
+RenderPass(size, "Skybox pass"),
 _vao(),
 _vbo(36, GL_DYNAMIC_STORAGE_BIT),
 _shader({
@@ -18,10 +18,7 @@ _shader({
 	{GL_FRAGMENT_SHADER, "internal/skybox/skybox.frag"}
 })
 {
-	_framebuffer.attachColor(0, *textures["raw_render"]);
 	_framebuffer.addToDrawBuffers(0, 0);
-
-	_framebuffer.attachDepth(*textures["z-prepass_depth"]);
 
 	std::vector<SkyboxPass::VertexData> data = {
 			{{-1.0f,  1.0f, -1.0f}},
@@ -73,23 +70,22 @@ _shader({
 	_vao.bindBufferToSlot(_vbo, 0);
 }
 
-void SkyboxPass::preparePipelineImpl()
+SkyboxPassOutput SkyboxPass::renderImpl(SkyboxPassInput& input)
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LEQUAL);
 	glDepthMask(GL_FALSE);
-}
-
-void SkyboxPass::renderImpl(std::unordered_map<std::string, GLTexture*>& textures, RenderRegistry& objects, Camera& camera, PerfStep& previousFramePerfStep)
-{
+	
+	_framebuffer.attachColor(0, input.rawRender);
+	_framebuffer.attachDepth(input.depth);
 	_framebuffer.bindForDrawing();
 	
 	_shader.bind();
 	
 	glm::mat4 mvp =
-			camera.getProjection() *
-			glm::mat4(glm::mat3(camera.getView())) *
+			input.camera.getProjection() *
+			glm::mat4(glm::mat3(input.camera.getView())) *
 			glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
 	
 	_shader.setUniform("u_mvp", mvp);
@@ -99,12 +95,13 @@ void SkyboxPass::renderImpl(std::unordered_map<std::string, GLTexture*>& texture
 	_vao.bind();
 	
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-}
-
-void SkyboxPass::restorePipelineImpl()
-{
+	
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDepthFunc(GL_LESS);
 	glDepthMask(GL_TRUE);
+	
+	return SkyboxPassOutput{
+	
+	};
 }
