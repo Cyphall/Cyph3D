@@ -134,6 +134,7 @@ struct Skybox
 {
 	bool enabled;
 	layout(bindless_sampler) samplerCube cubemap;
+	mat4 rotation;
 };
 
 uniform Camera u_camera;
@@ -436,7 +437,9 @@ vec3 srgbToLinear(vec3 color)
 
 vec3 sampleSkybox(vec3 dir)
 {
-	return texture(u_skybox.cubemap, dir * vec3(1, -1, -1)).rgb;
+	dir *= vec3(1, -1, -1);
+	dir = (u_skybox.rotation * vec4(dir, 1.0)).rgb;
+	return texture(u_skybox.cubemap, dir).rgb;
 }
 
 HitInfo trace(Ray ray)

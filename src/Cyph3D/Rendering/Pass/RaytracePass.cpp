@@ -16,6 +16,7 @@
 #include "Cyph3D/Scene/Scene.h"
 
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtx/transform.hpp>
 
 RaytracePass::RaytracePass(const glm::uvec2& size):
 RenderPass(size, "Raytrace pass"),
@@ -65,6 +66,7 @@ RaytracePassOutput RaytracePass::renderImpl(RaytracePassInput& input)
 	{
 		_shader.setUniform("u_skybox.enabled", true);
 		_shader.setUniform("u_skybox.cubemap", skybox->getCubemap().getBindlessTextureHandle());
+		_shader.setUniform("u_skybox.rotation", glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0)));
 	}
 	else
 	{
