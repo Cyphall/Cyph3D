@@ -19,7 +19,8 @@ public:
 	bool isReadyForRasterisationRender() const override;
 	bool isReadyForRaytracingRender() const override;
 	
-	const Mesh& getMeshToRender() const override;
+	const VKPtr<VKBuffer<VertexData>>& getVertexBuffer() const override;
+	const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const override;
 	
 	void onDrawUi() override;
 	

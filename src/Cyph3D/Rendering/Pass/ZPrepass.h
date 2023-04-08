@@ -1,13 +1,16 @@
 #pragma once
 
-#include "Cyph3D/GLObject/GLFramebuffer.h"
-#include "Cyph3D/GLObject/GLTexture.h"
-#include "Cyph3D/GLObject/GLVertexArray.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
+#include "Cyph3D/GLSL_types.h"
+#include "Cyph3D/VKObject/VKPtr.h"
+#include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 struct RenderRegistry;
 class Camera;
+class VKPipelineLayout;
+class VKGraphicsPipeline;
+class VKImage;
+class VKImageView;
 
 struct ZPrepassInput
 {
@@ -17,7 +20,7 @@ struct ZPrepassInput
 
 struct ZPrepassOutput
 {
-	GLTexture& depth;
+	const VKPtr<VKImageView>& depthView;
 };
 
 class ZPrepass : public RenderPass<ZPrepassInput, ZPrepassOutput>
@@ -26,10 +29,20 @@ public:
 	explicit ZPrepass(glm::uvec2 size);
 	
 private:
-	GLShaderProgram _shader;
-	GLFramebuffer _framebuffer;
-	GLTexture _depthTexture;
-	GLVertexArray _vao;
+	struct PushConstantData
+	{
+		GLSL_mat4 mvp;
+	};
 	
-	ZPrepassOutput renderImpl(ZPrepassInput& input) override;
+	VKPtr<VKPipelineLayout> _pipelineLayout;
+	VKPtr<VKGraphicsPipeline> _pipeline;
+	
+	VKDynamic<VKImage> _depthMap;
+	VKDynamic<VKImageView> _depthMapView;
+	
+	ZPrepassOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
+	
+	void createPipelineLayout();
+	void createPipeline();
+	void createDepthMap();
 };

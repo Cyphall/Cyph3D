@@ -1,8 +1,11 @@
 #include "PostProcessingPass.h"
 
+#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/BloomEffect.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/ExposureEffect.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/ToneMappingEffect.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
 
 PostProcessingPass::PostProcessingPass(glm::uvec2 size):
 RenderPass(size, "Post-processing pass")
@@ -15,20 +18,16 @@ RenderPass(size, "Post-processing pass")
 PostProcessingPass::~PostProcessingPass()
 {}
 
-PostProcessingPassOutput PostProcessingPass::renderImpl(PostProcessingPassInput& input)
+PostProcessingPassOutput PostProcessingPass::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, PostProcessingPassInput& input)
 {
-	glEnable(GL_CULL_FACE);
-	
-	GLTexture* renderTexture = &input.rawRender;
+	const VKPtr<VKImageView>* renderTextureView = &input.rawRenderView;
 	
 	for (std::unique_ptr<PostProcessingEffect>& effect : _effects)
 	{
-		renderTexture = &effect->render(*renderTexture, input.camera, _renderPassPerf);
+		renderTextureView = &effect->render(commandBuffer, *renderTextureView, input.camera, _renderPassPerf);
 	}
 	
-	glDisable(GL_CULL_FACE);
-	
 	return PostProcessingPassOutput{
-		.postProcessedRender = *renderTexture
+		.postProcessedRenderView = *renderTextureView
 	};
 }

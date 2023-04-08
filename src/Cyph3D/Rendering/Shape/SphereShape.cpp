@@ -23,7 +23,12 @@ bool SphereShape::isReadyForRaytracingRender() const
 	return true;
 }
 
-const Mesh& SphereShape::getMeshToRender() const
+const VKPtr<VKBuffer<VertexData>>& SphereShape::getVertexBuffer() const
+{
+	throw std::runtime_error("This function is not implemented");
+}
+
+const VKPtr<VKBuffer<uint32_t>>& SphereShape::getIndexBuffer() const
 {
 	throw std::runtime_error("This function is not implemented");
 }

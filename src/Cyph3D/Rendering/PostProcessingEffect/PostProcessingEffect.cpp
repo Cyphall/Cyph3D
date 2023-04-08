@@ -1,28 +1,27 @@
 #include "PostProcessingEffect.h"
 
-#include "Cyph3D/PerfCounter/PerfStep.h"
+#include "Cyph3D/VKObject/VKPtr.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 
 PostProcessingEffect::PostProcessingEffect(const char* name, glm::uvec2 size):
-_name(name), _size(size), _effectPerf(name)
+	_size(size), _name(name), _effectPerf(name)
 {
 
 }
 
-GLTexture& PostProcessingEffect::render(GLTexture& input, Camera& camera, PerfStep& parentPerfStep)
+const VKPtr<VKImageView>& PostProcessingEffect::render(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera, PerfStep& parentPerfStep)
 {
 	_effectPerf.clear();
-	_effectPerf.setDuration(_perfCounter.retrieve());
+	_effectPerf.setDuration(_perfCounter.retrieve(commandBuffer));
 	parentPerfStep.addSubstep(_effectPerf);
 	
-	glViewport(0, 0, _size.x, _size.y);
+	_perfCounter.start(commandBuffer);
 	
-	_perfCounter.start();
+	commandBuffer->pushDebugGroup(_name);
+	const VKPtr<VKImageView>& output = renderImpl(commandBuffer, input, camera);
+	commandBuffer->popDebugGroup();
 	
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, _name);
-	GLTexture& output = renderImpl(input, camera);
-	glPopDebugGroup();
-	
-	_perfCounter.stop();
+	_perfCounter.stop(commandBuffer);
 	
 	return output;
 }

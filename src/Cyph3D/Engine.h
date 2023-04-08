@@ -4,6 +4,7 @@
 
 #include <memory>
 
+class VKContext;
 class Window;
 class AssetManager;
 class Scene;
@@ -15,6 +16,7 @@ public:
 	static void run();
 	static void shutdown();
 	
+	static VKContext& getVKContext();
 	static Window& getWindow();
 	static AssetManager& getAssetManager();
 	static Scene& getScene();
@@ -22,6 +24,7 @@ public:
 	static Timer& getTimer();
 	
 private:
+	static std::unique_ptr<VKContext> _vkContext;
 	static std::unique_ptr<Window> _window;
 	static std::unique_ptr<AssetManager> _assetManager;
 	static std::unique_ptr<Scene> _scene;

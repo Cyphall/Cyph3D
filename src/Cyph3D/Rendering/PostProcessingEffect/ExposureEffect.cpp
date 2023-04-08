@@ -1,36 +1,177 @@
 #include "ExposureEffect.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/Helper/RenderHelper.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
+#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
+#include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
+#include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
+#include "Cyph3D/VKObject/Sampler/VKSampler.h"
 #include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/Scene/Scene.h"
 
 ExposureEffect::ExposureEffect(glm::uvec2 size):
-PostProcessingEffect("Exposure", size),
-_outputTexture(TextureCreateInfo
+	PostProcessingEffect("Exposure", size)
 {
-	.size = size,
-	.internalFormat = GL_RGBA16F
-}),
-_shaderProgram({
-	{GL_VERTEX_SHADER, "internal/fullscreen quad.vert"},
-	{GL_FRAGMENT_SHADER, "internal/post-processing/exposure/exposure.frag"}
-})
-{
-	_framebuffer.attachColor(0, _outputTexture);
-	_framebuffer.addToDrawBuffers(0, 0);
+	createDescriptorSetLayout();
+	createPipelineLayout();
+	createPipeline();
+	createSampler();
+	createImage();
 }
 
-GLTexture& ExposureEffect::renderImpl(GLTexture& input, Camera& camera)
+const VKPtr<VKImageView>& ExposureEffect::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
 {
-	_shaderProgram.setUniform("u_colorTexture", input.getBindlessTextureHandle());
-	_shaderProgram.setUniform("u_exposure", camera.getExposure());
+	commandBuffer->imageMemoryBarrier(
+		_outputImage.getVKPtr(),
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal,
+		0,
+		0);
 	
-	_framebuffer.bindForDrawing();
-	_shaderProgram.bind();
+	vk::RenderingAttachmentInfo colorAttachment;
+	colorAttachment.imageView = _outputImageView->getHandle();
+	colorAttachment.imageLayout = _outputImage->getLayout(0, 0);
+	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
+	colorAttachment.resolveImageView = nullptr;
+	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
+	colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+	colorAttachment.clearValue.color.float32[0] = 0.0f;
+	colorAttachment.clearValue.color.float32[1] = 0.0f;
+	colorAttachment.clearValue.color.float32[2] = 0.0f;
+	colorAttachment.clearValue.color.float32[3] = 1.0f;
 	
-	RenderHelper::drawScreenQuad();
+	vk::RenderingInfo renderingInfo;
+	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
+	renderingInfo.renderArea.extent = vk::Extent2D(_size.x, _size.y);
+	renderingInfo.layerCount = 1;
+	renderingInfo.viewMask = 0;
+	renderingInfo.colorAttachmentCount = 1;
+	renderingInfo.pColorAttachments = &colorAttachment;
+	renderingInfo.pDepthAttachment = nullptr;
+	renderingInfo.pStencilAttachment = nullptr;
 	
-	return _outputTexture;
+	commandBuffer->beginRendering(renderingInfo);
+	
+	commandBuffer->bindPipeline(_pipeline);
+	
+	commandBuffer->pushDescriptor(0, 0, input, _inputSampler);
+	
+	PushConstantData pushConstantData{};
+	pushConstantData.exposure = camera.getExposure();
+	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eFragment, pushConstantData);
+	
+	commandBuffer->draw(3, 0);
+	
+	commandBuffer->unbindPipeline();
+	
+	commandBuffer->endRendering();
+	
+	commandBuffer->imageMemoryBarrier(
+		_outputImage.getVKPtr(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		0,
+		0);
+	
+	return _outputImageView.getVKPtr();
+}
+
+void ExposureEffect::createDescriptorSetLayout()
+{
+	VKDescriptorSetLayoutInfo info(true);
+	info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
+	
+	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
+}
+
+void ExposureEffect::createPipelineLayout()
+{
+	VKPipelineLayoutInfo info;
+	info.registerDescriptorSetLayout(_descriptorSetLayout);
+	info.registerPushConstantLayout<PushConstantData>(vk::ShaderStageFlagBits::eFragment);
+	
+	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
+}
+
+void ExposureEffect::createPipeline()
+{
+	VKGraphicsPipelineInfo info;
+	info.vertexShaderFile = "resources/shaders/internal/fullscreen quad.vert";
+	info.geometryShaderFile = std::nullopt;
+	info.fragmentShaderFile = "resources/shaders/internal/post-processing/exposure/exposure.frag";
+	
+	info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+	
+	info.pipelineLayout = _pipelineLayout;
+	
+	info.viewport = VKPipelineViewport{
+		.offset = {0, 0},
+		.size = _size,
+		.depthRange = {0.0f, 1.0f}
+	};
+	
+	info.scissor = VKPipelineScissor{
+		.offset = info.viewport->offset,
+		.size = info.viewport->size
+	};
+	
+	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
+	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
+	
+	info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+	
+	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
+}
+
+void ExposureEffect::createSampler()
+{
+	vk::SamplerCreateInfo createInfo;
+	createInfo.flags = {};
+	createInfo.magFilter = vk::Filter::eNearest;
+	createInfo.minFilter = vk::Filter::eNearest;
+	createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+	createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
+	createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
+	createInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
+	createInfo.mipLodBias = 0.0f;
+	createInfo.anisotropyEnable = false;
+	createInfo.maxAnisotropy = 1;
+	createInfo.compareEnable = false;
+	createInfo.compareOp = vk::CompareOp::eNever;
+	createInfo.minLod = -1000.0f;
+	createInfo.maxLod = 1000.0f;
+	createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+	createInfo.unnormalizedCoordinates = false;
+	
+	_inputSampler = VKSampler::create(Engine::getVKContext(), createInfo);
+}
+
+void ExposureEffect::createImage()
+{
+	_outputImage = VKImage::createDynamic(
+		Engine::getVKContext(),
+		SceneRenderer::HDR_COLOR_FORMAT,
+		_size,
+		1,
+		1,
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
+		vk::ImageAspectFlagBits::eColor,
+		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
+	_outputImageView = VKImageView::createDynamic(
+		Engine::getVKContext(),
+		_outputImage,
+		vk::ImageViewType::e2D);
 }

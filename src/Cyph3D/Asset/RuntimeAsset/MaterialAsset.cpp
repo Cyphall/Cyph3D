@@ -5,8 +5,11 @@
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/GLObject/GLTexture.h"
-#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
+#include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
+#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/Helper/ImGuiHelper.h"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -14,6 +17,46 @@
 
 MaterialAsset* MaterialAsset::_defaultMaterial = nullptr;
 MaterialAsset* MaterialAsset::_missingMaterial = nullptr;
+
+template<typename T>
+static void updateImageData(const VKPtr<VKImage>& image, const T& value)
+{
+	VKPtr<VKBuffer<T>> stagingBuffer = VKBuffer<T>::create(
+		Engine::getVKContext(),
+		1,
+		vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
+	
+	T* ptr = stagingBuffer->map();
+	std::copy(&value, &value + 1, ptr);
+	stagingBuffer->unmap();
+	
+	Engine::getVKContext().executeImmediate(
+		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+		{
+			commandBuffer->imageMemoryBarrier(
+				image,
+				vk::PipelineStageFlagBits2::eNone,
+				vk::AccessFlagBits2::eNone,
+				vk::PipelineStageFlagBits2::eCopy,
+				vk::AccessFlagBits2::eTransferWrite,
+				vk::ImageLayout::eTransferDstOptimal,
+				0,
+				0);
+			
+			commandBuffer->copyBufferToImage(stagingBuffer, 0, image, 0, 0);
+			
+			commandBuffer->imageMemoryBarrier(
+				image,
+				vk::PipelineStageFlagBits2::eCopy,
+				vk::AccessFlagBits2::eTransferWrite,
+				vk::PipelineStageFlagBits2::eFragmentShader,
+				vk::AccessFlagBits2::eShaderSampledRead,
+				vk::ImageLayout::eReadOnlyOptimal,
+				0,
+				0);
+		});
+}
 
 MaterialAsset::MaterialAsset(AssetManager& manager, const MaterialAssetSignature& signature):
 	RuntimeAsset(manager, signature)
@@ -173,26 +216,38 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 	if (path)
 	{
 		_albedoMapPath = *path;
-		_albedoMap = _manager.loadTexture(path.value(), TextureType::ColorSrgb);
-		_albedoValueTexture = nullptr;
+		_albedoMap = _manager.loadTexture(path.value(), ImageType::ColorSrgb);
+		_albedoValueTexture = {};
+		_albedoValueTextureView = {};
 	}
 	else
 	{
 		_albedoMapPath = std::nullopt;
 		_albedoMap = nullptr;
 		
-		TextureCreateInfo createInfo;
-		createInfo.size = {1, 1};
-		createInfo.internalFormat = GL_SRGB8;
-
-		_albedoValueTexture = std::make_unique<GLTexture>(createInfo);
+		_albedoValueTexture = VKImage::create(
+			Engine::getVKContext(),
+			vk::Format::eR8G8B8A8Srgb,
+			{1, 1},
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_albedoValueTextureView = VKImageView::create(
+			Engine::getVKContext(),
+			_albedoValueTexture,
+			vk::ImageViewType::e2D);
+		
 		setAlbedoValue(getAlbedoValue()); // updates the texture with the current value
 	}
 }
 
-const GLTexture& MaterialAsset::getAlbedoTexture() const
+const VKPtr<VKImageView>& MaterialAsset::getAlbedoTextureView() const
 {
-	return _albedoMap != nullptr && _albedoMap->isLoaded() ? _albedoMap->getGLTexture() : *_albedoValueTexture;
+	return _albedoMap != nullptr && _albedoMap->isLoaded() ? _albedoMap->getImageView() : _albedoValueTextureView;
 }
 
 const std::string* MaterialAsset::getNormalMapPath() const
@@ -205,28 +260,38 @@ void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
 	if (path)
 	{
 		_normalMapPath = *path;
-		_normalMap = _manager.loadTexture(*path, TextureType::NormalMap);
-		_normalValueTexture = nullptr;
+		_normalMap = _manager.loadTexture(*path, ImageType::NormalMap);
+		_normalValueTexture = {};
+		_normalValueTextureView = {};
 	}
 	else
 	{
 		_normalMapPath = std::nullopt;
 		_normalMap = nullptr;
-
-		TextureCreateInfo createInfo;
-		createInfo.size = {1, 1};
-		createInfo.internalFormat = GL_RG8;
-
-		_normalValueTexture = std::make_unique<GLTexture>(createInfo);
 		
-		float normalValue[] = {0.5f, 0.5f};
-		_normalValueTexture->setData(normalValue, 0, GL_RG, GL_FLOAT);
+		_normalValueTexture = VKImage::create(
+			Engine::getVKContext(),
+			vk::Format::eR8G8Unorm,
+			{1, 1},
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_normalValueTextureView = VKImageView::create(
+			Engine::getVKContext(),
+			_normalValueTexture,
+			vk::ImageViewType::e2D);
+		
+		updateImageData(_normalValueTexture, glm::u8vec2{128, 128});
 	}
 }
 
-const GLTexture& MaterialAsset::getNormalTexture() const
+const VKPtr<VKImageView>& MaterialAsset::getNormalTextureView() const
 {
-	return _normalMap != nullptr && _normalMap->isLoaded() ? _normalMap->getGLTexture() : *_normalValueTexture;
+	return _normalMap != nullptr && _normalMap->isLoaded() ? _normalMap->getImageView() : _normalValueTextureView;
 }
 
 const std::string* MaterialAsset::getRoughnessMapPath() const
@@ -239,26 +304,38 @@ void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
 	if (path)
 	{
 		_roughnessMapPath = *path;
-		_roughnessMap = _manager.loadTexture(*path, TextureType::Grayscale);
-		_roughnessValueTexture = nullptr;
+		_roughnessMap = _manager.loadTexture(*path, ImageType::Grayscale);
+		_roughnessValueTexture = {};
+		_roughnessValueTextureView = {};
 	}
 	else
 	{
 		_roughnessMapPath = std::nullopt;
 		_roughnessMap = nullptr;
-
-		TextureCreateInfo createInfo;
-		createInfo.size = {1, 1};
-		createInfo.internalFormat = GL_R8;
-
-		_roughnessValueTexture = std::make_unique<GLTexture>(createInfo);
+		
+		_roughnessValueTexture = VKImage::create(
+			Engine::getVKContext(),
+			vk::Format::eR8Unorm,
+			{1, 1},
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_roughnessValueTextureView = VKImageView::create(
+			Engine::getVKContext(),
+			_roughnessValueTexture,
+			vk::ImageViewType::e2D);
+		
 		setRoughnessValue(getRoughnessValue()); // updates the texture with the current value
 	}
 }
 
-const GLTexture& MaterialAsset::getRoughnessTexture() const
+const VKPtr<VKImageView>& MaterialAsset::getRoughnessTextureView() const
 {
-	return _roughnessMap != nullptr && _roughnessMap->isLoaded() ? _roughnessMap->getGLTexture() : *_roughnessValueTexture;
+	return _roughnessMap != nullptr && _roughnessMap->isLoaded() ? _roughnessMap->getImageView() : _roughnessValueTextureView;
 }
 
 const std::string* MaterialAsset::getMetalnessMapPath() const
@@ -271,26 +348,38 @@ void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
 	if (path)
 	{
 		_metalnessMapPath = *path;
-		_metalnessMap = _manager.loadTexture(*path, TextureType::Grayscale);
-		_metalnessValueTexture = nullptr;
+		_metalnessMap = _manager.loadTexture(*path, ImageType::Grayscale);
+		_metalnessValueTexture = {};
+		_metalnessValueTextureView = {};
 	}
 	else
 	{
 		_metalnessMapPath = std::nullopt;
 		_metalnessMap = nullptr;
-
-		TextureCreateInfo createInfo;
-		createInfo.size = {1, 1};
-		createInfo.internalFormat = GL_R8;
-
-		_metalnessValueTexture = std::make_unique<GLTexture>(createInfo);
+		
+		_metalnessValueTexture = VKImage::create(
+			Engine::getVKContext(),
+			vk::Format::eR8Unorm,
+			{1, 1},
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_metalnessValueTextureView = VKImageView::create(
+			Engine::getVKContext(),
+			_metalnessValueTexture,
+			vk::ImageViewType::e2D);
+		
 		setMetalnessValue(getMetalnessValue()); // updates the texture with the current value
 	}
 }
 
-const GLTexture& MaterialAsset::getMetalnessTexture() const
+const VKPtr<VKImageView>& MaterialAsset::getMetalnessTextureView() const
 {
-	return _metalnessMap != nullptr && _metalnessMap->isLoaded() ? _metalnessMap->getGLTexture() : *_metalnessValueTexture;
+	return _metalnessMap != nullptr && _metalnessMap->isLoaded() ? _metalnessMap->getImageView() : _metalnessValueTextureView;
 }
 
 const std::string* MaterialAsset::getDisplacementMapPath() const
@@ -303,28 +392,38 @@ void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
 	if (path)
 	{
 		_displacementMapPath = *path;
-		_displacementMap = _manager.loadTexture(*path, TextureType::Grayscale);
-		_displacementValueTexture = nullptr;
+		_displacementMap = _manager.loadTexture(*path, ImageType::Grayscale);
+		_displacementValueTexture = {};
+		_displacementValueTextureView = {};
 	}
 	else
 	{
 		_displacementMapPath = std::nullopt;
 		_displacementMap = nullptr;
-
-		TextureCreateInfo createInfo;
-		createInfo.size = {1, 1};
-		createInfo.internalFormat = GL_R8;
-
-		_displacementValueTexture = std::make_unique<GLTexture>(createInfo);
-
-		float displacementValue[] = {1.0f};
-		_displacementValueTexture->setData(displacementValue, 0, GL_RED, GL_FLOAT);
+		
+		_displacementValueTexture = VKImage::create(
+			Engine::getVKContext(),
+			vk::Format::eR8Unorm,
+			{1, 1},
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_displacementValueTextureView = VKImageView::create(
+			Engine::getVKContext(),
+			_displacementValueTexture,
+			vk::ImageViewType::e2D);
+		
+		updateImageData<uint8_t>(_displacementValueTexture, 255);
 	}
 }
 
-const GLTexture& MaterialAsset::getDisplacementTexture() const
+const VKPtr<VKImageView>& MaterialAsset::getDisplacementTextureView() const
 {
-	return _displacementMap != nullptr && _displacementMap->isLoaded() ? _displacementMap->getGLTexture() : *_displacementValueTexture;
+	return _displacementMap != nullptr && _displacementMap->isLoaded() ? _displacementMap->getImageView() : _displacementValueTextureView;
 }
 
 const std::string* MaterialAsset::getEmissiveMapPath() const
@@ -337,26 +436,38 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 	if (path)
 	{
 		_emissiveMapPath = *path;
-		_emissiveMap = _manager.loadTexture(*path, TextureType::Grayscale);
-		_emissiveValueTexture = nullptr;
+		_emissiveMap = _manager.loadTexture(*path, ImageType::Grayscale);
+		_emissiveValueTexture = {};
+		_emissiveValueTextureView = {};
 	}
 	else
 	{
 		_emissiveMapPath = std::nullopt;
 		_emissiveMap = nullptr;
-
-		TextureCreateInfo createInfo;
-		createInfo.size = {1, 1};
-		createInfo.internalFormat = GL_R8;
-
-		_emissiveValueTexture = std::make_unique<GLTexture>(createInfo);
+		
+		_emissiveValueTexture = VKImage::create(
+			Engine::getVKContext(),
+			vk::Format::eR8Unorm,
+			{1, 1},
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_emissiveValueTextureView = VKImageView::create(
+			Engine::getVKContext(),
+			_emissiveValueTexture,
+			vk::ImageViewType::e2D);
+		
 		setEmissiveValue(getEmissiveValue()); // updates the texture with the current value
 	}
 }
 
-const GLTexture& MaterialAsset::getEmissiveTexture() const
+const VKPtr<VKImageView>& MaterialAsset::getEmissiveTextureView() const
 {
-	return _emissiveMap != nullptr && _emissiveMap->isLoaded() ? _emissiveMap->getGLTexture() : *_emissiveValueTexture;
+	return _emissiveMap != nullptr && _emissiveMap->isLoaded() ? _emissiveMap->getImageView() : _emissiveValueTextureView;
 }
 
 const glm::vec3& MaterialAsset::getAlbedoValue() const
@@ -370,7 +481,8 @@ void MaterialAsset::setAlbedoValue(const glm::vec3& value)
 	
 	if (_albedoValueTexture)
 	{
-		_albedoValueTexture->setData(glm::value_ptr(_albedoValue), 0, GL_RGB, GL_FLOAT);
+		glm::u8vec4 u8Value = glm::u8vec4(glm::round(_albedoValue * 255.0f), 255);
+		updateImageData(_albedoValueTexture, u8Value);
 	}
 }
 
@@ -385,7 +497,8 @@ void MaterialAsset::setRoughnessValue(const float& value)
 
 	if (_roughnessValueTexture)
 	{
-		_roughnessValueTexture->setData(&_roughnessValue, 0, GL_RED, GL_FLOAT);
+		uint8_t u8Value = glm::round(_roughnessValue * 255.0f);
+		updateImageData(_roughnessValueTexture, u8Value);
 	}
 }
 
@@ -400,7 +513,8 @@ void MaterialAsset::setMetalnessValue(const float& value)
 
 	if (_metalnessValueTexture)
 	{
-		_metalnessValueTexture->setData(&_metalnessValue, 0, GL_RED, GL_FLOAT);
+		uint8_t u8Value = glm::round(_metalnessValue * 255.0f);
+		updateImageData(_metalnessValueTexture, u8Value);
 	}
 }
 
@@ -415,7 +529,8 @@ void MaterialAsset::setEmissiveValue(const float& value)
 
 	if (_emissiveValueTexture)
 	{
-		_emissiveValueTexture->setData(&_emissiveValue, 0, GL_RED, GL_FLOAT);
+		uint8_t u8Value = glm::round(_emissiveValue * 255.0f);
+		updateImageData(_emissiveValueTexture, u8Value);
 	}
 }
 

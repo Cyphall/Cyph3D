@@ -4,17 +4,35 @@
 #include <functional>
 #include <memory>
 #include <filesystem>
+#include <cstddef>
 
 class StbImage
 {
 public:
-	explicit StbImage(const std::filesystem::path& path, int desiredChannels = 0);
+	enum class Channels
+	{
+		eAny,
+		eGrey,
+		eGreyAlpha,
+		eRedGreenBlue,
+		eRedGreenBlueAlpha
+	};
 	
-	const void* getPtr() const;
+	enum class BitDepth
+	{
+		e8,
+		e16,
+		e32
+	};
+	
+	explicit StbImage(const std::filesystem::path& path, Channels desiredChannels = Channels::eAny, BitDepth maxBitDepth = BitDepth::e32);
+	
+	const std::byte* getPtr() const;
 	uint32_t getBitsPerChannel() const;
 	uint32_t getBitsPerPixel() const;
 	uint32_t getChannelCount() const;
 	glm::uvec2 getSize() const;
+	uint64_t getByteSize() const;
 	bool isValid() const;
 	
 private:

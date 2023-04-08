@@ -1,18 +1,20 @@
 #pragma once
 
 #include "Cyph3D/Asset/RuntimeAsset/GPUAsset.h"
-#include "Cyph3D/Enums/TextureType.h"
+#include "Cyph3D/Asset/Processor/ImageData.h"
 #include "Cyph3D/HashBuilder.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <string>
 #include <memory>
 
-class GLTexture;
+class VKImage;
+class VKImageView;
 
 struct TextureAssetSignature
 {
 	std::string path;
-	TextureType type;
+	ImageType type;
 
 	bool operator==(const TextureAssetSignature& other) const = default;
 };
@@ -34,7 +36,7 @@ class TextureAsset : public GPUAsset<TextureAssetSignature>
 public:
 	~TextureAsset() override;
 	
-	const GLTexture& getGLTexture() const;
+	const VKPtr<VKImageView>& getImageView() const;
 
 private:
 	friend class AssetManager;
@@ -43,5 +45,6 @@ private:
 
 	bool load_step1_mt();
 	
-	std::unique_ptr<GLTexture> _glTexture;
+	VKPtr<VKImage> _image;
+	VKPtr<VKImageView> _imageView;
 };

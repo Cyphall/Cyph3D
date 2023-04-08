@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cyph3D/VKObject/VKPtr.h"
 #include "Cyph3D/Asset/RuntimeAsset/RuntimeAsset.h"
 #include "Cyph3D/HashBuilder.h"
 #include "Cyph3D/UI/IInspectable.h"
@@ -11,7 +12,8 @@
 #include <nlohmann/json_fwd.hpp>
 
 class TextureAsset;
-class GLTexture;
+class VKImage;
+class VKImageView;
 
 struct MaterialAssetSignature
 {
@@ -44,27 +46,27 @@ public:
 
 	const std::string* getAlbedoMapPath() const;
 	void setAlbedoMapPath(std::optional<std::string_view> path);
-	const GLTexture& getAlbedoTexture() const;
+	const VKPtr<VKImageView>& getAlbedoTextureView() const;
 
 	const std::string* getNormalMapPath() const;
 	void setNormalMapPath(std::optional<std::string_view> path);
-	const GLTexture& getNormalTexture() const;
+	const VKPtr<VKImageView>& getNormalTextureView() const;
 
 	const std::string* getRoughnessMapPath() const;
 	void setRoughnessMapPath(std::optional<std::string_view> path);
-	const GLTexture& getRoughnessTexture() const;
+	const VKPtr<VKImageView>& getRoughnessTextureView() const;
 
 	const std::string* getMetalnessMapPath() const;
 	void setMetalnessMapPath(std::optional<std::string_view> path);
-	const GLTexture& getMetalnessTexture() const;
+	const VKPtr<VKImageView>& getMetalnessTextureView() const;
 
 	const std::string* getDisplacementMapPath() const;
 	void setDisplacementMapPath(std::optional<std::string_view> path);
-	const GLTexture& getDisplacementTexture() const;
+	const VKPtr<VKImageView>& getDisplacementTextureView() const;
 
 	const std::string* getEmissiveMapPath() const;
 	void setEmissiveMapPath(std::optional<std::string_view> path);
-	const GLTexture& getEmissiveTexture() const;
+	const VKPtr<VKImageView>& getEmissiveTextureView() const;
 
 	const glm::vec3& getAlbedoValue() const;
 	void setAlbedoValue(const glm::vec3& value);
@@ -97,27 +99,33 @@ private:
 	
 	std::optional<std::string> _albedoMapPath;
 	TextureAsset* _albedoMap = nullptr;
-	std::unique_ptr<GLTexture> _albedoValueTexture;
+	VKPtr<VKImage> _albedoValueTexture;
+	VKPtr<VKImageView> _albedoValueTextureView;
 
 	std::optional<std::string> _normalMapPath;
 	TextureAsset* _normalMap = nullptr;
-	std::unique_ptr<GLTexture> _normalValueTexture;
+	VKPtr<VKImage> _normalValueTexture;
+	VKPtr<VKImageView> _normalValueTextureView;
 
 	std::optional<std::string> _roughnessMapPath;
 	TextureAsset* _roughnessMap = nullptr;
-	std::unique_ptr<GLTexture> _roughnessValueTexture;
+	VKPtr<VKImage> _roughnessValueTexture;
+	VKPtr<VKImageView> _roughnessValueTextureView;
 
 	std::optional<std::string> _metalnessMapPath;
 	TextureAsset* _metalnessMap = nullptr;
-	std::unique_ptr<GLTexture> _metalnessValueTexture;
+	VKPtr<VKImage> _metalnessValueTexture;
+	VKPtr<VKImageView> _metalnessValueTextureView;
 
 	std::optional<std::string> _displacementMapPath;
 	TextureAsset* _displacementMap = nullptr;
-	std::unique_ptr<GLTexture> _displacementValueTexture;
+	VKPtr<VKImage> _displacementValueTexture;
+	VKPtr<VKImageView> _displacementValueTextureView;
 
 	std::optional<std::string> _emissiveMapPath;
 	TextureAsset* _emissiveMap = nullptr;
-	std::unique_ptr<GLTexture> _emissiveValueTexture;
+	VKPtr<VKImage> _emissiveValueTexture;
+	VKPtr<VKImageView> _emissiveValueTextureView;
 
 	glm::vec3 _albedoValue{};
 	float _roughnessValue{};

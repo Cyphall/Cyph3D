@@ -1,28 +1,30 @@
 #pragma once
 
 #include "Cyph3D/Entity/Component/LightBase.h"
+#include "Cyph3D/VKObject/VKPtr.h"
+#include "Cyph3D/VKObject/VKDynamic.h"
 
 #include <memory>
 
-class GLTexture;
-class GLFramebuffer;
+class VKImage;
+class VKImageView;
 
 class DirectionalLight : public LightBase
 {
 public:
 	struct RenderData
 	{
-		glm::vec3      fragToLightDirection;
-		float          intensity;
-		glm::vec3      color;
-		float          angularDiameter;
-		bool           castShadows; // 32-bit bool
-		glm::mat4      lightViewProjection;
-		GLTexture*       shadowMapTexture;
-		GLFramebuffer*   shadowMapFramebuffer;
-		int            mapResolution;
-		float          mapSize;
-		float          mapDepth;
+		glm::vec3               fragToLightDirection;
+		float                   intensity;
+		glm::vec3               color;
+		float                   angularDiameter;
+		bool                    castShadows;
+		glm::mat4               lightViewProjection;
+		VKDynamic<VKImage>*     shadowMapTexture;
+		VKDynamic<VKImageView>* shadowMapTextureView;
+		uint32_t                shadowMapResolution;
+		float                   shadowMapSize;
+		float                   shadowMapDepth;
 	};
 
 	explicit DirectionalLight(Entity& entity);
@@ -30,7 +32,7 @@ public:
 	void onPreRender(SceneRenderer& sceneRenderer, Camera& camera) override;
 	void onDrawUi() override;
 	
-	static const char* identifier;
+	static const char* const identifier;
 	const char* getIdentifier() const override;
 	
 	bool getCastShadows() const;
@@ -46,12 +48,14 @@ public:
 	
 	ObjectSerialization serialize() const override;
 	void deserialize(const ObjectSerialization& serialization) override;
+	
+	static const vk::Format depthFormat;
 
 private:
-	std::unique_ptr<GLTexture> _shadowMap;
-	std::unique_ptr<GLFramebuffer> _shadowMapFb;
+	VKDynamic<VKImage> _shadowMap;
+	VKDynamic<VKImageView> _shadowMapView;
 	
-	static glm::mat4 _projection;
+	glm::mat4 _projection;
 	
 	float _mapSize = 60;
 	float _mapDepth = 100;

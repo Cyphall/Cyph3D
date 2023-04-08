@@ -45,7 +45,7 @@ static MeshData processMesh(const std::filesystem::path& input, const std::files
 
 	Assimp::Importer importer;
 
-	const aiScene* scene = importer.ReadFile(input.generic_string(), aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+	const aiScene* scene = importer.ReadFile(input.generic_string(), aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_FlipUVs);
 	aiMesh* mesh = scene->mMeshes[0];
 
 	meshData.vertices.resize(mesh->mNumVertices);
@@ -62,7 +62,7 @@ static MeshData processMesh(const std::filesystem::path& input, const std::files
 
 	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
 	{
-		std::memcpy(&meshData.indices[i*3], mesh->mFaces[i].mIndices, 3 * sizeof(GLuint));
+		std::memcpy(&meshData.indices[i*3], mesh->mFaces[i].mIndices, 3 * sizeof(uint32_t));
 	}
 
 	writeProcessedMesh(output, meshData);

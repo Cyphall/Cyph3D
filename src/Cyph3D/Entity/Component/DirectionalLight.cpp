@@ -2,9 +2,8 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-#include "Cyph3D/GLObject/GLFramebuffer.h"
-#include "Cyph3D/GLObject/GLTexture.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Scene/Camera.h"
@@ -14,13 +13,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
-const char* DirectionalLight::identifier = "DirectionalLight";
-glm::mat4 DirectionalLight::_projection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -50.0f, 50.0f);
+const char* const DirectionalLight::identifier = "DirectionalLight";
+const vk::Format DirectionalLight::depthFormat = vk::Format::eD32Sfloat;
 
 DirectionalLight::DirectionalLight(Entity& entity):
-LightBase(entity)
+	LightBase(entity),
+	_projection(glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -50.0f, 50.0f))
 {
-
+	_projection[1][1] *= -1;
 }
 
 void DirectionalLight::setCastShadows(bool value)
@@ -31,24 +31,26 @@ void DirectionalLight::setCastShadows(bool value)
 	
 	if (value)
 	{
-		_shadowMapFb = std::make_unique<GLFramebuffer>();
+		_shadowMap = VKImage::createDynamic(
+			Engine::getVKContext(),
+			depthFormat,
+			glm::uvec2(_resolution),
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled,
+			vk::ImageAspectFlagBits::eDepth,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
-		TextureCreateInfo textureCreateInfo;
-		textureCreateInfo.size = glm::ivec2(_resolution);
-		textureCreateInfo.internalFormat = GL_DEPTH_COMPONENT32;
-		textureCreateInfo.minFilter = GL_NEAREST;
-		textureCreateInfo.magFilter = GL_NEAREST;
-		textureCreateInfo.wrapS = GL_CLAMP_TO_BORDER;
-		textureCreateInfo.wrapT = GL_CLAMP_TO_BORDER;
-		textureCreateInfo.borderColor = {1, 1, 1, 1};
-		_shadowMap = std::make_unique<GLTexture>(textureCreateInfo);
-		
-		_shadowMapFb->attachDepth(*_shadowMap);
+		_shadowMapView = VKImageView::createDynamic(
+			Engine::getVKContext(),
+			_shadowMap,
+			vk::ImageViewType::e2D);
 	}
 	else
 	{
-		_shadowMapFb.reset();
-		_shadowMap.reset();
+		_shadowMap = {};
+		_shadowMapView = {};
 	}
 }
 
@@ -124,11 +126,11 @@ void DirectionalLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 									   camera.getPosition(),
 									   camera.getPosition() + getLightDirection(),
 									   glm::vec3(0, 1, 0));
-		data.shadowMapTexture = _shadowMap.get();
-		data.shadowMapFramebuffer = _shadowMapFb.get();
-		data.mapResolution = getResolution();
-		data.mapSize = _mapSize;
-		data.mapDepth = _mapDepth;
+		data.shadowMapTexture = &_shadowMap;
+		data.shadowMapTextureView = &_shadowMapView;
+		data.shadowMapResolution = getResolution();
+		data.shadowMapSize = _mapSize;
+		data.shadowMapDepth = _mapDepth;
 	}
 	
 	sceneRenderer.requestLightRendering(data);

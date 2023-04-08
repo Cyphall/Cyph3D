@@ -2,16 +2,19 @@
 
 #include <vector>
 #include <glm/glm.hpp>
-#include <glad/glad.h>
+#include <vulkan/vulkan.hpp>
+#include <cstddef>
 
-struct ImageLevel
+enum class ImageType
 {
-	std::vector<uint8_t> data;
-	glm::ivec2 size;
-	GLenum format;
+	ColorSrgb,
+	NormalMap,
+	Grayscale
 };
 
 struct ImageData
 {
-	std::vector<ImageLevel> levels;
+	vk::Format format;
+	glm::uvec2 size;
+	std::vector<std::byte> data;
 };

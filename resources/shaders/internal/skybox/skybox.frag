@@ -1,16 +1,15 @@
 #version 460 core
-#extension GL_ARB_bindless_texture : enable
 
-in V2F
+layout(location = 0) in V2F
 {
-	vec3 texCoords;
-} v2f;
+	vec3 i_texCoords;
+};
 
-layout(bindless_sampler) uniform samplerCube u_skybox;
+layout(set = 0, binding = 0) uniform samplerCube u_skybox;
 
-layout(location = 0) out vec3 o_color;
+layout(location = 0) out vec4 o_color;
 
 void main()
 {
-	o_color = texture(u_skybox, v2f.texCoords).xyz;
+	o_color = vec4(texture(u_skybox, i_texCoords).xyz, 1);
 }

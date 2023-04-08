@@ -24,7 +24,12 @@ bool PlaneShape::isReadyForRaytracingRender() const
 	return true;
 }
 
-const Mesh& PlaneShape::getMeshToRender() const
+const VKPtr<VKBuffer<VertexData>>& PlaneShape::getVertexBuffer() const
+{
+	throw std::runtime_error("This function is not implemented");
+}
+
+const VKPtr<VKBuffer<uint32_t>>& PlaneShape::getIndexBuffer() const
 {
 	throw std::runtime_error("This function is not implemented");
 }

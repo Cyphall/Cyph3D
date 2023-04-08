@@ -34,8 +34,8 @@ AssetCacheDatabase::AssetCacheDatabase()
 		"	guid BINARY(16) NOT NULL PRIMARY KEY,\n"
 		"	path TEXT NOT NULL,\n"
 		"	lastWriteTime BIGINT NOT NULL,\n"
-		"	format INT NOT NULL,\n"
-		"	UNIQUE(path, lastWriteTime, format)\n"
+		"	type INT NOT NULL,\n"
+		"	UNIQUE(path, lastWriteTime, type)\n"
 		") WITHOUT ROWID;");
 
 	_database->exec(
@@ -51,16 +51,16 @@ AssetCacheDatabase::AssetCacheDatabase()
 AssetCacheDatabase::~AssetCacheDatabase()
 {}
 
-std::string AssetCacheDatabase::getImageCachePath(std::string_view path, const GLenum& format)
+std::string AssetCacheDatabase::getImageCachePath(std::string_view path, ImageType type)
 {
 	int64_t currentLastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
 
 	SQLite::Statement selectQuery(*_database,
 		"SELECT guid, lastWriteTime FROM Image\n"
-		"WHERE path=? AND format=?;");
+		"WHERE path=? AND type=?;");
 
 	selectQuery.bind(1, path.data(), path.size());
-	selectQuery.bind(2, static_cast<uint32_t>(format));
+	selectQuery.bind(2, static_cast<uint32_t>(type));
 
 	xg::Guid guid;
 	int64_t lastWriteTime;
@@ -82,7 +82,7 @@ std::string AssetCacheDatabase::getImageCachePath(std::string_view path, const G
 		insertQuery.bind(1, guid.bytes().data(), guid.bytes().size());
 		insertQuery.bind(2, path.data(), path.size());
 		insertQuery.bind(3, lastWriteTime);
-		insertQuery.bind(4, static_cast<uint32_t>(format));
+		insertQuery.bind(4, static_cast<uint32_t>(type));
 
 		insertQuery.exec();
 	}

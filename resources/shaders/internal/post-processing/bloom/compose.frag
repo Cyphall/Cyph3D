@@ -1,21 +1,24 @@
 #version 460 core
-#extension GL_ARB_bindless_texture : enable
 
-layout(bindless_sampler) uniform sampler2D u_srcATexture;
-layout(bindless_sampler) uniform sampler2D u_srcBTexture;
-uniform float u_factor;
-
-in V2F
+layout(location = 0) in V2F
 {
-	vec2 texCoords;
-} v2f;
+	vec2 i_texCoords;
+};
 
-out vec4 o_color;
+layout(set = 0, binding = 0) uniform sampler2D u_srcATexture;
+layout(set = 0, binding = 1) uniform sampler2D u_srcBTexture;
+
+layout(push_constant) uniform constants
+{
+	float u_factor;
+};
+
+layout(location = 0) out vec4 o_color;
 
 void main()
 {
-	vec3 a = textureLod(u_srcATexture, v2f.texCoords, 0).xyz;
-	vec3 b = textureLod(u_srcBTexture, v2f.texCoords, 0).xyz;
+	vec3 a = textureLod(u_srcATexture, i_texCoords, 0).xyz;
+	vec3 b = textureLod(u_srcBTexture, i_texCoords, 0).xyz;
 	
 	o_color = vec4(mix(a, b, u_factor), 1);
 }

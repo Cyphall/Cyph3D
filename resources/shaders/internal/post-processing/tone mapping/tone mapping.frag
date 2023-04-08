@@ -1,27 +1,16 @@
 #version 460 core
-#extension GL_ARB_bindless_texture : enable
 
-vec3 toSRGB(vec3 linear);
 vec3 ACESFilm(vec3 x);
 
-layout(bindless_sampler) uniform sampler2D u_colorTexture;
+layout(set = 0, binding = 0) uniform sampler2D u_colorTexture;
 
-out vec4 o_color;
+layout(location = 0) out vec4 o_color;
 
 void main()
 {
 	vec3 color = texelFetch(u_colorTexture, ivec2(gl_FragCoord.xy), 0).rgb;
 	
-	o_color = vec4(toSRGB(ACESFilm(color)), 1);
-}
-
-vec3 toSRGB(vec3 linear)
-{
-	bvec3 cutoff = lessThan(linear, vec3(0.0031308));
-	vec3 higher = vec3(1.055) * pow(linear, vec3(1.0/2.4)) - vec3(0.055);
-	vec3 lower = linear * vec3(12.92);
-	
-	return mix(higher, lower, cutoff);
+	o_color = vec4(ACESFilm(color), 1);
 }
 
 // https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/

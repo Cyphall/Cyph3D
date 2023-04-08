@@ -3,14 +3,22 @@
 #include <imgui.h>
 #include <memory>
 
+#include "Cyph3D/VKObject/VKPtr.h"
+
 struct ImGuiContext;
 class UIAssetBrowser;
+class ImGuiVulkanBackend;
+template<typename T>
+class VKDynamic;
+class VKCommandBuffer;
+class VKSemaphore;
+class VKImageView;
 
 class UIHelper
 {
 public:
 	static void init();
-	static void render();
+	static const VKPtr<VKSemaphore>& render(const VKPtr<VKImageView>& destImageView, const VKPtr<VKSemaphore>& imageAvailableSemaphore);
 	static void shutdown();
 	static void onNewFrame();
 
@@ -21,6 +29,9 @@ private:
 	static ImFont* _bigFont;
 	
 	static bool _dockingLayoutInitialized;
+	
+	static std::unique_ptr<ImGuiVulkanBackend> _vulkanBackend;
+	
 	static void initDockingLayout(ImGuiID dockspaceId);
 	static void initStyles();
 	static void initFonts();

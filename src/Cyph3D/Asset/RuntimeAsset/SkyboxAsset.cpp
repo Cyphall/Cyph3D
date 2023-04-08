@@ -185,9 +185,9 @@ void SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
 	onPathChange();
 }
 
-const GLCubemap& SkyboxAsset::getCubemap() const
+const VKPtr<VKImageView>& SkyboxAsset::getImageView() const
 {
-	return _cubemap->getGLCubemap();
+	return _cubemap->getImageView();
 }
 
 void SkyboxAsset::create(std::string_view path)
@@ -405,10 +405,10 @@ void SkyboxAsset::onPathChange()
 		_cubemap = _manager.loadCubemap(
 			_xposPath.value(),
 			_xnegPath.value(),
-			_ynegPath.value(),
 			_yposPath.value(),
-			_zposPath.value(),
-			_znegPath.value()
+			_ynegPath.value(),
+			_znegPath.value(),
+			_zposPath.value()
 		);
 	}
 	else

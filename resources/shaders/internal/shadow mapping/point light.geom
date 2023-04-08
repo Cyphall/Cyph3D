@@ -1,14 +1,19 @@
 #version 460 core
 
-layout (triangles) in;
-layout (triangle_strip, max_vertices=18) out;
+layout(triangles) in;
+layout(triangle_strip, max_vertices = 18) out;
 
-uniform mat4 u_viewProjections[6];
-
-out V2F// not exactly v2f as we are in a geometry shader, but we keep the same convention as other shaders
+layout(std430, set = 0, binding = 0) buffer uniforms
 {
-	vec3 fragPos;// FragPos from GS (output per emitvertex)
-} v2f;
+	mat4 u_viewProjections[6];
+	vec3 u_lightPos;
+	float u_far;
+};
+
+layout(location = 0) out G2F
+{
+	vec3 o_fragPos; // FragPos from GS (output per emitvertex)
+};
 
 void main()
 {
@@ -19,7 +24,7 @@ void main()
 		{
 			vec4 fragPos = gl_in[i].gl_Position;
 			gl_Position = u_viewProjections[face] * fragPos;
-			v2f.fragPos = vec3(fragPos);
+			o_fragPos = vec3(fragPos);
 			
 			EmitVertex();
 		}
