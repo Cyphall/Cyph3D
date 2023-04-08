@@ -93,7 +93,7 @@ GLuint64 GLTexture::getBindlessImageHandle(GLenum format, GLenum access, int lev
 
 void GLTexture::setData(const void* data, GLint level, GLenum format, GLenum type)
 {
-	glm::ivec2 size = getSize();
+	glm::ivec2 size = getSize(level);
 	glTextureSubImage2D(_handle, level, 0, 0, size.x, size.y, format, type, data);
 	generateMipmaps();
 }

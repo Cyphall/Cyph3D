@@ -93,7 +93,7 @@ GLuint64 GLCubemap::getBindlessImageHandle(GLenum format, GLenum access, int lev
 
 void GLCubemap::setData(const void* data, int face, GLint level, GLenum format, GLenum type)
 {
-	glm::ivec2 size = getSize();
+	glm::ivec2 size = getSize(level);
 	glTextureSubImage3D(_handle, level, 0, 0, face, size.x, size.y, 1, format, type, data);
 	generateMipmaps();
 }
