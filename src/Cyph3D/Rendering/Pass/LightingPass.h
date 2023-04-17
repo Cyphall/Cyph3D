@@ -1,27 +1,30 @@
 #pragma once
 
-#include "Cyph3D/GLObject/GLMutableBuffer.h"
-#include "Cyph3D/GLObject/GLVertexArray.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
-#include "Cyph3D/GLObject/GLFramebuffer.h"
-#include "Cyph3D/GLObject/GLTexture.h"
 #include "Cyph3D/GLSL_types.h"
+#include "Cyph3D/VKObject/VKPtr.h"
+#include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 struct RenderRegistry;
 class Camera;
+class VKPipelineLayout;
+class VKGraphicsPipeline;
+class VKImage;
+class VKImageView;
+template<typename T>
+class VKResizableBuffer;
 
 struct LightingPassInput
 {
-	GLTexture& depth;
+	const VKPtr<VKImageView>& depthView;
 	RenderRegistry& registry;
 	Camera& camera;
 };
 
 struct LightingPassOutput
 {
-	GLTexture& rawRender;
-	GLTexture& objectIndex;
+	const VKPtr<VKImageView>& rawRenderView;
+	const VKPtr<VKImageView>& objectIndexView;
 };
 
 class LightingPass : public RenderPass<LightingPassInput, LightingPassOutput>
@@ -30,40 +33,76 @@ public:
 	explicit LightingPass(glm::uvec2 size);
 
 private:
-	struct GLSL_PointLight
-	{
-		GLSL_vec3  pos;
-		GLSL_float intensity;
-		GLSL_vec3  color;
-		GLSL_bool  castShadows;
-		GLSL_samplerCube shadowMap;
-		GLSL_float far;
-		GLSL_float maxTexelSizeAtUnitDistance;
-	};
-
-	struct GLSL_DirectionalLight
+	struct DirectionalLightUniforms
 	{
 		GLSL_vec3  fragToLightDirection;
 		GLSL_float intensity;
 		GLSL_vec3  color;
 		GLSL_bool  castShadows;
 		GLSL_mat4  lightViewProjection;
-		GLSL_sampler2D shadowMap;
+		GLSL_uint  textureIndex;
 		GLSL_float mapSize;
 		GLSL_float mapDepth;
 	};
-
-	GLMutableBuffer<GLSL_PointLight> _pointLightsBuffer;
-	GLMutableBuffer<GLSL_DirectionalLight> _directionalLightsBuffer;
-
-	GLVertexArray _vao;
-
-	GLShaderProgram _shader;
-
-	GLFramebuffer _framebuffer;
-
-	GLTexture _rawRenderTexture;
-	GLTexture _objectIndexTexture;
 	
-	LightingPassOutput renderImpl(LightingPassInput& input) override;
+	struct PointLightUniforms
+	{
+		GLSL_vec3  pos;
+		GLSL_float intensity;
+		GLSL_vec3  color;
+		GLSL_bool  castShadows;
+		GLSL_uint  textureIndex;
+		GLSL_float far;
+		GLSL_float maxTexelSizeAtUnitDistance;
+	};
+	
+	struct ObjectUniforms
+	{
+		GLSL_mat4 normalMatrix;
+		GLSL_mat4 model;
+		GLSL_mat4 mvp;
+		GLSL_int  objectIndex;
+	};
+	
+	struct PushConstantData
+	{
+		GLSL_mat4 viewProjectionInv;
+		GLSL_vec3 viewPos;
+	};
+	
+	VKDynamic<VKResizableBuffer<DirectionalLightUniforms>> _directionalLightsUniforms;
+	VKDynamic<VKResizableBuffer<PointLightUniforms>> _pointLightsUniforms;
+	
+	VKDynamic<VKResizableBuffer<ObjectUniforms>> _objectUniforms;
+	
+	VKPtr<VKSampler> _directionalLightSampler;
+	VKPtr<VKSampler> _pointLightSampler;
+	
+	VKPtr<VKSampler> _materialSampler;
+	
+	VKPtr<VKDescriptorSetLayout> _directionalLightDescriptorSetLayout;
+	VKDynamic<VKDescriptorSet> _directionalLightDescriptorSet;
+	VKPtr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
+	VKDynamic<VKDescriptorSet> _pointLightDescriptorSet;
+	
+	VKPtr<VKDescriptorSetLayout> _objectDescriptorSetLayout;
+	
+	VKPtr<VKPipelineLayout> _pipelineLayout;
+	VKPtr<VKGraphicsPipeline> _pipeline;
+	
+	VKDynamic<VKImage> _rawRenderTexture;
+	VKDynamic<VKImageView> _rawRenderTextureView;
+	VKDynamic<VKImage> _objectIndexTexture;
+	VKDynamic<VKImageView> _objectIndexTextureView;
+	
+	LightingPassOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input) override;
+	
+	void createUniformBuffers();
+	void createSamplers();
+	void createDescriptorSetLayouts();
+	void createPipelineLayout();
+	void createPipeline();
+	void createTextures();
+	
+	void descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount);
 };

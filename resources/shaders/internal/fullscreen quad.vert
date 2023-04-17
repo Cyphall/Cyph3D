@@ -1,16 +1,13 @@
 #version 460 core
 
-layout(location = 0) in vec2 a_position;
-layout(location = 1) in vec2 a_uv;
-
-out V2F
+layout(location = 0) out V2F
 {
-	vec2 texCoords;
-} v2f;
+	vec2 o_texCoords;
+};
 
+// https://www.saschawillems.de/blog/2016/08/13/vulkan-tutorial-on-rendering-a-fullscreen-quad-without-buffers/
 void main()
 {
-	gl_Position = vec4(a_position, 0, 1);
-	
-	v2f.texCoords = a_uv;
+	o_texCoords = vec2(gl_VertexIndex & 2, (gl_VertexIndex << 1) & 2);
+	gl_Position = vec4(o_texCoords * 2.0 + -1.0, 0.0, 1.0);
 }

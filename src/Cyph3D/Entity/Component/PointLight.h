@@ -1,27 +1,29 @@
 #pragma once
 
 #include "Cyph3D/Entity/Component/LightBase.h"
+#include "Cyph3D/VKObject/VKPtr.h"
+#include "Cyph3D/VKObject/VKDynamic.h"
 
 #include <memory>
 
-class GLCubemap;
-class GLFramebuffer;
+class VKImage;
+class VKImageView;
 
 class PointLight : public LightBase
 {
 public:
 	struct RenderData
 	{
-		glm::vec3     pos;
-		float         intensity;
-		glm::vec3     color;
-		float         radius;
-		bool          castShadows; // bool
-		glm::mat4     viewProjections[6];
-		GLCubemap*      shadowMapTexture;
-		GLFramebuffer*  shadowMapFramebuffer;
-		int           mapResolution;
-		float         far;
+		glm::vec3               pos;
+		float                   intensity;
+		glm::vec3               color;
+		float                   radius;
+		bool                    castShadows;
+		glm::mat4               viewProjections[6];
+		VKDynamic<VKImage>*     shadowMapTexture;
+		VKDynamic<VKImageView>* shadowMapTextureView;
+		int                     shadowMapResolution;
+		float                   far;
 	};
 	
 	explicit PointLight(Entity& entity);
@@ -29,7 +31,7 @@ public:
 	void onPreRender(SceneRenderer& sceneRenderer, Camera& camera) override;
 	void onDrawUi() override;
 	
-	static const char* identifier;
+	static const char* const identifier;
 	const char* getIdentifier() const override;
 	
 	void setCastShadows(bool value);
@@ -45,15 +47,14 @@ public:
 	
 	ObjectSerialization serialize() const override;
 	void deserialize(const ObjectSerialization& serialization) override;
+	
+	static const vk::Format depthFormat;
 
 private:
-	static constexpr float NEAR_DISTANCE = 0.01f;
-	static constexpr float FAR_DISTANCE = 100.0f;
+	VKDynamic<VKImage> _shadowMap;
+	VKDynamic<VKImageView> _shadowMapView;
 	
-	std::unique_ptr<GLCubemap> _shadowMap;
-	std::unique_ptr<GLFramebuffer> _shadowMapFb;
-	
-	static glm::mat4 _projection;
+	glm::mat4 _projection;
 	
 	float _radius = 0.1f;
 	

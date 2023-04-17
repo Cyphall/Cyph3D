@@ -166,6 +166,7 @@ void Camera::recalculateView() const
 void Camera::recalculateProjection() const
 {
 	_projection = glm::perspective(_verticalFov, _aspectRatio, NEAR_DISTANCE, FAR_DISTANCE);
+	_projection[1][1] *= -1;
 	
 	_projectionChanged = false;
 }

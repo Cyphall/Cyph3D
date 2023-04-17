@@ -4,8 +4,8 @@
 #include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
 #include "Cyph3D/Scene/Scene.h"
-
-#include <glad/glad.h>
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
 
 RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Rasterization SceneRenderer", size),
@@ -15,33 +15,37 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	_skyboxPass(size),
 	_postProcessingPass(size)
 {
-	_objectIndexFramebuffer.setReadBuffer(0);
+	_objectIndexBuffer = VKBuffer<int32_t>::create(
+		Engine::getVKContext(),
+		1,
+		vk::BufferUsageFlagBits::eTransferDst,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 }
 
-GLTexture& RasterizationSceneRenderer::renderImpl(Camera& camera)
+const VKPtr<VKImageView>& RasterizationSceneRenderer::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera)
 {
 	ZPrepassInput zPrepassInput{
 		.registry = _registry,
 		.camera = camera
 	};
 	
-	ZPrepassOutput zPrepassOutput = _zPrepass.render(zPrepassInput, _renderPerf);
+	ZPrepassOutput zPrepassOutput = _zPrepass.render(commandBuffer, zPrepassInput, _renderPerf);
 	
 	ShadowMapPassInput shadowMapPassInput{
 		.registry = _registry,
 		.camera = camera
 	};
 	
-	_shadowMapPass.render(shadowMapPassInput, _renderPerf);
+	_shadowMapPass.render(commandBuffer, shadowMapPassInput, _renderPerf);
 	
 	LightingPassInput lightingPassInput{
-		.depth = zPrepassOutput.depth,
+		.depthView = zPrepassOutput.depthView,
 		.registry = _registry,
 		.camera = camera
 	};
 	
-	LightingPassOutput lightingPassOutput = _lightingPass.render(lightingPassInput, _renderPerf);
-	_objectIndexFramebuffer.attachColor(0, lightingPassOutput.objectIndex);
+	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput, _renderPerf);
+	_objectIndexView = lightingPassOutput.objectIndexView;
 	
 	Scene& scene = Engine::getScene();
 	
@@ -49,36 +53,54 @@ GLTexture& RasterizationSceneRenderer::renderImpl(Camera& camera)
 	{
 		SkyboxPassInput skyboxPassInput{
 			.camera = camera,
-			.rawRender = lightingPassOutput.rawRender,
-			.depth = zPrepassOutput.depth
+			.rawRenderView = lightingPassOutput.rawRenderView,
+			.depthView = zPrepassOutput.depthView
 		};
 		
-		_skyboxPass.render(skyboxPassInput, _renderPerf);
+		_skyboxPass.render(commandBuffer, skyboxPassInput, _renderPerf);
 	}
 	
+	commandBuffer->imageMemoryBarrier(
+		lightingPassOutput.rawRenderView->getImage(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		0,
+		0);
+	
 	PostProcessingPassInput postProcessingPassInput{
-		.rawRender = lightingPassOutput.rawRender,
+		.rawRenderView = lightingPassOutput.rawRenderView,
 		.camera = camera
 	};
 	
-	PostProcessingPassOutput postProcessingPassOutput = _postProcessingPass.render(postProcessingPassInput, _renderPerf);
+	PostProcessingPassOutput postProcessingPassOutput = _postProcessingPass.render(commandBuffer, postProcessingPassInput, _renderPerf);
 	
-	return postProcessingPassOutput.postProcessedRender;
-}
-
-void RasterizationSceneRenderer::onNewFrame()
-{
-	SceneRenderer::onNewFrame();
+	return postProcessingPassOutput.postProcessedRenderView;
 }
 
 Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 {
-	int objectIndex;
-	_objectIndexFramebuffer.bindForReading();
-	// shift origin from bottom left to top left
-	clickPos.y = _size.y - clickPos.y;
+	Engine::getVKContext().executeImmediate(
+		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+		{
+			commandBuffer->imageMemoryBarrier(
+				_objectIndexView->getImage(),
+				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+				vk::AccessFlagBits2::eColorAttachmentWrite,
+				vk::PipelineStageFlagBits2::eCopy,
+				vk::AccessFlagBits2::eTransferRead,
+				vk::ImageLayout::eTransferSrcOptimal,
+				0,
+				0);
+			
+			commandBuffer->copyPixelToBuffer(_objectIndexView->getImage(), 0, 0, clickPos, _objectIndexBuffer, 0);
+		});
 	
-	glReadPixels(clickPos.x, clickPos.y, 1, 1, GL_RED_INTEGER, GL_INT, &objectIndex);
+	int32_t* ptr = _objectIndexBuffer->map();
+	int32_t objectIndex = *ptr;
+	_objectIndexBuffer->unmap();
 	
 	if (objectIndex != -1)
 	{

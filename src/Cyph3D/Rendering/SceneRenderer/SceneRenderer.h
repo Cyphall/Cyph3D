@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cyph3D/VKObject/VKPtr.h"
 #include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 #include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
@@ -9,8 +10,8 @@
 #include <string_view>
 
 class Scene;
-class GLTexture;
 class Camera;
+class VKImageView;
 
 class SceneRenderer
 {
@@ -18,7 +19,7 @@ public:
 	SceneRenderer(std::string_view name, glm::uvec2 size);
 	virtual ~SceneRenderer() = default;
 	
-	GLTexture& render(Camera& camera);
+	const VKPtr<VKImageView>& render(Camera& camera);
 	
 	virtual void onNewFrame();
 	
@@ -32,6 +33,10 @@ public:
 	
 	virtual Entity* getClickedEntity(glm::uvec2 clickPos) = 0;
 	
+	static const vk::Format DEPTH_FORMAT;
+	static const vk::Format HDR_COLOR_FORMAT;
+	static const vk::Format OBJECT_INDEX_FORMAT;
+	
 protected:
 	RenderRegistry _registry;
 	
@@ -40,5 +45,5 @@ protected:
 	PerfStep _renderPerf;
 	GpuPerfCounter _perfCounter;
 	
-	virtual GLTexture& renderImpl(Camera& camera) = 0;
+	virtual const VKPtr<VKImageView>& renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) = 0;
 };

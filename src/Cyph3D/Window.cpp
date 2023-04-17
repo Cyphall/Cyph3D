@@ -1,31 +1,27 @@
 #include "Window.h"
 
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/VKSwapchain.h"
+
 #include <GLFW/glfw3.h>
 
 Window::Window()
 {
 	glfwDefaultWindowHints();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_RED_BITS, 8);
-	glfwWindowHint(GLFW_GREEN_BITS, 8);
-	glfwWindowHint(GLFW_BLUE_BITS, 8);
-	glfwWindowHint(GLFW_ALPHA_BITS, 8);
-	glfwWindowHint(GLFW_DEPTH_BITS, 0);
-	glfwWindowHint(GLFW_STENCIL_BITS, 0);
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef _DEBUG
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-#endif
 	
 	_glfwWindow = glfwCreateWindow(800, 600, "Cyph3D", nullptr, nullptr);
-	
-	glfwSetWindowUserPointer(_glfwWindow, this);
-	
-	glfwMakeContextCurrent(_glfwWindow);
-	
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
+	
+	VKContext& vkContext = Engine::getVKContext();
+	
+	VkSurfaceKHR surface;
+	glfwCreateWindowSurface(vkContext.getInstance(), _glfwWindow, nullptr, &surface);
+	_surface = surface;
+	
+	_swapchain = VKSwapchain::create(vkContext, _surface);
 	
 	_previousFrameMouseButtonsPressed.fill(false);
 	_currentFrameMouseButtonsPressed.fill(false);
@@ -33,13 +29,22 @@ Window::Window()
 
 Window::~Window()
 {
+	_swapchain.reset();
+	Engine::getVKContext().getInstance().destroySurfaceKHR(_surface);
 	glfwDestroyWindow(_glfwWindow);
 }
 
-glm::ivec2 Window::getSize()
+glm::uvec2 Window::getSize()
 {
 	glm::ivec2 size;
 	glfwGetWindowSize(_glfwWindow, &size.x, &size.y);
+	return size;
+}
+
+glm::uvec2 Window::getSurfaceSize()
+{
+	glm::ivec2 size;
+	glfwGetFramebufferSize(_glfwWindow, &size.x, &size.y);
 	return size;
 }
 
@@ -70,11 +75,6 @@ bool Window::shouldClose() const
 void Window::setShouldClose(bool value)
 {
 	glfwSetWindowShouldClose(_glfwWindow, value);
-}
-
-void Window::swapBuffers()
-{
-	glfwSwapBuffers(_glfwWindow);
 }
 
 int Window::getInputMode() const
@@ -129,4 +129,14 @@ void Window::onPollEvents()
 	{
 		_currentFrameMouseButtonsPressed[i] = glfwGetMouseButton(_glfwWindow, i) == GLFW_PRESS;
 	}
+}
+
+VKSwapchain& Window::getSwapchain()
+{
+	return *_swapchain;
+}
+
+void Window::recreateSwapchain()
+{
+	_swapchain = VKSwapchain::create(Engine::getVKContext(), _surface, _swapchain.get());
 }

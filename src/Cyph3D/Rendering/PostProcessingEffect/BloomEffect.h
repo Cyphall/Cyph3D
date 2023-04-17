@@ -1,31 +1,83 @@
 #pragma once
 
-#include "Cyph3D/GLObject/GLImmutableBuffer.h"
-#include "Cyph3D/GLObject/GLTexture.h"
-#include "Cyph3D/GLObject/GLShaderProgram.h"
-#include "Cyph3D/GLObject/GLFramebuffer.h"
+#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
+
+class Camera;
+class VKDescriptorSetLayout;
+class VKPipelineLayout;
+class VKGraphicsPipeline;
+class VKSampler;
+class VKImage;
+class VKImageView;
 
 class BloomEffect : public PostProcessingEffect
 {
 public:
 	explicit BloomEffect(glm::uvec2 size);
 	
-	GLTexture& renderImpl(GLTexture& input, Camera& camera) override;
+	const VKPtr<VKImageView>& renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) override;
 
 private:
-	GLTexture _workTexture;
-	GLTexture _outputTexture;
+	
+	// common
+	
+	VKDynamic<VKImage> _workTexture;
+	std::vector<VKDynamic<VKImageView>> _workTextureViews;
+	
+	VKPtr<VKSampler> _workTextureSampler;
+	
+	VKDynamic<VKImage> _outputTexture;
+	VKDynamic<VKImageView> _outputTextureView;
+	
+	// downsample
+	
+	struct DownsamplePushConstantData
+	{
+		GLSL_vec2 srcPixelSize;
+		GLSL_int srcLevel;
+	};
+	
+	VKPtr<VKDescriptorSetLayout> _downsampleDescriptorSetLayout;
+	
+	VKPtr<VKPipelineLayout> _downsamplePipelineLayout;
+	VKPtr<VKGraphicsPipeline> _downsamplePipeline;
+	
+	// upsample
+	
+	struct UpsamplePushConstantData
+	{
+		GLSL_vec2 srcPixelSize;
+		GLSL_int srcLevel;
+		GLSL_float bloomRadius;
+	};
+	
+	VKPtr<VKDescriptorSetLayout> _upsampleDescriptorSetLayout;
+	
+	VKPtr<VKPipelineLayout> _upsamplePipelineLayout;
+	VKPtr<VKGraphicsPipeline> _upsamplePipeline;
+	
+	// compose
+	
+	struct ComposePushConstantData
+	{
+		GLSL_float factor;
+	};
+	
+	VKPtr<VKDescriptorSetLayout> _composeDescriptorSetLayout;
+	
+	VKPtr<VKPipelineLayout> _composePipelineLayout;
+	VKPtr<VKGraphicsPipeline> _composePipeline;
+	
+	VKPtr<VKSampler> _inputTextureSampler;
 
-	GLShaderProgram _downsampleProgram;
-	GLShaderProgram _upsampleAndBlurProgram;
-	GLShaderProgram _composeProgram;
-
-	GLFramebuffer _workFramebuffer;
-	GLFramebuffer _composeFramebuffer;
-
-	void copyTextureBaseLevel(GLTexture& source, GLTexture& destination);
-	void downsample(GLTexture& texture, int destLevel);
-	void upsampleAndBlur(GLTexture& texture, int destLevel, float bloomRadius);
-	void compose(GLTexture& sourceA, GLTexture& sourceB, float factor);
+	
+	void downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
+	void upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
+	void compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommandBuffer>& commandBuffer);
+	
+	void createCommonObjects();
+	void createDownsampleObjects();
+	void createUpsampleObjects();
+	void createComposeObjects();
 };

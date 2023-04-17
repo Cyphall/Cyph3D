@@ -60,9 +60,14 @@ bool MeshShape::isReadyForRaytracingRender() const
 	return model != nullptr && model->isLoaded();
 }
 
-const Mesh& MeshShape::getMeshToRender() const
+const VKPtr<VKBuffer<VertexData>>& MeshShape::getVertexBuffer() const
 {
-	return getModel()->getMesh();
+	return getModel()->getVertexBuffer();
+}
+
+const VKPtr<VKBuffer<uint32_t>>& MeshShape::getIndexBuffer() const
+{
+	return getModel()->getIndexBuffer();
 }
 
 void MeshShape::onDrawUi()

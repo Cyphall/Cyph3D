@@ -1,17 +1,21 @@
 #version 460 core
 
-in V2F
+layout(location = 0) in G2F
 {
-	vec3 fragPos;
-} v2f;
+	vec3 i_fragPos;
+};
 
-uniform vec3 u_lightPos;
-uniform float u_far;
+layout(std430, set = 0, binding = 0) buffer uniforms
+{
+	mat4 u_viewProjections[6];
+	vec3 u_lightPos;
+	float u_far;
+};
 
 void main()
 {
 	// get distance between fragment and light source
-	float lightDistance = length(v2f.fragPos.xyz - u_lightPos);
+	float lightDistance = length(i_fragPos.xyz - u_lightPos);
 	
 	// map to [0;1] range by dividing by far_plane
 	lightDistance /= u_far;

@@ -2,8 +2,11 @@
 
 #include <glm/glm.hpp>
 #include <array>
+#include <vulkan/vulkan.hpp>
 
 struct GLFWwindow;
+class VKContext;
+class VKSwapchain;
 
 class Window
 {
@@ -19,7 +22,9 @@ public:
 	explicit Window();
 	~Window();
 	
-	glm::ivec2 getSize();
+	glm::uvec2 getSize();
+	
+	glm::uvec2 getSurfaceSize();
 	
 	float getPixelScale() const;
 	
@@ -28,8 +33,6 @@ public:
 	
 	bool shouldClose() const;
 	void setShouldClose(bool value);
-	
-	void swapBuffers();
 	
 	int getInputMode() const;
 	void setInputMode(int inputMode);
@@ -41,10 +44,17 @@ public:
 	GLFWwindow* getHandle();
 	
 	void onPollEvents();
+	
+	VKSwapchain& getSwapchain();
+	
+	void recreateSwapchain();
 
 private:
 	GLFWwindow* _glfwWindow;
 	
 	std::array<bool, 8> _previousFrameMouseButtonsPressed;
 	std::array<bool, 8> _currentFrameMouseButtonsPressed;
+	
+	vk::SurfaceKHR _surface;
+	std::unique_ptr<VKSwapchain> _swapchain;
 };

@@ -2,21 +2,19 @@
 
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
-#include <memory>
-
 class PostProcessingEffect;
-class GLTexture;
 class Camera;
+class VKImageView;
 
 struct PostProcessingPassInput
 {
-	GLTexture& rawRender;
+	const VKPtr<VKImageView>& rawRenderView;
 	Camera& camera;
 };
 
 struct PostProcessingPassOutput
 {
-	GLTexture& postProcessedRender;
+	const VKPtr<VKImageView>& postProcessedRenderView;
 };
 
 class PostProcessingPass : public RenderPass<PostProcessingPassInput, PostProcessingPassOutput>
@@ -28,5 +26,5 @@ public:
 private:
 	std::vector<std::unique_ptr<PostProcessingEffect>> _effects;
 	
-	PostProcessingPassOutput renderImpl(PostProcessingPassInput& input) override;
+	PostProcessingPassOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, PostProcessingPassInput& input) override;
 };

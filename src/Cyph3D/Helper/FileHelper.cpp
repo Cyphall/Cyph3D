@@ -200,3 +200,13 @@ bool FileHelper::isAssetPath(const std::filesystem::path& path)
 
 	return it == pathCanonial.begin();
 }
+
+void FileHelper::init()
+{
+	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+}
+
+void FileHelper::shutdown()
+{
+	CoUninitialize();
+}

@@ -1,10 +1,13 @@
 #version 460 core
-#extension GL_ARB_bindless_texture : enable
 
-layout(bindless_sampler) uniform sampler2D u_colorTexture;
-uniform float u_exposure;
+layout(set = 0, binding = 0) uniform sampler2D u_colorTexture;
 
-out vec4 o_color;
+layout(push_constant) uniform constants
+{
+	float u_exposure;
+};
+
+layout(location = 0) out vec4 o_color;
 
 void main()
 {

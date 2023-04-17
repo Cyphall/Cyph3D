@@ -1,9 +1,13 @@
 #pragma once
 
-struct ObjectSerialization;
-class Mesh;
-class ShapeRenderer;
+#include "Cyph3D/VKObject/VKPtr.h"
+#include "Cyph3D/Rendering/VertexData.h"
 
+struct ObjectSerialization;
+template<typename T>
+class VKBuffer;
+class ShapeRenderer;
+//TODO: remove Shape and go back to MeshRenderer
 class Shape
 {
 public:
@@ -15,7 +19,8 @@ public:
 	virtual bool isReadyForRasterisationRender() const = 0;
 	virtual bool isReadyForRaytracingRender() const = 0;
 	
-	virtual const Mesh& getMeshToRender() const = 0;
+	virtual const VKPtr<VKBuffer<VertexData>>& getVertexBuffer() const = 0;
+	virtual const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const = 0;
 	
 	virtual void onDrawUi();
 	

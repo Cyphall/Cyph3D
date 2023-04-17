@@ -2,9 +2,8 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
-#include "Cyph3D/GLObject/GLCubemap.h"
-#include "Cyph3D/GLObject/GLFramebuffer.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
@@ -13,13 +12,17 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
-const char* PointLight::identifier = "PointLight";
-glm::mat4 PointLight::_projection = glm::perspective(glm::radians(90.0f), 1.0f, NEAR_DISTANCE, FAR_DISTANCE);
+static const float NEAR_DISTANCE = 0.01f;
+static const float FAR_DISTANCE = 100.0f;
+
+const char* const PointLight::identifier = "PointLight";
+const vk::Format PointLight::depthFormat = vk::Format::eD32Sfloat;
 
 PointLight::PointLight(Entity& entity):
-LightBase(entity)
+	LightBase(entity),
+	_projection(glm::perspective(glm::radians(90.0f), 1.0f, NEAR_DISTANCE, FAR_DISTANCE))
 {
-
+	_projection[1][1] *= -1;
 }
 
 void PointLight::setCastShadows(bool value)
@@ -30,24 +33,28 @@ void PointLight::setCastShadows(bool value)
 	
 	if (value)
 	{
-		_shadowMapFb = std::make_unique<GLFramebuffer>();
+		_shadowMap = VKImage::createDynamic(
+			Engine::getVKContext(),
+			depthFormat,
+			glm::uvec2(_resolution),
+			6,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled,
+			vk::ImageAspectFlagBits::eDepth,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			{},
+			true);
 		
-		CubemapCreateInfo createInfo
-			{
-				.size = glm::ivec2(_resolution),
-				.internalFormat = GL_DEPTH_COMPONENT32,
-				.wrapS = GL_CLAMP_TO_EDGE,
-				.wrapT = GL_CLAMP_TO_EDGE,
-				.wrapR = GL_CLAMP_TO_EDGE
-			};
-		_shadowMap = std::make_unique<GLCubemap>(createInfo);
-		
-		_shadowMapFb->attachDepth(*_shadowMap);
+		_shadowMapView = VKImageView::createDynamic(
+			Engine::getVKContext(),
+			_shadowMap,
+			vk::ImageViewType::eCube);
 	}
 	else
 	{
-		_shadowMapFb.reset();
-		_shadowMap.reset();
+		_shadowMap = {};
+		_shadowMapView = {};
 	}
 }
 
@@ -114,20 +121,20 @@ void PointLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 	if (_castShadows)
 	{
 		data.viewProjections[0] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
+							  glm::lookAt(data.pos, data.pos + glm::vec3(1, 0, 0), glm::vec3(0, 1, 0));
 		data.viewProjections[1] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
+							  glm::lookAt(data.pos, data.pos + glm::vec3(-1, 0, 0), glm::vec3(0, 1, 0));
 		data.viewProjections[2] = _projection *
 							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
 		data.viewProjections[3] = _projection *
 							  glm::lookAt(data.pos, data.pos + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
 		data.viewProjections[4] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
+							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 		data.viewProjections[5] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
-		data.shadowMapTexture = _shadowMap.get();
-		data.shadowMapFramebuffer = _shadowMapFb.get();
-		data.mapResolution = getResolution();
+							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
+		data.shadowMapTexture = &_shadowMap;
+		data.shadowMapTextureView = &_shadowMapView;
+		data.shadowMapResolution = getResolution();
 		data.far = FAR_DISTANCE;
 	}
 	

@@ -12,10 +12,10 @@ AssetManager::AssetManager(int threadCount):
 AssetManager::~AssetManager()
 {}
 
-ImageData AssetManager::readImageData(std::string_view path, const GLenum& format)
+ImageData AssetManager::readImageData(std::string_view path, ImageType type)
 {
-	std::string cachePath = _database.getImageCachePath(path, format);
-	return ImageProcessor::readImageData(path, format, cachePath);
+	std::string cachePath = _database.getImageCachePath(path, type);
+	return ImageProcessor::readImageData(path, type, cachePath);
 }
 
 MeshData AssetManager::readMeshData(std::string_view path)
@@ -24,7 +24,7 @@ MeshData AssetManager::readMeshData(std::string_view path)
 	return MeshProcessor::readMeshData(path, cachePath);
 }
 
-TextureAsset* AssetManager::loadTexture(std::string_view path, TextureType type)
+TextureAsset* AssetManager::loadTexture(std::string_view path, ImageType type)
 {
 	TextureAssetSignature signature;
 	signature.path = path;

@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <array>
 #include <fstream>
 
 struct FileDialogFilter
@@ -15,6 +16,9 @@ struct FileDialogFilter
 class FileHelper
 {
 public:
+	static void init();
+	static void shutdown();
+	
 	static std::string readAllText(const std::string& path);
 	
 	static std::optional<std::filesystem::path> fileDialogOpen(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder);
@@ -44,6 +48,12 @@ public:
 		stream.read(reinterpret_cast<char*>(data.data()), data.size() * sizeof(T));
 	}
 
+	template<typename T, size_t Size>
+	static void read(std::ifstream& stream, std::array<T, Size>& data)
+	{
+		stream.read(reinterpret_cast<char*>(data.data()), data.size() * sizeof(T));
+	}
+
 	template<typename T>
 	static void write(std::ofstream& stream, const T* data)
 	{
@@ -56,6 +66,12 @@ public:
 		size_t dataSize = data.size();
 		write(stream, &dataSize);
 		
+		stream.write(reinterpret_cast<const char*>(data.data()), data.size() * sizeof(T));
+	}
+	
+	template<typename T, size_t Size>
+	static void write(std::ofstream& stream, const std::array<T, Size>& data)
+	{
 		stream.write(reinterpret_cast<const char*>(data.data()), data.size() * sizeof(T));
 	}
 };

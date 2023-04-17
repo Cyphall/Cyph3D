@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Cyph3D/VKObject/VKPtr.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 
@@ -19,21 +21,19 @@ public:
 	
 	virtual ~RenderPass() = default;
 	
-	TOutput render(TInput& input, PerfStep& parentPerfStep)
+	TOutput render(const VKPtr<VKCommandBuffer>& commandBuffer, TInput& input, PerfStep& parentPerfStep)
 	{
 		_renderPassPerf.clear();
-		_renderPassPerf.setDuration(_perfCounter.retrieve());
+		_renderPassPerf.setDuration(_perfCounter.retrieve(commandBuffer));
 		parentPerfStep.addSubstep(_renderPassPerf);
 		
-		glViewport(0, 0, _size.x, _size.y);
+		_perfCounter.start(commandBuffer);
 		
-		_perfCounter.start();
+		commandBuffer->pushDebugGroup(_name);
+		TOutput output = renderImpl(commandBuffer, input);
+		commandBuffer->popDebugGroup();
 		
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, _name);
-		TOutput output = renderImpl(input);
-		glPopDebugGroup();
-		
-		_perfCounter.stop();
+		_perfCounter.stop(commandBuffer);
 		
 		return output;
 	}
@@ -42,7 +42,7 @@ protected:
 	glm::uvec2 _size;
 	PerfStep _renderPassPerf;
 	
-	virtual TOutput renderImpl(TInput& input) = 0;
+	virtual TOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, TInput& input) = 0;
 	
 private:
 	const char* _name;

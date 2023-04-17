@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Cyph3D/Enums/TextureType.h"
+#include "Cyph3D/Asset/Processor/ImageData.h"
 
 #include <memory>
 #include <string>
-#include <glad/glad.h>
 
 namespace SQLite
 {
@@ -17,7 +16,7 @@ public:
 	AssetCacheDatabase();
 	~AssetCacheDatabase();
 
-	std::string getImageCachePath(std::string_view path, const GLenum& format);
+	std::string getImageCachePath(std::string_view path, ImageType type);
 	std::string getMeshCachePath(std::string_view path);
 	
 private:

@@ -1,7 +1,10 @@
 #include "CubemapAsset.h"
 
-#include "Cyph3D/GLObject/CreateInfo/CubemapCreateInfo.h"
-#include "Cyph3D/GLObject/GLCubemap.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
+#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Asset/AssetManager.h"
 
@@ -23,16 +26,14 @@ CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& s
 CubemapAsset::~CubemapAsset()
 {}
 
-const GLCubemap& CubemapAsset::getGLCubemap() const
+const VKPtr<VKImageView>& CubemapAsset::getImageView() const
 {
 	checkLoaded();
-	return *_glCubemap;
+	return _imageView;
 }
 
 bool CubemapAsset::load_step1_mt()
 {
-	GLenum internalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM;
-	
 	std::reference_wrapper<std::string> paths[6] = {
 		_signature.xposPath,
 		_signature.xnegPath,
@@ -42,51 +43,88 @@ bool CubemapAsset::load_step1_mt()
 		_signature.znegPath,
 	};
 	
-	glm::ivec2 size;
-	int levelCount;
+	vk::Format format;
+	glm::uvec2 size;
 	std::array<ImageData, 6> imageDataList;
-	for (int i = 0; i < 6; i++)
+	for (uint32_t i = 0; i < 6; i++)
 	{
-		imageDataList[i] = _manager.readImageData(paths[i].get(), internalFormat);
+		imageDataList[i] = _manager.readImageData(paths[i].get(), ImageType::ColorSrgb);
 		
 		if (i == 0)
 		{
-			size = imageDataList[i].levels.front().size;
-			levelCount = imageDataList[i].levels.size();
+			format = imageDataList[i].format;
+			size = imageDataList[i].size;
 		}
 		else
 		{
-			if (size != imageDataList[i].levels.front().size)
-				throw std::runtime_error("All 6 faces of a cubemap must have the same texture size.");
-			if (levelCount != imageDataList[i].levels.size())
-				throw;
+			if (format != imageDataList[i].format)
+				throw std::runtime_error("All 6 faces of a cubemap must have the same format.");
+			if (size != imageDataList[i].size)
+				throw std::runtime_error("All 6 faces of a cubemap must have the same size.");
 		}
 	}
-
-	CubemapCreateInfo cubemapCreateInfo;
-	cubemapCreateInfo.size = size;
-	cubemapCreateInfo.internalFormat = internalFormat;
-	cubemapCreateInfo.wrapS = GL_CLAMP_TO_EDGE;
-	cubemapCreateInfo.wrapT = GL_CLAMP_TO_EDGE;
-	cubemapCreateInfo.wrapR = GL_CLAMP_TO_EDGE;
-	cubemapCreateInfo.levels = levelCount;
-
-	_glCubemap = std::make_unique<GLCubemap>(cubemapCreateInfo);
-	for (int face = 0; face < 6; face++)
+	
+	_image = VKImage::create(
+		Engine::getVKContext(),
+		format,
+		size,
+		6,
+		VKImage::calcMaxMipLevels(size),
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+		vk::ImageAspectFlagBits::eColor,
+		vk::MemoryPropertyFlagBits::eDeviceLocal,
+		{},
+		true);
+	
+	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
+		Engine::getVKContext(),
+		_image->getLayerByteSize(),
+		vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
+	
+	for (uint32_t face = 0; face < 6; face++)
 	{
-		for (int level = 0; level < levelCount; level++)
-		{
-			ImageLevel& levelData = imageDataList[face].levels[level];
-			
-			_glCubemap->setCompressedData(
-				levelData.data.data(),
-				levelData.data.size(),
-				levelData.size,
-				face,
-				level,
-				levelData.format);
-		}
+		std::byte* ptr = stagingBuffer->map();
+		std::copy(imageDataList[face].data.begin(), imageDataList[face].data.end(), ptr);
+		stagingBuffer->unmap();
+		
+		Engine::getVKContext().executeImmediate(
+			[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+			{
+				vk::DeviceSize bufferOffset = 0;
+				for (uint32_t level = 0; level < _image->getLevels(); level++)
+				{
+					commandBuffer->imageMemoryBarrier(
+						_image,
+						vk::PipelineStageFlagBits2::eNone,
+						vk::AccessFlagBits2::eNone,
+						vk::PipelineStageFlagBits2::eCopy,
+						vk::AccessFlagBits2::eTransferWrite,
+						vk::ImageLayout::eTransferDstOptimal,
+						face,
+						level);
+					
+					commandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, face, level);
+					bufferOffset += _image->getLevelByteSize(level);
+					
+					commandBuffer->imageMemoryBarrier(
+						_image,
+						vk::PipelineStageFlagBits2::eCopy,
+						vk::AccessFlagBits2::eTransferWrite,
+						vk::PipelineStageFlagBits2::eFragmentShader,
+						vk::AccessFlagBits2::eShaderSampledRead,
+						vk::ImageLayout::eReadOnlyOptimal,
+						face,
+						level);
+				}
+			});
 	}
+	
+	_imageView = VKImageView::create(
+		Engine::getVKContext(),
+		_image,
+		vk::ImageViewType::eCube);
 
 	_loaded = true;
 	Logger::info(std::format("Cubemap (xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {}) loaded",

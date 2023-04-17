@@ -1,33 +1,59 @@
 #include "GpuPerfCounter.h"
 
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/VKObject/Query/VKTimestampQuery.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+
 GpuPerfCounter::GpuPerfCounter()
 {
-	glCreateQueries(GL_TIMESTAMP, 1, &_queryBegin);
-	glCreateQueries(GL_TIMESTAMP, 1, &_queryEnd);
+	_queryBegin = VKTimestampQuery::createDynamic(Engine::getVKContext());
+	_queryEnd = VKTimestampQuery::createDynamic(Engine::getVKContext());
 }
 
 GpuPerfCounter::~GpuPerfCounter()
 {
-	glDeleteQueries(1, &_queryBegin);
-	glDeleteQueries(1, &_queryEnd);
+
 }
 
-void GpuPerfCounter::start()
+void GpuPerfCounter::start(const VKPtr<VKCommandBuffer>& commandBuffer)
 {
-	glQueryCounter(_queryBegin, GL_TIMESTAMP);
+	commandBuffer->insertTimestamp(_queryBegin.getVKPtr());
 }
 
-void GpuPerfCounter::stop()
+void GpuPerfCounter::stop(const VKPtr<VKCommandBuffer>& commandBuffer)
 {
-	glQueryCounter(_queryEnd, GL_TIMESTAMP);
+	commandBuffer->insertTimestamp(_queryEnd.getVKPtr());
 }
 
-double GpuPerfCounter::retrieve() const
+double GpuPerfCounter::retrieve(const VKPtr<VKCommandBuffer>& commandBuffer)
 {
-	GLuint64 timeBegin;
-	glGetQueryObjectui64v(_queryBegin, GL_QUERY_RESULT, &timeBegin);
-	GLuint64 timeEnd;
-	glGetQueryObjectui64v(_queryEnd, GL_QUERY_RESULT, &timeEnd);
+	double timeDiff = 0;
+	if (_queryBegin->isInserted() && _queryEnd->isInserted())
+	{
+		uint64_t timestampBegin;
+		if (!_queryBegin->tryGetTimestamp(timestampBegin))
+		{
+			throw;
+		}
+		
+		uint64_t timestampEnd;
+		if (!_queryEnd->tryGetTimestamp(timestampEnd))
+		{
+			throw;
+		}
+		
+		double timestampDiff = timestampEnd - timestampBegin;
+		timeDiff = timestampDiff * Engine::getVKContext().getTimestampPeriod();
+	}
 	
-	return static_cast<double>(timeEnd - timeBegin) / 1000000.0;
+	if (_queryBegin->isInserted())
+	{
+		commandBuffer->resetTimestamp(_queryBegin.getVKPtr());
+	}
+	if (_queryEnd->isInserted())
+	{
+		commandBuffer->resetTimestamp(_queryEnd.getVKPtr());
+	}
+	
+	return timeDiff / 1000000.0;
 }

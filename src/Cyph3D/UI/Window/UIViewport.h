@@ -25,6 +25,8 @@ public:
 	static void renderToFile(glm::uvec2 resolution);
 	
 	static const PerfStep* getPreviousFramePerfStep();
+	
+	static void shutdown();
 
 private:
 	enum class RendererType

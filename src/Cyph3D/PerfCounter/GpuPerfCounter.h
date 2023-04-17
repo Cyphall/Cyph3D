@@ -1,6 +1,8 @@
 #pragma once
 
-#include <glad/glad.h>
+#include "Cyph3D/VKObject/VKDynamic.h"
+
+class VKTimestampQuery;
 
 class GpuPerfCounter
 {
@@ -8,12 +10,12 @@ public:
 	GpuPerfCounter();
 	~GpuPerfCounter();
 	
-	void start();
-	void stop();
+	void start(const VKPtr<VKCommandBuffer>& commandBuffer);
+	void stop(const VKPtr<VKCommandBuffer>& commandBuffer);
 	
-	double retrieve() const;
+	double retrieve(const VKPtr<VKCommandBuffer>& commandBuffer);
 	
 private:
-	GLuint _queryBegin = 0;
-	GLuint _queryEnd = 0;
+	VKDynamic<VKTimestampQuery> _queryBegin;
+	VKDynamic<VKTimestampQuery> _queryEnd;
 };

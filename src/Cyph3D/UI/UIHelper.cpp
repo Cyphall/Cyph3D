@@ -2,24 +2,34 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/UI/ImGuiVulkanBackend.h"
 #include "Cyph3D/UI/Window/UIHierarchy.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIMenuBar.h"
 #include "Cyph3D/UI/Window/UIMisc.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/UI/Window/UIAssetBrowser.h"
+#include "Cyph3D/VKObject/VKDynamic.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
+#include "Cyph3D/VKObject/Queue/VKQueue.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/Window.h"
 
 #include <ImGuizmo.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
 
 ImGuiContext* UIHelper::_context = nullptr;
-bool UIHelper::_dockingLayoutInitialized = false;
+
 std::unique_ptr<UIAssetBrowser> UIHelper::_assetBrowser;
 ImFont* UIHelper::_bigFont = nullptr;
+
+bool UIHelper::_dockingLayoutInitialized = false;
+
+std::unique_ptr<ImGuiVulkanBackend> UIHelper::_vulkanBackend;
 
 void UIHelper::init()
 {
@@ -32,16 +42,17 @@ void UIHelper::init()
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.HoverDelayNormal = 0.6f;
 	
-	ImGui_ImplGlfw_InitForOpenGL(Engine::getWindow().getHandle(), true);
-	ImGui_ImplOpenGL3_Init("#version 460 core");
+	ImGui_ImplGlfw_InitForVulkan(Engine::getWindow().getHandle(), true);
 	
 	initStyles();
 	initFonts();
 	
 	_assetBrowser = std::make_unique<UIAssetBrowser>(_bigFont);
+	
+	_vulkanBackend = std::make_unique<ImGuiVulkanBackend>();
 }
 
-void UIHelper::render()
+const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageView, const VKPtr<VKSemaphore>& imageAvailableSemaphore)
 {
 	ImGuiID dockspaceId = ImGui::DockSpaceOverViewport();
 	
@@ -50,6 +61,10 @@ void UIHelper::render()
 		initDockingLayout(dockspaceId);
 		_dockingLayoutInitialized = true;
 	}
+	
+	const VKPtr<VKCommandBuffer>& commandBuffer = Engine::getVKContext().getDefaultCommandBuffer();
+	
+	commandBuffer->begin();
 	
 	UIViewport::show();
 	UIMenuBar::show();
@@ -62,12 +77,42 @@ void UIHelper::render()
 	}
 
 	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	
+	commandBuffer->imageMemoryBarrier(
+		destImageView->getImage(),
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal,
+		0,
+		0);
+	
+	_vulkanBackend->renderDrawData(ImGui::GetDrawData(), commandBuffer, destImageView);
+	
+	commandBuffer->imageMemoryBarrier(
+		destImageView->getImage(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::ImageLayout::ePresentSrcKHR,
+		0,
+		0);
+	
+	commandBuffer->end();
+	
+	const VKPtr<VKSemaphore>& renderFinishedSemaphore = commandBuffer->getStatusSemaphore();
+	
+	Engine::getVKContext().getQueue().submit(commandBuffer, &imageAvailableSemaphore, &renderFinishedSemaphore);
+	
+	return renderFinishedSemaphore;
 }
 
 void UIHelper::shutdown()
 {
-	ImGui_ImplOpenGL3_Shutdown();
+	UIViewport::shutdown();
+	_vulkanBackend.reset();
 	ImGui_ImplGlfw_Shutdown();
 	
 	ImGui::DestroyContext(_context);
@@ -76,7 +121,6 @@ void UIHelper::shutdown()
 
 void UIHelper::onNewFrame()
 {
-	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 	ImGuizmo::BeginFrame();

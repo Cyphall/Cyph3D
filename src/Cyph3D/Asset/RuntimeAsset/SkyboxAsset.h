@@ -3,13 +3,15 @@
 #include "Cyph3D/Asset/RuntimeAsset/RuntimeAsset.h"
 #include "Cyph3D/HashBuilder.h"
 #include "Cyph3D/UI/IInspectable.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <string>
 #include <optional>
 #include <nlohmann/json_fwd.hpp>
 
 class CubemapAsset;
-class GLCubemap;
+class VKImage;
+class VKImageView;
 
 struct SkyboxAssetSignature
 {
@@ -58,7 +60,7 @@ public:
 	const std::string* getZnegPath() const;
 	void setZnegPath(std::optional<std::string_view> path);
 	
-	const GLCubemap& getCubemap() const;
+	const VKPtr<VKImageView>& getImageView() const;
 
 	static void create(std::string_view path);
 

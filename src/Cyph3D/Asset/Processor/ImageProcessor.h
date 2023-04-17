@@ -9,5 +9,5 @@ class ImageProcessor
 private:
 	friend class AssetManager;
 	
-	static ImageData readImageData(std::string_view path, const GLenum& format, std::string_view cachePath);
+	static ImageData readImageData(std::string_view path, ImageType type, std::string_view cachePath);
 };

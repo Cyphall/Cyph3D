@@ -2,7 +2,10 @@
 
 layout(location = 0) in vec3 a_position;
 
-uniform mat4 u_mvp;
+layout(push_constant) uniform constants
+{
+	mat4 u_mvp;
+};
 
 void main()
 {

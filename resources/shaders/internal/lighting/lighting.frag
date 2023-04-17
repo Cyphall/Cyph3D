@@ -1,5 +1,5 @@
 #version 460 core
-#extension GL_ARB_bindless_texture : enable
+#extension GL_EXT_nonuniform_qualifier : enable
 
 /* ------ consts ------ */
 const float PI = 3.14159265359;
@@ -7,59 +7,75 @@ const float TWO_PI = PI*2;
 const float SQRT_2 = 1.41421356237;
 
 /* ------ data structures ------ */
-struct PointLight
+struct PointLightUniforms
 {
 	vec3  pos;
 	float intensity;
 	vec3  color;
 	bool  castShadows;
-	layout(bindless_sampler) samplerCube shadowMap;
+	uint  textureIndex;
 	float far;
 	float maxTexelSizeAtUnitDistance;
 };
 
-struct DirectionalLight
+struct DirectionalLightUniforms
 {
 	vec3  fragToLightDirection;
 	float intensity;
 	vec3  color;
 	bool  castShadows;
 	mat4  lightViewProjection;
-	layout(bindless_sampler) sampler2D shadowMap;
+	uint  textureIndex;
 	float mapSize;
 	float mapDepth;
 };
 
-/* ------ inputs ------ */
-in V2F
+struct ObjectUniforms
 {
-	vec3 fragPos;
-	vec2 texCoords;
-	vec3 T;
-	vec3 N;
-} v2f;
+	mat4 normalMatrix;
+	mat4 model;
+	mat4 mvp;
+	int  objectIndex;
+};
+
+/* ------ inputs ------ */
+layout(location = 0) in V2F
+{
+	vec3 i_fragPos;
+	vec2 i_texCoords;
+	vec3 i_T;
+	vec3 i_N;
+};
 
 /* ------ uniforms ------ */
-layout(std430, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere1
+layout(std430, set = 0, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere1
 {
-	PointLight pointLights[];
+	DirectionalLightUniforms u_directionalLightUniforms[];
 };
+layout(set = 0, binding = 1) uniform sampler2D u_directionalLightTextures[];
 
-layout(std430, binding = 1) buffer UselessNameBecauseItIsNeverUsedAnywhere2
+layout(std430, set = 1, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere2
 {
-	DirectionalLight directionalLights[];
+	PointLightUniforms u_pointLightUniforms[];
 };
+layout(set = 1, binding = 1) uniform samplerCube u_pointLightTextures[];
 
-layout(bindless_sampler) uniform sampler2D u_albedoMap;
-layout(bindless_sampler) uniform sampler2D u_normalMap;
-layout(bindless_sampler) uniform sampler2D u_roughnessMap;
-layout(bindless_sampler) uniform sampler2D u_metalnessMap;
-layout(bindless_sampler) uniform sampler2D u_displacementMap;
-layout(bindless_sampler) uniform sampler2D u_emissiveMap;
+layout(std430, set = 2, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere3
+{
+	ObjectUniforms u_objectUniforms;
+};
+layout(set = 2, binding = 1) uniform sampler2D u_albedoMap;
+layout(set = 2, binding = 2) uniform sampler2D u_normalMap;
+layout(set = 2, binding = 3) uniform sampler2D u_roughnessMap;
+layout(set = 2, binding = 4) uniform sampler2D u_metalnessMap;
+layout(set = 2, binding = 5) uniform sampler2D u_displacementMap;
+layout(set = 2, binding = 6) uniform sampler2D u_emissiveMap;
 
-uniform mat4  u_viewProjectionInv;
-uniform vec3  u_viewPos;
-uniform int   u_objectIndex;
+layout(push_constant) uniform constants
+{
+	mat4 u_viewProjectionInv;
+	vec3 u_viewPos;
+};
 
 /* ------ outputs ------ */
 layout(location = 0) out vec4 o_color;
@@ -86,16 +102,16 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 // Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
 void main()
 {
-	vec3 T = normalize(v2f.T);
-	vec3 N = normalize(v2f.N);
-	vec3 B = normalize(cross(v2f.N, v2f.T));
+	vec3 T = normalize(i_T);
+	vec3 N = normalize(i_N);
+	vec3 B = normalize(cross(i_N, i_T));
 	mat3 tangentToWorld = mat3(T, B, N);
 	mat3 worldToTangent = transpose(tangentToWorld);
-	vec3 viewDir = normalize(u_viewPos - v2f.fragPos);
+	vec3 viewDir = normalize(u_viewPos - i_fragPos);
 	
 	// ----------------- displacement -----------------
 	
-	vec2 texCoords = POM(v2f.texCoords, normalize(worldToTangent * viewDir));
+	vec2 texCoords = POM(i_texCoords, normalize(worldToTangent * viewDir));
 	
 	// ----------------- albedo -----------------
 	
@@ -122,50 +138,46 @@ void main()
 	
 	// ----------------- object index -----------------
 	
-	o_objectIndex = u_objectIndex;
+	o_objectIndex = u_objectUniforms.objectIndex;
 	
 	// ----------------- geometry normal -----------------
 	
-	vec3 geometryNormal = normalize(cross(dFdx(v2f.fragPos), dFdy(v2f.fragPos)));
+	vec3 geometryNormal = normalize(cross(dFdy(i_fragPos), dFdx(i_fragPos)));
 	
 	// ----------------- position -----------------
 	
-	vec3 fragPos = v2f.fragPos;
-	
-	// ----------------- position -----------------
-	
-	float depth = gl_FragCoord.z;
+	vec3 fragPos = i_fragPos;
 	
 	
 	vec3 F0 = mix(vec3(0.04), albedo, metalness);
 	
 	// aka Lo
 	vec3 finalColor = albedo * emissive;
-	
-	// Point Light calculation
-	for (int i = 0; i < pointLights.length(); ++i)
+
+	// Directional Light calculation
+	for (int i = 0; i < u_directionalLightUniforms.length(); ++i)
 	{
-		float shadow = pointLights[i].castShadows ? isInPointShadow(i, fragPos, geometryNormal) : 0;
-		
+		float shadow = u_directionalLightUniforms[i].castShadows ? isInDirectionalShadow(i, fragPos, geometryNormal) : 0;
+
 		// calculate light parameters
-		vec3  lightDir    = normalize(pointLights[i].pos - fragPos);
-		vec3  halfwayDir  = normalize(viewDir + lightDir);
-		float distance    = length(pointLights[i].pos - fragPos);
-		float attenuation = 1.0 / (1 + distance * distance);
-		vec3  radiance    = pointLights[i].color * pointLights[i].intensity * attenuation;
-		
+		vec3 lightDir    = u_directionalLightUniforms[i].fragToLightDirection;
+		vec3 halfwayDir  = normalize(viewDir + lightDir);
+		vec3 radiance    = u_directionalLightUniforms[i].color * u_directionalLightUniforms[i].intensity;
+
 		finalColor += calculateLighting(radiance, lightDir, viewDir, halfwayDir, albedo, normal, roughness, metalness, F0) * (1 - shadow);
 	}
 	
-	// Directional Light calculation
-	for (int i = 0; i < directionalLights.length(); ++i)
+	// Point Light calculation
+	for (int i = 0; i < u_pointLightUniforms.length(); ++i)
 	{
-		float shadow = directionalLights[i].castShadows ? isInDirectionalShadow(i, fragPos, geometryNormal) : 0;
+		float shadow = u_pointLightUniforms[i].castShadows ? isInPointShadow(i, fragPos, geometryNormal) : 0;
 		
 		// calculate light parameters
-		vec3 lightDir    = directionalLights[i].fragToLightDirection;
-		vec3 halfwayDir  = normalize(viewDir + lightDir);
-		vec3 radiance    = directionalLights[i].color * directionalLights[i].intensity;
+		vec3  lightDir    = normalize(u_pointLightUniforms[i].pos - fragPos);
+		vec3  halfwayDir  = normalize(viewDir + lightDir);
+		float distance    = length(u_pointLightUniforms[i].pos - fragPos);
+		float attenuation = 1.0 / (1 + distance * distance);
+		vec3  radiance    = u_pointLightUniforms[i].color * u_pointLightUniforms[i].intensity * attenuation;
 		
 		finalColor += calculateLighting(radiance, lightDir, viewDir, halfwayDir, albedo, normal, roughness, metalness, F0) * (1 - shadow);
 	}
@@ -194,6 +206,7 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 	
 	if (viewDir.z <= 0) return texCoords;
 	
+	viewDir.y = -viewDir.y;
 	// Offsets applied at each steps
 	vec2  texCoordsStepOffset = -(viewDir.xy / viewDir.z) / linearSamples * depthScale;
 	float depthStepOffset     = 1.0 / linearSamples;
@@ -283,17 +296,17 @@ vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelSize_WS, flo
 
 float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 {
-	float texelSize = 1.0 / textureSize(directionalLights[lightIndex].shadowMap, 0).x;
-	float texelSize_WS = texelSize * directionalLights[lightIndex].mapSize;
+	float texelSize = 1.0 / textureSize(u_directionalLightTextures[u_directionalLightUniforms[lightIndex].textureIndex], 0).x;
+	float texelSize_WS = texelSize * u_directionalLightUniforms[lightIndex].mapSize;
 	
 	float samplingRadius = 3;
 	
-	fragPos += calculateNormalBias(geometryNormal, directionalLights[lightIndex].fragToLightDirection, texelSize_WS, samplingRadius);
+	fragPos += calculateNormalBias(geometryNormal, u_directionalLightUniforms[lightIndex].fragToLightDirection, texelSize_WS, samplingRadius);
 	
-	vec4 shadowMapSpacePos = directionalLights[lightIndex].lightViewProjection * vec4(fragPos, 1);
+	vec4 shadowMapSpacePos = u_directionalLightUniforms[lightIndex].lightViewProjection * vec4(fragPos, 1);
 	vec3 projCoords = shadowMapSpacePos.xyz / shadowMapSpacePos.w;
-	projCoords = projCoords * 0.5 + 0.5;
-	
+	projCoords.xy = projCoords.xy * 0.5 + 0.5;
+
 	if (projCoords.z > 1) return 0.0;
 	
 	vec2  fragUV_SMV    = projCoords.xy;
@@ -309,7 +322,7 @@ float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 	for (int i = 0; i < sampleCount; i++)
 	{
 		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
-		float sampleDepth = texture(directionalLights[lightIndex].shadowMap, fragUV_SMV + uvOffset).r;
+		float sampleDepth = texture(u_directionalLightTextures[u_directionalLightUniforms[lightIndex].textureIndex], fragUV_SMV + uvOffset).r;
 		
 		if (fragDepth_SMV - bias > sampleDepth)
 		{
@@ -324,28 +337,29 @@ float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 {
 	// get vector between fragment position and light position
-	vec3 lightToFrag = fragPos - pointLights[lightIndex].pos;
+	vec3 lightToFrag = fragPos - u_pointLightUniforms[lightIndex].pos;
 	float fragDist = length(lightToFrag);
 	
-	float texelSize_WS = pointLights[lightIndex].maxTexelSizeAtUnitDistance * fragDist;
+	float texelSize_WS = u_pointLightUniforms[lightIndex].maxTexelSizeAtUnitDistance * fragDist;
 	
 	float samplingRadius = 3;
 	
 	fragPos += calculateNormalBias(geometryNormal, -lightToFrag / fragDist, texelSize_WS, samplingRadius);
 	
 	// recalculate with normal-biased frag position
-	lightToFrag = fragPos - pointLights[lightIndex].pos;
+	lightToFrag = fragPos - u_pointLightUniforms[lightIndex].pos;
 	fragDist = length(lightToFrag);
 	
 	float fragDepth_SMV = fragDist;
 	
 	vec3 forward = lightToFrag / fragDist;
+	forward.z = -forward.z;
 	vec3 up = vec3(0, 1, 0);
 	vec3 left = normalize(cross(forward, up));
 	up = cross(left, forward);
 	
 	const float bias = 0.0002;
-	float samplingRadiusNormalized = samplingRadius * pointLights[lightIndex].maxTexelSizeAtUnitDistance;
+	float samplingRadiusNormalized = samplingRadius * u_pointLightUniforms[lightIndex].maxTexelSizeAtUnitDistance;
 	float phi = InterleavedGradientNoise(gl_FragCoord.xy) * TWO_PI;
 	
 	float shadow = 0.0;
@@ -355,10 +369,10 @@ float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 	{
 		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
 		vec3 posOffset = (left * uvOffset.x) + (up * uvOffset.y);
-		float sampleDepth = texture(pointLights[lightIndex].shadowMap, forward + posOffset).r;
+		float sampleDepth = texture(u_pointLightTextures[u_pointLightUniforms[lightIndex].textureIndex], forward + posOffset).r;
 		
 		// it is currently in linear range between [0,1]. Re-transform back to original value
-		sampleDepth *= pointLights[lightIndex].far;
+		sampleDepth *= u_pointLightUniforms[lightIndex].far;
 		
 		if (fragDepth_SMV - bias > sampleDepth)
 		{
