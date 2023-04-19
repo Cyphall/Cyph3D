@@ -26,7 +26,7 @@ BloomEffect::BloomEffect(glm::uvec2 size):
 	createComposeObjects();
 }
 
-const VKPtr<VKImageView>& BloomEffect::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
+const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
 {
 	// copy input texture level 0 to work texture level 0
 	commandBuffer->pushDebugGroup("copyTextureBaseLevel");

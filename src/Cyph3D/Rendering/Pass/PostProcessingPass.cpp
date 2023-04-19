@@ -18,7 +18,7 @@ RenderPass(size, "Post-processing pass")
 PostProcessingPass::~PostProcessingPass()
 {}
 
-PostProcessingPassOutput PostProcessingPass::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, PostProcessingPassInput& input)
+PostProcessingPassOutput PostProcessingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PostProcessingPassInput& input)
 {
 	const VKPtr<VKImageView>* renderTextureView = &input.rawRenderView;
 	

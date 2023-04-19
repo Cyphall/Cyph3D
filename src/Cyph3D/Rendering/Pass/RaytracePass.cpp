@@ -44,7 +44,7 @@
 //
 //}
 //
-//RaytracePassOutput RaytracePass::renderImpl(RaytracePassInput& input)
+//RaytracePassOutput RaytracePass::onRender(RaytracePassInput& input)
 //{
 //
 //#pragma region Camera

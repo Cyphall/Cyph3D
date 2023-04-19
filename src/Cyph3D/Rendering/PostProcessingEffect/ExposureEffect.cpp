@@ -23,7 +23,7 @@ ExposureEffect::ExposureEffect(glm::uvec2 size):
 	createImage();
 }
 
-const VKPtr<VKImageView>& ExposureEffect::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
+const VKPtr<VKImageView>& ExposureEffect::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
 {
 	commandBuffer->imageMemoryBarrier(
 		_outputImage.getVKPtr(),

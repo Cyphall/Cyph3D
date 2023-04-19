@@ -103,5 +103,5 @@
 //	GLMutableBuffer<Mesh::VertexData> _meshVertexDataBuffer;
 //	GLMutableBuffer<GLuint> _meshIndexDataBuffer;
 //
-//	RaytracePassOutput renderImpl(RaytracePassInput& input) override;
+//	RaytracePassOutput onRender(RaytracePassInput& input) override;
 //};

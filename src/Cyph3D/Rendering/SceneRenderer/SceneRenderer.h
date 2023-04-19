@@ -45,5 +45,5 @@ protected:
 	PerfStep _renderPerf;
 	GpuPerfCounter _perfCounter;
 	
-	virtual const VKPtr<VKImageView>& renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) = 0;
+	virtual const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) = 0;
 };

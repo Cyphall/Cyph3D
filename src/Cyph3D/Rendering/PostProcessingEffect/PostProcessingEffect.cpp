@@ -18,7 +18,7 @@ const VKPtr<VKImageView>& PostProcessingEffect::render(const VKPtr<VKCommandBuff
 	_perfCounter.start(commandBuffer);
 	
 	commandBuffer->pushDebugGroup(_name);
-	const VKPtr<VKImageView>& output = renderImpl(commandBuffer, input, camera);
+	const VKPtr<VKImageView>& output = onRender(commandBuffer, input, camera);
 	commandBuffer->popDebugGroup();
 	
 	_perfCounter.stop(commandBuffer);

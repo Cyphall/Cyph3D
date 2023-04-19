@@ -32,7 +32,7 @@ LightingPass::LightingPass(glm::uvec2 size):
 	createTextures();
 }
 
-LightingPassOutput LightingPass::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
+LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
 {
 	uint32_t directionalLightShadowsCount = 0;
 	for (DirectionalLight::RenderData& renderData : input.registry.directionalLights)

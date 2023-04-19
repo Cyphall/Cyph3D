@@ -23,7 +23,7 @@ public:
 protected:
 	glm::uvec2 _size;
 	
-	virtual const VKPtr<VKImageView>& renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) = 0;
+	virtual const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) = 0;
 
 private:
 	const char* _name;

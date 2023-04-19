@@ -95,7 +95,7 @@ private:
 	VKDynamic<VKImage> _objectIndexTexture;
 	VKDynamic<VKImageView> _objectIndexTextureView;
 	
-	LightingPassOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input) override;
+	LightingPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input) override;
 	
 	void createUniformBuffers();
 	void createSamplers();

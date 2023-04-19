@@ -26,5 +26,5 @@ public:
 private:
 	std::vector<std::unique_ptr<PostProcessingEffect>> _effects;
 	
-	PostProcessingPassOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, PostProcessingPassInput& input) override;
+	PostProcessingPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PostProcessingPassInput& input) override;
 };

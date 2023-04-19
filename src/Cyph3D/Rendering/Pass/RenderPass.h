@@ -30,7 +30,7 @@ public:
 		_perfCounter.start(commandBuffer);
 		
 		commandBuffer->pushDebugGroup(_name);
-		TOutput output = renderImpl(commandBuffer, input);
+		TOutput output = onRender(commandBuffer, input);
 		commandBuffer->popDebugGroup();
 		
 		_perfCounter.stop(commandBuffer);
@@ -42,7 +42,7 @@ protected:
 	glm::uvec2 _size;
 	PerfStep _renderPassPerf;
 	
-	virtual TOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, TInput& input) = 0;
+	virtual TOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, TInput& input) = 0;
 	
 private:
 	const char* _name;

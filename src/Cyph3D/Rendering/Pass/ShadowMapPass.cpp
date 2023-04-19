@@ -25,7 +25,7 @@ ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 	createPipelines();
 }
 
-ShadowMapPassOutput ShadowMapPass::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
+ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
 {
 	for (DirectionalLight::RenderData& renderData : input.registry.directionalLights)
 	{

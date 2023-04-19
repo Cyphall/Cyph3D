@@ -51,7 +51,7 @@ private:
 	
 	VKPtr<VKSampler> _sampler;
 	
-	SkyboxPassOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input) override;
+	SkyboxPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input) override;
 	
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

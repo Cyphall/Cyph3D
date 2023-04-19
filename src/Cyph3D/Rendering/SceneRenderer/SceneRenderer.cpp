@@ -53,7 +53,7 @@ const VKPtr<VKImageView>& SceneRenderer::render(Camera& camera)
 	
 	_perfCounter.start(commandBuffer);
 	
-	const VKPtr<VKImageView>& result = renderImpl(commandBuffer, camera);
+	const VKPtr<VKImageView>& result = onRender(commandBuffer, camera);
 	
 	_perfCounter.stop(commandBuffer);
 	

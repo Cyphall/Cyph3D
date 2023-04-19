@@ -18,5 +18,5 @@
 //
 //	GLFramebuffer _objectIndexFramebuffer;
 //
-//	GLTexture& renderImpl(Camera& camera) override;
+//	GLTexture& onRender(Camera& camera) override;
 //};

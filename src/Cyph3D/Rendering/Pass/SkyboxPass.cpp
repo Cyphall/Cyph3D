@@ -30,7 +30,7 @@ SkyboxPass::SkyboxPass(glm::uvec2 size):
 	createSampler();
 }
 
-SkyboxPassOutput SkyboxPass::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
+SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		input.rawRenderView->getImage(),

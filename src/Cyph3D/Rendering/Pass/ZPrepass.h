@@ -40,7 +40,7 @@ private:
 	VKDynamic<VKImage> _depthMap;
 	VKDynamic<VKImageView> _depthMapView;
 	
-	ZPrepassOutput renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
+	ZPrepassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
 	
 	void createPipelineLayout();
 	void createPipeline();

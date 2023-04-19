@@ -23,7 +23,7 @@ ZPrepass::ZPrepass(glm::uvec2 size):
 	createDepthMap();
 }
 
-ZPrepassOutput ZPrepass::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
+ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		_depthMap.getVKPtr(),

@@ -24,7 +24,7 @@ ToneMappingEffect::ToneMappingEffect(glm::uvec2 size):
 	createImage();
 }
 
-const VKPtr<VKImageView>& ToneMappingEffect::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
+const VKPtr<VKImageView>& ToneMappingEffect::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
 {
 	commandBuffer->imageMemoryBarrier(
 		_outputImage.getVKPtr(),

@@ -16,7 +16,7 @@ class ExposureEffect : public PostProcessingEffect
 public:
 	explicit ExposureEffect(glm::uvec2 size);
 	
-	const VKPtr<VKImageView>& renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) override;
+	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) override;
 
 private:
 	struct PushConstantData

@@ -8,7 +8,7 @@
 //	_objectIndexFramebuffer.setReadBuffer(0);
 //}
 //
-//GLTexture& RaytracingSceneRenderer::renderImpl(Camera& camera)
+//GLTexture& RaytracingSceneRenderer::onRender(Camera& camera)
 //{
 //	RaytracePassInput raytracePassInput{
 //		.registry = _registry,

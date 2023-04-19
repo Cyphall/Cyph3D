@@ -22,7 +22,7 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 }
 
-const VKPtr<VKImageView>& RasterizationSceneRenderer::renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera)
+const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera)
 {
 	ZPrepassInput zPrepassInput{
 		.registry = _registry,

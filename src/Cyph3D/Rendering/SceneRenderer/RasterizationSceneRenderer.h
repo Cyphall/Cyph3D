@@ -26,5 +26,5 @@ private:
 	VKPtr<VKBuffer<int32_t>> _objectIndexBuffer;
 	VKPtr<VKImageView> _objectIndexView;
 	
-	const VKPtr<VKImageView>& renderImpl(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) override;
+	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) override;
 };
