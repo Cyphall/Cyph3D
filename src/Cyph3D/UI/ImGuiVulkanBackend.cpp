@@ -247,6 +247,8 @@ void ImGuiVulkanBackend::createPipeline()
 	
 	info.viewport = std::nullopt;
 	
+	info.scissor = std::nullopt;
+	
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eNone;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 	
