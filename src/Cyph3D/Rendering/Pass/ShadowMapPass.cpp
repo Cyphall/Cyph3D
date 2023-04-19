@@ -1,6 +1,7 @@
 #include "ShadowMapPass.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
@@ -13,7 +14,6 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
-#include "Cyph3D/Rendering/Shape/Shape.h"
 #include "Cyph3D/Scene/Camera.h"
 
 ShadowMapPass::ShadowMapPass(glm::uvec2 size):
@@ -84,21 +84,27 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		scissor.size = shadowMapSize;
 		commandBuffer->setScissor(scissor);
 		
-		for (const ShapeRenderer::RenderData& shapeData : input.registry.shapes)
+		for (const ModelRenderer::RenderData& modelData : input.registry.models)
 		{
-			if (!shapeData.contributeShadows) continue;
-			
-			if (!shapeData.shape->isReadyForRasterisationRender())
+			if (!modelData.contributeShadows)
+			{
 				continue;
+			}
 			
-			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = shapeData.shape->getVertexBuffer();
-			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = shapeData.shape->getIndexBuffer();
+			MeshAsset* mesh = modelData.mesh;
+			if (mesh == nullptr || !mesh->isLoaded())
+			{
+				continue;
+			}
+			
+			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = mesh->getVertexBuffer();
+			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = mesh->getIndexBuffer();
 			
 			commandBuffer->bindVertexBuffer(0, vertexBuffer);
 			commandBuffer->bindIndexBuffer(indexBuffer);
 			
 			DirectionalLightPushConstantData pushConstantData{};
-			pushConstantData.mvp = renderData.lightViewProjection * shapeData.matrix;
+			pushConstantData.mvp = renderData.lightViewProjection * modelData.matrix;
 			commandBuffer->pushConstants(vk::ShaderStageFlagBits::eVertex, pushConstantData);
 			
 			commandBuffer->draw(indexBuffer->getSize(), 0);
@@ -190,21 +196,27 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getVKPtr()->getBuffer(), shadowCastingPointLightIndex, 1);
 		
-		for (const ShapeRenderer::RenderData& shapeData : input.registry.shapes)
+		for (const ModelRenderer::RenderData& modelData : input.registry.models)
 		{
-			if (!shapeData.contributeShadows) continue;
-			
-			if (!shapeData.shape->isReadyForRasterisationRender())
+			if (!modelData.contributeShadows)
+			{
 				continue;
+			}
 			
-			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = shapeData.shape->getVertexBuffer();
-			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = shapeData.shape->getIndexBuffer();
+			MeshAsset* mesh = modelData.mesh;
+			if (mesh == nullptr || !mesh->isLoaded())
+			{
+				continue;
+			}
+			
+			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = mesh->getVertexBuffer();
+			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = mesh->getIndexBuffer();
 			
 			commandBuffer->bindVertexBuffer(0, vertexBuffer);
 			commandBuffer->bindIndexBuffer(indexBuffer);
 			
 			PointLightPushConstantData pushConstantData{};
-			pushConstantData.model = shapeData.matrix;
+			pushConstantData.model = modelData.matrix;
 			commandBuffer->pushConstants(vk::ShaderStageFlagBits::eVertex, pushConstantData);
 			
 			commandBuffer->draw(indexBuffer->getSize(), 0);

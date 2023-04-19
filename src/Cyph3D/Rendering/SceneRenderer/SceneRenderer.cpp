@@ -19,9 +19,9 @@ void SceneRenderer::onNewFrame()
 	_registry.clear();
 }
 
-void SceneRenderer::requestShapeRendering(ShapeRenderer::RenderData request)
+void SceneRenderer::requestModelRendering(ModelRenderer::RenderData request)
 {
-	_registry.shapes.push_back(request);
+	_registry.models.push_back(request);
 }
 
 void SceneRenderer::requestLightRendering(DirectionalLight::RenderData data)

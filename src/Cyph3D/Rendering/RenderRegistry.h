@@ -2,19 +2,19 @@
 
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
 #include "Cyph3D/Entity/Component/PointLight.h"
-#include "Cyph3D/Entity/Component/ShapeRenderer.h"
+#include "Cyph3D/Entity/Component/ModelRenderer.h"
 
 #include <vector>
 
 struct RenderRegistry
 {
-	std::vector<ShapeRenderer::RenderData> shapes;
+	std::vector<ModelRenderer::RenderData> models;
 	std::vector<DirectionalLight::RenderData> directionalLights;
 	std::vector<PointLight::RenderData> pointLights;
 	
 	void clear()
 	{
-		shapes.clear();
+		models.clear();
 		directionalLights.clear();
 		pointLights.clear();
 	}

@@ -1,7 +1,7 @@
 #include "ZPrepass.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
@@ -10,8 +10,8 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
-#include "Cyph3D/Rendering/Shape/Shape.h"
 #include "Cyph3D/Rendering/VertexData.h"
 #include "Cyph3D/Scene/Camera.h"
 
@@ -72,19 +72,22 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
-	for (const ShapeRenderer::RenderData& shapeData : input.registry.shapes)
+	for (const ModelRenderer::RenderData& modelData : input.registry.models)
 	{
-		if (!shapeData.shape->isReadyForRasterisationRender())
+		MeshAsset* mesh = modelData.mesh;
+		if (mesh == nullptr || !mesh->isLoaded())
+		{
 			continue;
+		}
 		
-		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = shapeData.shape->getVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = shapeData.shape->getIndexBuffer();
+		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = mesh->getVertexBuffer();
+		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = mesh->getIndexBuffer();
 		
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);
 		
 		PushConstantData pushConstantData{};
-		pushConstantData.mvp = vp * shapeData.matrix;
+		pushConstantData.mvp = vp * modelData.matrix;
 		commandBuffer->pushConstants(vk::ShaderStageFlagBits::eVertex, pushConstantData);
 		
 		commandBuffer->draw(indexBuffer->getSize(), 0);

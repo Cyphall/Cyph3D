@@ -10,37 +10,29 @@
 #include <memory>
 
 class MaterialAsset;
-class Shape;
+class MeshAsset;
 
-class ShapeRenderer : public Component
+class ModelRenderer : public Component
 {
 public:
 	struct RenderData
 	{
-		const Shape* shape;
 		MaterialAsset* material;
+		MeshAsset* mesh;
 		glm::mat4 matrix;
 		bool contributeShadows;
 		Entity* owner;
 	};
 	
-	explicit ShapeRenderer(Entity& entity);
+	explicit ModelRenderer(Entity& entity);
 
 	const std::string* getMaterialPath() const;
 	void setMaterialPath(std::optional<std::string_view> path);
 	MaterialAsset* getMaterial() const;
 	
-	Shape& getShape();
-	const Shape& getShape() const;
-	
-	template<typename T>
-	T& setShape()
-	{
-		T* newShape = new T(*this);
-		_shape.reset(newShape);
-		_selectedShape = newShape->getIdentifier();
-		return static_cast<T&>(*newShape);
-	}
+	const std::string* getMeshPath() const;
+	void setMeshPath(std::optional<std::string_view> path);
+	MeshAsset* getMesh() const;
 	
 	bool getContributeShadows() const;
 	void setContributeShadows(bool contributeShadows);
@@ -54,20 +46,14 @@ public:
 	const char* getIdentifier() const override;
 	
 	ObjectSerialization serialize() const override;
-	void deserialize(const ObjectSerialization& shapeRendererSerialization) override;
+	void deserialize(const ObjectSerialization& modelRendererSerialization) override;
 
 private:
 	std::optional<std::string> _materialPath;
 	MaterialAsset* _material = nullptr;
 	
-	std::unique_ptr<Shape> _shape;
+	std::optional<std::string> _meshPath;
+	MeshAsset* _mesh = nullptr;
+	
 	bool _contributeShadows = true;
-	std::string _selectedShape;
-	
-	Shape& setShapeByIdentifier(const std::string& shapeIdentifier);
-	
-	static std::map<std::string, std::function<Shape&(ShapeRenderer&)>> _shapeFactories;
-	static void initShapeFactories();
-	
-	friend class Engine;
 };

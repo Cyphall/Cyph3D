@@ -24,7 +24,7 @@ public:
 	
 	virtual void onNewFrame();
 	
-	void requestShapeRendering(ShapeRenderer::RenderData request);
+	void requestModelRendering(ModelRenderer::RenderData request);
 	void requestLightRendering(DirectionalLight::RenderData data);
 	void requestLightRendering(PointLight::RenderData data);
 

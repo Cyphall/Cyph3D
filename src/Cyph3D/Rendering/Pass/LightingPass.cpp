@@ -4,8 +4,8 @@
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
-#include "Cyph3D/Rendering/Shape/Shape.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
+#include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
@@ -232,35 +232,43 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
-	_objectUniforms->resizeSmart(input.registry.shapes.size());
+	_objectUniforms->resizeSmart(input.registry.models.size());
 	ObjectUniforms* objectUniformsPtr = _objectUniforms->map();
-	for (int i = 0; i < input.registry.shapes.size(); i++)
+	for (int i = 0; i < input.registry.models.size(); i++)
 	{
-		ShapeRenderer::RenderData shapeData = input.registry.shapes[i];
+		ModelRenderer::RenderData modelData = input.registry.models[i];
 		
-		if (!shapeData.shape->isReadyForRasterisationRender())
-			continue;
-		
-		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = shapeData.shape->getVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = shapeData.shape->getIndexBuffer();
-		
-		commandBuffer->bindVertexBuffer(0, vertexBuffer);
-		commandBuffer->bindIndexBuffer(indexBuffer);
-		
-		MaterialAsset* material = shapeData.material;
+		MaterialAsset* material = modelData.material;
 		if (material == nullptr)
 		{
 			material = MaterialAsset::getMissingMaterial();
 		}
-		else if (!material->isLoaded()) // should never happen, but we never know
+		else if (!material->isLoaded())
 		{
 			material = MaterialAsset::getDefaultMaterial();
 		}
 		
+		if (material == nullptr || !material->isLoaded())
+		{
+			continue;
+		}
+		
+		MeshAsset* mesh = modelData.mesh;
+		if (mesh == nullptr || !mesh->isLoaded())
+		{
+			continue;
+		}
+		
+		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = mesh->getVertexBuffer();
+		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = mesh->getIndexBuffer();
+		
+		commandBuffer->bindVertexBuffer(0, vertexBuffer);
+		commandBuffer->bindIndexBuffer(indexBuffer);
+		
 		ObjectUniforms uniforms{};
-		uniforms.normalMatrix = glm::inverseTranspose(glm::mat3(shapeData.matrix));
-		uniforms.model = shapeData.matrix;
-		uniforms.mvp = vp * shapeData.matrix;
+		uniforms.normalMatrix = glm::inverseTranspose(glm::mat3(modelData.matrix));
+		uniforms.model = modelData.matrix;
+		uniforms.mvp = vp * modelData.matrix;
 		uniforms.objectIndex = i;
 		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
 		

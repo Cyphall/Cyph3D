@@ -3,7 +3,7 @@
 #include "Cyph3D/Entity/Component/Animator.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
 #include "Cyph3D/Entity/Component/PointLight.h"
-#include "Cyph3D/Entity/Component/ShapeRenderer.h"
+#include "Cyph3D/Entity/Component/ModelRenderer.h"
 #include "Cyph3D/Iterator/ComponentConstIterator.h"
 #include "Cyph3D/Iterator/ComponentIterator.h"
 #include "Cyph3D/ObjectSerialization.h"
@@ -224,7 +224,8 @@ void Entity::onDrawUi()
 
 void Entity::initComponentFactories()
 {
-	_componentFactories[ShapeRenderer::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ShapeRenderer>();};
+	_componentFactories[ModelRenderer::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ModelRenderer>();};
+	_componentFactories["ShapeRenderer"] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ModelRenderer>();}; // for compatibility
 	_componentFactories[Animator::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<Animator>();};
 	_componentFactories[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<PointLight>();};
 	_componentFactories[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<DirectionalLight>();};

@@ -104,7 +104,7 @@ Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 	
 	if (objectIndex != -1)
 	{
-		return _registry.shapes[objectIndex].owner;
+		return _registry.models[objectIndex].owner;
 	}
 	
 	return nullptr;

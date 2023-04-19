@@ -1,6 +1,5 @@
 #include "Engine.h"
 
-#include "Cyph3D/Entity/Component/ShapeRenderer.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Asset/AssetManager.h"
@@ -46,7 +45,6 @@ void Engine::init()
 	
 	MaterialAsset::initDefaultAndMissing();
 	Entity::initComponentFactories();
-	ShapeRenderer::initShapeFactories();
 	
 	_scene = std::make_unique<Scene>();
 	
