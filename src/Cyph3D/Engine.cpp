@@ -16,8 +16,6 @@
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
-#include <stb_image_write.h>
 #include <format>
 #include <stdexcept>
 
