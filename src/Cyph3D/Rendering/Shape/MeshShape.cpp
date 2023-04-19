@@ -3,7 +3,7 @@
 #include "Cyph3D/Entity/Component/ShapeRenderer.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/Asset/RuntimeAsset/ModelAsset.h"
+#include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Helper/FileHelper.h"
@@ -22,60 +22,60 @@ Shape(shapeRenderer)
 
 }
 
-const std::string* MeshShape::getModelPath() const
+const std::string* MeshShape::getMeshPath() const
 {
-	return _modelPath.has_value() ? &_modelPath.value() : nullptr;
+	return _meshPath.has_value() ? &_meshPath.value() : nullptr;
 }
 
-void MeshShape::setModelPath(std::optional<std::string_view> path)
+void MeshShape::setMeshPath(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_modelPath = *path;
-		_model = Engine::getAssetManager().loadModel(*path);
+		_meshPath = *path;
+		_mesh = Engine::getAssetManager().loadMesh(*path);
 	}
 	else
 	{
-		_modelPath = std::nullopt;
-		_model = nullptr;
+		_meshPath = std::nullopt;
+		_mesh = nullptr;
 	}
 }
 
-ModelAsset* MeshShape::getModel() const
+MeshAsset* MeshShape::getMesh() const
 {
-	return _model;
+	return _mesh;
 }
 
 bool MeshShape::isReadyForRasterisationRender() const
 {
-	ModelAsset* model = getModel();
+	MeshAsset* mesh = getMesh();
 
-	return model != nullptr && model->isLoaded();
+	return mesh != nullptr && mesh->isLoaded();
 }
 
 bool MeshShape::isReadyForRaytracingRender() const
 {
-	ModelAsset* model = getModel();
+	MeshAsset* mesh = getMesh();
 
-	return model != nullptr && model->isLoaded();
+	return mesh != nullptr && mesh->isLoaded();
 }
 
 const VKPtr<VKBuffer<VertexData>>& MeshShape::getVertexBuffer() const
 {
-	return getModel()->getVertexBuffer();
+	return getMesh()->getVertexBuffer();
 }
 
 const VKPtr<VKBuffer<uint32_t>>& MeshShape::getIndexBuffer() const
 {
-	return getModel()->getIndexBuffer();
+	return getMesh()->getIndexBuffer();
 }
 
 void MeshShape::onDrawUi()
 {
 	std::optional<std::string_view> newPath;
-	if (ImGuiHelper::AssetInputWidget(getModelPath(), "Model", "asset_mesh", newPath))
+	if (ImGuiHelper::AssetInputWidget(getMeshPath(), "Mesh", "asset_mesh", newPath))
 	{
-		setModelPath(newPath);
+		setMeshPath(newPath);
 	}
 }
 
@@ -87,9 +87,9 @@ const char* MeshShape::getIdentifier() const
 void MeshShape::duplicate(ShapeRenderer& targetShapeRenderer) const
 {
 	MeshShape& newShape = targetShapeRenderer.setShape<MeshShape>();
-	if (_modelPath)
+	if (_meshPath)
 	{
-		newShape.setModelPath(_modelPath.value());
+		newShape.setMeshPath(_meshPath.value());
 	}
 }
 
@@ -99,10 +99,10 @@ ObjectSerialization MeshShape::serialize() const
 	serialization.version = 2;
 	serialization.identifier = getIdentifier();
 	
-	const std::string* modelPath = getModelPath();
-	if (modelPath)
+	const std::string* meshPath = getMeshPath();
+	if (meshPath)
 	{
-		serialization.data["model"] = *modelPath;
+		serialization.data["model"] = *meshPath;
 	}
 	else
 	{
@@ -116,26 +116,26 @@ void MeshShape::deserialize(const ObjectSerialization& serialization)
 {
 	Scene& scene = getShapeRenderer().getEntity().getScene();
 	
-	const nlohmann::ordered_json& jsonModelPath = serialization.data["model"];
-	if (!jsonModelPath.is_null())
+	const nlohmann::ordered_json& jsonMeshPath = serialization.data["model"];
+	if (!jsonMeshPath.is_null())
 	{
 		if (serialization.version <= 1)
 		{
-			Logger::info("MeshShape deseralization: converting model identifier from version 1.");
-			std::string oldName = jsonModelPath.get<std::string>();
+			Logger::info("MeshShape deseralization: converting mesh identifier from version 1.");
+			std::string oldName = jsonMeshPath.get<std::string>();
 			std::string convertedPath = std::format("meshes/{}.obj", oldName);
 			if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
 			{
-				setModelPath(convertedPath);
+				setMeshPath(convertedPath);
 			}
 			else
 			{
-				Logger::warning("MeshShape deseralization: unable to convert model identifier from version 1.");
+				Logger::warning("MeshShape deseralization: unable to convert mesh identifier from version 1.");
 			}
 		}
 		else
 		{
-			setModelPath(jsonModelPath.get<std::string>());
+			setMeshPath(jsonMeshPath.get<std::string>());
 		}
 	}
 }

@@ -5,16 +5,16 @@
 #include <string>
 #include <optional>
 
-class ModelAsset;
+class MeshAsset;
 
 class MeshShape : public Shape
 {
 public:
 	explicit MeshShape(ShapeRenderer& shapeRenderer);
 
-	const std::string* getModelPath() const;
-	void setModelPath(std::optional<std::string_view> path);
-	ModelAsset* getModel() const;
+	const std::string* getMeshPath() const;
+	void setMeshPath(std::optional<std::string_view> path);
+	MeshAsset* getMesh() const;
 	
 	bool isReadyForRasterisationRender() const override;
 	bool isReadyForRaytracingRender() const override;
@@ -33,6 +33,6 @@ public:
 	void deserialize(const ObjectSerialization& serialization) override;
 
 private:
-	std::optional<std::string> _modelPath;
-	ModelAsset* _model = nullptr;
+	std::optional<std::string> _meshPath;
+	MeshAsset* _mesh = nullptr;
 };

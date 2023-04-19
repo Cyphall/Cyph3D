@@ -11,17 +11,17 @@
 template<typename T>
 class VKBuffer;
 
-struct ModelAssetSignature
+struct MeshAssetSignature
 {
 	std::string path;
 
-	bool operator==(const ModelAssetSignature& other) const = default;
+	bool operator==(const MeshAssetSignature& other) const = default;
 };
 
 template<>
-struct std::hash<ModelAssetSignature>
+struct std::hash<MeshAssetSignature>
 {
-	std::size_t operator()(const ModelAssetSignature& key) const
+	std::size_t operator()(const MeshAssetSignature& key) const
 	{
 		return HashBuilder()
 			.hash(key.path)
@@ -29,10 +29,10 @@ struct std::hash<ModelAssetSignature>
 	}
 };
 
-class ModelAsset : public GPUAsset<ModelAssetSignature>
+class MeshAsset : public GPUAsset<MeshAssetSignature>
 {
 public:
-	~ModelAsset() override;
+	~MeshAsset() override;
 
 	const VKPtr<VKBuffer<VertexData>>& getVertexBuffer() const;
 	const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const;
@@ -40,7 +40,7 @@ public:
 private:
 	friend class AssetManager;
 
-	ModelAsset(AssetManager& manager, const ModelAssetSignature& signature);
+	MeshAsset(AssetManager& manager, const MeshAssetSignature& signature);
 
 	bool load_step1_mt();
 	

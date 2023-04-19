@@ -1,4 +1,4 @@
-#include "ModelAsset.h"
+#include "MeshAsset.h"
 
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/Logging/Logger.h"
@@ -7,29 +7,29 @@
 
 #include <format>
 
-ModelAsset::ModelAsset(AssetManager& manager, const ModelAssetSignature& signature):
+MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
-	Logger::info(std::format("Loading model {}", _signature.path));
-	_manager.addMainThreadTask(&ModelAsset::load_step1_mt, this);
+	Logger::info(std::format("Loading mesh {}", _signature.path));
+	_manager.addMainThreadTask(&MeshAsset::load_step1_mt, this);
 }
 
-ModelAsset::~ModelAsset()
+MeshAsset::~MeshAsset()
 {}
 
-const VKPtr<VKBuffer<VertexData>>& ModelAsset::getVertexBuffer() const
+const VKPtr<VKBuffer<VertexData>>& MeshAsset::getVertexBuffer() const
 {
 	checkLoaded();
 	return _vertexBuffer;
 }
 
-const VKPtr<VKBuffer<uint32_t>>& ModelAsset::getIndexBuffer() const
+const VKPtr<VKBuffer<uint32_t>>& MeshAsset::getIndexBuffer() const
 {
 	checkLoaded();
 	return _indexBuffer;
 }
 
-bool ModelAsset::load_step1_mt()
+bool MeshAsset::load_step1_mt()
 {
 	MeshData meshData = _manager.readMeshData(_signature.path);
 	
@@ -54,7 +54,7 @@ bool ModelAsset::load_step1_mt()
 	_indexBuffer->unmap();
 
 	_loaded = true;
-	Logger::info(std::format("Model {} loaded", _signature.path));
+	Logger::info(std::format("Mesh {} loaded", _signature.path));
 
 	return true;
 }

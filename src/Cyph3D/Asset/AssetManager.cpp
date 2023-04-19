@@ -58,15 +58,15 @@ CubemapAsset* AssetManager::loadCubemap(std::string_view xposPath, std::string_v
 	return it->second.get();
 }
 
-ModelAsset* AssetManager::loadModel(std::string_view path)
+MeshAsset* AssetManager::loadMesh(std::string_view path)
 {
-	ModelAssetSignature signature;
+	MeshAssetSignature signature;
 	signature.path = path;
 
-	auto it = _models.find(signature);
-	if (it == _models.end())
+	auto it = _meshes.find(signature);
+	if (it == _meshes.end())
 	{
-		it = _models.try_emplace(signature, std::unique_ptr<ModelAsset>(new ModelAsset(*this, signature))).first;
+		it = _meshes.try_emplace(signature, std::unique_ptr<MeshAsset>(new MeshAsset(*this, signature))).first;
 	}
 
 	return it->second.get();
