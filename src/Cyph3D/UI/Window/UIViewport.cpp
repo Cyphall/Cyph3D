@@ -55,10 +55,14 @@ void UIViewport::show()
 			window.setCursorPos(_lockedCursorPos);
 		}
 		
+		// all of this need to be calculated before calling ImGui::Image()
 		glm::ivec2 viewportStartLocal = glm::vec2(ImGui::GetCursorPos());
 		glm::ivec2 viewportEndLocal = glm::vec2(ImGui::GetWindowContentRegionMax());
 		
 		glm::uvec2 viewportSize = glm::max(viewportEndLocal - viewportStartLocal, glm::ivec2(0));
+		
+		glm::ivec2 viewportStartGlobal = glm::vec2(ImGui::GetCursorScreenPos());
+		glm::ivec2 viewportEndGlobal = viewportStartGlobal + glm::ivec2(viewportSize);
 		
 		if (viewportSize.x > 0 && viewportSize.y > 0)
 		{
@@ -110,9 +114,6 @@ void UIViewport::show()
 				
 				_leftClickPressedOnViewport = false;
 			}
-			
-			glm::ivec2 viewportStartGlobal = glm::vec2(ImGui::GetCursorScreenPos());
-			glm::ivec2 viewportEndGlobal = viewportStartGlobal + glm::ivec2(viewportSize);
 			
 			glm::vec2 viewportCursorPos = window.getCursorPos() - glm::vec2(viewportStartGlobal);
 			
