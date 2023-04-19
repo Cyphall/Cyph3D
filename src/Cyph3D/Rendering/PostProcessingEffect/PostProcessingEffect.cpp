@@ -25,3 +25,9 @@ const VKPtr<VKImageView>& PostProcessingEffect::render(const VKPtr<VKCommandBuff
 	
 	return output;
 }
+
+void PostProcessingEffect::resize(glm::uvec2 size)
+{
+	_size = size;
+	onResize();
+}

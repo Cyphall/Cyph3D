@@ -20,13 +20,13 @@ ZPrepass::ZPrepass(glm::uvec2 size):
 {
 	createPipelineLayout();
 	createPipeline();
-	createDepthMap();
+	createImage();
 }
 
 ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_depthMap.getVKPtr(),
+		_depthImage.getVKPtr(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -36,8 +36,8 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 		0);
 	
 	vk::RenderingAttachmentInfo depthAttachment;
-	depthAttachment.imageView = _depthMapView->getHandle();
-	depthAttachment.imageLayout = _depthMap->getLayout(0, 0);
+	depthAttachment.imageView = _depthImageView->getHandle();
+	depthAttachment.imageLayout = _depthImage->getLayout(0, 0);
 	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	depthAttachment.resolveImageView = nullptr;
 	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -58,6 +58,17 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	commandBuffer->beginRendering(renderingInfo);
 	
 	commandBuffer->bindPipeline(_pipeline);
+	
+	VKPipelineViewport viewport;
+	viewport.offset = {0, 0};
+	viewport.size = _size;
+	viewport.depthRange = {0.0f, 1.0f};
+	commandBuffer->setViewport(viewport);
+	
+	VKPipelineScissor scissor;
+	scissor.offset = {0, 0};
+	scissor.size = _size;
+	commandBuffer->setScissor(scissor);
 	
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
@@ -84,8 +95,13 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	commandBuffer->endRendering();
 	
 	return {
-		.depthView = _depthMapView.getVKPtr()
+		.depthImageView = _depthImageView.getVKPtr()
 	};
+}
+
+void ZPrepass::onResize()
+{
+	createImage();
 }
 
 void ZPrepass::createPipelineLayout()
@@ -98,40 +114,33 @@ void ZPrepass::createPipelineLayout()
 
 void ZPrepass::createPipeline()
 {
-	VKGraphicsPipelineInfo graphicsPipelineInfo;
-	graphicsPipelineInfo.vertexShaderFile = "resources/shaders/internal/z-prepass/z-prepass.vert";
-	graphicsPipelineInfo.geometryShaderFile = std::nullopt;
-	graphicsPipelineInfo.fragmentShaderFile = std::nullopt;
+	VKGraphicsPipelineInfo info;
+	info.vertexShaderFile = "resources/shaders/internal/z-prepass/z-prepass.vert";
+	info.geometryShaderFile = std::nullopt;
+	info.fragmentShaderFile = std::nullopt;
 	
-	graphicsPipelineInfo.vertexInputLayoutInfo.defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
-	graphicsPipelineInfo.vertexInputLayoutInfo.defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+	info.vertexInputLayoutInfo.defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
+	info.vertexInputLayoutInfo.defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
 	
-	graphicsPipelineInfo.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+	info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
 	
-	graphicsPipelineInfo.pipelineLayout = _pipelineLayout;
+	info.pipelineLayout = _pipelineLayout;
 	
-	graphicsPipelineInfo.viewport = VKPipelineViewport{
-		.offset = {0, 0},
-		.size = _size,
-		.depthRange = {0.0f, 1.0f}
-	};
+	info.viewport = std::nullopt;
 	
-	graphicsPipelineInfo.scissor = VKPipelineScissor{
-		.offset = graphicsPipelineInfo.viewport->offset,
-		.size = graphicsPipelineInfo.viewport->size
-	};
+	info.scissor = std::nullopt;
 	
-	graphicsPipelineInfo.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-	graphicsPipelineInfo.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
+	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
+	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 	
-	graphicsPipelineInfo.pipelineAttachmentInfo.setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLess, true);
+	info.pipelineAttachmentInfo.setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLess, true);
 	
-	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), graphicsPipelineInfo);
+	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void ZPrepass::createDepthMap()
+void ZPrepass::createImage()
 {
-	_depthMap = VKImage::createDynamic(
+	_depthImage = VKImage::createDynamic(
 		Engine::getVKContext(),
 		SceneRenderer::DEPTH_FORMAT,
 		_size,
@@ -142,8 +151,8 @@ void ZPrepass::createDepthMap()
 		vk::ImageAspectFlagBits::eDepth,
 		vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
-	_depthMapView = VKImageView::createDynamic(
+	_depthImageView = VKImageView::createDynamic(
 		Engine::getVKContext(),
-		_depthMap,
+		_depthImage,
 		vk::ImageViewType::e2D);
 }

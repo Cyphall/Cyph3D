@@ -39,13 +39,13 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	_shadowMapPass.render(commandBuffer, shadowMapPassInput, _renderPerf);
 	
 	LightingPassInput lightingPassInput{
-		.depthView = zPrepassOutput.depthView,
+		.depthImageView = zPrepassOutput.depthImageView,
 		.registry = _registry,
 		.camera = camera
 	};
 	
 	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput, _renderPerf);
-	_objectIndexView = lightingPassOutput.objectIndexView;
+	_objectIndexImageView = lightingPassOutput.objectIndexImageView;
 	
 	Scene& scene = Engine::getScene();
 	
@@ -53,15 +53,15 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	{
 		SkyboxPassInput skyboxPassInput{
 			.camera = camera,
-			.rawRenderView = lightingPassOutput.rawRenderView,
-			.depthView = zPrepassOutput.depthView
+			.rawRenderImageView = lightingPassOutput.rawRenderImageView,
+			.depthImageView = zPrepassOutput.depthImageView
 		};
 		
 		_skyboxPass.render(commandBuffer, skyboxPassInput, _renderPerf);
 	}
 	
 	commandBuffer->imageMemoryBarrier(
-		lightingPassOutput.rawRenderView->getImage(),
+		lightingPassOutput.rawRenderImageView->getImage(),
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
@@ -71,13 +71,13 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		0);
 	
 	PostProcessingPassInput postProcessingPassInput{
-		.rawRenderView = lightingPassOutput.rawRenderView,
+		.rawRenderImageView = lightingPassOutput.rawRenderImageView,
 		.camera = camera
 	};
 	
 	PostProcessingPassOutput postProcessingPassOutput = _postProcessingPass.render(commandBuffer, postProcessingPassInput, _renderPerf);
 	
-	return postProcessingPassOutput.postProcessedRenderView;
+	return postProcessingPassOutput.postProcessedRenderImageView;
 }
 
 Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
@@ -86,7 +86,7 @@ Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
 			commandBuffer->imageMemoryBarrier(
-				_objectIndexView->getImage(),
+				_objectIndexImageView->getImage(),
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eCopy,
@@ -95,7 +95,7 @@ Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 				0,
 				0);
 			
-			commandBuffer->copyPixelToBuffer(_objectIndexView->getImage(), 0, 0, clickPos, _objectIndexBuffer, 0);
+			commandBuffer->copyPixelToBuffer(_objectIndexImageView->getImage(), 0, 0, clickPos, _objectIndexBuffer, 0);
 		});
 	
 	int32_t* ptr = _objectIndexBuffer->map();
@@ -108,4 +108,13 @@ Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 	}
 	
 	return nullptr;
+}
+
+void RasterizationSceneRenderer::onResize()
+{
+	_zPrepass.resize(_size);
+	_shadowMapPass.resize(_size);
+	_lightingPass.resize(_size);
+	_skyboxPass.resize(_size);
+	_postProcessingPass.resize(_size);
 }

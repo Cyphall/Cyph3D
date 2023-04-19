@@ -8,13 +8,13 @@ class VKImageView;
 
 struct PostProcessingPassInput
 {
-	const VKPtr<VKImageView>& rawRenderView;
+	const VKPtr<VKImageView>& rawRenderImageView;
 	Camera& camera;
 };
 
 struct PostProcessingPassOutput
 {
-	const VKPtr<VKImageView>& postProcessedRenderView;
+	const VKPtr<VKImageView>& postProcessedRenderImageView;
 };
 
 class PostProcessingPass : public RenderPass<PostProcessingPassInput, PostProcessingPassOutput>
@@ -27,4 +27,5 @@ private:
 	std::vector<std::unique_ptr<PostProcessingEffect>> _effects;
 	
 	PostProcessingPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PostProcessingPassInput& input) override;
+	void onResize() override;
 };

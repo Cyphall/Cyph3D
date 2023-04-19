@@ -63,6 +63,17 @@ const VKPtr<VKImageView>& ToneMappingEffect::onRender(const VKPtr<VKCommandBuffe
 	
 	commandBuffer->bindPipeline(_pipeline);
 	
+	VKPipelineViewport viewport;
+	viewport.offset = {0, 0};
+	viewport.size = _size;
+	viewport.depthRange = {0.0f, 1.0f};
+	commandBuffer->setViewport(viewport);
+	
+	VKPipelineScissor scissor;
+	scissor.offset = {0, 0};
+	scissor.size = _size;
+	commandBuffer->setScissor(scissor);
+	
 	commandBuffer->pushDescriptor(0, 0, input, _inputSampler);
 	
 	commandBuffer->draw(3, 0);
@@ -82,6 +93,11 @@ const VKPtr<VKImageView>& ToneMappingEffect::onRender(const VKPtr<VKCommandBuffe
 		0);
 	
 	return _outputLinearImageView.getVKPtr();
+}
+
+void ToneMappingEffect::onResize()
+{
+	createImage();
 }
 
 void ToneMappingEffect::createDescriptorSetLayout()
@@ -111,16 +127,9 @@ void ToneMappingEffect::createPipeline()
 	
 	info.pipelineLayout = _pipelineLayout;
 	
-	info.viewport = VKPipelineViewport{
-		.offset = {0, 0},
-		.size = _size,
-		.depthRange = {0.0f, 1.0f}
-	};
+	info.viewport = std::nullopt;
 	
-	info.scissor = VKPipelineScissor{
-		.offset = info.viewport->offset,
-		.size = info.viewport->size
-	};
+	info.scissor = std::nullopt;
 	
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;

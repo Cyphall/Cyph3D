@@ -20,6 +20,7 @@ public:
 	virtual ~SceneRenderer() = default;
 	
 	const VKPtr<VKImageView>& render(Camera& camera);
+	void resize(glm::uvec2 size);
 	
 	virtual void onNewFrame();
 	
@@ -46,4 +47,5 @@ protected:
 	GpuPerfCounter _perfCounter;
 	
 	virtual const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) = 0;
+	virtual void onResize() = 0;
 };

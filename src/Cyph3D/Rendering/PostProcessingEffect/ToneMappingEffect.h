@@ -14,8 +14,6 @@ class ToneMappingEffect : public PostProcessingEffect
 {
 public:
 	explicit ToneMappingEffect(glm::uvec2 size);
-	
-	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) override;
 
 private:
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
@@ -34,4 +32,7 @@ private:
 	void createPipeline();
 	void createSampler();
 	void createImage();
+	
+	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) override;
+	void onResize() override;
 };

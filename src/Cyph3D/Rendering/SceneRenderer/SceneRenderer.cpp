@@ -59,3 +59,9 @@ const VKPtr<VKImageView>& SceneRenderer::render(Camera& camera)
 	
 	return result;
 }
+
+void SceneRenderer::resize(glm::uvec2 size)
+{
+	_size = size;
+	onResize();
+}

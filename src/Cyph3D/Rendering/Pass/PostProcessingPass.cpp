@@ -20,14 +20,22 @@ PostProcessingPass::~PostProcessingPass()
 
 PostProcessingPassOutput PostProcessingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PostProcessingPassInput& input)
 {
-	const VKPtr<VKImageView>* renderTextureView = &input.rawRenderView;
+	const VKPtr<VKImageView>* renderImageView = &input.rawRenderImageView;
 	
 	for (std::unique_ptr<PostProcessingEffect>& effect : _effects)
 	{
-		renderTextureView = &effect->render(commandBuffer, *renderTextureView, input.camera, _renderPassPerf);
+		renderImageView = &effect->render(commandBuffer, *renderImageView, input.camera, _renderPassPerf);
 	}
 	
 	return PostProcessingPassOutput{
-		.postProcessedRenderView = *renderTextureView
+		.postProcessedRenderImageView = *renderImageView
 	};
+}
+
+void PostProcessingPass::onResize()
+{
+	for (std::unique_ptr<PostProcessingEffect>& effect : _effects)
+	{
+		effect->resize(_size);
+	}
 }

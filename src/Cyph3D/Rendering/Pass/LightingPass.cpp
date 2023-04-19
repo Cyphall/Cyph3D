@@ -29,7 +29,7 @@ LightingPass::LightingPass(glm::uvec2 size):
 	createDescriptorSetLayouts();
 	createPipelineLayout();
 	createPipeline();
-	createTextures();
+	createImages();
 }
 
 LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
@@ -133,7 +133,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_pointLightDescriptorSet->bindBuffer(0, _pointLightsUniforms.getVKPtr()->getBuffer(), 0, input.registry.pointLights.size());
 	
 	commandBuffer->imageMemoryBarrier(
-		_rawRenderTexture.getVKPtr(),
+		_rawRenderImage.getVKPtr(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -143,7 +143,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		0);
 	
 	commandBuffer->imageMemoryBarrier(
-		_objectIndexTexture.getVKPtr(),
+		_objectIndexImage.getVKPtr(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -153,7 +153,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		0);
 	
 	commandBuffer->imageMemoryBarrier(
-		input.depthView->getImage(),
+		input.depthImageView->getImage(),
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -165,8 +165,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	std::vector<vk::RenderingAttachmentInfo> colorAttachments;
 	
 	vk::RenderingAttachmentInfo& rawRenderAttachment = colorAttachments.emplace_back();
-	rawRenderAttachment.imageView = _rawRenderTextureView->getHandle();
-	rawRenderAttachment.imageLayout = _rawRenderTextureView->getImage()->getLayout(0, 0);
+	rawRenderAttachment.imageView = _rawRenderImageView->getHandle();
+	rawRenderAttachment.imageLayout = _rawRenderImageView->getImage()->getLayout(0, 0);
 	rawRenderAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	rawRenderAttachment.resolveImageView = nullptr;
 	rawRenderAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -178,8 +178,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	rawRenderAttachment.clearValue.color.float32[3] = 1.0f;
 	
 	vk::RenderingAttachmentInfo& objectIndexAttachment = colorAttachments.emplace_back();
-	objectIndexAttachment.imageView = _objectIndexTextureView->getHandle();
-	objectIndexAttachment.imageLayout = _objectIndexTextureView->getImage()->getLayout(0, 0);
+	objectIndexAttachment.imageView = _objectIndexImageView->getHandle();
+	objectIndexAttachment.imageLayout = _objectIndexImageView->getImage()->getLayout(0, 0);
 	objectIndexAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	objectIndexAttachment.resolveImageView = nullptr;
 	objectIndexAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -188,8 +188,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	objectIndexAttachment.clearValue.color.int32[0] = -1;
 	
 	vk::RenderingAttachmentInfo depthAttachment;
-	depthAttachment.imageView = input.depthView->getHandle();
-	depthAttachment.imageLayout = input.depthView->getImage()->getLayout(0, 0);
+	depthAttachment.imageView = input.depthImageView->getHandle();
+	depthAttachment.imageLayout = input.depthImageView->getImage()->getLayout(0, 0);
 	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	depthAttachment.resolveImageView = nullptr;
 	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -210,6 +210,17 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->beginRendering(renderingInfo);
 	
 	commandBuffer->bindPipeline(_pipeline);
+	
+	VKPipelineViewport viewport;
+	viewport.offset = {0, 0};
+	viewport.size = _size;
+	viewport.depthRange = {0.0f, 1.0f};
+	commandBuffer->setViewport(viewport);
+	
+	VKPipelineScissor scissor;
+	scissor.offset = {0, 0};
+	scissor.size = _size;
+	commandBuffer->setScissor(scissor);
 	
 	commandBuffer->bindDescriptorSet(0, _directionalLightDescriptorSet.getVKPtr());
 	commandBuffer->bindDescriptorSet(1, _pointLightDescriptorSet.getVKPtr());
@@ -272,9 +283,14 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->endRendering();
 	
 	return {
-		.rawRenderView = _rawRenderTextureView.getVKPtr(),
-		.objectIndexView = _objectIndexTextureView.getVKPtr()
+		.rawRenderImageView = _rawRenderImageView.getVKPtr(),
+		.objectIndexImageView = _objectIndexImageView.getVKPtr()
 	};
+}
+
+void LightingPass::onResize()
+{
+	createImages();
 }
 
 void LightingPass::createUniformBuffers()
@@ -424,16 +440,9 @@ void LightingPass::createPipeline()
 	
 	info.pipelineLayout = _pipelineLayout;
 	
-	info.viewport = VKPipelineViewport{
-		.offset = {0, 0},
-		.size = _size,
-		.depthRange = {0.0f, 1.0f}
-	};
+	info.viewport = std::nullopt;
 	
-	info.scissor = VKPipelineScissor{
-		.offset = info.viewport->offset,
-		.size = info.viewport->size
-	};
+	info.scissor = std::nullopt;
 	
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
@@ -445,10 +454,10 @@ void LightingPass::createPipeline()
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void LightingPass::createTextures()
+void LightingPass::createImages()
 {
 	{
-		_rawRenderTexture = VKImage::createDynamic(
+		_rawRenderImage = VKImage::createDynamic(
 			Engine::getVKContext(),
 			SceneRenderer::HDR_COLOR_FORMAT,
 			_size,
@@ -459,14 +468,14 @@ void LightingPass::createTextures()
 			vk::ImageAspectFlagBits::eColor,
 			vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
-		_rawRenderTextureView = VKImageView::createDynamic(
+		_rawRenderImageView = VKImageView::createDynamic(
 			Engine::getVKContext(),
-			_rawRenderTexture,
+			_rawRenderImage,
 			vk::ImageViewType::e2D);
 	}
 	
 	{
-		_objectIndexTexture = VKImage::createDynamic(
+		_objectIndexImage = VKImage::createDynamic(
 			Engine::getVKContext(),
 			SceneRenderer::OBJECT_INDEX_FORMAT,
 			_size,
@@ -477,9 +486,9 @@ void LightingPass::createTextures()
 			vk::ImageAspectFlagBits::eColor,
 			vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
-		_objectIndexTextureView = VKImageView::createDynamic(
+		_objectIndexImageView = VKImageView::createDynamic(
 			Engine::getVKContext(),
-			_objectIndexTexture,
+			_objectIndexImage,
 			vk::ImageViewType::e2D);
 	}
 }

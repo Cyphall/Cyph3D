@@ -62,6 +62,17 @@ const VKPtr<VKImageView>& ExposureEffect::onRender(const VKPtr<VKCommandBuffer>&
 	
 	commandBuffer->bindPipeline(_pipeline);
 	
+	VKPipelineViewport viewport;
+	viewport.offset = {0, 0};
+	viewport.size = _size;
+	viewport.depthRange = {0.0f, 1.0f};
+	commandBuffer->setViewport(viewport);
+	
+	VKPipelineScissor scissor;
+	scissor.offset = {0, 0};
+	scissor.size = _size;
+	commandBuffer->setScissor(scissor);
+	
 	commandBuffer->pushDescriptor(0, 0, input, _inputSampler);
 	
 	PushConstantData pushConstantData{};
@@ -85,6 +96,11 @@ const VKPtr<VKImageView>& ExposureEffect::onRender(const VKPtr<VKCommandBuffer>&
 		0);
 	
 	return _outputImageView.getVKPtr();
+}
+
+void ExposureEffect::onResize()
+{
+	createImage();
 }
 
 void ExposureEffect::createDescriptorSetLayout()
@@ -115,16 +131,9 @@ void ExposureEffect::createPipeline()
 	
 	info.pipelineLayout = _pipelineLayout;
 	
-	info.viewport = VKPipelineViewport{
-		.offset = {0, 0},
-		.size = _size,
-		.depthRange = {0.0f, 1.0f}
-	};
+	info.viewport = std::nullopt;
 	
-	info.scissor = VKPipelineScissor{
-		.offset = info.viewport->offset,
-		.size = info.viewport->size
-	};
+	info.scissor = std::nullopt;
 	
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;

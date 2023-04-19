@@ -38,6 +38,8 @@ private:
 	static std::unique_ptr<SceneRenderer> _sceneRenderer;
 	static RendererType _sceneRendererType;
 	
+	static glm::uvec2 _previousViewportSize;
+	
 	static Camera _camera;
 	static bool _cameraFocused;
 	static glm::vec2 _lockedCursorPos;

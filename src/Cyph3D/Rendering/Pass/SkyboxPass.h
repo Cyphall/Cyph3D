@@ -17,8 +17,8 @@ class VKSampler;
 struct SkyboxPassInput
 {
 	Camera& camera;
-	const VKPtr<VKImageView>& rawRenderView;
-	const VKPtr<VKImageView>& depthView;
+	const VKPtr<VKImageView>& rawRenderImageView;
+	const VKPtr<VKImageView>& depthImageView;
 };
 
 struct SkyboxPassOutput
@@ -52,6 +52,7 @@ private:
 	VKPtr<VKSampler> _sampler;
 	
 	SkyboxPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input) override;
+	void onResize() override;
 	
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

@@ -37,12 +37,19 @@ public:
 		
 		return output;
 	}
+	
+	void resize(glm::uvec2 size)
+	{
+		_size = size;
+		onResize();
+	}
 
 protected:
 	glm::uvec2 _size;
 	PerfStep _renderPassPerf;
 	
 	virtual TOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, TInput& input) = 0;
+	virtual void onResize() = 0;
 	
 private:
 	const char* _name;

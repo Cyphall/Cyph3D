@@ -20,7 +20,7 @@ struct ZPrepassInput
 
 struct ZPrepassOutput
 {
-	const VKPtr<VKImageView>& depthView;
+	const VKPtr<VKImageView>& depthImageView;
 };
 
 class ZPrepass : public RenderPass<ZPrepassInput, ZPrepassOutput>
@@ -37,12 +37,13 @@ private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
-	VKDynamic<VKImage> _depthMap;
-	VKDynamic<VKImageView> _depthMapView;
+	VKDynamic<VKImage> _depthImage;
+	VKDynamic<VKImageView> _depthImageView;
 	
 	ZPrepassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
+	void onResize() override;
 	
 	void createPipelineLayout();
 	void createPipeline();
-	void createDepthMap();
+	void createImage();
 };

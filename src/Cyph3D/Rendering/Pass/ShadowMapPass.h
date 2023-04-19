@@ -56,6 +56,7 @@ private:
 	VKPtr<VKGraphicsPipeline> _pointLightPipeline;
 	
 	ShadowMapPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input) override;
+	void onResize() override;
 	
 	void createDescriptorSetLayout();
 	void createBuffer();

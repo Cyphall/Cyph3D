@@ -20,16 +20,17 @@ static const float BLOOM_STRENGTH = 0.5f;
 BloomEffect::BloomEffect(glm::uvec2 size):
 	PostProcessingEffect("Bloom", size)
 {
-	createCommonObjects();
-	createDownsampleObjects();
-	createUpsampleObjects();
-	createComposeObjects();
+	createDescriptorSetLayouts();
+	createPipelineLayouts();
+	createPipelines();
+	createImages();
+	createSamplers();
 }
 
 const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
 {
-	// copy input texture level 0 to work texture level 0
-	commandBuffer->pushDebugGroup("copyTextureBaseLevel");
+	// copy input image level 0 to work image level 0
+	commandBuffer->pushDebugGroup("copyImageBaseLevel");
 	{
 		commandBuffer->imageMemoryBarrier(
 			input->getImage(),
@@ -42,7 +43,7 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 			0);
 		
 		commandBuffer->imageMemoryBarrier(
-			_workTexture.getVKPtr(),
+			_workImage.getVKPtr(),
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eCopy,
@@ -51,10 +52,10 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 			0,
 			0);
 		
-		commandBuffer->copyImageToImage(input->getImage(), 0, 0, _workTexture.getVKPtr(), 0, 0);
+		commandBuffer->copyImageToImage(input->getImage(), 0, 0, _workImage.getVKPtr(), 0, 0);
 		
 		commandBuffer->imageMemoryBarrier(
-			_workTexture.getVKPtr(),
+			_workImage.getVKPtr(),
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferWrite,
 			vk::PipelineStageFlagBits2::eFragmentShader,
@@ -65,13 +66,13 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 	}
 	commandBuffer->popDebugGroup();
 
-	// downsample work texture
-	for (int i = 1; i < _workTexture->getLevels(); i++)
+	// downsample work image
+	for (int i = 1; i < _workImage->getLevels(); i++)
 	{
 		commandBuffer->pushDebugGroup(std::format("downsample({}->{})", i-1, i));
 		{
 			commandBuffer->imageMemoryBarrier(
-				_workTexture.getVKPtr(),
+				_workImage.getVKPtr(),
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -83,7 +84,7 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 			downsample(commandBuffer, i);
 			
 			commandBuffer->imageMemoryBarrier(
-				_workTexture.getVKPtr(),
+				_workImage.getVKPtr(),
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
@@ -95,13 +96,13 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 		commandBuffer->popDebugGroup();
 	}
 
-	// upsample and blur work texture
-	for (int i = _workTexture->getLevels() - 2; i >= 0; i--)
+	// upsample and blur work image
+	for (int i = _workImage->getLevels() - 2; i >= 0; i--)
 	{
 		commandBuffer->pushDebugGroup(std::format("upsampleAndBlur({}->{})", i+1, i));
 		{
 			commandBuffer->imageMemoryBarrier(
-				_workTexture.getVKPtr(),
+				_workImage.getVKPtr(),
 				vk::PipelineStageFlagBits2::eFragmentShader,
 				vk::AccessFlagBits2::eShaderSampledRead,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -113,7 +114,7 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 			upsampleAndBlur(commandBuffer, i);
 			
 			commandBuffer->imageMemoryBarrier(
-				_workTexture.getVKPtr(),
+				_workImage.getVKPtr(),
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
@@ -125,7 +126,7 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 		commandBuffer->popDebugGroup();
 	}
 
-	// compose input texture level 0 and work texture level 0 to output texture level 0
+	// compose input image level 0 and work image level 0 to output image level 0
 	commandBuffer->pushDebugGroup("compose");
 	{
 		commandBuffer->imageMemoryBarrier(
@@ -139,7 +140,7 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 			0);
 		
 		commandBuffer->imageMemoryBarrier(
-			_outputTexture.getVKPtr(),
+			_outputImage.getVKPtr(),
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -151,7 +152,7 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 		compose(input, commandBuffer);
 		
 		commandBuffer->imageMemoryBarrier(
-			_outputTexture.getVKPtr(),
+			_outputImage.getVKPtr(),
 			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 			vk::AccessFlagBits2::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits2::eFragmentShader,
@@ -162,14 +163,20 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 	}
 	commandBuffer->popDebugGroup();
 
-	return _outputTextureView.getVKPtr();
+	return _outputImageView.getVKPtr();
+}
+
+void BloomEffect::onResize()
+{
+	_workImageViews.clear();
+	createImages();
 }
 
 void BloomEffect::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = _workTextureViews[dstLevel]->getHandle();
-	colorAttachment.imageLayout = _workTexture->getLayout(0, dstLevel);
+	colorAttachment.imageView = _workImageViews[dstLevel]->getHandle();
+	colorAttachment.imageLayout = _workImage->getLayout(0, dstLevel);
 	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	colorAttachment.resolveImageView = nullptr;
 	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -180,7 +187,7 @@ void BloomEffect::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int ds
 	colorAttachment.clearValue.color.float32[2] = 0.0f;
 	colorAttachment.clearValue.color.float32[3] = 1.0f;
 	
-	glm::uvec2 viewportSize = _workTexture->getSize(dstLevel);
+	glm::uvec2 viewportSize = _workImage->getSize(dstLevel);
 	
 	vk::RenderingInfo renderingInfo;
 	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
@@ -207,10 +214,10 @@ void BloomEffect::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int ds
 	scissor.size = viewportSize;
 	commandBuffer->setScissor(scissor);
 	
-	commandBuffer->pushDescriptor(0, 0, _workTextureViews[dstLevel-1].getVKPtr(), _workTextureSampler);
+	commandBuffer->pushDescriptor(0, 0, _workImageViews[dstLevel-1].getVKPtr(), _workImageSampler);
 	
 	DownsamplePushConstantData pushConstantData{};
-	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workTexture->getSize(dstLevel-1));
+	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workImage->getSize(dstLevel-1));
 	pushConstantData.srcLevel = dstLevel-1;
 	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eFragment, pushConstantData);
 	
@@ -224,8 +231,8 @@ void BloomEffect::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int ds
 void BloomEffect::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = _workTextureViews[dstLevel]->getHandle();
-	colorAttachment.imageLayout = _workTexture->getLayout(0, dstLevel);
+	colorAttachment.imageView = _workImageViews[dstLevel]->getHandle();
+	colorAttachment.imageLayout = _workImage->getLayout(0, dstLevel);
 	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	colorAttachment.resolveImageView = nullptr;
 	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -236,7 +243,7 @@ void BloomEffect::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, i
 	colorAttachment.clearValue.color.float32[2] = 0.0f;
 	colorAttachment.clearValue.color.float32[3] = 1.0f;
 	
-	glm::uvec2 viewportSize = _workTexture->getSize(dstLevel);
+	glm::uvec2 viewportSize = _workImage->getSize(dstLevel);
 	
 	vk::RenderingInfo renderingInfo;
 	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
@@ -263,10 +270,10 @@ void BloomEffect::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, i
 	scissor.size = viewportSize;
 	commandBuffer->setScissor(scissor);
 	
-	commandBuffer->pushDescriptor(0, 0, _workTextureViews[dstLevel+1].getVKPtr(), _workTextureSampler);
+	commandBuffer->pushDescriptor(0, 0, _workImageViews[dstLevel+1].getVKPtr(), _workImageSampler);
 	
 	UpsamplePushConstantData pushConstantData{};
-	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workTexture->getSize(dstLevel+1));
+	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workImage->getSize(dstLevel+1));
 	pushConstantData.srcLevel = dstLevel+1;
 	pushConstantData.bloomRadius = glm::clamp(BLOOM_RADIUS, 0.0f, 1.0f);
 	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eFragment, pushConstantData);
@@ -281,8 +288,8 @@ void BloomEffect::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, i
 void BloomEffect::compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommandBuffer>& commandBuffer)
 {
 	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = _outputTextureView->getHandle();
-	colorAttachment.imageLayout = _outputTexture->getLayout(0, 0);
+	colorAttachment.imageView = _outputImageView->getHandle();
+	colorAttachment.imageLayout = _outputImage->getLayout(0, 0);
 	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	colorAttachment.resolveImageView = nullptr;
 	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -307,8 +314,19 @@ void BloomEffect::compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommand
 	
 	commandBuffer->bindPipeline(_composePipeline);
 	
-	commandBuffer->pushDescriptor(0, 0, input, _inputTextureSampler);
-	commandBuffer->pushDescriptor(0, 1, _workTextureViews[0].getVKPtr(), _workTextureSampler);
+	VKPipelineViewport viewport;
+	viewport.offset = {0, 0};
+	viewport.size = _size;
+	viewport.depthRange = {0.0f, 1.0f};
+	commandBuffer->setViewport(viewport);
+	
+	VKPipelineScissor scissor;
+	scissor.offset = {0, 0};
+	scissor.size = _size;
+	commandBuffer->setScissor(scissor);
+	
+	commandBuffer->pushDescriptor(0, 0, input, _inputImageSampler);
+	commandBuffer->pushDescriptor(0, 1, _workImageViews[0].getVKPtr(), _workImageSampler);
 	
 	ComposePushConstantData pushConstantData{};
 	pushConstantData.factor = glm::clamp(BLOOM_STRENGTH, 0.0f, 1.0f);
@@ -321,79 +339,7 @@ void BloomEffect::compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommand
 	commandBuffer->endRendering();
 }
 
-void BloomEffect::createCommonObjects()
-{
-	{
-		_workTexture = VKImage::createDynamic(
-			Engine::getVKContext(),
-			SceneRenderer::HDR_COLOR_FORMAT,
-			_size,
-			1,
-			VKImage::calcMaxMipLevels(_size),
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-	}
-	
-	{
-		for (int i = 0; i < _workTexture->getLevels(); i++)
-		{
-			_workTextureViews.emplace_back(VKImageView::createDynamic(
-				Engine::getVKContext(),
-				_workTexture,
-				vk::ImageViewType::e2D,
-				std::nullopt,
-				std::nullopt,
-				std::nullopt,
-				glm::vec2(i, i)));
-		}
-	}
-	
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eLinear;
-		createInfo.minFilter = vk::Filter::eLinear;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
-		createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = false;
-		createInfo.maxAnisotropy = 1;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-		createInfo.unnormalizedCoordinates = false;
-		
-		_workTextureSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
-	
-	{
-		_outputTexture = VKImage::createDynamic(
-			Engine::getVKContext(),
-			SceneRenderer::HDR_COLOR_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-	}
-	
-	{
-		_outputTextureView = VKImageView::createDynamic(
-			Engine::getVKContext(),
-			_outputTexture,
-			vk::ImageViewType::e2D);
-	}
-}
-
-void BloomEffect::createDownsampleObjects()
+void BloomEffect::createDescriptorSetLayouts()
 {
 	{
 		VKDescriptorSetLayoutInfo info(true);
@@ -403,6 +349,24 @@ void BloomEffect::createDownsampleObjects()
 	}
 	
 	{
+		VKDescriptorSetLayoutInfo info(true);
+		info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
+		
+		_upsampleDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
+	}
+	
+	{
+		VKDescriptorSetLayoutInfo info(true);
+		info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
+		info.registerBinding(1, vk::DescriptorType::eCombinedImageSampler, 1);
+		
+		_composeDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
+	}
+}
+
+void BloomEffect::createPipelineLayouts()
+{
+	{
 		VKPipelineLayoutInfo info;
 		info.registerDescriptorSetLayout(_downsampleDescriptorSetLayout);
 		info.registerPushConstantLayout<DownsamplePushConstantData>(vk::ShaderStageFlagBits::eFragment);
@@ -410,6 +374,25 @@ void BloomEffect::createDownsampleObjects()
 		_downsamplePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 	}
 	
+	{
+		VKPipelineLayoutInfo info;
+		info.registerDescriptorSetLayout(_upsampleDescriptorSetLayout);
+		info.registerPushConstantLayout<UpsamplePushConstantData>(vk::ShaderStageFlagBits::eFragment);
+		
+		_upsamplePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
+	}
+	
+	{
+		VKPipelineLayoutInfo info;
+		info.registerDescriptorSetLayout(_composeDescriptorSetLayout);
+		info.registerPushConstantLayout<ComposePushConstantData>(vk::ShaderStageFlagBits::eFragment);
+		
+		_composePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
+	}
+}
+
+void BloomEffect::createPipelines()
+{
 	{
 		VKGraphicsPipelineInfo info;
 		info.vertexShaderFile = "resources/shaders/internal/fullscreen quad.vert";
@@ -430,24 +413,6 @@ void BloomEffect::createDownsampleObjects()
 		info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
 		
 		_downsamplePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
-	}
-}
-
-void BloomEffect::createUpsampleObjects()
-{
-	{
-		VKDescriptorSetLayoutInfo info(true);
-		info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
-		
-		_upsampleDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
-	
-	{
-		VKPipelineLayoutInfo info;
-		info.registerDescriptorSetLayout(_upsampleDescriptorSetLayout);
-		info.registerPushConstantLayout<UpsamplePushConstantData>(vk::ShaderStageFlagBits::eFragment);
-		
-		_upsamplePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 	}
 	
 	{
@@ -480,25 +445,6 @@ void BloomEffect::createUpsampleObjects()
 		
 		_upsamplePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}
-}
-
-void BloomEffect::createComposeObjects()
-{
-	{
-		VKDescriptorSetLayoutInfo info(true);
-		info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
-		info.registerBinding(1, vk::DescriptorType::eCombinedImageSampler, 1);
-		
-		_composeDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
-	
-	{
-		VKPipelineLayoutInfo info;
-		info.registerDescriptorSetLayout(_composeDescriptorSetLayout);
-		info.registerPushConstantLayout<ComposePushConstantData>(vk::ShaderStageFlagBits::eFragment);
-		
-		_composePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-	}
 	
 	{
 		VKGraphicsPipelineInfo info;
@@ -510,16 +456,9 @@ void BloomEffect::createComposeObjects()
 		
 		info.pipelineLayout = _composePipelineLayout;
 		
-		info.viewport = VKPipelineViewport{
-			.offset = {0, 0},
-			.size = _size,
-			.depthRange = {0.0f, 1.0f}
-		};
+		info.viewport = std::nullopt;
 		
-		info.scissor = VKPipelineScissor{
-			.offset = info.viewport->offset,
-			.size = info.viewport->size
-		};
+		info.scissor = std::nullopt;
 		
 		info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 		info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
@@ -527,6 +466,81 @@ void BloomEffect::createComposeObjects()
 		info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
 		
 		_composePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
+	}
+}
+
+void BloomEffect::createImages()
+{
+	{
+		_workImage = VKImage::createDynamic(
+			Engine::getVKContext(),
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			VKImage::calcMaxMipLevels(_size),
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+	}
+	
+	{
+		for (int i = 0; i < _workImage->getLevels(); i++)
+		{
+			_workImageViews.emplace_back(VKImageView::createDynamic(
+				Engine::getVKContext(),
+				_workImage,
+				vk::ImageViewType::e2D,
+				std::nullopt,
+				std::nullopt,
+				std::nullopt,
+				glm::vec2(i, i)));
+		}
+	}
+	
+	{
+		_outputImage = VKImage::createDynamic(
+			Engine::getVKContext(),
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+	}
+	
+	{
+		_outputImageView = VKImageView::createDynamic(
+			Engine::getVKContext(),
+			_outputImage,
+			vk::ImageViewType::e2D);
+	}
+}
+
+void BloomEffect::createSamplers()
+{
+	{
+		vk::SamplerCreateInfo createInfo;
+		createInfo.flags = {};
+		createInfo.magFilter = vk::Filter::eLinear;
+		createInfo.minFilter = vk::Filter::eLinear;
+		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+		createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
+		createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
+		createInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
+		createInfo.mipLodBias = 0.0f;
+		createInfo.anisotropyEnable = false;
+		createInfo.maxAnisotropy = 1;
+		createInfo.compareEnable = false;
+		createInfo.compareOp = vk::CompareOp::eNever;
+		createInfo.minLod = -1000.0f;
+		createInfo.maxLod = 1000.0f;
+		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+		createInfo.unnormalizedCoordinates = false;
+		
+		_workImageSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 	}
 	
 	{
@@ -548,6 +562,6 @@ void BloomEffect::createComposeObjects()
 		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 		createInfo.unnormalizedCoordinates = false;
 		
-		_inputTextureSampler = VKSampler::create(Engine::getVKContext(), createInfo);
+		_inputImageSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 	}
 }

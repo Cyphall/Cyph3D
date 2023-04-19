@@ -221,6 +221,11 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 	return {};
 }
 
+void ShadowMapPass::onResize()
+{
+
+}
+
 void ShadowMapPass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);

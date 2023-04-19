@@ -24,7 +24,8 @@ private:
 	PostProcessingPass _postProcessingPass;
 	
 	VKPtr<VKBuffer<int32_t>> _objectIndexBuffer;
-	VKPtr<VKImageView> _objectIndexView;
+	VKPtr<VKImageView> _objectIndexImageView;
 	
 	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) override;
+	void onResize() override;
 };

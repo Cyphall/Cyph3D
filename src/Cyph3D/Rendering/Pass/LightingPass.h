@@ -16,15 +16,15 @@ class VKResizableBuffer;
 
 struct LightingPassInput
 {
-	const VKPtr<VKImageView>& depthView;
+	const VKPtr<VKImageView>& depthImageView;
 	RenderRegistry& registry;
 	Camera& camera;
 };
 
 struct LightingPassOutput
 {
-	const VKPtr<VKImageView>& rawRenderView;
-	const VKPtr<VKImageView>& objectIndexView;
+	const VKPtr<VKImageView>& rawRenderImageView;
+	const VKPtr<VKImageView>& objectIndexImageView;
 };
 
 class LightingPass : public RenderPass<LightingPassInput, LightingPassOutput>
@@ -90,19 +90,20 @@ private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
-	VKDynamic<VKImage> _rawRenderTexture;
-	VKDynamic<VKImageView> _rawRenderTextureView;
-	VKDynamic<VKImage> _objectIndexTexture;
-	VKDynamic<VKImageView> _objectIndexTextureView;
+	VKDynamic<VKImage> _rawRenderImage;
+	VKDynamic<VKImageView> _rawRenderImageView;
+	VKDynamic<VKImage> _objectIndexImage;
+	VKDynamic<VKImageView> _objectIndexImageView;
 	
 	LightingPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input) override;
+	void onResize() override;
 	
 	void createUniformBuffers();
 	void createSamplers();
 	void createDescriptorSetLayouts();
 	void createPipelineLayout();
 	void createPipeline();
-	void createTextures();
+	void createImages();
 	
 	void descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount);
 };

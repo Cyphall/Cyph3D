@@ -20,6 +20,8 @@
 std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
 UIViewport::RendererType UIViewport::_sceneRendererType = UIViewport::RendererType::Rasterization;
 
+glm::uvec2 UIViewport::_previousViewportSize = {0, 0};
+
 Camera UIViewport::_camera;
 bool UIViewport::_cameraFocused = false;
 glm::vec2 UIViewport::_lockedCursorPos;
@@ -44,19 +46,6 @@ void UIViewport::show()
 	{
 		drawHeader();
 		
-		glm::ivec2 viewportStartLocal = glm::vec2(ImGui::GetCursorPos());
-		glm::ivec2 viewportEndLocal = glm::vec2(ImGui::GetWindowContentRegionMax());
-		
-		glm::uvec2 viewportSize = glm::max(viewportEndLocal - viewportStartLocal, glm::ivec2(0));
-		
-		glm::ivec2 viewportStartGlobal = glm::vec2(ImGui::GetCursorScreenPos());
-		glm::ivec2 viewportEndGlobal = viewportStartGlobal + glm::ivec2(viewportSize);
-		
-		if (_sceneRenderer && _sceneRenderer->getSize() != viewportSize)
-		{
-			_sceneRenderer.reset();
-		}
-		
 		Window& window = Engine::getWindow();
 		
 		if (_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Released)
@@ -65,6 +54,11 @@ void UIViewport::show()
 			window.setInputMode(GLFW_CURSOR_NORMAL);
 			window.setCursorPos(_lockedCursorPos);
 		}
+		
+		glm::ivec2 viewportStartLocal = glm::vec2(ImGui::GetCursorPos());
+		glm::ivec2 viewportEndLocal = glm::vec2(ImGui::GetWindowContentRegionMax());
+		
+		glm::uvec2 viewportSize = glm::max(viewportEndLocal - viewportStartLocal, glm::ivec2(0));
 		
 		if (viewportSize.x > 0 && viewportSize.y > 0)
 		{
@@ -79,6 +73,14 @@ void UIViewport::show()
 //						_sceneRenderer = std::make_unique<RaytracingSceneRenderer>(viewportSize); //TODO: reimplement RaytracingSceneRenderer with hardware raytracing
 						_sceneRenderer = std::make_unique<RasterizationSceneRenderer>(viewportSize);
 						break;
+				}
+			}
+			
+			if (_previousViewportSize != viewportSize)
+			{
+				if (_sceneRenderer->getSize() != viewportSize)
+				{
+					_sceneRenderer->resize(viewportSize);
 				}
 				
 				_camera.setAspectRatio(static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y));
@@ -109,6 +111,9 @@ void UIViewport::show()
 				_leftClickPressedOnViewport = false;
 			}
 			
+			glm::ivec2 viewportStartGlobal = glm::vec2(ImGui::GetCursorScreenPos());
+			glm::ivec2 viewportEndGlobal = viewportStartGlobal + glm::ivec2(viewportSize);
+			
 			glm::vec2 viewportCursorPos = window.getCursorPos() - glm::vec2(viewportStartGlobal);
 			
 			if (!_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
@@ -129,6 +134,8 @@ void UIViewport::show()
 			
 			drawGizmo(viewportStartGlobal, viewportSize);
 		}
+		
+		_previousViewportSize = viewportSize;
 	}
 	
 	ImGui::End();
@@ -142,12 +149,7 @@ Camera& UIViewport::getCamera()
 void UIViewport::setCamera(Camera camera)
 {
 	_camera = camera;
-	
-	if (_sceneRenderer)
-	{
-		glm::uvec2 framebufferSize = _sceneRenderer->getSize();
-		_camera.setAspectRatio(static_cast<float>(framebufferSize.x) / static_cast<float>(framebufferSize.y));
-	}
+	_camera.setAspectRatio(static_cast<float>(_previousViewportSize.x) / static_cast<float>(_previousViewportSize.y));
 }
 
 void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)

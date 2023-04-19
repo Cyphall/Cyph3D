@@ -33,7 +33,7 @@ SkyboxPass::SkyboxPass(glm::uvec2 size):
 SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		input.rawRenderView->getImage(),
+		input.rawRenderImageView->getImage(),
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -43,8 +43,8 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 		0);
 	
 	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = input.rawRenderView->getHandle();
-	colorAttachment.imageLayout = input.rawRenderView->getImage()->getLayout(0, 0);
+	colorAttachment.imageView = input.rawRenderImageView->getHandle();
+	colorAttachment.imageLayout = input.rawRenderImageView->getImage()->getLayout(0, 0);
 	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	colorAttachment.resolveImageView = nullptr;
 	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -56,8 +56,8 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	colorAttachment.clearValue.color.float32[3] = 1.0f;
 	
 	vk::RenderingAttachmentInfo depthAttachment;
-	depthAttachment.imageView = input.depthView->getHandle();
-	depthAttachment.imageLayout = input.depthView->getImage()->getLayout(0, 0);
+	depthAttachment.imageView = input.depthImageView->getHandle();
+	depthAttachment.imageLayout = input.depthImageView->getImage()->getLayout(0, 0);
 	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	depthAttachment.resolveImageView = nullptr;
 	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -79,6 +79,17 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	
 	commandBuffer->bindPipeline(_pipeline);
 	
+	VKPipelineViewport viewport;
+	viewport.offset = {0, 0};
+	viewport.size = _size;
+	viewport.depthRange = {0.0f, 1.0f};
+	commandBuffer->setViewport(viewport);
+	
+	VKPipelineScissor scissor;
+	scissor.offset = {0, 0};
+	scissor.size = _size;
+	commandBuffer->setScissor(scissor);
+	
 	commandBuffer->pushDescriptor(0, 0, Engine::getScene().getSkybox()->getImageView(), _sampler);
 	
 	PushConstantData pushConstantData{};
@@ -96,6 +107,11 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	commandBuffer->endRendering();
 	
 	return {};
+}
+
+void SkyboxPass::onResize()
+{
+
 }
 
 void SkyboxPass::createDescriptorSetLayout()
@@ -129,16 +145,9 @@ void SkyboxPass::createPipeline()
 	
 	info.pipelineLayout = _pipelineLayout;
 	
-	info.viewport = VKPipelineViewport{
-		.offset = {0, 0},
-		.size = _size,
-		.depthRange = {0.0f, 1.0f}
-	};
+	info.viewport = std::nullopt;
 	
-	info.scissor = VKPipelineScissor{
-		.offset = info.viewport->offset,
-		.size = info.viewport->size
-	};
+	info.scissor = std::nullopt;
 	
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;

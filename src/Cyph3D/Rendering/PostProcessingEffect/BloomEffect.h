@@ -15,20 +15,18 @@ class BloomEffect : public PostProcessingEffect
 {
 public:
 	explicit BloomEffect(glm::uvec2 size);
-	
-	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) override;
 
 private:
 	
 	// common
 	
-	VKDynamic<VKImage> _workTexture;
-	std::vector<VKDynamic<VKImageView>> _workTextureViews;
+	VKDynamic<VKImage> _workImage;
+	std::vector<VKDynamic<VKImageView>> _workImageViews;
 	
-	VKPtr<VKSampler> _workTextureSampler;
+	VKDynamic<VKImage> _outputImage;
+	VKDynamic<VKImageView> _outputImageView;
 	
-	VKDynamic<VKImage> _outputTexture;
-	VKDynamic<VKImageView> _outputTextureView;
+	VKPtr<VKSampler> _workImageSampler;
 	
 	// downsample
 	
@@ -69,15 +67,19 @@ private:
 	VKPtr<VKPipelineLayout> _composePipelineLayout;
 	VKPtr<VKGraphicsPipeline> _composePipeline;
 	
-	VKPtr<VKSampler> _inputTextureSampler;
+	VKPtr<VKSampler> _inputImageSampler;
 
 	
 	void downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
 	void upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
 	void compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommandBuffer>& commandBuffer);
 	
-	void createCommonObjects();
-	void createDownsampleObjects();
-	void createUpsampleObjects();
-	void createComposeObjects();
+	void createDescriptorSetLayouts();
+	void createPipelineLayouts();
+	void createPipelines();
+	void createImages();
+	void createSamplers();
+	
+	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) override;
+	void onResize() override;
 };
