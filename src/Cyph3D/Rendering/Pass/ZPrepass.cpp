@@ -106,10 +106,10 @@ void ZPrepass::onResize()
 
 void ZPrepass::createPipelineLayout()
 {
-	VKPipelineLayoutInfo pipelineLayoutInfo;
-	pipelineLayoutInfo.registerPushConstantLayout<PushConstantData>(vk::ShaderStageFlagBits::eVertex);
+	VKPipelineLayoutInfo info;
+	info.registerPushConstantLayout<PushConstantData>(vk::ShaderStageFlagBits::eVertex);
 	
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), pipelineLayoutInfo);
+	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
 void ZPrepass::createPipeline()
