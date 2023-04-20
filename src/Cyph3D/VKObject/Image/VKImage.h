@@ -55,6 +55,8 @@ public:
 	vk::DeviceSize getLevelByteSize(uint32_t level) const;
 	vk::DeviceSize getPixelByteSize() const;
 	
+	bool isCompressed() const;
+	
 	static int calcMaxMipLevels(const glm::uvec2& size);
 	
 protected:

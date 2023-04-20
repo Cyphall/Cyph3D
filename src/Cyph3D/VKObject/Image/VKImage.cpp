@@ -201,14 +201,24 @@ vk::DeviceSize VKImage::getLayerByteSize() const
 
 vk::DeviceSize VKImage::getLevelByteSize(uint32_t level) const
 {
-	return _sizes[level].x * _sizes[level].y * getPixelByteSize();
+	uint32_t blocksInXAxis = (_sizes[level].x + vk::blockExtent(_format)[0] - 1) / vk::blockExtent(_format)[0];
+	uint32_t blocksInYAxis = (_sizes[level].y + vk::blockExtent(_format)[1] - 1) / vk::blockExtent(_format)[1];
+	return blocksInXAxis * blocksInYAxis * vk::blockSize(_format);
 }
 
 vk::DeviceSize VKImage::getPixelByteSize() const
 {
-	uint8_t blockSize = vk::blockSize(_format);
-	uint8_t texelsPerBlock = vk::texelsPerBlock(_format);
-	return blockSize / texelsPerBlock;
+	if (isCompressed())
+	{
+		throw;
+	}
+	
+	return vk::blockSize(_format) / vk::texelsPerBlock(_format);
+}
+
+bool VKImage::isCompressed() const
+{
+	return vk::isCompressed(_format);
 }
 
 int VKImage::calcMaxMipLevels(const glm::uvec2& size)
