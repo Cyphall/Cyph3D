@@ -381,7 +381,7 @@ void LightingPass::createSamplers()
 		createInfo.compareOp = vk::CompareOp::eNever;
 		createInfo.minLod = -1000.0f;
 		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 		createInfo.unnormalizedCoordinates = false;
 		
 		_materialSampler = VKSampler::create(Engine::getVKContext(), createInfo);
