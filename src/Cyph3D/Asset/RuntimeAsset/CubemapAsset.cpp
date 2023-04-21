@@ -45,6 +45,7 @@ bool CubemapAsset::load_step1_mt()
 	
 	vk::Format format;
 	glm::uvec2 size;
+	uint32_t levels;
 	std::array<ImageData, 6> imageDataList;
 	for (uint32_t i = 0; i < 6; i++)
 	{
@@ -54,6 +55,7 @@ bool CubemapAsset::load_step1_mt()
 		{
 			format = imageDataList[i].format;
 			size = imageDataList[i].size;
+			levels = imageDataList[i].levels.size();
 		}
 		else
 		{
@@ -61,6 +63,8 @@ bool CubemapAsset::load_step1_mt()
 				throw std::runtime_error("All 6 faces of a cubemap must have the same format.");
 			if (size != imageDataList[i].size)
 				throw std::runtime_error("All 6 faces of a cubemap must have the same size.");
+			if (levels != imageDataList[i].levels.size())
+				throw std::runtime_error("All 6 faces of a cubemap must have the same level count.");
 		}
 	}
 	
@@ -69,7 +73,7 @@ bool CubemapAsset::load_step1_mt()
 		format,
 		size,
 		6,
-		VKImage::calcMaxMipLevels(size),
+		levels,
 		vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
 		vk::ImageAspectFlagBits::eColor,
@@ -86,7 +90,12 @@ bool CubemapAsset::load_step1_mt()
 	for (uint32_t face = 0; face < 6; face++)
 	{
 		std::byte* ptr = stagingBuffer->map();
-		std::copy(imageDataList[face].data.begin(), imageDataList[face].data.end(), ptr);
+		for (uint32_t i = 0; i < imageDataList[face].levels.size(); i++)
+		{
+			vk::DeviceSize byteSize = _image->getLevelByteSize(i);
+			std::memcpy(ptr, imageDataList[face].levels[i].data.data(), byteSize);
+			ptr += byteSize;
+		}
 		stagingBuffer->unmap();
 		
 		Engine::getVKContext().executeImmediate(

@@ -36,7 +36,7 @@ bool TextureAsset::load_step1_mt()
 		imageData.format,
 		imageData.size,
 		1,
-		VKImage::calcMaxMipLevels(imageData.size),
+		imageData.levels.size(),
 		vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
 		vk::ImageAspectFlagBits::eColor,
@@ -49,7 +49,12 @@ bool TextureAsset::load_step1_mt()
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 	
 	std::byte* ptr = stagingBuffer->map();
-	std::copy(imageData.data.begin(), imageData.data.end(), ptr);
+	for (uint32_t i = 0; i < imageData.levels.size(); i++)
+	{
+		vk::DeviceSize byteSize = _image->getLevelByteSize(i);
+		std::memcpy(ptr, imageData.levels[i].data.data(), byteSize);
+		ptr += byteSize;
+	}
 	stagingBuffer->unmap();
 	
 	Engine::getVKContext().executeImmediate(

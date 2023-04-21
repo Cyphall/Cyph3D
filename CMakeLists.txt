@@ -76,6 +76,9 @@ target_link_libraries(Cyph3D PRIVATE VulkanMemoryAllocator)
 add_subdirectory("vendor/VulkanMemoryAllocator-Hpp/f915eb0ef170560661891afaedff4b93ef05d723")
 target_link_libraries(Cyph3D PRIVATE VulkanMemoryAllocator-Hpp)
 
+add_subdirectory("vendor/bc7enc_rdo/e6990bc11829c072d9f9e37296f3335072aab4e4")
+target_link_libraries(Cyph3D PRIVATE bc7enc_rdo)
+
 add_custom_target(copy_resources
 		COMMAND python "${PROJECT_SOURCE_DIR}/copy_resources.py" "${PROJECT_SOURCE_DIR}/resources" "${PROJECT_BINARY_DIR}/resources" "${Vulkan_GLSLC_EXECUTABLE}" "${CMAKE_BUILD_TYPE}")
 add_dependencies(Cyph3D copy_resources)

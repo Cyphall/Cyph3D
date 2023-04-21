@@ -12,9 +12,14 @@ enum class ImageType
 	Grayscale
 };
 
+struct ImageLevel
+{
+	std::vector<std::byte> data;
+};
+
 struct ImageData
 {
 	vk::Format format;
 	glm::uvec2 size;
-	std::vector<std::byte> data;
+	std::vector<ImageLevel> levels;
 };
