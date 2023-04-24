@@ -58,6 +58,11 @@ public:
 		return _buffer ? _buffer->getStride() : 0;
 	}
 	
+	vk::DeviceAddress getDeviceAddress() const
+	{
+		return _buffer ? _buffer->getStride() : 0;
+	}
+	
 	void resize(size_t newSize)
 	{
 		size_t currentSize = getSize();

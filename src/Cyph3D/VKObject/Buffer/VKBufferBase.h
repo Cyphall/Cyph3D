@@ -14,6 +14,8 @@ public:
 	
 	virtual size_t getStride() const = 0;
 	
+	virtual vk::DeviceAddress getDeviceAddress() const = 0;
+	
 protected:
 	explicit VKBufferBase(VKContext& context):
 		VKObject(context)

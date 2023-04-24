@@ -64,6 +64,16 @@ public:
 	{
 		return sizeof(T);
 	}
+	
+	vk::DeviceAddress getDeviceAddress() const override
+	{
+		if (_deviceAddress == 0)
+		{
+			throw;
+		}
+		
+		return _deviceAddress;
+	}
 
 private:
 	VKBuffer(
@@ -86,9 +96,18 @@ private:
 		
 		std::tie(_buffer, _bufferAlloc) = _context.getVmaAllocator().createBuffer(bufferCreateInfo, allocationCreateInfo);
 		_size = size;
+		
+		if (pipelineUsage & vk::BufferUsageFlagBits::eShaderDeviceAddress)
+		{
+			vk::BufferDeviceAddressInfo info;
+			info.buffer = _buffer;
+			
+			_deviceAddress = _context.getDevice().getBufferAddress(info);
+		}
 	}
 	
 	vk::Buffer _buffer;
 	vma::Allocation _bufferAlloc;
 	size_t _size = 0;
+	vk::DeviceAddress _deviceAddress = 0;
 };
