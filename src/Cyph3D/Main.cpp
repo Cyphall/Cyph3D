@@ -12,7 +12,6 @@ int main(int argc, char** argv)
 	catch (const std::exception& e)
 	{
 		Logger::error(e.what());
-		Engine::shutdown();
 		system("pause");
 		return EXIT_FAILURE;
 	}
