@@ -39,7 +39,6 @@ void Logger::error(std::string_view message, std::string_view context)
 	if (_logLevel < LogLevel::ERROR) return;
 	
 	print(message, context, "ERROR", LogColorFlags::FOREGROUND_RED | LogColorFlags::FOREGROUND_INTENSITY);
-	__debugbreak();
 }
 
 void Logger::warning(std::string_view message, std::string_view context)
