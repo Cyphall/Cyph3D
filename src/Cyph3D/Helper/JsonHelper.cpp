@@ -1,13 +1,15 @@
 #include "JsonHelper.h"
 
+#include "Cyph3D/Helper/FileHelper.h"
+
 #include <filesystem>
 #include <fstream>
 
 nlohmann::ordered_json JsonHelper::loadJsonFromFile(const std::filesystem::path& path)
 {
-	nlohmann::ordered_json root;
+	std::ifstream jsonFile = FileHelper::openFileForReading(path);
 	
-	std::ifstream jsonFile(path);
+	nlohmann::ordered_json root;
 	jsonFile >> root;
 	jsonFile.close();
 	
@@ -16,7 +18,8 @@ nlohmann::ordered_json JsonHelper::loadJsonFromFile(const std::filesystem::path&
 
 void JsonHelper::saveJsonToFile(const nlohmann::ordered_json& json, const std::filesystem::path& path, bool beautify)
 {
-	std::ofstream jsonFile(path);
+	std::ofstream jsonFile = FileHelper::openFileForWriting(path);
+	
 	if (beautify)
 	{
 		jsonFile << std::setfill('\t') << std::setw(1);

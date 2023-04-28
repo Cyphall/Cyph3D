@@ -1,6 +1,7 @@
 #include "VKShader.h"
 
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/Helper/FileHelper.h"
 
 #include <vector>
 #include <filesystem>
@@ -14,7 +15,7 @@ static std::vector<uint32_t> readSPIRV(const std::filesystem::path& filePath)
 		throw;
 	}
 	
-	std::ifstream file(filePath, std::ios::in | std::ios::binary);
+	std::ifstream file = FileHelper::openFileForReading(filePath);
 	
 	std::vector<uint32_t> data(size / sizeof(uint32_t));
 	file.read(reinterpret_cast<char*>(data.data()), size);

@@ -21,6 +21,9 @@ public:
 	
 	static std::string readAllText(const std::string& path);
 	
+	static std::ifstream openFileForReading(const std::filesystem::path& path);
+	static std::ofstream openFileForWriting(const std::filesystem::path& path);
+	
 	static std::optional<std::filesystem::path> fileDialogOpen(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder);
 	static std::optional<std::filesystem::path> fileDialogSave(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName);
 	

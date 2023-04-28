@@ -2,6 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Logging/Impl/Win32LoggerColor.h"
+#include "Cyph3D/Helper/FileHelper.h"
 
 #include <iomanip>
 #include <iostream>
@@ -9,7 +10,7 @@
 Logger::LogLevel Logger::_logLevel = LogLevel::FULL;
 std::mutex Logger::_mtx;
 std::unique_ptr<ILoggerColor> Logger::_loggerColor = std::make_unique<Win32LoggerColor>();
-std::ofstream Logger::_logFile = std::ofstream("Cyph3D.log", std::ios::out);
+std::ofstream Logger::_logFile = FileHelper::openFileForWriting("Cyph3D.log");
 
 void Logger::print(std::string_view message, std::string_view context, std::string_view prefix, LogColorFlags color)
 {

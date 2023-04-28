@@ -10,7 +10,7 @@
 static void writeProcessedMesh(const std::filesystem::path& path, const MeshData& meshData)
 {
 	std::filesystem::create_directories(path.parent_path());
-	std::ofstream file(path, std::ios::out | std::ios::binary);
+	std::ofstream file = FileHelper::openFileForWriting(path);
 
 	uint8_t version = 1;
 	FileHelper::write(file, &version);
@@ -22,7 +22,7 @@ static void writeProcessedMesh(const std::filesystem::path& path, const MeshData
 
 static bool readProcessedMesh(const std::filesystem::path& path, MeshData& meshData)
 {
-	std::ifstream file(path, std::ios::in | std::ios::binary);
+	std::ifstream file = FileHelper::openFileForReading(path);
 
 	uint8_t version;
 	FileHelper::read(file, &version);

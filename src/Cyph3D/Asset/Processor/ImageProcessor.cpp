@@ -18,7 +18,7 @@
 static void writeProcessedImage(const std::filesystem::path& path, const ImageData& imageData)
 {
 	std::filesystem::create_directories(path.parent_path());
-	std::ofstream file(path, std::ios::out | std::ios::binary);
+	std::ofstream file = FileHelper::openFileForWriting(path);
 
 	uint8_t version = 3;
 	FileHelper::write(file, &version);
@@ -38,7 +38,7 @@ static void writeProcessedImage(const std::filesystem::path& path, const ImageDa
 
 static bool readProcessedImage(const std::filesystem::path& path, ImageData& imageData)
 {
-	std::ifstream file(path, std::ios::in | std::ios::binary);
+	std::ifstream file = FileHelper::openFileForReading(path);
 
 	uint8_t version;
 	FileHelper::read(file, &version);

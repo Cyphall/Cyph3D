@@ -22,18 +22,38 @@ static std::filesystem::path cacheAssetDirectoryPath = cacheRootDirectoryPath / 
 
 std::string FileHelper::readAllText(const std::string& path)
 {
-	std::ifstream in(path, std::ios::in | std::ios::binary);
-	if (in)
+	std::ifstream file = openFileForReading(path);
+	
+	uint64_t fileSize = std::filesystem::file_size(path);
+	std::string fileContent(fileSize, '\0');
+	
+	file.read(fileContent.data(), fileContent.size());
+	
+	return fileContent;
+}
+
+std::ifstream FileHelper::openFileForReading(const std::filesystem::path& path)
+{
+	std::ifstream file(path, std::ios::in | std::ios::binary);
+	
+	if (file.fail())
 	{
-		std::string contents;
-		in.seekg(0, std::ios::end);
-		contents.resize(in.tellg());
-		in.seekg(0, std::ios::beg);
-		in.read(&contents[0], contents.size());
-		in.close();
-		return contents;
+		throw std::system_error(errno, std::iostream_category(), std::format("Cannot open \"{}\" for reading", path.generic_string()));
 	}
-	throw std::ios_base::failure(std::format("Could not find file \"{}\"", path));
+	
+	return file;
+}
+
+std::ofstream FileHelper::openFileForWriting(const std::filesystem::path& path)
+{
+	std::ofstream file(path, std::ios::out | std::ios::binary);
+	
+	if (file.fail())
+	{
+		throw std::system_error(errno, std::iostream_category(), std::format("Cannot open \"{}\" for writing", path.generic_string()));
+	}
+	
+	return file;
 }
 
 std::optional<std::filesystem::path> FileHelper::fileDialogOpen(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder)
