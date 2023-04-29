@@ -81,11 +81,6 @@ size_t VKSwapchain::getImageCount() const
 	return _swapchainImages.size();
 }
 
-uint64_t VKSwapchain::getNextPresentId() const
-{
-	return _nextPresentId;
-}
-
 void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
 {
 	SwapChainSupportDetails swapchainSupport = querySwapchainSupport(_context.getPhysicalDevice(), surface);
@@ -139,9 +134,4 @@ void VKSwapchain::createSemaphores()
 	{
 		_semaphores.push_back(VKSemaphore::create(_context, semaphoreCreateInfo));
 	}
-}
-
-void VKSwapchain::onPresent()
-{
-	_nextPresentId++;
 }

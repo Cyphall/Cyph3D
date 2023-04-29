@@ -253,8 +253,6 @@ void VKContext::fillLayers()
 void VKContext::fillDeviceExtensions()
 {
 	_deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	_deviceExtensions.push_back(VK_KHR_PRESENT_ID_EXTENSION_NAME);
-	_deviceExtensions.push_back(VK_KHR_PRESENT_WAIT_EXTENSION_NAME);
 	_deviceExtensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 }
 
@@ -446,17 +444,9 @@ void VKContext::createLogicalDevice()
 	vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures;
 	hostQueryResetFeatures.hostQueryReset = true;
 	
-	vk::PhysicalDevicePresentWaitFeaturesKHR presentWaitFeatures;
-	presentWaitFeatures.presentWait = true;
-	presentWaitFeatures.pNext = &hostQueryResetFeatures;
-	
-	vk::PhysicalDevicePresentIdFeaturesKHR presentIdFeatures;
-	presentIdFeatures.presentId = true;
-	presentIdFeatures.pNext = &presentWaitFeatures;
-	
 	vk::PhysicalDeviceRobustness2FeaturesEXT robustness2Features;
 	robustness2Features.nullDescriptor = true;
-	robustness2Features.pNext = &presentIdFeatures;
+	robustness2Features.pNext = &hostQueryResetFeatures;
 	
 	vk::PhysicalDeviceMaintenance4Features maintenance4Features;
 	maintenance4Features.maintenance4 = true;

@@ -32,8 +32,6 @@ public:
 	
 	size_t getImageCount() const;
 	
-	uint64_t getNextPresentId() const;
-	
 private:
 	friend class VKQueue;
 	
@@ -42,8 +40,6 @@ private:
 	void createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapchain);
 	void createSemaphores();
 	
-	void onPresent();
-	
 	vk::SwapchainKHR _swapchain;
 	
 	std::vector<VKPtr<VKSwapchainImage>> _swapchainImages;
@@ -51,6 +47,4 @@ private:
 	
 	std::vector<VKPtr<VKSemaphore>> _semaphores;
 	size_t _nextIndex = 0;
-	
-	uint64_t _nextPresentId = 1;
 };

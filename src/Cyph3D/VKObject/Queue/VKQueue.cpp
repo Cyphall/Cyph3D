@@ -102,14 +102,6 @@ bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, const VKPtr
 	
 	presentInfo.pResults = nullptr;
 	
-	uint64_t presentId = swapchainImage->getSwapchain().getNextPresentId();
-	
-	vk::PresentIdKHR vkPresentId;
-	vkPresentId.swapchainCount = 1;
-	vkPresentId.pPresentIds = &presentId;
-	
-	presentInfo.pNext = &vkPresentId;
-	
 	try
 	{
 		_queue.presentKHR(presentInfo);
@@ -118,8 +110,6 @@ bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, const VKPtr
 	{
 		return false;
 	}
-	
-	swapchainImage->getSwapchain().onPresent();
 	
 	return true;
 }

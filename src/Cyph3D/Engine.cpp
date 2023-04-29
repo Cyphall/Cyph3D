@@ -12,6 +12,7 @@
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKSwapchain.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
 #include <GLFW/glfw3.h>
@@ -80,13 +81,7 @@ void Engine::run()
 			swapchainOutOfData = false;
 		}
 		
-		uint64_t nextPresentId = _window->getSwapchain().getNextPresentId();
-		uint64_t framesToWait = _vkContext->getConcurrentFrameCount() + 1;
-		if (nextPresentId > framesToWait)
-		{
-			uint64_t waitPresentId = nextPresentId - framesToWait;
-			_vkContext->getDevice().waitForPresentKHR(_window->getSwapchain().getHandle(), waitPresentId, UINT64_MAX);
-		}
+		_vkContext->getDefaultCommandBuffer()->waitExecution();
 		
 		VKSwapchain::NextImageInfo nextImageInfo = _window->getSwapchain().retrieveNextImage();
 		
