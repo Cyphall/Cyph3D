@@ -21,6 +21,7 @@ VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescrip
 	std::vector<vk::DescriptorBindingFlags> vkBindingsFlags;
 	vkBindingsFlags.reserve(_info.getAllBindingInfos().size());
 	
+	bool anyBindingHasUpdateAfterBind = false;
 	for (const auto& [binding, bindingInfo] : _info.getAllBindingInfos())
 	{
 		vk::DescriptorSetLayoutBinding& vkBinding = vkBindings.emplace_back();
@@ -31,6 +32,11 @@ VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescrip
 		vkBinding.pImmutableSamplers = nullptr; // Optional
 		
 		vkBindingsFlags.emplace_back(bindingInfo.flags);
+		
+		if (bindingInfo.flags & vk::DescriptorBindingFlagBits::eUpdateAfterBind)
+		{
+			anyBindingHasUpdateAfterBind = true;
+		}
 	}
 	
 	vk::DescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreateInfo;
@@ -45,6 +51,11 @@ VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescrip
 	if (info.isPushable())
 	{
 		createInfo.flags |= vk::DescriptorSetLayoutCreateFlagBits::ePushDescriptorKHR;
+	}
+	
+	if (anyBindingHasUpdateAfterBind)
+	{
+		createInfo.flags |= vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool;
 	}
 	
 	_handle = _context.getDevice().createDescriptorSetLayout(createInfo);

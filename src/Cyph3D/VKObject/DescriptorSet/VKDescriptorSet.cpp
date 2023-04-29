@@ -26,6 +26,7 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 	descriptorSetVariableDescriptorCountAllocateInfo.pDescriptorCounts = nullptr;
 	
 	std::vector<vk::DescriptorPoolSize> requiredResources;
+	bool anyBindingHasUpdateAfterBind = false;
 	for (const auto& [binding, bindingInfo] : _info.getLayout()->getInfo().getAllBindingInfos())
 	{
 		vk::DescriptorPoolSize& descriptorPoolSize = requiredResources.emplace_back();
@@ -38,6 +39,11 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 			descriptorSetVariableDescriptorCountAllocateInfo.pDescriptorCounts = &_info.getVariableSizeAllocatedCount();
 		}
 		
+		if (bindingInfo.flags & vk::DescriptorBindingFlagBits::eUpdateAfterBind)
+		{
+			anyBindingHasUpdateAfterBind = true;
+		}
+		
 		auto [it, inserted] = _boundObjects.try_emplace(binding);
 		it->second.resize(bindingInfo.count);
 	}
@@ -46,6 +52,11 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 	poolInfo.poolSizeCount = requiredResources.size();
 	poolInfo.pPoolSizes = requiredResources.data();
 	poolInfo.maxSets = 1;
+	
+	if (anyBindingHasUpdateAfterBind)
+	{
+		poolInfo.flags |= vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind;
+	}
 	
 	_descriptorPool = _context.getDevice().createDescriptorPool(poolInfo);
 	

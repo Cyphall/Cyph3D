@@ -31,7 +31,7 @@ void VKDescriptorSetLayoutInfo::registerIndexedBinding(uint32_t binding, vk::Des
 	VKDescriptorSetLayoutBinding& descriptorSetLayoutBinding = it.first->second;
 	descriptorSetLayoutBinding.type = type;
 	descriptorSetLayoutBinding.count = upperBound;
-	descriptorSetLayoutBinding.flags = vk::DescriptorBindingFlagBits::eVariableDescriptorCount | vk::DescriptorBindingFlagBits::ePartiallyBound | vk::DescriptorBindingFlagBits::eUpdateUnusedWhilePending;
+	descriptorSetLayoutBinding.flags = vk::DescriptorBindingFlagBits::eVariableDescriptorCount | vk::DescriptorBindingFlagBits::ePartiallyBound | vk::DescriptorBindingFlagBits::eUpdateAfterBind;
 }
 
 const bool& VKDescriptorSetLayoutInfo::isPushable() const

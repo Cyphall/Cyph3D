@@ -456,7 +456,7 @@ void VKContext::createLogicalDevice()
 	descriptorIndexingFeatures.descriptorBindingPartiallyBound = true;
 	descriptorIndexingFeatures.runtimeDescriptorArray = true;
 	descriptorIndexingFeatures.descriptorBindingVariableDescriptorCount = true;
-	descriptorIndexingFeatures.descriptorBindingUpdateUnusedWhilePending = true;
+	descriptorIndexingFeatures.descriptorBindingSampledImageUpdateAfterBind = true;
 	descriptorIndexingFeatures.pNext = &maintenance4Features;
 	
 	vk::PhysicalDeviceSynchronization2Features synchronization2Features;
