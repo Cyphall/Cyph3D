@@ -36,8 +36,13 @@ void Engine::init()
 //	Logger::SetLogLevel(Logger::LogLevel::Warning);
 
 	_vkContext = VKContext::create(2);
-
-	Logger::info(std::format("GPU: {}", static_cast<std::string_view>(_vkContext->getPhysicalDevice().getProperties().deviceName)));
+	
+	vk::PhysicalDeviceDriverProperties driverProperties;
+	vk::PhysicalDeviceProperties2 properties;
+	properties.pNext = &driverProperties;
+	_vkContext->getPhysicalDevice().getProperties2(&properties);
+	Logger::info(std::format("GPU: {}", static_cast<std::string_view>(properties.properties.deviceName)));
+	Logger::info(std::format("Driver: {} {}", static_cast<std::string_view>(driverProperties.driverName), static_cast<std::string_view>(driverProperties.driverInfo)));
 	
 	_window = std::make_unique<Window>();
 	
