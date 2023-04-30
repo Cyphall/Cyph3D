@@ -47,9 +47,9 @@ public:
 	void bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescriptorSet>& descriptorSet, uint32_t dynamicOffset);
 	
 	template<typename T>
-	void pushConstants(vk::ShaderStageFlags shaderStages, const T& data)
+	void pushConstants(const T& data)
 	{
-		pushConstants(shaderStages, &data, sizeof(T));
+		pushConstants(&data, sizeof(T));
 	}
 	
 	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex = 0);
@@ -95,7 +95,7 @@ public:
 private:
 	explicit VKCommandBuffer(VKContext& context);
 	
-	void pushConstants(vk::ShaderStageFlags shaderStages, const void* data, uint32_t dataSize);
+	void pushConstants(const void* data, uint32_t dataSize);
 	
 	vk::CommandPool _commandPool;
 	vk::CommandBuffer _commandBuffer;

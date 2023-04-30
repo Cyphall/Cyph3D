@@ -77,7 +77,7 @@ const VKPtr<VKImageView>& ExposureEffect::onRender(const VKPtr<VKCommandBuffer>&
 	
 	PushConstantData pushConstantData{};
 	pushConstantData.exposure = camera.getExposure();
-	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eFragment, pushConstantData);
+	commandBuffer->pushConstants(pushConstantData);
 	
 	commandBuffer->draw(3, 0);
 	
@@ -106,7 +106,7 @@ void ExposureEffect::onResize()
 void ExposureEffect::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
-	info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
+	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -114,8 +114,8 @@ void ExposureEffect::createDescriptorSetLayout()
 void ExposureEffect::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
-	info.registerDescriptorSetLayout(_descriptorSetLayout);
-	info.registerPushConstantLayout<PushConstantData>(vk::ShaderStageFlagBits::eFragment);
+	info.addDescriptorSetLayout(_descriptorSetLayout);
+	info.setPushConstantLayout<PushConstantData>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
@@ -138,7 +138,7 @@ void ExposureEffect::createPipeline()
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 	
-	info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+	info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }

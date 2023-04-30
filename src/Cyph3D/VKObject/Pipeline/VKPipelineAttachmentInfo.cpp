@@ -1,6 +1,6 @@
 #include "VKPipelineAttachmentInfo.h"
 
-void VKPipelineAttachmentInfo::registerColorAttachment(uint32_t slot, vk::Format format, std::optional<VKPipelineBlendingInfo> blending)
+void VKPipelineAttachmentInfo::addColorAttachment(uint32_t slot, vk::Format format, std::optional<VKPipelineBlendingInfo> blending)
 {
 	_colorAttachmentsInfo.resize(std::max<size_t>(slot + 1, _colorAttachmentsInfo.size()), {});
 	

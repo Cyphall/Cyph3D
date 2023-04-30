@@ -103,7 +103,7 @@ void ToneMappingEffect::onResize()
 void ToneMappingEffect::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
-	info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
+	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -111,7 +111,7 @@ void ToneMappingEffect::createDescriptorSetLayout()
 void ToneMappingEffect::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
-	info.registerDescriptorSetLayout(_descriptorSetLayout);
+	info.addDescriptorSetLayout(_descriptorSetLayout);
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
@@ -134,7 +134,7 @@ void ToneMappingEffect::createPipeline()
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 	
-	info.pipelineAttachmentInfo.registerColorAttachment(0, SRGB_OUTPUT_FORMAT);
+	info.pipelineAttachmentInfo.addColorAttachment(0, SRGB_OUTPUT_FORMAT);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }

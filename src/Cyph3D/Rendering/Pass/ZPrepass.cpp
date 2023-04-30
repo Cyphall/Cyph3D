@@ -88,7 +88,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 		
 		PushConstantData pushConstantData{};
 		pushConstantData.mvp = vp * modelData.matrix;
-		commandBuffer->pushConstants(vk::ShaderStageFlagBits::eVertex, pushConstantData);
+		commandBuffer->pushConstants(pushConstantData);
 		
 		commandBuffer->draw(indexBuffer->getSize(), 0);
 	}
@@ -110,7 +110,7 @@ void ZPrepass::onResize()
 void ZPrepass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
-	info.registerPushConstantLayout<PushConstantData>(vk::ShaderStageFlagBits::eVertex);
+	info.setPushConstantLayout<PushConstantData>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }

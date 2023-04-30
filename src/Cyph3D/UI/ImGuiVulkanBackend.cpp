@@ -215,16 +215,16 @@ void ImGuiVulkanBackend::createSamplers()
 void ImGuiVulkanBackend::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
-	info.registerBinding(0, vk::DescriptorType::eSampledImage, 1);
-	info.registerBinding(1, vk::DescriptorType::eSampler, 1);
+	info.addBinding(vk::DescriptorType::eSampledImage, 1);
+	info.addBinding(vk::DescriptorType::eSampler, 1);
 	_imageSamplerDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
 void ImGuiVulkanBackend::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
-	info.registerDescriptorSetLayout(_imageSamplerDescriptorSetLayout);
-	info.registerPushConstantLayout<PushConstantData>(vk::ShaderStageFlagBits::eVertex);
+	info.addDescriptorSetLayout(_imageSamplerDescriptorSetLayout);
+	info.setPushConstantLayout<PushConstantData>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
@@ -260,7 +260,7 @@ void ImGuiVulkanBackend::createPipeline()
 	blendingInfo.dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
 	blendingInfo.alphaBlendOp = vk::BlendOp::eAdd;
 	
-	info.pipelineAttachmentInfo.registerColorAttachment(0, Engine::getWindow().getSwapchain().getFormat(), blendingInfo);
+	info.pipelineAttachmentInfo.addColorAttachment(0, Engine::getWindow().getSwapchain().getFormat(), blendingInfo);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
@@ -369,10 +369,10 @@ void ImGuiVulkanBackend::setupRenderState(
 	viewport.depthRange = {0.0f, 1.0f};
 	commandBuffer->setViewport(viewport);
 	
-	PushConstantData pushConstantData;
+	PushConstantData pushConstantData{};
 	pushConstantData.scale.x = 2.0f / drawData->DisplaySize.x;
 	pushConstantData.scale.y = 2.0f / drawData->DisplaySize.y;
 	pushConstantData.offset.x = -1.0f - drawData->DisplayPos.x * pushConstantData.scale.x;
 	pushConstantData.offset.y = -1.0f - drawData->DisplayPos.y * pushConstantData.scale.y;
-	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eVertex, pushConstantData);
+	commandBuffer->pushConstants(pushConstantData);
 }

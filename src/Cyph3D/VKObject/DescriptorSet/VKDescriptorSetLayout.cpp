@@ -17,19 +17,21 @@ VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescrip
 	VKObject(context), _info(info)
 {
 	std::vector<vk::DescriptorSetLayoutBinding> vkBindings;
-	vkBindings.reserve(_info.getAllBindingInfos().size());
+	vkBindings.reserve(_info.getBindingInfos().size());
 	std::vector<vk::DescriptorBindingFlags> vkBindingsFlags;
-	vkBindingsFlags.reserve(_info.getAllBindingInfos().size());
+	vkBindingsFlags.reserve(_info.getBindingInfos().size());
 	
 	bool anyBindingHasUpdateAfterBind = false;
-	for (const auto& [binding, bindingInfo] : _info.getAllBindingInfos())
+	for (uint32_t i = 0; i < _info.getBindingInfos().size(); i++)
 	{
+		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getBindingInfo(i);
+		
 		vk::DescriptorSetLayoutBinding& vkBinding = vkBindings.emplace_back();
-		vkBinding.binding = binding;
+		vkBinding.binding = i;
 		vkBinding.descriptorType = bindingInfo.type;
 		vkBinding.descriptorCount = bindingInfo.count;
 		vkBinding.stageFlags = vk::ShaderStageFlagBits::eAll;
-		vkBinding.pImmutableSamplers = nullptr; // Optional
+		vkBinding.pImmutableSamplers = nullptr;
 		
 		vkBindingsFlags.emplace_back(bindingInfo.flags);
 		

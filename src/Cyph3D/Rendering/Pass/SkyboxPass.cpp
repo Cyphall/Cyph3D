@@ -96,7 +96,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	pushConstantData.mvp = input.camera.getProjection() *
 						   glm::mat4(glm::mat3(input.camera.getView())) *
 						   glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
-	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eVertex, pushConstantData);
+	commandBuffer->pushConstants(pushConstantData);
 	
 	commandBuffer->bindVertexBuffer(0, _vertexBuffer);
 	
@@ -117,7 +117,7 @@ void SkyboxPass::onResize()
 void SkyboxPass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
-	info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
+	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -125,8 +125,8 @@ void SkyboxPass::createDescriptorSetLayout()
 void SkyboxPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
-	info.registerDescriptorSetLayout(_descriptorSetLayout);
-	info.registerPushConstantLayout<PushConstantData>(vk::ShaderStageFlagBits::eVertex);
+	info.addDescriptorSetLayout(_descriptorSetLayout);
+	info.setPushConstantLayout<PushConstantData>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
@@ -152,7 +152,7 @@ void SkyboxPass::createPipeline()
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 	
-	info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+	info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
 	info.pipelineAttachmentInfo.setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLessOrEqual, false);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);

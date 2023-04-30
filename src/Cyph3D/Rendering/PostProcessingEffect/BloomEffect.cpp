@@ -219,7 +219,7 @@ void BloomEffect::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int ds
 	DownsamplePushConstantData pushConstantData{};
 	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workImage->getSize(dstLevel-1));
 	pushConstantData.srcLevel = dstLevel-1;
-	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eFragment, pushConstantData);
+	commandBuffer->pushConstants(pushConstantData);
 	
 	commandBuffer->draw(3, 0);
 	
@@ -276,7 +276,7 @@ void BloomEffect::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, i
 	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workImage->getSize(dstLevel+1));
 	pushConstantData.srcLevel = dstLevel+1;
 	pushConstantData.bloomRadius = glm::clamp(BLOOM_RADIUS, 0.0f, 1.0f);
-	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eFragment, pushConstantData);
+	commandBuffer->pushConstants(pushConstantData);
 	
 	commandBuffer->draw(3, 0);
 	
@@ -330,7 +330,7 @@ void BloomEffect::compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommand
 	
 	ComposePushConstantData pushConstantData{};
 	pushConstantData.factor = glm::clamp(BLOOM_STRENGTH, 0.0f, 1.0f);
-	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eFragment, pushConstantData);
+	commandBuffer->pushConstants(pushConstantData);
 	
 	commandBuffer->draw(3, 0);
 	
@@ -343,22 +343,22 @@ void BloomEffect::createDescriptorSetLayouts()
 {
 	{
 		VKDescriptorSetLayoutInfo info(true);
-		info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 		
 		_downsampleDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 	}
 	
 	{
 		VKDescriptorSetLayoutInfo info(true);
-		info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 		
 		_upsampleDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 	}
 	
 	{
 		VKDescriptorSetLayoutInfo info(true);
-		info.registerBinding(0, vk::DescriptorType::eCombinedImageSampler, 1);
-		info.registerBinding(1, vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 		
 		_composeDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 	}
@@ -368,24 +368,24 @@ void BloomEffect::createPipelineLayouts()
 {
 	{
 		VKPipelineLayoutInfo info;
-		info.registerDescriptorSetLayout(_downsampleDescriptorSetLayout);
-		info.registerPushConstantLayout<DownsamplePushConstantData>(vk::ShaderStageFlagBits::eFragment);
+		info.addDescriptorSetLayout(_downsampleDescriptorSetLayout);
+		info.setPushConstantLayout<DownsamplePushConstantData>();
 		
 		_downsamplePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 	}
 	
 	{
 		VKPipelineLayoutInfo info;
-		info.registerDescriptorSetLayout(_upsampleDescriptorSetLayout);
-		info.registerPushConstantLayout<UpsamplePushConstantData>(vk::ShaderStageFlagBits::eFragment);
+		info.addDescriptorSetLayout(_upsampleDescriptorSetLayout);
+		info.setPushConstantLayout<UpsamplePushConstantData>();
 		
 		_upsamplePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 	}
 	
 	{
 		VKPipelineLayoutInfo info;
-		info.registerDescriptorSetLayout(_composeDescriptorSetLayout);
-		info.registerPushConstantLayout<ComposePushConstantData>(vk::ShaderStageFlagBits::eFragment);
+		info.addDescriptorSetLayout(_composeDescriptorSetLayout);
+		info.setPushConstantLayout<ComposePushConstantData>();
 		
 		_composePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 	}
@@ -410,7 +410,7 @@ void BloomEffect::createPipelines()
 		info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 		info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 		
-		info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+		info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
 		
 		_downsamplePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}
@@ -441,7 +441,7 @@ void BloomEffect::createPipelines()
 			.alphaBlendOp = vk::BlendOp::eAdd
 		};
 		
-		info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT, blendingInfo);
+		info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT, blendingInfo);
 		
 		_upsamplePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}
@@ -463,7 +463,7 @@ void BloomEffect::createPipelines()
 		info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 		info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 		
-		info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+		info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
 		
 		_composePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}

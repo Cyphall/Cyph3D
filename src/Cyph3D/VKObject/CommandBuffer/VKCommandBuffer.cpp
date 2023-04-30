@@ -7,7 +7,6 @@
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
-#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutBinding.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineViewport.h"
@@ -249,7 +248,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		bufferInfo.range = VK_WHOLE_SIZE;
 	}
 	
-	const VKDescriptorSetLayoutBinding& bindingInfo = _boundPipeline->getPipelineLayout()->getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
 	
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
@@ -276,7 +275,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	vk::DescriptorImageInfo samplerInfo;
 	samplerInfo.sampler = sampler->getHandle();
 	
-	const VKDescriptorSetLayoutBinding& bindingInfo = _boundPipeline->getPipelineLayout()->getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
 	
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
@@ -320,7 +319,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	imageInfo.imageView = imageView->getHandle();
 	imageInfo.imageLayout = layout;
 	
-	const VKDescriptorSetLayoutBinding& bindingInfo = _boundPipeline->getPipelineLayout()->getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
 	
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
@@ -365,7 +364,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	combinedImageSamplerInfo.imageLayout = layout;
 	combinedImageSamplerInfo.sampler = sampler->getHandle();
 	
-	const VKDescriptorSetLayoutBinding& bindingInfo = _boundPipeline->getPipelineLayout()->getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
 	
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
@@ -715,12 +714,12 @@ void VKCommandBuffer::clearColorImage(const VKPtr<VKImage>& image, uint32_t laye
 	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::pushConstants(vk::ShaderStageFlags shaderStages, const void* data, uint32_t dataSize)
+void VKCommandBuffer::pushConstants(const void* data, uint32_t dataSize)
 {
 	if (_boundPipeline == nullptr)
 		throw;
 	
-	_commandBuffer.pushConstants(_boundPipeline->getPipelineLayout()->getHandle(), shaderStages, 0, dataSize, data);
+	_commandBuffer.pushConstants(_boundPipeline->getPipelineLayout()->getHandle(), vk::ShaderStageFlagBits::eAll, 0, dataSize, data);
 }
 
 const VKPtr<VKFence>& VKCommandBuffer::getStatusFence() const

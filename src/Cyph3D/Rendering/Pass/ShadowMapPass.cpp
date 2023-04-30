@@ -4,10 +4,7 @@
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
-#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
-#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutBinding.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
-#include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
@@ -105,7 +102,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			
 			DirectionalLightPushConstantData pushConstantData{};
 			pushConstantData.mvp = renderData.lightViewProjection * modelData.matrix;
-			commandBuffer->pushConstants(vk::ShaderStageFlagBits::eVertex, pushConstantData);
+			commandBuffer->pushConstants(pushConstantData);
 			
 			commandBuffer->draw(indexBuffer->getSize(), 0);
 		}
@@ -217,7 +214,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			
 			PointLightPushConstantData pushConstantData{};
 			pushConstantData.model = modelData.matrix;
-			commandBuffer->pushConstants(vk::ShaderStageFlagBits::eVertex, pushConstantData);
+			commandBuffer->pushConstants(pushConstantData);
 			
 			commandBuffer->draw(indexBuffer->getSize(), 0);
 		}
@@ -241,7 +238,7 @@ void ShadowMapPass::onResize()
 void ShadowMapPass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
-	info.registerBinding(0, vk::DescriptorType::eStorageBuffer, 1);
+	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
 	
 	_pointLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -258,15 +255,15 @@ void ShadowMapPass::createPipelineLayouts()
 {
 	{
 		VKPipelineLayoutInfo info;
-		info.registerPushConstantLayout<DirectionalLightPushConstantData>(vk::ShaderStageFlagBits::eVertex);
+		info.setPushConstantLayout<DirectionalLightPushConstantData>();
 		
 		_directionalLightPipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 	}
 	
 	{
 		VKPipelineLayoutInfo info;
-		info.registerDescriptorSetLayout(_pointLightDescriptorSetLayout);
-		info.registerPushConstantLayout<PointLightPushConstantData>(vk::ShaderStageFlagBits::eVertex);
+		info.addDescriptorSetLayout(_pointLightDescriptorSetLayout);
+		info.setPushConstantLayout<PointLightPushConstantData>();
 		
 		_pointLightPipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 	}

@@ -25,10 +25,14 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 	descriptorSetVariableDescriptorCountAllocateInfo.descriptorSetCount = 0;
 	descriptorSetVariableDescriptorCountAllocateInfo.pDescriptorCounts = nullptr;
 	
+	_boundObjects.resize(_info.getLayout()->getInfo().getBindingInfos().size());
+	
 	std::vector<vk::DescriptorPoolSize> requiredResources;
 	bool anyBindingHasUpdateAfterBind = false;
-	for (const auto& [binding, bindingInfo] : _info.getLayout()->getInfo().getAllBindingInfos())
+	for (uint32_t i = 0; i < _info.getLayout()->getInfo().getBindingInfos().size(); i++)
 	{
+		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(i);
+		
 		vk::DescriptorPoolSize& descriptorPoolSize = requiredResources.emplace_back();
 		descriptorPoolSize.type = bindingInfo.type;
 		descriptorPoolSize.descriptorCount = bindingInfo.count;
@@ -44,8 +48,7 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 			anyBindingHasUpdateAfterBind = true;
 		}
 		
-		auto [it, inserted] = _boundObjects.try_emplace(binding);
-		it->second.resize(bindingInfo.count);
+		_boundObjects[i].resize(bindingInfo.count);
 	}
 	
 	vk::DescriptorPoolCreateInfo poolInfo;
@@ -86,7 +89,7 @@ const vk::DescriptorSet& VKDescriptorSet::getHandle()
 	return _descriptorSet;
 }
 
-void VKDescriptorSet::bindBuffer(uint32_t binding, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
+void VKDescriptorSet::bindBuffer(uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
 {
 	vk::DescriptorBufferInfo bufferInfo;
 	if (size > 0)
@@ -95,7 +98,7 @@ void VKDescriptorSet::bindBuffer(uint32_t binding, const VKPtr<VKBufferBase>& bu
 		bufferInfo.offset = offset * buffer->getStride();
 		bufferInfo.range = size * buffer->getStride();
 		
-		_boundObjects.at(binding).at(arrayIndex) = buffer;
+		_boundObjects[bindingIndex][arrayIndex] = {buffer};
 	}
 	else
 	{
@@ -104,11 +107,11 @@ void VKDescriptorSet::bindBuffer(uint32_t binding, const VKPtr<VKBufferBase>& bu
 		bufferInfo.range = VK_WHOLE_SIZE;
 	}
 	
-	const VKDescriptorSetLayoutBinding& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(binding);
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
 	
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = _descriptorSet;
-	descriptorWrite.dstBinding = binding;
+	descriptorWrite.dstBinding = bindingIndex;
 	descriptorWrite.dstArrayElement = arrayIndex;
 	descriptorWrite.descriptorType = bindingInfo.type;
 	descriptorWrite.descriptorCount = 1;
@@ -119,16 +122,16 @@ void VKDescriptorSet::bindBuffer(uint32_t binding, const VKPtr<VKBufferBase>& bu
 	_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
 }
 
-void VKDescriptorSet::bindSampler(uint32_t binding, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKDescriptorSet::bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	vk::DescriptorImageInfo samplerInfo;
 	samplerInfo.sampler = sampler->getHandle();
 	
-	const VKDescriptorSetLayoutBinding& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(binding);
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
 	
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = _descriptorSet;
-	descriptorWrite.dstBinding = binding;
+	descriptorWrite.dstBinding = bindingIndex;
 	descriptorWrite.dstArrayElement = arrayIndex;
 	descriptorWrite.descriptorType = bindingInfo.type;
 	descriptorWrite.descriptorCount = 1;
@@ -138,10 +141,10 @@ void VKDescriptorSet::bindSampler(uint32_t binding, const VKPtr<VKSampler>& samp
 	
 	_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
 	
-	_boundObjects.at(binding).at(arrayIndex) = sampler;
+	_boundObjects[bindingIndex][arrayIndex] = {sampler};
 }
 
-void VKDescriptorSet::bindImage(uint32_t binding, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex)
+void VKDescriptorSet::bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex)
 {
 	// make sure all referenced layers and levels have the same layout
 	const VKPtr<VKImage>& image = imageView->getImage();
@@ -161,11 +164,11 @@ void VKDescriptorSet::bindImage(uint32_t binding, const VKPtr<VKImageView>& imag
 	imageInfo.imageView = imageView->getHandle();
 	imageInfo.imageLayout = layout;
 	
-	const VKDescriptorSetLayoutBinding& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(binding);
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
 	
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = _descriptorSet;
-	descriptorWrite.dstBinding = binding;
+	descriptorWrite.dstBinding = bindingIndex;
 	descriptorWrite.dstArrayElement = arrayIndex;
 	descriptorWrite.descriptorType = bindingInfo.type;
 	descriptorWrite.descriptorCount = 1;
@@ -175,10 +178,10 @@ void VKDescriptorSet::bindImage(uint32_t binding, const VKPtr<VKImageView>& imag
 	
 	_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
 	
-	_boundObjects.at(binding).at(arrayIndex) = image;
+	_boundObjects[bindingIndex][arrayIndex] = {imageView};
 }
 
-void VKDescriptorSet::bindCombinedImageSampler(uint32_t binding, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKDescriptorSet::bindCombinedImageSampler(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	// make sure all referenced layers and levels have the same layout
 	const VKPtr<VKImage>& image = imageView->getImage();
@@ -199,11 +202,11 @@ void VKDescriptorSet::bindCombinedImageSampler(uint32_t binding, const VKPtr<VKI
 	combinedImageSamplerInfo.imageLayout = layout;
 	combinedImageSamplerInfo.sampler = sampler->getHandle();
 	
-	const VKDescriptorSetLayoutBinding& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(binding);
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
 	
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = _descriptorSet;
-	descriptorWrite.dstBinding = binding;
+	descriptorWrite.dstBinding = bindingIndex;
 	descriptorWrite.dstArrayElement = arrayIndex;
 	descriptorWrite.descriptorType = bindingInfo.type;
 	descriptorWrite.descriptorCount = 1;
@@ -213,5 +216,5 @@ void VKDescriptorSet::bindCombinedImageSampler(uint32_t binding, const VKPtr<VKI
 	
 	_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
 	
-	_boundObjects.at(binding).at(arrayIndex) = image;
+	_boundObjects[bindingIndex][arrayIndex] = {imageView, sampler};
 }

@@ -228,7 +228,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	PushConstantData pushConstantData{};
 	pushConstantData.viewProjectionInv = glm::inverse(input.camera.getProjection() * input.camera.getView());
 	pushConstantData.viewPos = input.camera.getPosition();
-	commandBuffer->pushConstants(vk::ShaderStageFlagBits::eFragment, pushConstantData);
+	commandBuffer->pushConstants(pushConstantData);
 	
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
@@ -392,29 +392,29 @@ void LightingPass::createDescriptorSetLayouts()
 {
 	{
 		VKDescriptorSetLayoutInfo info(false);
-		info.registerBinding(0, vk::DescriptorType::eStorageBuffer, 1);
-		info.registerIndexedBinding(1, vk::DescriptorType::eCombinedImageSampler, 1024);
+		info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
+		info.addIndexedBinding(vk::DescriptorType::eCombinedImageSampler, 1024);
 		
 		_directionalLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 	}
 	
 	{
 		VKDescriptorSetLayoutInfo info(false);
-		info.registerBinding(0, vk::DescriptorType::eStorageBuffer, 1);
-		info.registerIndexedBinding(1, vk::DescriptorType::eCombinedImageSampler, 1024);
+		info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
+		info.addIndexedBinding(vk::DescriptorType::eCombinedImageSampler, 1024);
 		
 		_pointLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 	}
 	
 	{
 		VKDescriptorSetLayoutInfo info(true);
-		info.registerBinding(0, vk::DescriptorType::eStorageBuffer, 1);
-		info.registerBinding(1, vk::DescriptorType::eCombinedImageSampler, 1);
-		info.registerBinding(2, vk::DescriptorType::eCombinedImageSampler, 1);
-		info.registerBinding(3, vk::DescriptorType::eCombinedImageSampler, 1);
-		info.registerBinding(4, vk::DescriptorType::eCombinedImageSampler, 1);
-		info.registerBinding(5, vk::DescriptorType::eCombinedImageSampler, 1);
-		info.registerBinding(6, vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 		
 		_objectDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 	}
@@ -423,10 +423,10 @@ void LightingPass::createDescriptorSetLayouts()
 void LightingPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
-	info.registerDescriptorSetLayout(_directionalLightDescriptorSetLayout);
-	info.registerDescriptorSetLayout(_pointLightDescriptorSetLayout);
-	info.registerDescriptorSetLayout(_objectDescriptorSetLayout);
-	info.registerPushConstantLayout<PushConstantData>(vk::ShaderStageFlagBits::eFragment);
+	info.addDescriptorSetLayout(_directionalLightDescriptorSetLayout);
+	info.addDescriptorSetLayout(_pointLightDescriptorSetLayout);
+	info.addDescriptorSetLayout(_objectDescriptorSetLayout);
+	info.setPushConstantLayout<PushConstantData>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
@@ -455,8 +455,8 @@ void LightingPass::createPipeline()
 	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 	
-	info.pipelineAttachmentInfo.registerColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
-	info.pipelineAttachmentInfo.registerColorAttachment(1, SceneRenderer::OBJECT_INDEX_FORMAT);
+	info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+	info.pipelineAttachmentInfo.addColorAttachment(1, SceneRenderer::OBJECT_INDEX_FORMAT);
 	info.pipelineAttachmentInfo.setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eEqual, false);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);

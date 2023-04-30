@@ -1,31 +1,48 @@
 #include "VKPipelineLayout.h"
 
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 
-VKPtr<VKPipelineLayout> VKPipelineLayout::create(VKContext& context, const VKPipelineLayoutInfo& pipelineLayoutInfo)
+VKPtr<VKPipelineLayout> VKPipelineLayout::create(VKContext& context, const VKPipelineLayoutInfo& info)
 {
-	return VKPtr<VKPipelineLayout>(new VKPipelineLayout(context, pipelineLayoutInfo));
+	return VKPtr<VKPipelineLayout>(new VKPipelineLayout(context, info));
 }
 
-VKDynamic<VKPipelineLayout> VKPipelineLayout::createDynamic(VKContext& context, const VKPipelineLayoutInfo& pipelineLayoutInfo)
+VKDynamic<VKPipelineLayout> VKPipelineLayout::createDynamic(VKContext& context, const VKPipelineLayoutInfo& info)
 {
-	return VKDynamic<VKPipelineLayout>(context, pipelineLayoutInfo);
+	return VKDynamic<VKPipelineLayout>(context, info);
 }
 
-VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInfo& pipelineLayoutInfo):
-	VKObject(context)
+VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInfo& info):
+	VKObject(context),
+	_info(info)
 {
-	vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
-	pipelineLayoutCreateInfo.setLayoutCount = pipelineLayoutInfo._vkDescriptorSetsLayouts.size();
-	pipelineLayoutCreateInfo.pSetLayouts = pipelineLayoutInfo._vkDescriptorSetsLayouts.data();
-	
-	_descriptorSetsLayouts = pipelineLayoutInfo._descriptorSetsLayouts;
-	
-	if (pipelineLayoutInfo._pushConstantRange.has_value())
+	std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
+	descriptorSetLayouts.reserve(_info.getDescriptorSetLayouts().size());
+	for (const VKPtr<VKDescriptorSetLayout>& descriptorSetLayout : _info.getDescriptorSetLayouts())
 	{
+		descriptorSetLayouts.emplace_back(descriptorSetLayout->getHandle());
+	}
+	
+	vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
+	pipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
+	pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
+	
+	vk::PushConstantRange pushConstantRange;
+	if (_info.getPushConstantInfo())
+	{
+		if (_info.getPushConstantInfo()->size > 128)
+		{
+			throw;
+		}
+		
+		pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eAll;
+		pushConstantRange.size = _info.getPushConstantInfo()->size;
+		pushConstantRange.offset = 0;
+		
 		pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-		pipelineLayoutCreateInfo.pPushConstantRanges = &pipelineLayoutInfo._pushConstantRange.value();
+		pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
 	}
 	else
 	{
@@ -41,12 +58,12 @@ VKPipelineLayout::~VKPipelineLayout()
 	_context.getDevice().destroyPipelineLayout(_pipelineLayout);
 }
 
+const VKPipelineLayoutInfo& VKPipelineLayout::getInfo() const
+{
+	return _info;
+}
+
 const vk::PipelineLayout& VKPipelineLayout::getHandle()
 {
 	return _pipelineLayout;
-}
-
-const VKPtr<VKDescriptorSetLayout>& VKPipelineLayout::getDescriptorSetLayout(uint32_t setIndex)
-{
-	return _descriptorSetsLayouts.at(setIndex);
 }

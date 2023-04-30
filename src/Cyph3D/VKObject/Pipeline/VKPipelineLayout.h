@@ -1,27 +1,26 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
+#include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 
 #include <vulkan/vulkan.hpp>
-
-class VKPipelineLayoutInfo;
-class VKDescriptorSetLayout;
 
 class VKPipelineLayout : public VKObject
 {
 public:
-	static VKPtr<VKPipelineLayout> create(VKContext& context, const VKPipelineLayoutInfo& pipelineLayoutInfo);
-	static VKDynamic<VKPipelineLayout> createDynamic(VKContext& context, const VKPipelineLayoutInfo& pipelineLayoutInfo);
+	static VKPtr<VKPipelineLayout> create(VKContext& context, const VKPipelineLayoutInfo& info);
+	static VKDynamic<VKPipelineLayout> createDynamic(VKContext& context, const VKPipelineLayoutInfo& info);
 	
 	~VKPipelineLayout() override;
 	
-	const vk::PipelineLayout& getHandle();
+	const VKPipelineLayoutInfo& getInfo() const;
 	
-	const VKPtr<VKDescriptorSetLayout>& getDescriptorSetLayout(uint32_t setIndex);
+	const vk::PipelineLayout& getHandle();
 
 protected:
-	VKPipelineLayout(VKContext& context, const VKPipelineLayoutInfo& pipelineLayoutInfo);
+	VKPipelineLayout(VKContext& context, const VKPipelineLayoutInfo& info);
 	
 	vk::PipelineLayout _pipelineLayout;
-	std::vector<VKPtr<VKDescriptorSetLayout>> _descriptorSetsLayouts;
+	
+	VKPipelineLayoutInfo _info;
 };

@@ -4,7 +4,7 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetInfo.h"
 
 #include <vulkan/vulkan.hpp>
-#include <unordered_map>
+#include <vector>
 
 class VKDescriptorSetLayout;
 class VKBufferBase;
@@ -23,10 +23,10 @@ public:
 	
 	const vk::DescriptorSet& getHandle();
 	
-	void bindBuffer(uint32_t binding, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex = 0);
-	void bindSampler(uint32_t binding, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
-	void bindImage(uint32_t binding, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex = 0);
-	void bindCombinedImageSampler(uint32_t binding, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void bindBuffer(uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex = 0);
+	void bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex = 0);
+	void bindCombinedImageSampler(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
 	
 protected:
 	VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& info);
@@ -36,5 +36,7 @@ protected:
 	vk::DescriptorPool _descriptorPool;
 	vk::DescriptorSet _descriptorSet;
 	
-	std::unordered_map<uint32_t, std::vector<VKPtr<VKObject>>> _boundObjects;
+	// _boundObjects[setIndex][bindingIndex][object]
+	// third vector is to support multiple VKObjects being bound to a single binding at the same time (e.g. combined image sampler)
+	std::vector<std::vector<std::vector<VKPtr<VKObject>>>> _boundObjects;
 };

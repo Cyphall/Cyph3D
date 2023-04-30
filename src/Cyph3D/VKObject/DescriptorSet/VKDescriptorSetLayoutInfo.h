@@ -1,24 +1,28 @@
 #pragma once
 
-#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutBinding.h"
-
 #include <vulkan/vulkan.hpp>
-#include <unordered_map>
+#include <vector>
 
 class VKDescriptorSetLayoutInfo
 {
 public:
-	explicit VKDescriptorSetLayoutInfo(bool pushable);
+	struct BindingInfo
+	{
+		vk::DescriptorType type;
+		uint32_t count;
+		vk::DescriptorBindingFlags flags;
+	};
 	
-	void registerBinding(uint32_t binding, vk::DescriptorType type, uint32_t count);
-	void registerIndexedBinding(uint32_t binding, vk::DescriptorType type, uint32_t upperBound);
+	explicit VKDescriptorSetLayoutInfo(bool pushable);
 	
 	const bool& isPushable() const;
 	
-	const VKDescriptorSetLayoutBinding& getBindingInfo(uint32_t binding) const;
-	const std::unordered_map<uint32_t, VKDescriptorSetLayoutBinding>& getAllBindingInfos() const;
+	const BindingInfo& getBindingInfo(uint32_t bindingIndex) const;
+	const std::vector<BindingInfo>& getBindingInfos() const;
+	void addBinding(vk::DescriptorType type, uint32_t count);
+	void addIndexedBinding(vk::DescriptorType type, uint32_t upperBound);
 	
 private:
-	std::unordered_map<uint32_t, VKDescriptorSetLayoutBinding> _bindings;
 	bool _pushable;
+	std::vector<BindingInfo> _bindingInfos;
 };

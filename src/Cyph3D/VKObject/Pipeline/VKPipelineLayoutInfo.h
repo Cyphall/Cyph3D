@@ -4,35 +4,33 @@
 
 #include <vector>
 #include <optional>
-#include <vulkan/vulkan.hpp>
 
 class VKDescriptorSetLayout;
 
 class VKPipelineLayoutInfo
 {
 public:
-	void registerDescriptorSetLayout(const VKPtr<VKDescriptorSetLayout>& descriptorSetLayout);
+	struct PushConstantInfo
+	{
+		uint32_t size;
+	};
+	
+	void addDescriptorSetLayout(const VKPtr<VKDescriptorSetLayout>& descriptorSetLayout);
 	
 	template<typename T>
-	void registerPushConstantLayout(vk::ShaderStageFlags stageFlags)
+	void setPushConstantLayout()
 	{
-		if (sizeof(T) > 128)
-		{
-			throw;
-		}
-		
-		vk::PushConstantRange pushConstantRange;
-		pushConstantRange.stageFlags = stageFlags;
-		pushConstantRange.size = sizeof(T);
-		pushConstantRange.offset = 0;
-		
-		_pushConstantRange = pushConstantRange;
+		_pushConstantInfo = PushConstantInfo{
+			.size = sizeof(T)
+		};
 	}
 	
-private:
-	friend class VKPipelineLayout;
+	const VKPtr<VKDescriptorSetLayout>& getDescriptorSetLayout(uint32_t setIndex) const;
+	const std::vector<VKPtr<VKDescriptorSetLayout>>& getDescriptorSetLayouts() const;
 	
-	std::vector<vk::DescriptorSetLayout> _vkDescriptorSetsLayouts;
+	const std::optional<PushConstantInfo>& getPushConstantInfo() const;
+	
+private:
 	std::vector<VKPtr<VKDescriptorSetLayout>> _descriptorSetsLayouts;
-	std::optional<vk::PushConstantRange> _pushConstantRange;
+	std::optional<PushConstantInfo> _pushConstantInfo;
 };

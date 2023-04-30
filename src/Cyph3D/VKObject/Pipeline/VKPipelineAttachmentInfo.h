@@ -9,7 +9,7 @@
 class VKPipelineAttachmentInfo
 {
 public:
-	void registerColorAttachment(uint32_t slot, vk::Format format, std::optional<VKPipelineBlendingInfo> blending = std::nullopt);
+	void addColorAttachment(uint32_t slot, vk::Format format, std::optional<VKPipelineBlendingInfo> blending = std::nullopt);
 	
 	void setDepthAttachment(vk::Format format, vk::CompareOp depthTestPassCondition, bool writeEnabled);
 
