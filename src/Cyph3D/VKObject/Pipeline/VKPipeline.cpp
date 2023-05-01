@@ -1,7 +1,7 @@
 #include "VKPipeline.h"
 
-VKPipeline::VKPipeline(VKContext& context, const VKPtr<VKPipelineLayout>& pipelineLayout):
-	VKObject(context), _pipelineLayout(pipelineLayout)
+VKPipeline::VKPipeline(VKContext& context):
+	VKObject(context)
 {
 	
 }
@@ -9,9 +9,4 @@ VKPipeline::VKPipeline(VKContext& context, const VKPtr<VKPipelineLayout>& pipeli
 const vk::Pipeline& VKPipeline::getHandle()
 {
 	return _pipeline;
-}
-
-const VKPtr<VKPipelineLayout>& VKPipeline::getPipelineLayout() const
-{
-	return _pipelineLayout;
 }

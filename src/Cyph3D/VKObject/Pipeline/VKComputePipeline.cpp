@@ -3,7 +3,6 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Shader/VKShader.h"
-#include "Cyph3D/VKObject/Pipeline/VKComputePipelineInfo.h"
 
 VKPtr<VKComputePipeline> VKComputePipeline::create(VKContext& context, VKComputePipelineInfo& info)
 {
@@ -16,19 +15,9 @@ VKDynamic<VKComputePipeline> VKComputePipeline::createDynamic(VKContext& context
 }
 
 VKComputePipeline::VKComputePipeline(VKContext& context, VKComputePipelineInfo& info):
-	VKPipeline(context, info.pipelineLayout)
+	VKPipeline(context), _info(info)
 {
-	createPipeline(info);
-}
-
-VKComputePipeline::~VKComputePipeline()
-{
-	_context.getDevice().destroyPipeline(_pipeline);
-}
-
-void VKComputePipeline::createPipeline(VKComputePipelineInfo& info)
-{
-	VKPtr<VKShader> shader = VKShader::create(_context, info.computeShaderFile);
+	VKPtr<VKShader> shader = VKShader::create(_context, _info.getComputeShader());
 	
 	vk::PipelineShaderStageCreateInfo createInfo;
 	createInfo.stage = vk::ShaderStageFlagBits::eVertex;
@@ -37,12 +26,27 @@ void VKComputePipeline::createPipeline(VKComputePipelineInfo& info)
 	
 	vk::ComputePipelineCreateInfo pipelineCreateInfo;
 	pipelineCreateInfo.stage = createInfo;
-	pipelineCreateInfo.layout = _pipelineLayout->getHandle();
+	pipelineCreateInfo.layout = _info.getPipelineLayout()->getHandle();
 	
 	_pipeline = _context.getDevice().createComputePipeline(VK_NULL_HANDLE, pipelineCreateInfo).value;
 }
 
-vk::PipelineBindPoint VKComputePipeline::getPipelineType()
+VKComputePipeline::~VKComputePipeline()
+{
+	_context.getDevice().destroyPipeline(_pipeline);
+}
+
+const VKComputePipelineInfo& VKComputePipeline::getInfo() const
+{
+	return _info;
+}
+
+vk::PipelineBindPoint VKComputePipeline::getPipelineType() const
 {
 	return vk::PipelineBindPoint::eCompute;
+}
+
+const VKPtr<VKPipelineLayout>& VKComputePipeline::getPipelineLayout() const
+{
+	return _info.getPipelineLayout();
 }

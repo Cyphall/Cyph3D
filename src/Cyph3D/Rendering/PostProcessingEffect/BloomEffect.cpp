@@ -394,43 +394,29 @@ void BloomEffect::createPipelineLayouts()
 void BloomEffect::createPipelines()
 {
 	{
-		VKGraphicsPipelineInfo info;
-		info.vertexShaderFile = "resources/shaders/internal/fullscreen quad.vert";
-		info.geometryShaderFile = std::nullopt;
-		info.fragmentShaderFile = "resources/shaders/internal/post-processing/bloom/downsample.frag";
+		VKGraphicsPipelineInfo info(
+			_downsamplePipelineLayout,
+			"resources/shaders/internal/fullscreen quad.vert",
+			vk::PrimitiveTopology::eTriangleList,
+			vk::CullModeFlagBits::eBack,
+			vk::FrontFace::eCounterClockwise);
 		
-		info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+		info.setFragmentShader("resources/shaders/internal/post-processing/bloom/downsample.frag");
 		
-		info.pipelineLayout = _downsamplePipelineLayout;
-		
-		info.viewport = std::nullopt;
-		
-		info.scissor = std::nullopt;
-		
-		info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-		info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-		
-		info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 		
 		_downsamplePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}
 	
 	{
-		VKGraphicsPipelineInfo info;
-		info.vertexShaderFile = "resources/shaders/internal/fullscreen quad.vert";
-		info.geometryShaderFile = std::nullopt;
-		info.fragmentShaderFile = "resources/shaders/internal/post-processing/bloom/upsample and blur.frag";
+		VKGraphicsPipelineInfo info(
+			_upsamplePipelineLayout,
+			"resources/shaders/internal/fullscreen quad.vert",
+			vk::PrimitiveTopology::eTriangleList,
+			vk::CullModeFlagBits::eBack,
+			vk::FrontFace::eCounterClockwise);
 		
-		info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
-		
-		info.pipelineLayout = _upsamplePipelineLayout;
-		
-		info.viewport = std::nullopt;
-		
-		info.scissor = std::nullopt;
-		
-		info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-		info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
+		info.setFragmentShader("resources/shaders/internal/post-processing/bloom/upsample and blur.frag");
 		
 		VKPipelineBlendingInfo blendingInfo{
 			.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
@@ -441,29 +427,22 @@ void BloomEffect::createPipelines()
 			.alphaBlendOp = vk::BlendOp::eAdd
 		};
 		
-		info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT, blendingInfo);
+		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT, blendingInfo);
 		
 		_upsamplePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}
 	
 	{
-		VKGraphicsPipelineInfo info;
-		info.vertexShaderFile = "resources/shaders/internal/fullscreen quad.vert";
-		info.geometryShaderFile = std::nullopt;
-		info.fragmentShaderFile = "resources/shaders/internal/post-processing/bloom/compose.frag";
+		VKGraphicsPipelineInfo info(
+			_composePipelineLayout,
+			"resources/shaders/internal/fullscreen quad.vert",
+			vk::PrimitiveTopology::eTriangleList,
+			vk::CullModeFlagBits::eBack,
+			vk::FrontFace::eCounterClockwise);
 		
-		info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+		info.setFragmentShader("resources/shaders/internal/post-processing/bloom/compose.frag");
 		
-		info.pipelineLayout = _composePipelineLayout;
-		
-		info.viewport = std::nullopt;
-		
-		info.scissor = std::nullopt;
-		
-		info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-		info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-		
-		info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 		
 		_composePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}

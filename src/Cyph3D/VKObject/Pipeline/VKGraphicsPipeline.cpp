@@ -16,24 +16,13 @@ VKDynamic<VKGraphicsPipeline> VKGraphicsPipeline::createDynamic(VKContext& conte
 }
 
 VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInfo& info):
-	VKPipeline(context, info.pipelineLayout)
-{
-	createPipeline(info);
-}
-
-VKGraphicsPipeline::~VKGraphicsPipeline()
-{
-	_context.getDevice().destroyPipeline(_pipeline);
-}
-
-void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
+	VKPipeline(context), _info(info)
 {
 	std::vector<VKPtr<VKShader>> shaders;
 	std::vector<vk::PipelineShaderStageCreateInfo> shadersCreateInfos;
 	
-	if (info.vertexShaderFile.has_value())
 	{
-		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, *info.vertexShaderFile));
+		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getVertexShader()));
 		
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eVertex;
@@ -41,9 +30,9 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 		createInfo.pName = "main";
 	}
 	
-	if (info.geometryShaderFile.has_value())
+	if (_info.hasGeometryShader())
 	{
-		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, *info.geometryShaderFile));
+		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getGeometryShader()));
 		
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eGeometry;
@@ -51,9 +40,9 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 		createInfo.pName = "main";
 	}
 	
-	if (info.fragmentShaderFile.has_value())
+	if (_info.hasFragmentShader())
 	{
-		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, *info.fragmentShaderFile));
+		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getFragmentShader()));
 		
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eFragment;
@@ -61,10 +50,10 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 		createInfo.pName = "main";
 	}
 	
-	vk::PipelineVertexInputStateCreateInfo vertexInputState = info.vertexInputLayoutInfo.get();
+	vk::PipelineVertexInputStateCreateInfo vertexInputState = _info.getVertexInputLayoutInfo().get();
 	
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-	inputAssembly.topology = info.vertexTopology;
+	inputAssembly.topology = _info.getPrimitiveTopology();
 	inputAssembly.primitiveRestartEnable = false;
 	
 	vk::PipelineViewportStateCreateInfo viewportState;
@@ -72,14 +61,14 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 	viewportState.scissorCount = 1;
 	
 	vk::Viewport vkViewport;
-	if (info.viewport.has_value())
+	if (_info.hasStaticViewport())
 	{
-		vkViewport.x = static_cast<float>(info.viewport->offset.x);
-		vkViewport.y = static_cast<float>(info.viewport->offset.y);
-		vkViewport.width = static_cast<float>(info.viewport->size.x);
-		vkViewport.height = static_cast<float>(info.viewport->size.y);
-		vkViewport.minDepth = info.viewport->depthRange.x;
-		vkViewport.maxDepth = info.viewport->depthRange.y;
+		vkViewport.x = _info.getStaticViewport().offset.x;
+		vkViewport.y = _info.getStaticViewport().offset.y;
+		vkViewport.width = _info.getStaticViewport().size.x;
+		vkViewport.height = _info.getStaticViewport().size.y;
+		vkViewport.minDepth = _info.getStaticViewport().depthRange.x;
+		vkViewport.maxDepth = _info.getStaticViewport().depthRange.y;
 		
 		viewportState.pViewports = &vkViewport;
 	}
@@ -89,12 +78,12 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 	}
 	
 	vk::Rect2D scissor;
-	if (info.scissor.has_value())
+	if (_info.hasStaticScissor())
 	{
-		scissor.offset.x = info.scissor->offset.x;
-		scissor.offset.y = info.scissor->offset.y;
-		scissor.extent.width = info.scissor->size.x;
-		scissor.extent.height = info.scissor->size.y;
+		scissor.offset.x = _info.getStaticScissor().offset.x;
+		scissor.offset.y = _info.getStaticScissor().offset.y;
+		scissor.extent.width = _info.getStaticScissor().size.x;
+		scissor.extent.height = _info.getStaticScissor().size.y;
 		
 		viewportState.pScissors = &scissor;
 	}
@@ -108,8 +97,8 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 	rasterizer.rasterizerDiscardEnable = false;
 	rasterizer.polygonMode = vk::PolygonMode::eFill;
 	rasterizer.lineWidth = 1.0f;
-	rasterizer.cullMode = info.rasterizationInfo.cullMode;
-	rasterizer.frontFace = info.rasterizationInfo.frontFace;
+	rasterizer.cullMode = _info.getCullMode();
+	rasterizer.frontFace = _info.getFrontFace();
 	rasterizer.depthBiasEnable = false;
 	rasterizer.depthBiasConstantFactor = 0.0f; // Optional
 	rasterizer.depthBiasClamp = 0.0f; // Optional
@@ -126,10 +115,10 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 	std::vector<vk::Format> colorAttachmentsFormat;
 	std::vector<vk::PipelineColorBlendAttachmentState> colorAttachmentsBlending;
 	
-	colorAttachmentsFormat.reserve(info.pipelineAttachmentInfo._colorAttachmentsInfo.size());
-	colorAttachmentsBlending.reserve(info.pipelineAttachmentInfo._colorAttachmentsInfo.size());
+	colorAttachmentsFormat.reserve(_info.getPipelineAttachmentInfo().getColorAttachmentsInfos().size());
+	colorAttachmentsBlending.reserve(_info.getPipelineAttachmentInfo().getColorAttachmentsInfos().size());
 	
-	for (VKPipelineAttachmentInfo::ColorAttachmentInfo& colorAttachmentInfo : info.pipelineAttachmentInfo._colorAttachmentsInfo)
+	for (const VKPipelineAttachmentInfo::ColorAttachmentInfo& colorAttachmentInfo : _info.getPipelineAttachmentInfo().getColorAttachmentsInfos())
 	{
 		colorAttachmentsFormat.emplace_back(colorAttachmentInfo.format);
 		
@@ -172,13 +161,13 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 	pipelineRenderingCreateInfo.viewMask = 0;
 	pipelineRenderingCreateInfo.colorAttachmentCount = colorAttachmentsFormat.size();
 	pipelineRenderingCreateInfo.pColorAttachmentFormats = colorAttachmentsFormat.data();
-	pipelineRenderingCreateInfo.depthAttachmentFormat = info.pipelineAttachmentInfo._depthAttachmentInfo.format;
+	pipelineRenderingCreateInfo.depthAttachmentFormat = _info.getPipelineAttachmentInfo().hasDepthAttachment() ? _info.getPipelineAttachmentInfo().getDepthAttachmentInfo().format : vk::Format::eUndefined;
 	pipelineRenderingCreateInfo.stencilAttachmentFormat = vk::Format::eUndefined;
 	
 	vk::PipelineDepthStencilStateCreateInfo depthState;
-	depthState.depthTestEnable = info.pipelineAttachmentInfo._depthAttachmentInfo.format != vk::Format::eUndefined;
-	depthState.depthWriteEnable = info.pipelineAttachmentInfo._depthAttachmentInfo.writeEnabled;
-	depthState.depthCompareOp = info.pipelineAttachmentInfo._depthAttachmentInfo.depthTestPassCondition;
+	depthState.depthTestEnable = _info.getPipelineAttachmentInfo().hasDepthAttachment();
+	depthState.depthWriteEnable = _info.getPipelineAttachmentInfo().hasDepthAttachment() ? _info.getPipelineAttachmentInfo().getDepthAttachmentInfo().writeEnabled : false;
+	depthState.depthCompareOp = _info.getPipelineAttachmentInfo().hasDepthAttachment() ? _info.getPipelineAttachmentInfo().getDepthAttachmentInfo().depthTestPassCondition : vk::CompareOp::eAlways;
 	depthState.depthBoundsTestEnable = false;
 	depthState.minDepthBounds = 0.0f; // Optional
 	depthState.maxDepthBounds = 1.0f; // Optional
@@ -187,11 +176,11 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 	depthState.back = vk::StencilOpState(); // Optional
 	
 	std::vector<vk::DynamicState> dynamicStates;
-	if (!info.viewport.has_value())
+	if (!_info.hasStaticViewport())
 	{
 		dynamicStates.push_back(vk::DynamicState::eViewport);
 	}
-	if (!info.scissor.has_value())
+	if (!_info.hasStaticScissor())
 	{
 		dynamicStates.push_back(vk::DynamicState::eScissor);
 	}
@@ -211,7 +200,7 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 	pipelineCreateInfo.pDepthStencilState = &depthState; // Optional
 	pipelineCreateInfo.pColorBlendState = &colorBlending;
 	pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
-	pipelineCreateInfo.layout = _pipelineLayout->getHandle();
+	pipelineCreateInfo.layout = _info.getPipelineLayout()->getHandle();
 	pipelineCreateInfo.renderPass = nullptr;
 	pipelineCreateInfo.subpass = 0;
 	pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
@@ -221,7 +210,22 @@ void VKGraphicsPipeline::createPipeline(VKGraphicsPipelineInfo& info)
 	_pipeline = _context.getDevice().createGraphicsPipeline(VK_NULL_HANDLE, pipelineCreateInfo).value;
 }
 
-vk::PipelineBindPoint VKGraphicsPipeline::getPipelineType()
+VKGraphicsPipeline::~VKGraphicsPipeline()
+{
+	_context.getDevice().destroyPipeline(_pipeline);
+}
+
+const VKGraphicsPipelineInfo& VKGraphicsPipeline::getInfo() const
+{
+	return _info;
+}
+
+vk::PipelineBindPoint VKGraphicsPipeline::getPipelineType() const
 {
 	return vk::PipelineBindPoint::eGraphics;
+}
+
+const VKPtr<VKPipelineLayout>& VKGraphicsPipeline::getPipelineLayout() const
+{
+	return _info.getPipelineLayout();
 }

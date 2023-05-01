@@ -231,36 +231,30 @@ void ImGuiVulkanBackend::createPipelineLayout()
 
 void ImGuiVulkanBackend::createPipeline()
 {
-	VKGraphicsPipelineInfo info;
-	info.vertexShaderFile = "resources/shaders/internal/imgui/imgui.vert";
-	info.geometryShaderFile = std::nullopt;
-	info.fragmentShaderFile = "resources/shaders/internal/imgui/imgui.frag";
+	VKGraphicsPipelineInfo info(
+		_pipelineLayout,
+		"resources/shaders/internal/imgui/imgui.vert",
+		vk::PrimitiveTopology::eTriangleList,
+		vk::CullModeFlagBits::eNone,
+		vk::FrontFace::eCounterClockwise);
 	
-	info.vertexInputLayoutInfo.defineAttribute(0, 0, vk::Format::eR32G32Sfloat, offsetof(ImDrawVert, pos));
-	info.vertexInputLayoutInfo.defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(ImDrawVert, uv));
-	info.vertexInputLayoutInfo.defineAttribute(0, 2, vk::Format::eR8G8B8A8Unorm, offsetof(ImDrawVert, col));
-	info.vertexInputLayoutInfo.defineSlot(0, sizeof(ImDrawVert), vk::VertexInputRate::eVertex);
+	info.setFragmentShader("resources/shaders/internal/imgui/imgui.frag");
 	
-	info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(ImDrawVert), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32Sfloat, offsetof(ImDrawVert, pos));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(ImDrawVert, uv));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 2, vk::Format::eR8G8B8A8Unorm, offsetof(ImDrawVert, col));
 	
-	info.pipelineLayout = _pipelineLayout;
+	VKPipelineBlendingInfo blendingInfo{
+		.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
+		.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+		.colorBlendOp = vk::BlendOp::eAdd,
+		.srcAlphaBlendFactor = vk::BlendFactor::eOne,
+		.dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+		.alphaBlendOp = vk::BlendOp::eAdd
+	};
 	
-	info.viewport = std::nullopt;
-	
-	info.scissor = std::nullopt;
-	
-	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eNone;
-	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-	
-	VKPipelineBlendingInfo blendingInfo;
-	blendingInfo.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
-	blendingInfo.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
-	blendingInfo.colorBlendOp = vk::BlendOp::eAdd;
-	blendingInfo.srcAlphaBlendFactor = vk::BlendFactor::eOne;
-	blendingInfo.dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
-	blendingInfo.alphaBlendOp = vk::BlendOp::eAdd;
-	
-	info.pipelineAttachmentInfo.addColorAttachment(0, Engine::getWindow().getSwapchain().getFormat(), blendingInfo);
+	info.getPipelineAttachmentInfo().addColorAttachment(Engine::getWindow().getSwapchain().getFormat(), blendingInfo);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }

@@ -122,23 +122,16 @@ void ExposureEffect::createPipelineLayout()
 
 void ExposureEffect::createPipeline()
 {
-	VKGraphicsPipelineInfo info;
-	info.vertexShaderFile = "resources/shaders/internal/fullscreen quad.vert";
-	info.geometryShaderFile = std::nullopt;
-	info.fragmentShaderFile = "resources/shaders/internal/post-processing/exposure/exposure.frag";
+	VKGraphicsPipelineInfo info(
+		_pipelineLayout,
+		"resources/shaders/internal/fullscreen quad.vert",
+		vk::PrimitiveTopology::eTriangleList,
+		vk::CullModeFlagBits::eBack,
+		vk::FrontFace::eCounterClockwise);
 	
-	info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+	info.setFragmentShader("resources/shaders/internal/post-processing/exposure/exposure.frag");
 	
-	info.pipelineLayout = _pipelineLayout;
-	
-	info.viewport = std::nullopt;
-	
-	info.scissor = std::nullopt;
-	
-	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-	
-	info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
+	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }

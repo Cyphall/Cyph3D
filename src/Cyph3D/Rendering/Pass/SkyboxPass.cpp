@@ -133,27 +133,20 @@ void SkyboxPass::createPipelineLayout()
 
 void SkyboxPass::createPipeline()
 {
-	VKGraphicsPipelineInfo info;
-	info.vertexShaderFile = "resources/shaders/internal/skybox/skybox.vert";
-	info.geometryShaderFile = std::nullopt;
-	info.fragmentShaderFile = "resources/shaders/internal/skybox/skybox.frag";
+	VKGraphicsPipelineInfo info(
+		_pipelineLayout,
+		"resources/shaders/internal/skybox/skybox.vert",
+		vk::PrimitiveTopology::eTriangleList,
+		vk::CullModeFlagBits::eBack,
+		vk::FrontFace::eCounterClockwise);
 	
-	info.vertexInputLayoutInfo.defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(SkyboxPass::VertexData, position));
-	info.vertexInputLayoutInfo.defineSlot(0, sizeof(SkyboxPass::VertexData), vk::VertexInputRate::eVertex);
+	info.setFragmentShader("resources/shaders/internal/skybox/skybox.frag");
 	
-	info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(SkyboxPass::VertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(SkyboxPass::VertexData, position));
 	
-	info.pipelineLayout = _pipelineLayout;
-	
-	info.viewport = std::nullopt;
-	
-	info.scissor = std::nullopt;
-	
-	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-	
-	info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
-	info.pipelineAttachmentInfo.setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLessOrEqual, false);
+	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
+	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLessOrEqual, false);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }

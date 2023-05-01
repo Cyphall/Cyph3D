@@ -118,23 +118,16 @@ void ToneMappingEffect::createPipelineLayout()
 
 void ToneMappingEffect::createPipeline()
 {
-	VKGraphicsPipelineInfo info;
-	info.vertexShaderFile = "resources/shaders/internal/fullscreen quad.vert";
-	info.geometryShaderFile = std::nullopt;
-	info.fragmentShaderFile = "resources/shaders/internal/post-processing/tone mapping/tone mapping.frag";
+	VKGraphicsPipelineInfo info(
+		_pipelineLayout,
+		"resources/shaders/internal/fullscreen quad.vert",
+		vk::PrimitiveTopology::eTriangleList,
+		vk::CullModeFlagBits::eBack,
+		vk::FrontFace::eCounterClockwise);
 	
-	info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+	info.setFragmentShader("resources/shaders/internal/post-processing/tone mapping/tone mapping.frag");
 	
-	info.pipelineLayout = _pipelineLayout;
-	
-	info.viewport = std::nullopt;
-	
-	info.scissor = std::nullopt;
-	
-	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-	
-	info.pipelineAttachmentInfo.addColorAttachment(0, SRGB_OUTPUT_FORMAT);
+	info.getPipelineAttachmentInfo().addColorAttachment(SRGB_OUTPUT_FORMAT);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }

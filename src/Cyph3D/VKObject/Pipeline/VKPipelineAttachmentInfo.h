@@ -9,16 +9,9 @@
 class VKPipelineAttachmentInfo
 {
 public:
-	void addColorAttachment(uint32_t slot, vk::Format format, std::optional<VKPipelineBlendingInfo> blending = std::nullopt);
-	
-	void setDepthAttachment(vk::Format format, vk::CompareOp depthTestPassCondition, bool writeEnabled);
-
-private:
-	friend class VKGraphicsPipeline;
-	
 	struct ColorAttachmentInfo
 	{
-		vk::Format format = vk::Format::eUndefined;
+		vk::Format format;
 		std::optional<VKPipelineBlendingInfo> blending;
 	};
 	
@@ -29,7 +22,17 @@ private:
 		bool writeEnabled;
 	};
 	
-	std::vector<ColorAttachmentInfo> _colorAttachmentsInfo;
+	const ColorAttachmentInfo& getColorAttachmentInfo(uint32_t attachmentLocation) const;
+	const std::vector<ColorAttachmentInfo>& getColorAttachmentsInfos() const;
+	void addColorAttachment(vk::Format format, std::optional<VKPipelineBlendingInfo> blending = std::nullopt);
 	
-	DepthAttachmentInfo _depthAttachmentInfo = {vk::Format::eUndefined, vk::CompareOp::eAlways, false};
+	bool hasDepthAttachment() const;
+	const DepthAttachmentInfo& getDepthAttachmentInfo() const;
+	void setDepthAttachment(vk::Format format, vk::CompareOp depthTestPassCondition, bool writeEnabled);
+	void unsetDepthAttachment();
+
+private:
+	std::vector<ColorAttachmentInfo> _colorAttachmentsInfos;
+	
+	std::optional<DepthAttachmentInfo> _depthAttachmentInfo;
 };

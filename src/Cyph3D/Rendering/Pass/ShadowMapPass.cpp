@@ -272,51 +272,36 @@ void ShadowMapPass::createPipelineLayouts()
 void ShadowMapPass::createPipelines()
 {
 	{
-		VKGraphicsPipelineInfo info;
-		info.vertexShaderFile = "resources/shaders/internal/shadow mapping/directional light.vert";
-		info.geometryShaderFile = std::nullopt;
-		info.fragmentShaderFile = std::nullopt;
+		VKGraphicsPipelineInfo info(
+			_directionalLightPipelineLayout,
+			"resources/shaders/internal/shadow mapping/directional light.vert",
+			vk::PrimitiveTopology::eTriangleList,
+			vk::CullModeFlagBits::eBack,
+			vk::FrontFace::eCounterClockwise);
 		
-		info.vertexInputLayoutInfo.defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
-		info.vertexInputLayoutInfo.defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
 		
-		info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
-		
-		info.pipelineLayout = _directionalLightPipelineLayout;
-		
-		info.viewport = std::nullopt;
-		
-		info.scissor = std::nullopt;
-		
-		info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-		info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-		
-		info.pipelineAttachmentInfo.setDepthAttachment(DirectionalLight::depthFormat, vk::CompareOp::eLess, true);
+		info.getPipelineAttachmentInfo().setDepthAttachment(DirectionalLight::depthFormat, vk::CompareOp::eLess, true);
 		
 		_directionalLightPipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}
 	
 	{
-		VKGraphicsPipelineInfo info;
-		info.vertexShaderFile = "resources/shaders/internal/shadow mapping/point light.vert";
-		info.geometryShaderFile = "resources/shaders/internal/shadow mapping/point light.geom";
-		info.fragmentShaderFile = "resources/shaders/internal/shadow mapping/point light.frag";
+		VKGraphicsPipelineInfo info(
+			_pointLightPipelineLayout,
+			"resources/shaders/internal/shadow mapping/point light.vert",
+			vk::PrimitiveTopology::eTriangleList,
+			vk::CullModeFlagBits::eBack,
+			vk::FrontFace::eCounterClockwise);
 		
-		info.vertexInputLayoutInfo.defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
-		info.vertexInputLayoutInfo.defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+		info.setGeometryShader("resources/shaders/internal/shadow mapping/point light.geom");
+		info.setFragmentShader("resources/shaders/internal/shadow mapping/point light.frag");
 		
-		info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
 		
-		info.pipelineLayout = _pointLightPipelineLayout;
-		
-		info.viewport = std::nullopt;
-		
-		info.scissor = std::nullopt;
-		
-		info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-		info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-		
-		info.pipelineAttachmentInfo.setDepthAttachment(PointLight::depthFormat, vk::CompareOp::eLess, true);
+		info.getPipelineAttachmentInfo().setDepthAttachment(PointLight::depthFormat, vk::CompareOp::eLess, true);
 		
 		_pointLightPipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 	}

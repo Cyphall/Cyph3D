@@ -10,13 +10,12 @@ class VKPipeline : public VKObject
 {
 public:
 	const vk::Pipeline& getHandle();
-	const VKPtr<VKPipelineLayout>& getPipelineLayout() const;
 	
-	virtual vk::PipelineBindPoint getPipelineType() = 0;
+	virtual vk::PipelineBindPoint getPipelineType() const = 0;
+	virtual const VKPtr<VKPipelineLayout>& getPipelineLayout() const = 0;
 
 protected:
-	explicit VKPipeline(VKContext& context, const VKPtr<VKPipelineLayout>& pipelineLayout);
+	explicit VKPipeline(VKContext& context);
 	
-	VKPtr<VKPipelineLayout> _pipelineLayout;
 	vk::Pipeline _pipeline;
 };

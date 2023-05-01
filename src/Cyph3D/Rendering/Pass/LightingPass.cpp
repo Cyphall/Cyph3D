@@ -433,31 +433,24 @@ void LightingPass::createPipelineLayout()
 
 void LightingPass::createPipeline()
 {
-	VKGraphicsPipelineInfo info;
-	info.vertexShaderFile = "resources/shaders/internal/lighting/lighting.vert";
-	info.geometryShaderFile = std::nullopt;
-	info.fragmentShaderFile = "resources/shaders/internal/lighting/lighting.frag";
+	VKGraphicsPipelineInfo info(
+		_pipelineLayout,
+		"resources/shaders/internal/lighting/lighting.vert",
+		vk::PrimitiveTopology::eTriangleList,
+		vk::CullModeFlagBits::eBack,
+		vk::FrontFace::eCounterClockwise);
 	
-	info.vertexInputLayoutInfo.defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
-	info.vertexInputLayoutInfo.defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(VertexData, uv));
-	info.vertexInputLayoutInfo.defineAttribute(0, 2, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, normal));
-	info.vertexInputLayoutInfo.defineAttribute(0, 3, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, tangent));
-	info.vertexInputLayoutInfo.defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+	info.setFragmentShader("resources/shaders/internal/lighting/lighting.frag");
 	
-	info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
+	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(VertexData, uv));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 2, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, normal));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 3, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, tangent));
 	
-	info.pipelineLayout = _pipelineLayout;
-	
-	info.viewport = std::nullopt;
-	
-	info.scissor = std::nullopt;
-	
-	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-	
-	info.pipelineAttachmentInfo.addColorAttachment(0, SceneRenderer::HDR_COLOR_FORMAT);
-	info.pipelineAttachmentInfo.addColorAttachment(1, SceneRenderer::OBJECT_INDEX_FORMAT);
-	info.pipelineAttachmentInfo.setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eEqual, false);
+	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
+	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::OBJECT_INDEX_FORMAT);
+	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eEqual, false);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }

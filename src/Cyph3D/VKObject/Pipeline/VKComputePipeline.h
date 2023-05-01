@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Cyph3D/VKObject/Pipeline/VKPipeline.h"
+#include "Cyph3D/VKObject/Pipeline/VKComputePipelineInfo.h"
 
 #include <vulkan/vulkan.hpp>
-
-class VKComputePipelineInfo;
 
 class VKComputePipeline : public VKPipeline
 {
@@ -14,10 +13,13 @@ public:
 	
 	~VKComputePipeline() override;
 	
-	vk::PipelineBindPoint getPipelineType() override;
+	const VKComputePipelineInfo& getInfo() const;
+	
+	vk::PipelineBindPoint getPipelineType() const override;
+	const VKPtr<VKPipelineLayout>& getPipelineLayout() const override;
 
 private:
 	VKComputePipeline(VKContext& context, VKComputePipelineInfo& info);
 	
-	void createPipeline(VKComputePipelineInfo& info);
+	VKComputePipelineInfo _info;
 };

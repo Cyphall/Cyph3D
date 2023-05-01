@@ -117,26 +117,17 @@ void ZPrepass::createPipelineLayout()
 
 void ZPrepass::createPipeline()
 {
-	VKGraphicsPipelineInfo info;
-	info.vertexShaderFile = "resources/shaders/internal/z-prepass/z-prepass.vert";
-	info.geometryShaderFile = std::nullopt;
-	info.fragmentShaderFile = std::nullopt;
+	VKGraphicsPipelineInfo info(
+		_pipelineLayout,
+		"resources/shaders/internal/z-prepass/z-prepass.vert",
+		vk::PrimitiveTopology::eTriangleList,
+		vk::CullModeFlagBits::eBack,
+		vk::FrontFace::eCounterClockwise);
 	
-	info.vertexInputLayoutInfo.defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
-	info.vertexInputLayoutInfo.defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
 	
-	info.vertexTopology = vk::PrimitiveTopology::eTriangleList;
-	
-	info.pipelineLayout = _pipelineLayout;
-	
-	info.viewport = std::nullopt;
-	
-	info.scissor = std::nullopt;
-	
-	info.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
-	info.rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
-	
-	info.pipelineAttachmentInfo.setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLess, true);
+	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLess, true);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
