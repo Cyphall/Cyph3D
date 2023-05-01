@@ -254,6 +254,7 @@ void VKContext::fillDeviceExtensions()
 {
 	_deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	_deviceExtensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+	_deviceExtensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 }
 
 void VKContext::checkInstanceExtensionSupport()
@@ -498,6 +499,7 @@ void VKContext::createVmaAllocator()
 	allocatorInfo.physicalDevice = _physicalDevice;
 	allocatorInfo.device = _device;
 	allocatorInfo.pVulkanFunctions = &vulkanFunctions;
+	allocatorInfo.flags = vma::AllocatorCreateFlagBits::eExtMemoryBudget;
 	
 	vma::createAllocator(&allocatorInfo, &_vmaAllocator);
 }
