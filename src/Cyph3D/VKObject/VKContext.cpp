@@ -104,6 +104,7 @@ void VKContext::onNewFrame()
 {
 	_currentConcurrentFrame = (_currentConcurrentFrame + 1) % _concurrentFrameCount;
 	_queue->handleCompletedSubmits();
+	_vmaAllocator.setCurrentFrameIndex(_currentConcurrentFrame);
 }
 
 const vk::Instance& VKContext::getInstance()
