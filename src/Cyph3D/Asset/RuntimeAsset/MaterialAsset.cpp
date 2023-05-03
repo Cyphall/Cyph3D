@@ -69,7 +69,12 @@ MaterialAsset::~MaterialAsset()
 
 bool MaterialAsset::isLoaded() const
 {
-	return true;
+	return ((_albedoMap != nullptr && _albedoMap->isLoaded()) || _albedoValueTextureView) &&
+	       ((_normalMap != nullptr && _normalMap->isLoaded()) || _normalValueTextureView) &&
+	       ((_roughnessMap != nullptr && _roughnessMap->isLoaded()) || _roughnessValueTextureView) &&
+	       ((_metalnessMap != nullptr && _metalnessMap->isLoaded()) || _metalnessValueTextureView) &&
+	       ((_displacementMap != nullptr && _displacementMap->isLoaded()) || _displacementValueTextureView) &&
+	       ((_emissiveMap != nullptr && _emissiveMap->isLoaded()) || _emissiveValueTextureView);
 }
 
 void MaterialAsset::onDrawUi()
