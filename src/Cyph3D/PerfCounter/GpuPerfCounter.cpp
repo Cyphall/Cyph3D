@@ -43,7 +43,7 @@ double GpuPerfCounter::retrieve(const VKPtr<VKCommandBuffer>& commandBuffer)
 		}
 		
 		double timestampDiff = timestampEnd - timestampBegin;
-		timeDiff = timestampDiff * Engine::getVKContext().getTimestampPeriod();
+		timeDiff = timestampDiff * Engine::getVKContext().getProperties().limits.timestampPeriod;
 	}
 	
 	if (_queryBegin->isInserted())

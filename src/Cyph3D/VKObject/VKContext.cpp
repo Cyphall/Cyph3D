@@ -77,7 +77,7 @@ VKContext::VKContext(int concurrentFrameCount):
 	createImmediateCommandBuffer();
 	createDefaultCommandBuffer();
 	
-	gatherPhysicalDeviceProperties();
+	_properties = _physicalDevice.getProperties();
 }
 
 VKContext::~VKContext()
@@ -154,9 +154,9 @@ void VKContext::executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>
 	_helperData->immediateCommandBuffer->reset();
 }
 
-double VKContext::getTimestampPeriod() const
+const vk::PhysicalDeviceProperties& VKContext::getProperties() const
 {
-	return _timestampPeriod;
+	return _properties;
 }
 
 int VKContext::calculateDeviceScore(const vk::PhysicalDevice& device) const
@@ -513,10 +513,4 @@ void VKContext::createImmediateCommandBuffer()
 void VKContext::createDefaultCommandBuffer()
 {
 	_helperData->defaultCommandBuffer = VKCommandBuffer::createDynamic(*this);
-}
-
-void VKContext::gatherPhysicalDeviceProperties()
-{
-	vk::PhysicalDeviceProperties2 properties = _physicalDevice.getProperties2();
-	_timestampPeriod = properties.properties.limits.timestampPeriod;
 }

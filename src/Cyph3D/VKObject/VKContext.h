@@ -35,7 +35,7 @@ public:
 	
 	void executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>& commandBuffer)>&& function);
 	
-	double getTimestampPeriod() const;
+	const vk::PhysicalDeviceProperties& getProperties() const;
 
 private:
 	struct HelperData;
@@ -58,8 +58,7 @@ private:
 	
 	std::unique_ptr<HelperData> _helperData;
 	
-	// various properties
-	double _timestampPeriod;
+	vk::PhysicalDeviceProperties _properties;
 	
 	explicit VKContext(int concurrentFrameCount);
 	
@@ -84,6 +83,4 @@ private:
 	
 	void createImmediateCommandBuffer();
 	void createDefaultCommandBuffer();
-	
-	void gatherPhysicalDeviceProperties();
 };
