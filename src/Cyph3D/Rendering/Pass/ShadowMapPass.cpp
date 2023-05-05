@@ -41,9 +41,6 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			0,
 			0);
 		
-		vk::ClearValue depthClearValue;
-		depthClearValue.depthStencil.depth = 1.0f;
-		
 		vk::RenderingAttachmentInfo depthAttachment;
 		depthAttachment.imageView = (*renderData.shadowMapTextureView)->getHandle();
 		depthAttachment.imageLayout = (*renderData.shadowMapTexture)->getLayout(0, 0);
@@ -52,7 +49,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
 		depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 		depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-		depthAttachment.clearValue = depthClearValue;
+		depthAttachment.clearValue.depthStencil.depth = 1.0f;
 		
 		glm::uvec2 shadowMapSize = (*renderData.shadowMapTexture)->getSize(0);
 		
