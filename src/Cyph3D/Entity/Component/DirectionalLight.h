@@ -22,9 +22,7 @@ public:
 		glm::mat4               lightViewProjection;
 		VKDynamic<VKImage>*     shadowMapTexture;
 		VKDynamic<VKImageView>* shadowMapTextureView;
-		uint32_t                shadowMapResolution;
-		float                   shadowMapSize;
-		float                   shadowMapDepth;
+		float                   shadowMapTexelWorldSize;
 	};
 
 	explicit DirectionalLight(Entity& entity);

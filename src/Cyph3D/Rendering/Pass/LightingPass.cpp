@@ -68,8 +68,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		{
 			uniforms.lightViewProjection = renderData.lightViewProjection;
 			uniforms.textureIndex = directionalLightShadowIndex;
-			uniforms.mapSize = renderData.shadowMapSize;
-			uniforms.mapDepth = renderData.shadowMapDepth;
+			uniforms.shadowMapTexelWorldSize = renderData.shadowMapTexelWorldSize;
 			
 			commandBuffer->imageMemoryBarrier(
 				renderData.shadowMapTexture->getVKPtr(),

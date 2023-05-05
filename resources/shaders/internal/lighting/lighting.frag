@@ -26,8 +26,7 @@ struct DirectionalLightUniforms
 	bool  castShadows;
 	mat4  lightViewProjection;
 	uint  textureIndex;
-	float mapSize;
-	float mapDepth;
+	float shadowMapTexelWorldSize;
 };
 
 struct ObjectUniforms
@@ -297,7 +296,7 @@ vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelSize_WS, flo
 float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 {
 	float texelSize = 1.0 / textureSize(u_directionalLightTextures[u_directionalLightUniforms[lightIndex].textureIndex], 0).x;
-	float texelSize_WS = texelSize * u_directionalLightUniforms[lightIndex].mapSize;
+	float texelSize_WS = u_directionalLightUniforms[lightIndex].shadowMapTexelWorldSize;
 	
 	float samplingRadius = 3;
 	

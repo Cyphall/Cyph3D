@@ -124,16 +124,16 @@ void DirectionalLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 	data.castShadows = _castShadows;
 	if (_castShadows)
 	{
-		float pixelWorldSize = SHADOW_MAP_WORLD_SIZE / _resolution;
-		glm::mat4 worldToShadowMapPixel = glm::ortho<float>(-pixelWorldSize, pixelWorldSize, -pixelWorldSize, pixelWorldSize, 0, 1) *
+		float texelWorldSize = SHADOW_MAP_WORLD_SIZE / _resolution;
+		glm::mat4 worldToShadowMapTexel = glm::ortho<float>(-texelWorldSize, texelWorldSize, -texelWorldSize, texelWorldSize, 0, 1) *
 		                                  glm::lookAt(glm::vec3(0, 0, 0), getLightDirection(), glm::vec3(0, 1, 0));
 		
-		glm::vec4 shadowMapPixelPos4D = worldToShadowMapPixel * glm::vec4(camera.getPosition(), 1);
-		glm::vec3 shadowMapPixelPos = glm::vec3(shadowMapPixelPos4D) / shadowMapPixelPos4D.w;
+		glm::vec4 shadowMapTexelPos4D = worldToShadowMapTexel * glm::vec4(camera.getPosition(), 1);
+		glm::vec3 shadowMapTexelPos = glm::vec3(shadowMapTexelPos4D) / shadowMapTexelPos4D.w;
 		
-		glm::vec3 roundedShadowMapPixelPos = glm::round(shadowMapPixelPos);
+		glm::vec3 roundedShadowMapTexelPos = glm::round(shadowMapTexelPos);
 		
-		glm::vec4 shadowMapRoundedWorldPos4D = glm::inverse(worldToShadowMapPixel) * glm::vec4(roundedShadowMapPixelPos, 1);
+		glm::vec4 shadowMapRoundedWorldPos4D = glm::inverse(worldToShadowMapTexel) * glm::vec4(roundedShadowMapTexelPos, 1);
 		glm::vec3 shadowMapRoundedWorldPos = glm::vec3(shadowMapRoundedWorldPos4D) / shadowMapRoundedWorldPos4D.w;
 		
 		data.lightViewProjection = _projection *
@@ -143,9 +143,7 @@ void DirectionalLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 			                           glm::vec3(0, 1, 0));
 		data.shadowMapTexture = &_shadowMap;
 		data.shadowMapTextureView = &_shadowMapView;
-		data.shadowMapResolution = _resolution;
-		data.shadowMapSize = _mapSize;
-		data.shadowMapDepth = _mapDepth;
+		data.shadowMapTexelWorldSize = texelWorldSize;
 	}
 	
 	sceneRenderer.requestLightRendering(data);

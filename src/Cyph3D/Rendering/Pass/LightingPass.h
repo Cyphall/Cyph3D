@@ -41,8 +41,7 @@ private:
 		GLSL_bool  castShadows;
 		GLSL_mat4  lightViewProjection;
 		GLSL_uint  textureIndex;
-		GLSL_float mapSize;
-		GLSL_float mapDepth;
+		GLSL_float shadowMapTexelWorldSize;
 	};
 	
 	struct PointLightUniforms
