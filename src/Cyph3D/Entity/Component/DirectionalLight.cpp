@@ -16,9 +16,12 @@
 const char* const DirectionalLight::identifier = "DirectionalLight";
 const vk::Format DirectionalLight::depthFormat = vk::Format::eD32Sfloat;
 
+static const float SHADOW_MAP_WORLD_SIZE = 60.0f;
+static const float SHADOW_MAP_WORLD_DEPTH = 100.0f;
+
 DirectionalLight::DirectionalLight(Entity& entity):
 	LightBase(entity),
-	_projection(glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -50.0f, 50.0f))
+	_projection(glm::ortho(-SHADOW_MAP_WORLD_SIZE / 2, SHADOW_MAP_WORLD_SIZE / 2, -SHADOW_MAP_WORLD_SIZE / 2, SHADOW_MAP_WORLD_SIZE / 2, -SHADOW_MAP_WORLD_DEPTH / 2, SHADOW_MAP_WORLD_DEPTH / 2))
 {
 	_projection[1][1] *= -1;
 }
@@ -121,14 +124,26 @@ void DirectionalLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 	data.castShadows = _castShadows;
 	if (_castShadows)
 	{
+		float pixelWorldSize = SHADOW_MAP_WORLD_SIZE / _resolution;
+		glm::mat4 worldToShadowMapPixel = glm::ortho<float>(-pixelWorldSize, pixelWorldSize, -pixelWorldSize, pixelWorldSize, 0, 1) *
+		                                  glm::lookAt(glm::vec3(0, 0, 0), getLightDirection(), glm::vec3(0, 1, 0));
+		
+		glm::vec4 shadowMapPixelPos4D = worldToShadowMapPixel * glm::vec4(camera.getPosition(), 1);
+		glm::vec3 shadowMapPixelPos = glm::vec3(shadowMapPixelPos4D) / shadowMapPixelPos4D.w;
+		
+		glm::vec3 roundedShadowMapPixelPos = glm::round(shadowMapPixelPos);
+		
+		glm::vec4 shadowMapRoundedWorldPos4D = glm::inverse(worldToShadowMapPixel) * glm::vec4(roundedShadowMapPixelPos, 1);
+		glm::vec3 shadowMapRoundedWorldPos = glm::vec3(shadowMapRoundedWorldPos4D) / shadowMapRoundedWorldPos4D.w;
+		
 		data.lightViewProjection = _projection *
-								   glm::lookAt(
-									   camera.getPosition(),
-									   camera.getPosition() + getLightDirection(),
-									   glm::vec3(0, 1, 0));
+		                           glm::lookAt(
+			                           shadowMapRoundedWorldPos,
+			                           shadowMapRoundedWorldPos + getLightDirection(),
+			                           glm::vec3(0, 1, 0));
 		data.shadowMapTexture = &_shadowMap;
 		data.shadowMapTextureView = &_shadowMapView;
-		data.shadowMapResolution = getResolution();
+		data.shadowMapResolution = _resolution;
 		data.shadowMapSize = _mapSize;
 		data.shadowMapDepth = _mapDepth;
 	}
