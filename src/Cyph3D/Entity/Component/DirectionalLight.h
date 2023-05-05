@@ -20,7 +20,6 @@ public:
 		float                   angularDiameter;
 		bool                    castShadows;
 		glm::mat4               lightViewProjection;
-		VKDynamic<VKImage>*     shadowMapTexture;
 		VKDynamic<VKImageView>* shadowMapTextureView;
 		float                   shadowMapTexelWorldSize;
 	};

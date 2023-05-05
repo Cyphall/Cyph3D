@@ -141,7 +141,6 @@ void DirectionalLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 			                           shadowMapRoundedWorldPos,
 			                           shadowMapRoundedWorldPos + getLightDirection(),
 			                           glm::vec3(0, 1, 0));
-		data.shadowMapTexture = &_shadowMap;
 		data.shadowMapTextureView = &_shadowMapView;
 		data.shadowMapTexelWorldSize = texelWorldSize;
 	}

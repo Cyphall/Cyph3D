@@ -71,7 +71,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.shadowMapTexelWorldSize = renderData.shadowMapTexelWorldSize;
 			
 			commandBuffer->imageMemoryBarrier(
-				renderData.shadowMapTexture->getVKPtr(),
+				(*renderData.shadowMapTextureView)->getImage(),
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
 				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
