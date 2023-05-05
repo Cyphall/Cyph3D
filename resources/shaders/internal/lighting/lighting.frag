@@ -298,7 +298,7 @@ float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 	
 	float samplingRadius = 3;
 	
-	fragPos += calculateNormalBias(geometryNormal, u_directionalLightUniforms[lightIndex].fragToLightDirection, texelSize_WS, samplingRadius);
+	fragPos += calculateNormalBias(geometryNormal, u_directionalLightUniforms[lightIndex].fragToLightDirection, texelSize_WS, 0);
 	
 	vec4 shadowMapSpacePos = u_directionalLightUniforms[lightIndex].lightViewProjection * vec4(fragPos, 1);
 	vec3 projCoords = shadowMapSpacePos.xyz / shadowMapSpacePos.w;
@@ -309,19 +309,37 @@ float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 	vec2  fragUV_SMV    = projCoords.xy;
 	float fragDepth_SMV = projCoords.z;
 	
-	const float bias = 0.0002;
-	float samplingRadiusNormalized = samplingRadius * texelSize;
+	// black magic trickery for per-texel depth bias from https://learn.microsoft.com/en-us/windows/win32/dxtecharts/cascaded-shadow-maps#filtering-shadow-maps
+	// this allows to have a mush smaller normal bias which is no longer dependant on the sampling radius
+	
+	vec3 vShadowTexDDX = dFdx(projCoords);
+	vec3 vShadowTexDDY = dFdy(projCoords);
+	
+	mat2 matScreentoShadow = mat2(vShadowTexDDX.xy, vShadowTexDDY.xy);
+	mat2 matShadowToScreen = inverse(matScreentoShadow);
+	
+	vec2 vRightShadowTexelLocation = vec2(texelSize, 0.0);
+	vec2 vUpShadowTexelLocation = vec2(0.0, texelSize);
+	vec2 vRightTexelDepthRatio = matShadowToScreen * vRightShadowTexelLocation;
+	vec2 vUpTexelDepthRatio = matShadowToScreen * vUpShadowTexelLocation;
+	
+	float fUpTexelDepthDelta = vUpTexelDepthRatio.x * vShadowTexDDX.z + vUpTexelDepthRatio.y * vShadowTexDDY.z;
+	float fRightTexelDepthDelta = vRightTexelDepthRatio.x * vShadowTexDDX.z + vRightTexelDepthRatio.y * vShadowTexDDY.z;
+	
 	float phi = InterleavedGradientNoise(gl_FragCoord.xy) * TWO_PI;
 	
-	float shadow = 0.0;
-	
+	const float bias = 0.0002;
 	const int sampleCount = 16;
+	float shadow = 0.0;
 	for (int i = 0; i < sampleCount; i++)
 	{
-		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
+		vec2 sampleOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadius;
+		vec2 uvOffset = sampleOffset * texelSize;
 		float sampleDepth = texture(u_directionalLightTextures[u_directionalLightUniforms[lightIndex].textureIndex], fragUV_SMV + uvOffset).r;
 		
-		if (fragDepth_SMV - bias > sampleDepth)
+		float expectedDepth = fragDepth_SMV + fRightTexelDepthDelta * sampleOffset.x + fUpTexelDepthDelta * sampleOffset.y;
+		
+		if (expectedDepth - bias > sampleDepth)
 		{
 			shadow++;
 		}
