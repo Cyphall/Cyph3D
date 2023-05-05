@@ -284,13 +284,11 @@ float InterleavedGradientNoise(vec2 position_screen)
 vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelSize_WS, float samplingRadius)
 {
 	float angle = acos(dot(fragNormal, lightDir));
+	float biasScale = sin(angle);
 	
-	float worstCaseTexelSize_WS = texelSize_WS * SQRT_2;
-	float worstCaseTexelRadius_WS = worstCaseTexelSize_WS * 0.5;
+	float worstCastFilterRadius_WS = (samplingRadius + SQRT_2 * 0.5) * texelSize_WS;
 	
-	float finalRadius = worstCaseTexelSize_WS + samplingRadius * texelSize_WS;
-	
-	return fragNormal * (finalRadius * sin(angle)) + fragNormal * texelSize_WS;
+	return fragNormal * worstCastFilterRadius_WS * biasScale;
 }
 
 float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
