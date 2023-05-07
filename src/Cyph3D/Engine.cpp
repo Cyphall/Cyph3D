@@ -28,13 +28,17 @@ Timer Engine::_timer;
 
 void Engine::init()
 {
+#if defined(_DEBUG)
+	Logger::setLogLevel(Logger::LogLevel::DEBUG);
+#else
+	Logger::setLogLevel(Logger::LogLevel::WARNING);
+#endif
+	
 	glfwInit();
 
 	glfwSetErrorCallback([](int code, const char* message) {
 		Logger::error(message, "GLFW");
 	});
-	
-//	Logger::SetLogLevel(Logger::LogLevel::Warning);
 
 	_vkContext = VKContext::create(2);
 	

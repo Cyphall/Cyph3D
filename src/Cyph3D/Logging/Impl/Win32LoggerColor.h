@@ -7,10 +7,9 @@ class Win32LoggerColor : public ILoggerColor
 public:
 	Win32LoggerColor();
 	
-	void setColor(LogColorFlags color) override;
+	void setColor(glm::u8vec3 color) override;
 	void resetColor() override;
 
 private:
 	void* _consoleHandle = nullptr;
-	uint16_t _defaultConsoleAttributes = 0;
 };

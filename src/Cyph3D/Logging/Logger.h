@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Cyph3D/Logging/LogColorFlags.h"
-
 #include <mutex>
 #include <fstream>
+#include <glm/glm.hpp>
 
 class ILoggerColor;
 
@@ -15,12 +14,14 @@ public:
 		NONE = 0,
 		ERROR = 1,
 		WARNING = 2,
-		FULL = 3
+		INFO = 3,
+		DEBUG = 4
 	};
 	
 	static void error(std::string_view message, std::string_view context = "Main");
 	static void warning(std::string_view message, std::string_view context = "Main");
 	static void info(std::string_view message, std::string_view context = "Main");
+	static void debug(std::string_view message, std::string_view context = "Main");
 	
 	static void setLogLevel(LogLevel logLevel);
 
@@ -30,5 +31,5 @@ private:
 	static std::unique_ptr<ILoggerColor> _loggerColor;
 	static std::ofstream _logFile;
 	
-	static void print(std::string_view message, std::string_view context, std::string_view prefix, LogColorFlags color);
+	static void print(std::string_view message, std::string_view context, std::string_view prefix, glm::u8vec3 prefixColor);
 };
