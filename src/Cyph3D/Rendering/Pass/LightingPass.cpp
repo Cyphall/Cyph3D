@@ -70,16 +70,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.textureIndex = directionalLightShadowIndex;
 			uniforms.shadowMapTexelWorldSize = renderData.shadowMapTexelWorldSize;
 			
-			commandBuffer->imageMemoryBarrier(
-				(*renderData.shadowMapTextureView)->getImage(),
-				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-				vk::PipelineStageFlagBits2::eFragmentShader,
-				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal,
-				0,
-				0);
-			
 			_directionalLightDescriptorSet->bindCombinedImageSampler(1, renderData.shadowMapTextureView->getVKPtr(), _directionalLightSampler, directionalLightShadowIndex);
 			
 			directionalLightShadowIndex++;
@@ -106,19 +96,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.textureIndex = pointLightShadowIndex;
 			uniforms.far = renderData.far;
 			uniforms.maxTexelSizeAtUnitDistance = 2.0f / renderData.shadowMapResolution;
-			
-			for (int i = 0; i < 6; i++)
-			{
-				commandBuffer->imageMemoryBarrier(
-					renderData.shadowMapTexture->getVKPtr(),
-					vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-					vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-					vk::PipelineStageFlagBits2::eFragmentShader,
-					vk::AccessFlagBits2::eShaderSampledRead,
-					vk::ImageLayout::eReadOnlyOptimal,
-					i,
-					0);
-			}
 			
 			_pointLightDescriptorSet->bindCombinedImageSampler(1, renderData.shadowMapTextureView->getVKPtr(), _pointLightSampler, pointLightShadowIndex);
 			
@@ -148,16 +125,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal,
-		0,
-		0);
-	
-	commandBuffer->imageMemoryBarrier(
-		input.depthImageView->getImage(),
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
-		vk::ImageLayout::eDepthAttachmentOptimal,
 		0,
 		0);
 	

@@ -38,6 +38,51 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	
 	_shadowMapPass.render(commandBuffer, shadowMapPassInput, _renderPerf);
 	
+	commandBuffer->imageMemoryBarrier(
+		zPrepassOutput.depthImageView->getImage(),
+		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
+		vk::ImageLayout::eDepthAttachmentOptimal,
+		0,
+		0);
+	
+	for (DirectionalLight::RenderData& renderData : _registry.directionalLights)
+	{
+		if (renderData.castShadows)
+		{
+			commandBuffer->imageMemoryBarrier(
+				(*renderData.shadowMapTextureView)->getImage(),
+				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+				vk::PipelineStageFlagBits2::eFragmentShader,
+				vk::AccessFlagBits2::eShaderSampledRead,
+				vk::ImageLayout::eReadOnlyOptimal,
+				0,
+				0);
+		}
+	}
+	
+	for (PointLight::RenderData& renderData : _registry.pointLights)
+	{
+		if (renderData.castShadows)
+		{
+			for (int i = 0; i < 6; i++)
+			{
+				commandBuffer->imageMemoryBarrier(
+					renderData.shadowMapTexture->getVKPtr(),
+					vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+					vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+					vk::PipelineStageFlagBits2::eFragmentShader,
+					vk::AccessFlagBits2::eShaderSampledRead,
+					vk::ImageLayout::eReadOnlyOptimal,
+					i,
+					0);
+			}
+		}
+	}
+	
 	LightingPassInput lightingPassInput{
 		.depthImageView = zPrepassOutput.depthImageView,
 		.registry = _registry,
@@ -51,6 +96,16 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	
 	if (scene.getSkybox() != nullptr && scene.getSkybox()->isLoaded())
 	{
+		commandBuffer->imageMemoryBarrier(
+			lightingPassOutput.rawRenderImageView->getImage(),
+			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+			vk::AccessFlagBits2::eColorAttachmentWrite,
+			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+			vk::AccessFlagBits2::eColorAttachmentRead,
+			vk::ImageLayout::eColorAttachmentOptimal,
+			0,
+			0);
+		
 		SkyboxPassInput skyboxPassInput{
 			.camera = camera,
 			.rawRenderImageView = lightingPassOutput.rawRenderImageView,
