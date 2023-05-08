@@ -88,6 +88,7 @@ void VKCommandBuffer::reset()
 {
 	_context.getDevice().resetCommandPool(_commandPool);
 	_usedObjects.clear();
+	_boundPipeline = nullptr;
 }
 
 void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
