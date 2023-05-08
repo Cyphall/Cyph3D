@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 
 class VKBufferBase;
+template<typename T>
+class VKResizableBuffer;
 class VKImage;
 class VKImageView;
 class VKSampler;
@@ -14,8 +16,11 @@ class VKPipeline;
 class VKFence;
 class VKSemaphore;
 class VKTimestampQuery;
+class VKAccelerationStructure;
 struct VKPipelineViewport;
 struct VKPipelineScissor;
+struct VKBottomLevelAccelerationStructureBuildInfo;
+struct VKTopLevelAccelerationStructureBuildInfo;
 
 class VKCommandBuffer : public VKObject
 {
@@ -56,6 +61,7 @@ public:
 	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
 	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex = 0);
 	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex = 0);
 	
 	void bindVertexBuffer(uint32_t vertexBufferIndex, const VKPtr<VKBufferBase>& vertexBuffer);
 	void bindIndexBuffer(const VKPtr<VKBufferBase>& indexBuffer);
@@ -88,6 +94,11 @@ public:
 	void resetTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
 	
 	void clearColorImage(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, const vk::ClearColorValue& clearColor);
+	
+	void buildBottomLevelAccelerationStructure(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKBufferBase>& scratchBuffer, const VKBottomLevelAccelerationStructureBuildInfo& buildInfo);
+	void buildTopLevelAccelerationStructure(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKBufferBase>& scratchBuffer, const VKTopLevelAccelerationStructureBuildInfo& buildInfo, const VKPtr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>& instancesBuffer);
+	
+	void traceRays(const VKPtr<VKBufferBase>& raygenSBT, const VKPtr<VKBufferBase>& missSBT, const VKPtr<VKBufferBase>& hitSBT, glm::uvec2 size);
 	
 	const VKPtr<VKFence>& getStatusFence() const;
 	const VKPtr<VKSemaphore>& getStatusSemaphore() const;

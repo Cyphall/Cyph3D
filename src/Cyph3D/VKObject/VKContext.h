@@ -36,6 +36,7 @@ public:
 	void executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>& commandBuffer)>&& function);
 	
 	const vk::PhysicalDeviceProperties& getProperties() const;
+	const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& getRayTracingPipelineProperties() const;
 
 private:
 	struct HelperData;
@@ -58,7 +59,8 @@ private:
 	
 	std::unique_ptr<HelperData> _helperData;
 	
-	vk::PhysicalDeviceProperties _properties;
+	vk::PhysicalDeviceProperties2 _properties;
+	vk::PhysicalDeviceRayTracingPipelinePropertiesKHR _rayTracingPipelineProperties;
 	
 	explicit VKContext(int concurrentFrameCount);
 	

@@ -1,0 +1,76 @@
+#version 460 core
+#extension GL_EXT_ray_tracing : require
+
+struct HitPayload
+{
+	vec3 value;
+};
+
+layout(set = 0, binding = 0) uniform accelerationStructureEXT u_topLevelAS;
+layout(set = 0, binding = 1, rgba16f) uniform writeonly image2D u_color;
+layout(set = 0, binding = 2, r32i) uniform writeonly iimage2D u_objectIndex;
+
+layout(push_constant) uniform constants
+{
+	vec3 u_position;
+	vec3 u_rayTL;
+	vec3 u_rayTR;
+	vec3 u_rayBL;
+	vec3 u_rayBR;
+};
+
+layout(location = 0) rayPayloadEXT HitPayload hitPayload;
+
+const int MULTISAMPLES = 1;
+
+void main()
+{
+	vec2 PS_pixelPos = vec2(gl_LaunchIDEXT.xy);
+	vec2 resolution = vec2(gl_LaunchSizeEXT.xy);
+	
+	float PS_subPixelSize = 1.0 / MULTISAMPLES;
+	float PS_halfSubPixelSize = PS_subPixelSize * 0.5;
+	
+	vec3 rayPos = u_position;
+	
+	uint rayFlags = gl_RayFlagsOpaqueEXT;
+	float tMin = 0.001;
+	float tMax = 10000.0;
+	
+	vec3 color = vec3(0);
+
+	for (int y = 0; y < MULTISAMPLES; y++)
+	{
+		for (int x = 0; x < MULTISAMPLES; x++)
+		{
+			vec2 PS_multisampleOffset = PS_subPixelSize * vec2(x, y) + PS_halfSubPixelSize;
+			vec2 PS_rayPos = PS_pixelPos + PS_multisampleOffset;
+			vec2 UVS_rayPos = PS_rayPos / resolution;
+			
+			vec3 topRayDir = mix(u_rayTL, u_rayTR, UVS_rayPos.x);
+			vec3 bottomRayDir = mix(u_rayBL, u_rayBR, UVS_rayPos.x);
+			vec3 rayDir = mix(topRayDir, bottomRayDir, UVS_rayPos.y);
+			
+			traceRayEXT(
+				u_topLevelAS,   // acceleration structure
+				rayFlags,       // rayFlags
+				0xFF,           // cullMask
+				0,              // sbtRecordOffset
+				0,              // sbtRecordStride
+				0,              // missIndex
+				rayPos,         // ray origin
+				tMin,           // ray min range
+				rayDir,         // ray direction
+				tMax,           // ray max range
+				0               // payload (location = 0)
+			);
+			
+			color += hitPayload.value;
+		}
+	}
+	
+	color /= (MULTISAMPLES * MULTISAMPLES);
+	
+	imageStore(u_color, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1.0));
+	imageStore(u_objectIndex, ivec2(gl_LaunchIDEXT.xy), ivec4(-1, 0, 0, 0));
+}

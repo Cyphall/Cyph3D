@@ -1,7 +1,13 @@
 #include "VKCommandBuffer.h"
 
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/VKHelper.h"
+#include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
+#include "Cyph3D/VKObject/AccelerationStructure/VKBottomLevelAccelerationStructureBuildInfo.h"
+#include "Cyph3D/VKObject/AccelerationStructure/VKTopLevelAccelerationStructureBuildInfo.h"
+#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
+#include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
@@ -386,6 +392,37 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	_usedObjects.emplace_back(image);
 }
 
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
+{
+	if (_boundPipeline == nullptr)
+		throw;
+	
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
+	
+	vk::WriteDescriptorSetAccelerationStructureKHR accelerationStructureDescriptorWrite;
+	accelerationStructureDescriptorWrite.accelerationStructureCount = 1;
+	accelerationStructureDescriptorWrite.pAccelerationStructures = &accelerationStructure->getHandle();
+	
+	vk::WriteDescriptorSet descriptorWrite;
+	descriptorWrite.dstSet = VK_NULL_HANDLE;
+	descriptorWrite.dstBinding = bindingIndex;
+	descriptorWrite.dstArrayElement = arrayIndex;
+	descriptorWrite.descriptorType = bindingInfo.type;
+	descriptorWrite.descriptorCount = 1;
+	descriptorWrite.pImageInfo = nullptr;
+	descriptorWrite.pBufferInfo = nullptr;
+	descriptorWrite.pTexelBufferView = nullptr;
+	descriptorWrite.pNext = &accelerationStructureDescriptorWrite;
+	
+	_commandBuffer.pushDescriptorSetKHR(
+		_boundPipeline->getPipelineType(),
+		_boundPipeline->getPipelineLayout()->getHandle(),
+		setIndex,
+		descriptorWrite);
+	
+	_usedObjects.emplace_back(accelerationStructure);
+}
+
 void VKCommandBuffer::bindVertexBuffer(uint32_t vertexBufferIndex, const VKPtr<VKBufferBase>& vertexBuffer)
 {
 	if (_boundPipeline == nullptr)
@@ -713,6 +750,157 @@ void VKCommandBuffer::clearColorImage(const VKPtr<VKImage>& image, uint32_t laye
 	_commandBuffer.clearColorImage(image->getHandle(), image->getLayout(layer, level), clearColor, range);
 	
 	_usedObjects.emplace_back(image);
+}
+
+void VKCommandBuffer::buildBottomLevelAccelerationStructure(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKBufferBase>& scratchBuffer, const VKBottomLevelAccelerationStructureBuildInfo& buildInfo)
+{
+	if (accelerationStructure->getType() != vk::AccelerationStructureTypeKHR::eBottomLevel)
+	{
+		throw;
+	}
+	
+	vk::AccelerationStructureGeometryKHR geometry;
+	geometry.geometryType = vk::GeometryTypeKHR::eTriangles;
+	geometry.geometry.triangles = vk::AccelerationStructureGeometryTrianglesDataKHR();
+	geometry.geometry.triangles.vertexFormat = buildInfo.vertexFormat;
+	geometry.geometry.triangles.vertexData = buildInfo.vertexBuffer->getDeviceAddress();
+	geometry.geometry.triangles.vertexStride = buildInfo.vertexStride;
+	geometry.geometry.triangles.maxVertex = buildInfo.vertexBuffer->getSize() - 1;
+	geometry.geometry.triangles.indexType = buildInfo.indexType;
+	geometry.geometry.triangles.indexData = buildInfo.indexBuffer->getDeviceAddress();
+	geometry.geometry.triangles.transformData = VK_NULL_HANDLE;
+	geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
+	
+	uint32_t primitiveCount = buildInfo.indexBuffer->getSize() / 3;
+	
+	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
+	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+	buildGeometryInfo.mode = vk::BuildAccelerationStructureModeKHR::eBuild;
+	buildGeometryInfo.srcAccelerationStructure = VK_NULL_HANDLE;
+	buildGeometryInfo.dstAccelerationStructure = accelerationStructure->getHandle();
+	buildGeometryInfo.geometryCount = 1;
+	buildGeometryInfo.pGeometries = &geometry;
+	buildGeometryInfo.scratchData = scratchBuffer->getDeviceAddress();
+	
+	vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo;
+	buildRangeInfo.primitiveCount = primitiveCount;
+	buildRangeInfo.primitiveOffset = 0;
+	buildRangeInfo.firstVertex = 0;
+	buildRangeInfo.transformOffset = 0;
+	
+	_commandBuffer.buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+	
+	accelerationStructure->_referencedObjectsInBuild.clear();
+	accelerationStructure->_referencedObjectsInBuild.emplace_back(buildInfo.vertexBuffer);
+	accelerationStructure->_referencedObjectsInBuild.emplace_back(buildInfo.indexBuffer);
+	
+	_usedObjects.emplace_back(accelerationStructure);
+	_usedObjects.emplace_back(scratchBuffer);
+}
+
+void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKBufferBase>& scratchBuffer, const VKTopLevelAccelerationStructureBuildInfo& buildInfo, const VKPtr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>& instancesBuffer)
+{
+	if (accelerationStructure->getType() != vk::AccelerationStructureTypeKHR::eTopLevel)
+	{
+		throw;
+	}
+	
+	instancesBuffer->resizeSmart(buildInfo.instancesInfos.size());
+	
+	vk::AccelerationStructureInstanceKHR* instancesBufferPtr = instancesBuffer->map();
+	for (const VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo : buildInfo.instancesInfos)
+	{
+		vk::AccelerationStructureInstanceKHR instance;
+		for (int x = 0; x < 3; x++)
+		{
+			for (int y = 0; y < 4; y++)
+			{
+				instance.transform.matrix[x][y] = instanceInfo.localToWorld[y][x];
+			}
+		}
+		instance.instanceCustomIndex = instanceInfo.customIndex;
+		instance.mask = 0xFF;
+		instance.instanceShaderBindingTableRecordOffset = 0;
+		instance.flags = {};
+		instance.accelerationStructureReference = instanceInfo.accelerationStructure->getDeviceAddress();
+		
+		std::memcpy(instancesBufferPtr, &instance, sizeof(vk::AccelerationStructureInstanceKHR));
+		instancesBufferPtr++;
+	}
+	instancesBuffer->unmap();
+	
+	vk::AccelerationStructureGeometryKHR geometry;
+	geometry.geometryType = vk::GeometryTypeKHR::eInstances;
+	geometry.geometry.instances = vk::AccelerationStructureGeometryInstancesDataKHR();
+	geometry.geometry.instances.arrayOfPointers = false;
+	geometry.geometry.instances.data = instancesBuffer->getDeviceAddress();
+	geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
+	
+	uint32_t primitiveCount = buildInfo.instancesInfos.size();
+	
+	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
+	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eTopLevel;
+	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastBuild;
+	buildGeometryInfo.mode = vk::BuildAccelerationStructureModeKHR::eBuild;
+	buildGeometryInfo.srcAccelerationStructure = VK_NULL_HANDLE;
+	buildGeometryInfo.dstAccelerationStructure = accelerationStructure->getHandle();
+	buildGeometryInfo.geometryCount = 1;
+	buildGeometryInfo.pGeometries = &geometry;
+	buildGeometryInfo.scratchData = scratchBuffer->getDeviceAddress();
+	
+	vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo;
+	buildRangeInfo.primitiveCount = primitiveCount;
+	buildRangeInfo.primitiveOffset = 0;
+	buildRangeInfo.firstVertex = 0;
+	buildRangeInfo.transformOffset = 0;
+	
+	_commandBuffer.buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
+	
+	accelerationStructure->_referencedObjectsInBuild.clear();
+	for (const VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo : buildInfo.instancesInfos)
+	{
+		accelerationStructure->_referencedObjectsInBuild.emplace_back(instanceInfo.accelerationStructure);
+	}
+	accelerationStructure->_referencedObjectsInBuild.emplace_back(instancesBuffer);
+	
+	_usedObjects.emplace_back(accelerationStructure);
+	_usedObjects.emplace_back(scratchBuffer);
+}
+
+void VKCommandBuffer::traceRays(const VKPtr<VKBufferBase>& raygenSBT, const VKPtr<VKBufferBase>& missSBT, const VKPtr<VKBufferBase>& hitSBT, glm::uvec2 size)
+{
+	uint32_t handleSizeAligned = VKHelper::alignUp(32, _context.getRayTracingPipelineProperties().shaderGroupHandleAlignment);
+	
+	vk::StridedDeviceAddressRegionKHR raygenRegion;
+	raygenRegion.deviceAddress = raygenSBT->getDeviceAddress();
+	raygenRegion.stride = VKHelper::alignUp(handleSizeAligned, _context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
+	raygenRegion.size = raygenSBT->getByteSize();
+	
+	vk::StridedDeviceAddressRegionKHR missRegion;
+	missRegion.deviceAddress = missSBT->getDeviceAddress();
+	missRegion.stride = VKHelper::alignUp(handleSizeAligned, _context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
+	missRegion.size = missSBT->getByteSize();
+	
+	vk::StridedDeviceAddressRegionKHR hitRegion;
+	hitRegion.deviceAddress = hitSBT->getDeviceAddress();
+	hitRegion.stride = VKHelper::alignUp(handleSizeAligned, _context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
+	hitRegion.size = hitSBT->getByteSize();
+	
+	vk::StridedDeviceAddressRegionKHR callRegion;
+	
+	_commandBuffer.traceRaysKHR(
+		raygenRegion,
+		missRegion,
+		hitRegion,
+		callRegion,
+		size.x,
+		size.y,
+		1);
+	
+	_usedObjects.emplace_back(raygenSBT);
+	_usedObjects.emplace_back(missSBT);
+	_usedObjects.emplace_back(hitSBT);
 }
 
 void VKCommandBuffer::pushConstants(const void* data, uint32_t dataSize)

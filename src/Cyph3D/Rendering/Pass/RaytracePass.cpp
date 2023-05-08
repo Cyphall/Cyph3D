@@ -1,260 +1,238 @@
-//#include "RaytracePass.h"
-//
-//#include "Cyph3D/Engine.h"
-//#include "Cyph3D/Entity/Component/DirectionalLight.h"
-//#include "Cyph3D/Entity/Entity.h"
-//#include "Cyph3D/GLObject/CreateInfo/TextureCreateInfo.h"
-//#include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
-//#include "Cyph3D/GLObject/GLImmutableBuffer.h"
-//#include "Cyph3D/Rendering/RenderRegistry.h"
-//#include "Cyph3D/Rendering/Shape/MeshShape.h"
-//#include "Cyph3D/Rendering/Shape/PlaneShape.h"
-//#include "Cyph3D/Rendering/Shape/SphereShape.h"
-//#include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
-//#include "Cyph3D/GLObject/GLCubemap.h"
-//#include "Cyph3D/Scene/Camera.h"
-//#include "Cyph3D/Scene/Scene.h"
-//
-//#include <glm/gtc/matrix_inverse.hpp>
-//#include <glm/gtx/transform.hpp>
-//
-//RaytracePass::RaytracePass(const glm::uvec2& size):
-//RenderPass(size, "Raytrace pass"),
-//_rawRenderTexture(TextureCreateInfo
-//{
-//	.size = size,
-//	.internalFormat = GL_RGBA16F
-//}),
-//_objectIndexTexture(TextureCreateInfo
-//{
-//	.size = size,
-//	.internalFormat = GL_R32I
-//}),
-//_directionalLightBuffer(GL_STREAM_DRAW),
-//_pointLightBuffer(GL_STREAM_DRAW),
-//_sphereBuffer(GL_STREAM_DRAW),
-//_planeBuffer(GL_STREAM_DRAW),
-//_meshBuffer(GL_STREAM_DRAW),
-//_meshVertexDataBuffer(GL_STREAM_DRAW),
-//_meshIndexDataBuffer(GL_STREAM_DRAW),
-//_shader({
-//	{GL_COMPUTE_SHADER, "internal/raytracing/raytrace.comp.bak"}
-//})
-//{
-//
-//}
-//
-//RaytracePassOutput RaytracePass::onRender(RaytracePassInput& input)
-//{
-//
-//#pragma region Camera
-//
-//	const std::array<glm::vec3, 4>& cornerRays = input.camera.getCornerRays();
-//
-//	_shader.setUniform("u_camera.position", input.camera.getPosition());
-//	_shader.setUniform("u_camera.rayTL", cornerRays[0]);
-//	_shader.setUniform("u_camera.rayTR", cornerRays[1]);
-//	_shader.setUniform("u_camera.rayBL", cornerRays[2]);
-//	_shader.setUniform("u_camera.rayBR", cornerRays[3]);
-//
-//#pragma endregion
-//#pragma region Skybox
-//
-//	SkyboxAsset* skybox = Engine::getScene().getSkybox();
-//
-//	if (skybox && skybox->isLoaded())
-//	{
-//		_shader.setUniform("u_skybox.enabled", true);
-//		_shader.setUniform("u_skybox.cubemap", skybox->getCubemap().getBindlessTextureHandle());
-//		_shader.setUniform("u_skybox.rotation", glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0)));
-//	}
-//	else
-//	{
-//		_shader.setUniform("u_skybox.enabled", false);
-//	}
-//
-//#pragma endregion
-//#pragma region DirectionalLight
-//
-//	std::vector<GLSL_DirectionalLight> glslDirectionalLights;
-//	for (const DirectionalLight::RenderData& renderData : input.registry.directionalLights)
-//	{
-//		GLSL_DirectionalLight& glslDirectionalLight = glslDirectionalLights.emplace_back();
-//		glslDirectionalLight.fragToLightDirection = renderData.fragToLightDirection;
-//		glslDirectionalLight.angularDiameter = renderData.angularDiameter;
-//		glslDirectionalLight.color = renderData.color;
-//		glslDirectionalLight.intensity = renderData.intensity;
-//		glslDirectionalLight.castShadows = renderData.castShadows;
-//	}
-//	_directionalLightBuffer.resize(glslDirectionalLights.size());
-//	_directionalLightBuffer.setData(glslDirectionalLights);
-//	_directionalLightBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 0);
-//
-//#pragma endregion
-//#pragma region PointLight
-//
-//	std::vector<GLSL_PointLight> glslPointLights;
-//	for (const PointLight::RenderData& renderData : input.registry.pointLights)
-//	{
-//		GLSL_PointLight& glslPointLight = glslPointLights.emplace_back();
-//		glslPointLight.position = renderData.pos;
-//		glslPointLight.radius = renderData.radius;
-//		glslPointLight.color = renderData.color;
-//		glslPointLight.intensity = renderData.intensity;
-//		glslPointLight.castShadows = renderData.castShadows;
-//	}
-//	_pointLightBuffer.resize(glslPointLights.size());
-//	_pointLightBuffer.setData(glslPointLights);
-//	_pointLightBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 1);
-//
-//#pragma endregion
-//#pragma region Shape
-//
-//	std::vector<GLSL_Sphere> glslSphereVec;
-//	std::vector<GLSL_Plane> glslPlaneVec;
-//	std::vector<GLSL_Mesh> glslMeshVec;
-//	std::vector<const MeshShape*> meshShapeVec;
-//
-//	GLsizeiptr totalVertexCount = 0;
-//	GLsizeiptr totalIndexCount = 0;
-//
-//	for (int i = 0; i < input.registry.shapes.size(); i++)
-//	{
-//		const ShapeRenderer::RenderData& renderData = input.registry.shapes[i];
-//
-//		if (!renderData.shape->isReadyForRaytracingRender())
-//			continue;
-//
-//		Transform& transform = renderData.owner->getTransform();
-//
-//		MaterialAsset* material = renderData.material;
-//		if (material == nullptr)
-//		{
-//			material = MaterialAsset::getMissingMaterial();
-//		}
-//		else if (!material->isLoaded()) // should never happen, but we never know
-//		{
-//			material = MaterialAsset::getDefaultMaterial();
-//		}
-//
-//		const SphereShape* sphereShape = dynamic_cast<const SphereShape*>(renderData.shape);
-//		if (sphereShape != nullptr)
-//		{
-//			GLSL_Sphere& glslSphere = glslSphereVec.emplace_back();
-//			glslSphere.material.albedo = material->getAlbedoTexture().getBindlessTextureHandle();
-//			glslSphere.material.normal = material->getNormalTexture().getBindlessTextureHandle();
-//			glslSphere.material.roughness = material->getRoughnessTexture().getBindlessTextureHandle();
-//			glslSphere.material.metalness = material->getMetalnessTexture().getBindlessTextureHandle();
-//			glslSphere.material.displacement = material->getDisplacementTexture().getBindlessTextureHandle();
-//			glslSphere.material.emissive = material->getEmissiveTexture().getBindlessTextureHandle();
-//			glslSphere.transform.localToWorld = transform.getLocalToWorldMatrix();
-//			glslSphere.transform.worldToLocal = transform.getWorldToLocalMatrix();
-//			glslSphere.transform.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslSphere.transform.localToWorld));
-//			glslSphere.objectIndex = i;
-//			glslSphere.contributeShadows = renderData.contributeShadows;
-//		}
-//
-//		const PlaneShape* planeShape = dynamic_cast<const PlaneShape*>(renderData.shape);
-//		if (planeShape != nullptr)
-//		{
-//			GLSL_Plane& glslPlane = glslPlaneVec.emplace_back();
-//			glslPlane.material.albedo = material->getAlbedoTexture().getBindlessTextureHandle();
-//			glslPlane.material.normal = material->getNormalTexture().getBindlessTextureHandle();
-//			glslPlane.material.roughness = material->getRoughnessTexture().getBindlessTextureHandle();
-//			glslPlane.material.metalness = material->getMetalnessTexture().getBindlessTextureHandle();
-//			glslPlane.material.displacement = material->getDisplacementTexture().getBindlessTextureHandle();
-//			glslPlane.material.emissive = material->getEmissiveTexture().getBindlessTextureHandle();
-//			glslPlane.transform.localToWorld = transform.getLocalToWorldMatrix();
-//			glslPlane.transform.worldToLocal = transform.getWorldToLocalMatrix();
-//			glslPlane.transform.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslPlane.transform.localToWorld));
-//			glslPlane.infinite = planeShape->isInfinite();
-//			glslPlane.objectIndex = i;
-//			glslPlane.contributeShadows = renderData.contributeShadows;
-//		}
-//
-//		const MeshShape* meshShape = dynamic_cast<const MeshShape*>(renderData.shape);
-//		if (meshShape != nullptr)
-//		{
-//			GLSL_Mesh& glslMesh = glslMeshVec.emplace_back();
-//			glslMesh.material.albedo = material->getAlbedoTexture().getBindlessTextureHandle();
-//			glslMesh.material.normal = material->getNormalTexture().getBindlessTextureHandle();
-//			glslMesh.material.roughness = material->getRoughnessTexture().getBindlessTextureHandle();
-//			glslMesh.material.metalness = material->getMetalnessTexture().getBindlessTextureHandle();
-//			glslMesh.material.displacement = material->getDisplacementTexture().getBindlessTextureHandle();
-//			glslMesh.material.emissive = material->getEmissiveTexture().getBindlessTextureHandle();
-//			glslMesh.transform.localToWorld = transform.getLocalToWorldMatrix();
-//			glslMesh.transform.worldToLocal = transform.getWorldToLocalMatrix();
-//			glslMesh.transform.localToWorldNormal = glm::inverseTranspose(glm::mat3(glslMesh.transform.localToWorld));
-//			glslMesh.objectIndex = i;
-//			glslMesh.contributeShadows = renderData.contributeShadows;
-//
-//			meshShapeVec.push_back(meshShape);
-//
-//			const Mesh& mesh = meshShape->getMeshToRender();
-//			totalVertexCount += mesh.getVBO().getCount();
-//			glslMesh.indexCount = mesh.getIBO().getCount();
-//			totalIndexCount += glslMesh.indexCount;
-//
-//		}
-//	}
-//	_sphereBuffer.resize(glslSphereVec.size());
-//	_sphereBuffer.setData(glslSphereVec);
-//	_sphereBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 2);
-//	_planeBuffer.resize(glslPlaneVec.size());
-//	_planeBuffer.setData(glslPlaneVec);
-//	_planeBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 3);
-//
-//	_meshVertexDataBuffer.resize(totalVertexCount);
-//	_meshIndexDataBuffer.resize(totalIndexCount);
-//
-//	int currentVertexOffset = 0;
-//	int currentIndexOffset = 0;
-//
-//	for (int i = 0; i < meshShapeVec.size(); i++)
-//	{
-//		GLSL_Mesh& glslMesh = glslMeshVec[i];
-//		glslMesh.vertexOffset = currentVertexOffset;
-//		glslMesh.indexOffset = currentIndexOffset;
-//
-//		const MeshShape* meshShape = meshShapeVec[i];
-//
-//		const Mesh& mesh = meshShape->getMeshToRender();
-//
-//		const GLBuffer<Mesh::VertexData>& vbo = mesh.getVBO();
-//		GLsizeiptr vboElementCount = vbo.getCount();
-//		GLsizeiptr vboSize = vbo.getSize();
-//
-//		glCopyNamedBufferSubData(vbo.getHandle(), _meshVertexDataBuffer.getHandle(), 0, currentVertexOffset * sizeof(Mesh::VertexData), vboSize);
-//		currentVertexOffset += vboElementCount;
-//
-//		const GLBuffer<GLuint>& ibo = mesh.getIBO();
-//		GLsizeiptr iboElementCount = ibo.getCount();
-//		GLsizeiptr iboSize = ibo.getSize();
-//
-//		glCopyNamedBufferSubData(ibo.getHandle(), _meshIndexDataBuffer.getHandle(), 0, currentIndexOffset * sizeof(GLuint), iboSize);
-//		currentIndexOffset += iboElementCount;
-//	}
-//
-//	_meshBuffer.resize(glslMeshVec.size());
-//	_meshBuffer.setData(glslMeshVec);
-//	_meshBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 4);
-//
-//	_meshVertexDataBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 5);
-//	_meshIndexDataBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 6);
-//
-//#pragma endregion
-//
-//	_shader.setUniform("u_resolution", _size);
-//	_shader.setUniform("o_renderImage", _rawRenderTexture.getBindlessImageHandle(GL_RGBA16F, GL_WRITE_ONLY));
-//	_shader.setUniform("o_objectIndexImage", _objectIndexTexture.getBindlessImageHandle(GL_R32I, GL_WRITE_ONLY));
-//
-//	_shader.bind();
-//	_shader.dispatchAuto(glm::uvec3(_size, 1));
-//
-//	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-//
-//	return RaytracePassOutput{
-//		.rawRender = _rawRenderTexture,
-//		.objectIndex = _objectIndexTexture
-//	};
-//}
+#include "RaytracePass.h"
+
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
+#include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
+#include "Cyph3D/Helper/MathHelper.h"
+#include "Cyph3D/VKObject/VKHelper.h"
+#include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
+#include "Cyph3D/VKObject/AccelerationStructure/VKTopLevelAccelerationStructureBuildInfo.h"
+#include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
+#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
+#include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
+
+RaytracePass::RaytracePass(const glm::uvec2& size):
+	RenderPass(size, "Raytrace pass")
+{
+	createBuffers();
+	createDescriptorSetLayout();
+	createPipelineLayout();
+	createPipeline();
+	createImages();
+}
+
+RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input)
+{
+	commandBuffer->imageMemoryBarrier(
+		_rawRenderImage.getVKPtr(),
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+		vk::AccessFlagBits2::eShaderStorageWrite,
+		vk::ImageLayout::eGeneral,
+		0,
+		0);
+	
+	commandBuffer->imageMemoryBarrier(
+		_objectIndexImage.getVKPtr(),
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+		vk::AccessFlagBits2::eShaderStorageWrite,
+		vk::ImageLayout::eGeneral,
+		0,
+		0);
+	
+	VKTopLevelAccelerationStructureBuildInfo buildInfo;
+	buildInfo.instancesInfos.reserve(input.registry.models.size());
+	for (const ModelRenderer::RenderData& modelRenderData : input.registry.models)
+	{
+		MaterialAsset* material = modelRenderData.material;
+		if (material == nullptr)
+		{
+			material = MaterialAsset::getMissingMaterial();
+		}
+		else if (!material->isLoaded())
+		{
+			material = MaterialAsset::getDefaultMaterial();
+		}
+		
+		if (material == nullptr || !material->isLoaded())
+		{
+			continue;
+		}
+		
+		MeshAsset* mesh = modelRenderData.mesh;
+		if (mesh == nullptr || !mesh->isLoaded())
+		{
+			continue;
+		}
+		
+		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
+		instanceInfo.localToWorld = modelRenderData.matrix;
+		instanceInfo.customIndex = buildInfo.instancesInfos.size() - 1;
+		instanceInfo.accelerationStructure = mesh->getAccelerationStructure();
+	}
+	
+	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
+	
+	_tlasBackingBuffer->resizeSmart(buildSizesInfo.accelerationStructureSize);
+	
+	VKPtr<VKAccelerationStructure> tlas = VKAccelerationStructure::create(
+		Engine::getVKContext(),
+		vk::AccelerationStructureTypeKHR::eTopLevel,
+		buildSizesInfo.accelerationStructureSize,
+		_tlasBackingBuffer->getBuffer());
+	
+	_tlasScratchBuffer->resizeSmart(buildSizesInfo.buildScratchSize);
+	
+	commandBuffer->buildTopLevelAccelerationStructure(tlas, _tlasScratchBuffer->getBuffer(), buildInfo, _tlasInstancesBuffer.getVKPtr());
+	
+	commandBuffer->bufferMemoryBarrier(
+		_tlasBackingBuffer->getBuffer(),
+		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+		vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
+		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+		vk::AccessFlagBits2::eAccelerationStructureReadKHR);
+	
+	commandBuffer->bindPipeline(_pipeline);
+	
+	commandBuffer->pushDescriptor(0, 0, tlas);
+	commandBuffer->pushDescriptor(0, 1, _rawRenderImageView.getVKPtr());
+	commandBuffer->pushDescriptor(0, 2, _objectIndexImageView.getVKPtr());
+	
+	PushConstantData pushConstantData;
+	pushConstantData.position = input.camera.getPosition();
+	pushConstantData.rayTL = input.camera.getCornerRays()[0];
+	pushConstantData.rayTR = input.camera.getCornerRays()[1];
+	pushConstantData.rayBL = input.camera.getCornerRays()[2];
+	pushConstantData.rayBR = input.camera.getCornerRays()[3];
+	commandBuffer->pushConstants(pushConstantData);
+	
+	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getVKPtr());
+	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getVKPtr());
+	VKHelper::buildHitShaderBindingTable(Engine::getVKContext(), _pipeline, _hitSBT.getVKPtr());
+	
+	commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
+	
+	commandBuffer->unbindPipeline();
+	
+	return {
+		.rawRenderImageView = _rawRenderImageView.getVKPtr(),
+		.objectIndexImageView = _objectIndexImageView.getVKPtr()
+	};
+}
+
+void RaytracePass::onResize()
+{
+	createImages();
+}
+
+void RaytracePass::createBuffers()
+{
+	_tlasBackingBuffer = VKResizableBuffer<std::byte>::createDynamic(
+		Engine::getVKContext(),
+		vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
+		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
+	_tlasScratchBuffer = VKResizableBuffer<std::byte>::createDynamic(
+		Engine::getVKContext(),
+		vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
+		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
+	_tlasInstancesBuffer = VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::createDynamic(
+		Engine::getVKContext(),
+		vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
+		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_raygenSBT = VKResizableBuffer<std::byte>::createDynamic(
+		Engine::getVKContext(),
+		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
+		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_missSBT = VKResizableBuffer<std::byte>::createDynamic(
+		Engine::getVKContext(),
+		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
+		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_hitSBT = VKResizableBuffer<std::byte>::createDynamic(
+		Engine::getVKContext(),
+		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
+		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+}
+
+void RaytracePass::createDescriptorSetLayout()
+{
+	VKDescriptorSetLayoutInfo info(true);
+	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1);
+	info.addBinding(vk::DescriptorType::eStorageImage, 1);
+	info.addBinding(vk::DescriptorType::eStorageImage, 1);
+	
+	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
+}
+
+void RaytracePass::createPipelineLayout()
+{
+	VKPipelineLayoutInfo info;
+	info.addDescriptorSetLayout(_descriptorSetLayout);
+	info.setPushConstantLayout<PushConstantData>();
+	
+	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
+}
+
+void RaytracePass::createPipeline()
+{
+	VKRayTracingPipelineInfo info(
+		_pipelineLayout,
+		"resources/shaders/internal/raytracing/raytrace.rgen");
+	
+	info.addRayType("resources/shaders/internal/raytracing/raytrace.rmiss");
+	info.addObjectTypeForRayType(0, "resources/shaders/internal/raytracing/raytrace.rchit", std::nullopt, std::nullopt);
+	
+	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
+}
+
+void RaytracePass::createImages()
+{
+	{
+		_rawRenderImage = VKImage::createDynamic(
+			Engine::getVKContext(),
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_rawRenderImageView = VKImageView::createDynamic(
+			Engine::getVKContext(),
+			_rawRenderImage,
+			vk::ImageViewType::e2D);
+	}
+	
+	{
+		_objectIndexImage = VKImage::createDynamic(
+			Engine::getVKContext(),
+			SceneRenderer::OBJECT_INDEX_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_objectIndexImageView = VKImageView::createDynamic(
+			Engine::getVKContext(),
+			_objectIndexImage,
+			vk::ImageViewType::e2D);
+	}
+}

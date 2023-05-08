@@ -77,7 +77,8 @@ VKContext::VKContext(int concurrentFrameCount):
 	createImmediateCommandBuffer();
 	createDefaultCommandBuffer();
 	
-	_properties = _physicalDevice.getProperties();
+	_properties.pNext = &_rayTracingPipelineProperties;
+	_physicalDevice.getProperties2(&_properties);
 }
 
 VKContext::~VKContext()
@@ -156,7 +157,12 @@ void VKContext::executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>
 
 const vk::PhysicalDeviceProperties& VKContext::getProperties() const
 {
-	return _properties;
+	return _properties.properties;
+}
+
+const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& VKContext::getRayTracingPipelineProperties() const
+{
+	return _rayTracingPipelineProperties;
 }
 
 int VKContext::calculateDeviceScore(const vk::PhysicalDevice& device) const
@@ -256,6 +262,10 @@ void VKContext::fillDeviceExtensions()
 	_deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	_deviceExtensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 	_deviceExtensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
+	_deviceExtensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+	_deviceExtensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+	_deviceExtensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+	_deviceExtensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
 }
 
 void VKContext::checkInstanceExtensionSupport()
@@ -443,8 +453,24 @@ void VKContext::createLogicalDevice()
 	deviceQueueCreateInfo.queueCount = 1;
 	deviceQueueCreateInfo.pQueuePriorities = &queuePriority;
 	
+	vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenance1Features;
+	rayTracingMaintenance1Features.rayTracingMaintenance1 = true;
+	
+	vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;
+	rayTracingPipelineFeatures.rayTracingPipeline = true;
+	rayTracingPipelineFeatures.pNext = &rayTracingMaintenance1Features;
+	
+	vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures;
+	accelerationStructureFeatures.accelerationStructure = true;
+	accelerationStructureFeatures.pNext = &rayTracingPipelineFeatures;
+	
+	vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures;
+	bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+	bufferDeviceAddressFeatures.pNext = &accelerationStructureFeatures;
+	
 	vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures;
 	hostQueryResetFeatures.hostQueryReset = true;
+	hostQueryResetFeatures.pNext = &bufferDeviceAddressFeatures;
 	
 	vk::PhysicalDeviceRobustness2FeaturesEXT robustness2Features;
 	robustness2Features.nullDescriptor = true;
@@ -500,7 +526,7 @@ void VKContext::createVmaAllocator()
 	allocatorInfo.physicalDevice = _physicalDevice;
 	allocatorInfo.device = _device;
 	allocatorInfo.pVulkanFunctions = &vulkanFunctions;
-	allocatorInfo.flags = vma::AllocatorCreateFlagBits::eExtMemoryBudget;
+	allocatorInfo.flags = vma::AllocatorCreateFlagBits::eExtMemoryBudget | vma::AllocatorCreateFlagBits::eBufferDeviceAddress;
 	
 	vma::createAllocator(&allocatorInfo, &_vmaAllocator);
 }
