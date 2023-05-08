@@ -60,7 +60,7 @@ public:
 	
 	vk::DeviceAddress getDeviceAddress() const
 	{
-		return _buffer ? _buffer->getStride() : 0;
+		return _buffer ? _buffer->getDeviceAddress() : 0;
 	}
 	
 	void resize(size_t newSize)
