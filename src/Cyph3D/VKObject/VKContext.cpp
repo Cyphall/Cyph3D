@@ -459,8 +459,12 @@ void VKContext::createLogicalDevice()
 	deviceQueueCreateInfo.queueCount = 1;
 	deviceQueueCreateInfo.pQueuePriorities = &queuePriority;
 	
+	vk::PhysicalDeviceUniformBufferStandardLayoutFeatures uniformBufferStandardLayoutFeatures;
+	uniformBufferStandardLayoutFeatures.uniformBufferStandardLayout = true;
+	
 	vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenance1Features;
 	rayTracingMaintenance1Features.rayTracingMaintenance1 = true;
+	rayTracingMaintenance1Features.pNext = &uniformBufferStandardLayoutFeatures;
 	
 	vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;
 	rayTracingPipelineFeatures.rayTracingPipeline = true;

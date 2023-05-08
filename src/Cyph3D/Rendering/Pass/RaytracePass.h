@@ -8,6 +8,8 @@
 struct RenderRegistry;
 class Camera;
 template<typename T>
+class VKBuffer;
+template<typename T>
 class VKResizableBuffer;
 class VKDescriptorSetLayout;
 class VKPipelineLayout;
@@ -33,14 +35,19 @@ public:
 	explicit RaytracePass(const glm::uvec2& size);
 
 private:
-	struct PushConstantData
+	struct GlobalUniforms
 	{
-		GLSL_vec3 position;
-		GLSL_vec3 rayTL;
-		GLSL_vec3 rayTR;
-		GLSL_vec3 rayBL;
-		GLSL_vec3 rayBR;
+		GLSL_vec3 cameraPosition;
+		GLSL_vec3 cameraRayTL;
+		GLSL_vec3 cameraRayTR;
+		GLSL_vec3 cameraRayBL;
+		GLSL_vec3 cameraRayBR;
+		GLSL_bool hasSkybox;
+		GLSL_uint skyboxIndex;
+		GLSL_mat4 skyboxRotation;
 	};
+	
+	VKDynamic<VKBuffer<GlobalUniforms>> _globalUniforms;
 	
 	VKDynamic<VKResizableBuffer<std::byte>> _tlasBackingBuffer;
 	VKDynamic<VKResizableBuffer<std::byte>> _tlasScratchBuffer;

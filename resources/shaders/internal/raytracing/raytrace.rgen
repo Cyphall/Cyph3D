@@ -1,5 +1,6 @@
 #version 460 core
 #extension GL_EXT_ray_tracing : require
+#extension GL_EXT_scalar_block_layout : require
 
 struct HitPayload
 {
@@ -7,17 +8,20 @@ struct HitPayload
 	int objectIndex;
 };
 
-layout(set = 0, binding = 0) uniform accelerationStructureEXT u_topLevelAS;
-layout(set = 0, binding = 1, rgba16f) uniform writeonly image2D u_color;
-layout(set = 0, binding = 2, r32i) uniform writeonly iimage2D u_objectIndex;
+layout(set = 1, binding = 0) uniform accelerationStructureEXT u_topLevelAS;
+layout(set = 1, binding = 1, rgba16f) uniform writeonly image2D u_color;
+layout(set = 1, binding = 2, r32i) uniform writeonly iimage2D u_objectIndex;
 
-layout(push_constant) uniform constants
+layout(std430, set = 1, binding = 3) uniform uniforms
 {
 	vec3 u_position;
 	vec3 u_rayTL;
 	vec3 u_rayTR;
 	vec3 u_rayBL;
 	vec3 u_rayBR;
+	bool u_hasSkybox;
+	uint u_skyboxIndex;
+	mat4 u_skyboxRotation;
 };
 
 layout(location = 0) rayPayloadEXT HitPayload hitPayload;

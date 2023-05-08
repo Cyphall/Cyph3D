@@ -1,21 +1,27 @@
 #include "RaytracePass.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Helper/MathHelper.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKTopLevelAccelerationStructureBuildInfo.h"
+#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
+
+#include <glm/gtx/transform.hpp>
 
 RaytracePass::RaytracePass(const glm::uvec2& size):
 	RenderPass(size, "Raytrace pass")
@@ -103,19 +109,36 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 		vk::AccessFlagBits2::eAccelerationStructureReadKHR);
 	
+	GlobalUniforms globalUniforms;
+	globalUniforms.cameraPosition = input.camera.getPosition();
+	globalUniforms.cameraRayTL = input.camera.getCornerRays()[0];
+	globalUniforms.cameraRayTR = input.camera.getCornerRays()[1];
+	globalUniforms.cameraRayBL = input.camera.getCornerRays()[2];
+	globalUniforms.cameraRayBR = input.camera.getCornerRays()[3];
+
+	SkyboxAsset* skybox = Engine::getScene().getSkybox();
+	if (skybox && skybox->isLoaded())
+	{
+		globalUniforms.hasSkybox = true;
+		globalUniforms.skyboxIndex = skybox->getBindlessIndex();
+		globalUniforms.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
+	}
+	else
+	{
+		globalUniforms.hasSkybox = false;
+	}
+	
+	GlobalUniforms* globalUniformsPtr = _globalUniforms->map();
+	std::memcpy(globalUniformsPtr, &globalUniforms, sizeof(GlobalUniforms));
+	_globalUniforms->unmap();
+	
 	commandBuffer->bindPipeline(_pipeline);
 	
-	commandBuffer->pushDescriptor(0, 0, tlas);
-	commandBuffer->pushDescriptor(0, 1, _rawRenderImageView.getVKPtr());
-	commandBuffer->pushDescriptor(0, 2, _objectIndexImageView.getVKPtr());
-	
-	PushConstantData pushConstantData;
-	pushConstantData.position = input.camera.getPosition();
-	pushConstantData.rayTL = input.camera.getCornerRays()[0];
-	pushConstantData.rayTR = input.camera.getCornerRays()[1];
-	pushConstantData.rayBL = input.camera.getCornerRays()[2];
-	pushConstantData.rayBR = input.camera.getCornerRays()[3];
-	commandBuffer->pushConstants(pushConstantData);
+	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
+	commandBuffer->pushDescriptor(1, 0, tlas);
+	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView.getVKPtr());
+	commandBuffer->pushDescriptor(1, 2, _objectIndexImageView.getVKPtr());
+	commandBuffer->pushDescriptor(1, 3, _globalUniforms.getVKPtr(), 0, 1);
 	
 	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getVKPtr());
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getVKPtr());
@@ -138,6 +161,12 @@ void RaytracePass::onResize()
 
 void RaytracePass::createBuffers()
 {
+	_globalUniforms = VKBuffer<GlobalUniforms>::createDynamic(
+		Engine::getVKContext(),
+		1,
+		vk::BufferUsageFlagBits::eUniformBuffer,
+		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	
 	_tlasBackingBuffer = VKResizableBuffer<std::byte>::createDynamic(
 		Engine::getVKContext(),
 		vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
@@ -175,6 +204,7 @@ void RaytracePass::createDescriptorSetLayout()
 	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1);
 	info.addBinding(vk::DescriptorType::eStorageImage, 1);
 	info.addBinding(vk::DescriptorType::eStorageImage, 1);
+	info.addBinding(vk::DescriptorType::eUniformBuffer, 1);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -182,8 +212,8 @@ void RaytracePass::createDescriptorSetLayout()
 void RaytracePass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
+	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<PushConstantData>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
