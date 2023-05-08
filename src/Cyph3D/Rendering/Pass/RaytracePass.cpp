@@ -22,6 +22,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
 
 #include <glm/gtx/transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 
 RaytracePass::RaytracePass(const glm::uvec2& size):
 	RenderPass(size, "Raytrace pass")
@@ -57,6 +58,9 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
 	buildInfo.instancesInfos.reserve(input.registry.models.size());
+	_objectUniforms->resizeSmart(input.registry.models.size());
+	ObjectUniforms* objectUniformsPtr = _objectUniforms->map();
+	int actualObjectCountToBeDrawn = 0;
 	for (int i = 0; i < input.registry.models.size(); i++)
 	{
 		ModelRenderer::RenderData modelRenderData = input.registry.models[i];
@@ -86,7 +90,24 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		instanceInfo.localToWorld = modelRenderData.matrix;
 		instanceInfo.customIndex = i;
 		instanceInfo.accelerationStructure = mesh->getAccelerationStructure();
+		
+		ObjectUniforms uniforms{};
+		uniforms.normalMatrix = glm::inverseTranspose(glm::mat3(modelRenderData.matrix));
+		uniforms.model = modelRenderData.matrix;
+		uniforms.vertexBuffer = mesh->getVertexBuffer()->getDeviceAddress();
+		uniforms.indexBuffer = mesh->getIndexBuffer()->getDeviceAddress();
+		uniforms.albedoIndex = material->getAlbedoTextureBindlessIndex();
+		uniforms.normalIndex = material->getNormalTextureBindlessIndex();
+		uniforms.roughnessIndex = material->getRoughnessTextureBindlessIndex();
+		uniforms.metalnessIndex = material->getMetalnessTextureBindlessIndex();
+		uniforms.displacementIndex = material->getDisplacementTextureBindlessIndex();
+		uniforms.emissiveIndex = material->getEmissiveTextureBindlessIndex();
+		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
+		objectUniformsPtr++;
+		
+		actualObjectCountToBeDrawn++;
 	}
+	_objectUniforms->unmap();
 	
 	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
 	
@@ -139,6 +160,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView.getVKPtr());
 	commandBuffer->pushDescriptor(1, 2, _objectIndexImageView.getVKPtr());
 	commandBuffer->pushDescriptor(1, 3, _globalUniforms.getVKPtr(), 0, 1);
+	commandBuffer->pushDescriptor(1, 4, _objectUniforms->getBuffer(), 0, actualObjectCountToBeDrawn);
 	
 	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getVKPtr());
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getVKPtr());
@@ -165,6 +187,11 @@ void RaytracePass::createBuffers()
 		Engine::getVKContext(),
 		1,
 		vk::BufferUsageFlagBits::eUniformBuffer,
+		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_objectUniforms = VKResizableBuffer<ObjectUniforms>::createDynamic(
+		Engine::getVKContext(),
+		vk::BufferUsageFlagBits::eStorageBuffer,
 		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	_tlasBackingBuffer = VKResizableBuffer<std::byte>::createDynamic(
@@ -205,6 +232,7 @@ void RaytracePass::createDescriptorSetLayout()
 	info.addBinding(vk::DescriptorType::eStorageImage, 1);
 	info.addBinding(vk::DescriptorType::eStorageImage, 1);
 	info.addBinding(vk::DescriptorType::eUniformBuffer, 1);
+	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }

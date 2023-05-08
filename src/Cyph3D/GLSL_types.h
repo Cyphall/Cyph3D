@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <glm/glm.hpp>
+#include <vulkan/vulkan.hpp>
 
 #define GLSL_bool alignas(4) uint32_t
 #define GLSL_int alignas(4) int32_t
@@ -25,3 +26,5 @@
 #define GLSL_vec4 alignas(16) glm::vec4
 
 #define GLSL_mat4 alignas(16) glm::mat4
+
+#define GLSL_DeviceAddress alignas(8) vk::DeviceAddress

@@ -47,7 +47,22 @@ private:
 		GLSL_mat4 skyboxRotation;
 	};
 	
+	struct ObjectUniforms
+	{
+		GLSL_mat4 normalMatrix;
+		GLSL_mat4 model;
+		GLSL_DeviceAddress vertexBuffer;
+		GLSL_DeviceAddress indexBuffer;
+		GLSL_uint albedoIndex;
+		GLSL_uint normalIndex;
+		GLSL_uint roughnessIndex;
+		GLSL_uint metalnessIndex;
+		GLSL_uint displacementIndex;
+		GLSL_uint emissiveIndex;
+	};
+	
 	VKDynamic<VKBuffer<GlobalUniforms>> _globalUniforms;
+	VKDynamic<VKResizableBuffer<ObjectUniforms>> _objectUniforms;
 	
 	VKDynamic<VKResizableBuffer<std::byte>> _tlasBackingBuffer;
 	VKDynamic<VKResizableBuffer<std::byte>> _tlasScratchBuffer;
