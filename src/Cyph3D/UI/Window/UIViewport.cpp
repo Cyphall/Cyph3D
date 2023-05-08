@@ -95,15 +95,9 @@ void UIViewport::show()
 				window.setCursorPos(_lockedCursorPos);
 			}
 			
-			_sceneRenderer->onNewFrame();
-			Engine::getScene().onPreRender(*_sceneRenderer, _camera);
-			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(_camera);
-			
-			ImGui::Image(
-				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
-				glm::vec2(textureView->getImage()->getSize(0)),
-				ImVec2(0, 0),
-				ImVec2(1, 1));
+			// we need to handle click logic before rendering viewport as the viewport rendering commands are not submitted yet
+			glm::vec2 drawCursorPos = ImGui::GetCursorPos();
+			ImGui::Dummy(glm::vec2(viewportSize));
 			
 			if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
 			{
@@ -131,6 +125,18 @@ void UIViewport::show()
 					UIInspector::setSelected(clickedEntity);
 				}
 			}
+			
+			ImGui::SetCursorPos(drawCursorPos);
+			
+			_sceneRenderer->onNewFrame();
+			Engine::getScene().onPreRender(*_sceneRenderer, _camera);
+			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(_camera);
+			
+			ImGui::Image(
+				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
+				glm::vec2(textureView->getImage()->getSize(0)),
+				ImVec2(0, 0),
+				ImVec2(1, 1));
 			
 			drawGizmo(viewportStartGlobal, viewportSize);
 		}

@@ -18,6 +18,11 @@ RaytracingSceneRenderer::RaytracingSceneRenderer(glm::uvec2 size):
 
 Entity* RaytracingSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 {
+	if (!_objectIndexImageView)
+	{
+		return nullptr;
+	}
+	
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
