@@ -12,6 +12,8 @@
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
+#include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
 #include "Cyph3D/Scene/Camera.h"
@@ -23,7 +25,6 @@
 SkyboxPass::SkyboxPass(glm::uvec2 size):
 	RenderPass(size, "Skybox pass")
 {
-	createDescriptorSetLayout();
 	createPipelineLayout();
 	createPipeline();
 	createBuffer();
@@ -80,12 +81,13 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	scissor.size = _size;
 	commandBuffer->setScissor(scissor);
 	
-	commandBuffer->pushDescriptor(0, 0, Engine::getScene().getSkybox()->getImageView(), _sampler);
+	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
 	
 	PushConstantData pushConstantData{};
 	pushConstantData.mvp = input.camera.getProjection() *
 						   glm::mat4(glm::mat3(input.camera.getView())) *
 						   glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
+	pushConstantData.textureIndex = Engine::getScene().getSkybox()->getBindlessIndex();
 	commandBuffer->pushConstants(pushConstantData);
 	
 	commandBuffer->bindVertexBuffer(0, _vertexBuffer);
@@ -104,18 +106,10 @@ void SkyboxPass::onResize()
 
 }
 
-void SkyboxPass::createDescriptorSetLayout()
-{
-	VKDescriptorSetLayoutInfo info(true);
-	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-	
-	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-}
-
 void SkyboxPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
-	info.addDescriptorSetLayout(_descriptorSetLayout);
+	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.setPushConstantLayout<PushConstantData>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);

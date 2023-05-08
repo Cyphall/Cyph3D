@@ -78,6 +78,7 @@ VKContext::VKContext(int concurrentFrameCount):
 	createDefaultCommandBuffer();
 	
 	_properties.pNext = &_rayTracingPipelineProperties;
+	_rayTracingPipelineProperties.pNext = &_descriptorIndexingProperties;
 	_physicalDevice.getProperties2(&_properties);
 }
 
@@ -163,6 +164,11 @@ const vk::PhysicalDeviceProperties& VKContext::getProperties() const
 const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& VKContext::getRayTracingPipelineProperties() const
 {
 	return _rayTracingPipelineProperties;
+}
+
+const vk::PhysicalDeviceDescriptorIndexingProperties& VKContext::getDescriptorIndexingProperties() const
+{
+	return _descriptorIndexingProperties;
 }
 
 int VKContext::calculateDeviceScore(const vk::PhysicalDevice& device) const

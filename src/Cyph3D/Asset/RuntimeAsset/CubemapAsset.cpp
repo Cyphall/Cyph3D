@@ -24,12 +24,14 @@ CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& s
 }
 
 CubemapAsset::~CubemapAsset()
-{}
+{
+	_manager.getBindlessTextureManager().releaseIndex(_bindlessIndex);
+}
 
-const VKPtr<VKImageView>& CubemapAsset::getImageView() const
+const uint32_t& CubemapAsset::getBindlessIndex() const
 {
 	checkLoaded();
-	return _imageView;
+	return _bindlessIndex;
 }
 
 bool CubemapAsset::load_step1_mt()
@@ -134,6 +136,9 @@ bool CubemapAsset::load_step1_mt()
 		Engine::getVKContext(),
 		_image,
 		vk::ImageViewType::eCube);
+	
+	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
+	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getCubemapSampler());
 
 	_loaded = true;
 	Logger::info(std::format("Cubemap (xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {}) loaded",

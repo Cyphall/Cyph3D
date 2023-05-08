@@ -6,6 +6,12 @@ struct ObjectUniforms
 	mat4 model;
 	mat4 mvp;
 	int  objectIndex;
+	uint albedoIndex;
+	uint normalIndex;
+	uint roughnessIndex;
+	uint metalnessIndex;
+	uint displacementIndex;
+	uint emissiveIndex;
 };
 
 layout(location = 0) in vec3 a_position;
@@ -13,7 +19,7 @@ layout(location = 1) in vec2 a_uv;
 layout(location = 2) in vec3 a_normal;
 layout(location = 3) in vec3 a_tangent;
 
-layout(std430, set = 2, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere3
+layout(std430, set = 3, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere4
 {
 	ObjectUniforms u_objectUniforms;
 };

@@ -69,6 +69,7 @@ void Engine::run()
 	while (!_window->shouldClose())
 	{
 		_vkContext->onNewFrame();
+		_assetManager->onNewFrame();
 		
 		if (swapchainOutOfData)
 		{

@@ -19,12 +19,14 @@ TextureAsset::TextureAsset(AssetManager& manager, const TextureAssetSignature& s
 }
 
 TextureAsset::~TextureAsset()
-{}
+{
+	_manager.getBindlessTextureManager().releaseIndex(_bindlessIndex);
+}
 
-const VKPtr<VKImageView>& TextureAsset::getImageView() const
+const uint32_t& TextureAsset::getBindlessIndex() const
 {
 	checkLoaded();
-	return _imageView;
+	return _bindlessIndex;
 }
 
 bool TextureAsset::load_step1_mt()
@@ -92,6 +94,9 @@ bool TextureAsset::load_step1_mt()
 		Engine::getVKContext(),
 		_image,
 		vk::ImageViewType::e2D);
+	
+	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
+	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getTextureSampler());
 
 	_loaded = true;
 	Logger::info(std::format("Texture {} with type {} loaded", _signature.path, magic_enum::enum_name(_signature.type)));

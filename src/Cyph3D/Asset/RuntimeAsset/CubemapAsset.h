@@ -10,6 +10,7 @@
 
 class VKImage;
 class VKImageView;
+class VKSampler;
 
 struct CubemapAssetSignature
 {
@@ -44,7 +45,7 @@ class CubemapAsset : public GPUAsset<CubemapAssetSignature>
 public:
 	~CubemapAsset() override;
 
-	const VKPtr<VKImageView>& getImageView() const;
+	const uint32_t& getBindlessIndex() const;
 
 private:
 	friend class AssetManager;
@@ -55,4 +56,5 @@ private:
 	
 	VKPtr<VKImage> _image;
 	VKPtr<VKImageView> _imageView;
+	uint32_t _bindlessIndex;
 };

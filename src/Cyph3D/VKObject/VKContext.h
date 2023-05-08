@@ -37,6 +37,7 @@ public:
 	
 	const vk::PhysicalDeviceProperties& getProperties() const;
 	const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& getRayTracingPipelineProperties() const;
+	const vk::PhysicalDeviceDescriptorIndexingProperties& getDescriptorIndexingProperties() const;
 
 private:
 	struct HelperData;
@@ -61,6 +62,7 @@ private:
 	
 	vk::PhysicalDeviceProperties2 _properties;
 	vk::PhysicalDeviceRayTracingPipelinePropertiesKHR _rayTracingPipelineProperties;
+	vk::PhysicalDeviceDescriptorIndexingProperties _descriptorIndexingProperties;
 	
 	explicit VKContext(int concurrentFrameCount);
 	

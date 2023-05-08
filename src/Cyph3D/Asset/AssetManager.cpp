@@ -1,16 +1,75 @@
 #include "AssetManager.h"
 
+#include "Cyph3D/Engine.h"
 #include "Cyph3D/Asset/Processor/ImageProcessor.h"
 #include "Cyph3D/Asset/Processor/MeshProcessor.h"
+#include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
 AssetManager::AssetManager(int threadCount):
 	_threadPool(threadCount)
 {
-
+	{
+		vk::SamplerCreateInfo createInfo;
+		createInfo.flags = {};
+		createInfo.magFilter = vk::Filter::eLinear;
+		createInfo.minFilter = vk::Filter::eLinear;
+		createInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+		createInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+		createInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+		createInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+		createInfo.mipLodBias = 0.0f;
+		createInfo.anisotropyEnable = true;
+		createInfo.maxAnisotropy = 16;
+		createInfo.compareEnable = false;
+		createInfo.compareOp = vk::CompareOp::eNever;
+		createInfo.minLod = -1000.0f;
+		createInfo.maxLod = 1000.0f;
+		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+		createInfo.unnormalizedCoordinates = false;
+		
+		_textureSampler = VKSampler::create(Engine::getVKContext(), createInfo);
+	}
+	
+	{
+		vk::SamplerCreateInfo createInfo;
+		createInfo.flags = {};
+		createInfo.magFilter = vk::Filter::eLinear;
+		createInfo.minFilter = vk::Filter::eLinear;
+		createInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+		createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+		createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+		createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
+		createInfo.mipLodBias = 0.0f;
+		createInfo.anisotropyEnable = true;
+		createInfo.maxAnisotropy = 16;
+		createInfo.compareEnable = false;
+		createInfo.compareOp = vk::CompareOp::eNever;
+		createInfo.minLod = -1000.0f;
+		createInfo.maxLod = 1000.0f;
+		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+		createInfo.unnormalizedCoordinates = false;
+		
+		_cubemapSampler = VKSampler::create(Engine::getVKContext(), createInfo);
+	}
 }
 
 AssetManager::~AssetManager()
 {}
+
+const VKPtr<VKSampler>& AssetManager::getTextureSampler()
+{
+	return _textureSampler;
+}
+
+const VKPtr<VKSampler>& AssetManager::getCubemapSampler()
+{
+	return _cubemapSampler;
+}
+
+BindlessTextureManager& AssetManager::getBindlessTextureManager()
+{
+	return _bindlessTextureManager;
+}
 
 ImageData AssetManager::readImageData(std::string_view path, ImageType type)
 {
@@ -98,6 +157,11 @@ SkyboxAsset* AssetManager::loadSkybox(std::string_view path)
 	}
 
 	return it->second.get();
+}
+
+void AssetManager::onNewFrame()
+{
+	_bindlessTextureManager.onNewFrame();
 }
 
 void AssetManager::onUpdate()
