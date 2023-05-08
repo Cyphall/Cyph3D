@@ -51,8 +51,10 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
 	buildInfo.instancesInfos.reserve(input.registry.models.size());
-	for (const ModelRenderer::RenderData& modelRenderData : input.registry.models)
+	for (int i = 0; i < input.registry.models.size(); i++)
 	{
+		ModelRenderer::RenderData modelRenderData = input.registry.models[i];
+		
 		MaterialAsset* material = modelRenderData.material;
 		if (material == nullptr)
 		{
@@ -76,7 +78,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		
 		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
 		instanceInfo.localToWorld = modelRenderData.matrix;
-		instanceInfo.customIndex = buildInfo.instancesInfos.size() - 1;
+		instanceInfo.customIndex = i;
 		instanceInfo.accelerationStructure = mesh->getAccelerationStructure();
 	}
 	

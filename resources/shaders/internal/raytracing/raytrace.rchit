@@ -4,6 +4,7 @@
 struct HitPayload
 {
 	vec3 value;
+	int objectIndex;
 };
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
@@ -12,4 +13,5 @@ hitAttributeEXT vec3 attribs;
 void main()
 {
 	hitPayload.value = vec3(0.2, 0.5, 0.5);
+	hitPayload.objectIndex = gl_InstanceCustomIndexEXT;
 }

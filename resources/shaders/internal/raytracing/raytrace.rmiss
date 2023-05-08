@@ -4,6 +4,7 @@
 struct HitPayload
 {
 	vec3 value;
+	int objectIndex;
 };
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
@@ -11,4 +12,5 @@ layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 void main()
 {
 	hitPayload.value = vec3(0.0, 0.1, 0.3);
+	hitPayload.objectIndex = -1;
 }
