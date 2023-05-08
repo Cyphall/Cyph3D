@@ -121,6 +121,8 @@ void VKDescriptorSet::bindBuffer(uint32_t bindingIndex, const VKPtr<VKBufferBase
 	descriptorWrite.pTexelBufferView = nullptr; // Optional
 	
 	_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
+	
+	_boundObjects[bindingIndex][arrayIndex] = {buffer};
 }
 
 void VKDescriptorSet::bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
