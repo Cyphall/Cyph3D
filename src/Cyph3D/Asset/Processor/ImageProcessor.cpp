@@ -194,7 +194,7 @@ static void compressLevelBC4(const ImageLevel& uncompressedLevel, ImageLevel& co
 	std::byte* outputPtr = compressedLevel.data.data();
 	for (int blockY = 0; blockY < outputSize.y; blockY++)
 	{
-		for (int blockX = 0; blockX < outputSize.y; blockX++)
+		for (int blockX = 0; blockX < outputSize.x; blockX++)
 		{
 			size_t baseInputOffset = (blockX * inputBlockOffset.x) + (blockY * inputBlockOffset.y);
 			std::memcpy(blockInput.data() + 0, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 0), 4);
@@ -227,7 +227,7 @@ static void compressLevelBC5(const ImageLevel& uncompressedLevel, ImageLevel& co
 	std::byte* outputPtr = compressedLevel.data.data();
 	for (int blockY = 0; blockY < outputSize.y; blockY++)
 	{
-		for (int blockX = 0; blockX < outputSize.y; blockX++)
+		for (int blockX = 0; blockX < outputSize.x; blockX++)
 		{
 			size_t baseInputOffset = (blockX * inputBlockOffset.x) + (blockY * inputBlockOffset.y);
 			std::memcpy(blockInput.data() + 0, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 0), 8);
@@ -267,7 +267,7 @@ static void compressLevelBC7(const ImageLevel& uncompressedLevel, ImageLevel& co
 	std::byte* outputPtr = compressedLevel.data.data();
 	for (int blockY = 0; blockY < outputSize.y; blockY++)
 	{
-		for (int blockX = 0; blockX < outputSize.y; blockX++)
+		for (int blockX = 0; blockX < outputSize.x; blockX++)
 		{
 			size_t baseInputOffset = (blockX * inputBlockOffset.x) + (blockY * inputBlockOffset.y);
 			std::memcpy(blockInput.data() + 0, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 0), 16);
