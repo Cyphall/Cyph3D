@@ -41,6 +41,7 @@ struct ObjectUniforms
 	uint metalnessIndex;
 	uint displacementIndex;
 	uint emissiveIndex;
+	float emissiveScale;
 };
 
 /* ------ inputs ------ */
@@ -135,7 +136,7 @@ void main()
 	
 	// ----------------- emissive -----------------
 	
-	float emissive = texture(u_textures[u_objectUniforms.emissiveIndex], texCoords).r;
+	float emissive = texture(u_textures[u_objectUniforms.emissiveIndex], texCoords).r * u_objectUniforms.emissiveScale;
 	
 	// ----------------- object index -----------------
 	

@@ -77,8 +77,8 @@ public:
 	const float& getMetalnessValue() const;
 	void setMetalnessValue(const float& value);
 	
-	const float& getEmissiveValue() const;
-	void setEmissiveValue(const float& value);
+	const float& getEmissiveScale() const;
+	void setEmissiveScale(const float& scale);
 	
 	static void initDefaultAndMissing();
 	static MaterialAsset* getDefaultMaterial();
@@ -93,6 +93,7 @@ private:
 	
 	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
+	void deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot);
 	
 	void save() const;
 	void reload();
@@ -136,7 +137,8 @@ private:
 	glm::vec3 _albedoValue{};
 	float _roughnessValue{};
 	float _metalnessValue{};
-	float _emissiveValue{};
+	
+	float _emissiveScale{};
 
 	static MaterialAsset* _defaultMaterial;
 	static MaterialAsset* _missingMaterial;

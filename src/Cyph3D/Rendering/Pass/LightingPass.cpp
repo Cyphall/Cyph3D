@@ -245,6 +245,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		uniforms.metalnessIndex = material->getMetalnessTextureBindlessIndex();
 		uniforms.displacementIndex = material->getDisplacementTextureBindlessIndex();
 		uniforms.emissiveIndex = material->getEmissiveTextureBindlessIndex();
+		uniforms.emissiveScale = material->getEmissiveScale();
 		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
 		
 		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getVKPtr()->getBuffer(), i, 1);

@@ -192,14 +192,11 @@ void MaterialAsset::onDrawUi()
 		{
 			setEmissiveMapPath(newPath);
 		}
-
-		if (_emissiveMap == nullptr)
+		
+		float scale = getEmissiveScale();
+		if (ImGui::DragFloat("Scale", &scale, 0.01f, 0.0f, FLT_MAX, "%.2f"))
 		{
-			float value = getEmissiveValue();
-			if (ImGui::SliderFloat("Value", &value, 0.0f, 1.0f))
-			{
-				setEmissiveValue(value);
-			}
+			setEmissiveScale(scale);
 		}
 
 		ImGuiHelper::EndGroupPanel();
@@ -517,7 +514,7 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 			_emissiveValueTexture,
 			vk::ImageViewType::e2D);
 		
-		setEmissiveValue(getEmissiveValue()); // updates the texture with the current value
+		updateImageData<uint8_t>(_emissiveValueTexture, 255);
 		
 		_emissiveValueTextureBindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 		_manager.getBindlessTextureManager().setTexture(*_emissiveValueTextureBindlessIndex, _emissiveValueTextureView, _manager.getTextureSampler());
@@ -577,20 +574,14 @@ void MaterialAsset::setMetalnessValue(const float& value)
 	}
 }
 
-const float& MaterialAsset::getEmissiveValue() const
+const float& MaterialAsset::getEmissiveScale() const
 {
-	return _emissiveValue;
+	return _emissiveScale;
 }
 
-void MaterialAsset::setEmissiveValue(const float& value)
+void MaterialAsset::setEmissiveScale(const float& scale)
 {
-	_emissiveValue = glm::clamp(value, 0.0f, 1.0f);;
-
-	if (_emissiveValueTexture)
-	{
-		uint8_t u8Value = glm::round(_emissiveValue * 255.0f);
-		updateImageData(_emissiveValueTexture, u8Value);
-	}
+	_emissiveScale = glm::max(scale, 0.0f);
 }
 
 void MaterialAsset::initDefaultAndMissing()
@@ -736,7 +727,7 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 			setEmissiveMapPath(std::nullopt);
 		}
 
-		setEmissiveValue(0.0f);
+		setEmissiveScale(0.0f);
 	}
 }
 
@@ -832,21 +823,126 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		if (!jsonPath.is_null())
 		{
 			setEmissiveMapPath(jsonPath.get<std::string>());
+			
+			setEmissiveScale(1.0f);
+		}
+		else
+		{
+			setEmissiveMapPath(std::nullopt);
+			
+			const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
+			setEmissiveScale(jsonValue.get<float>());
+		}
+	}
+}
+
+void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
+{
+	{
+		const nlohmann::ordered_json& jsonMap = jsonRoot.at("albedo");
+		
+		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
+		if (!jsonPath.is_null())
+		{
+			setAlbedoMapPath(jsonPath.get<std::string>());
+		}
+		else
+		{
+			setAlbedoMapPath(std::nullopt);
+		}
+		
+		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
+		setAlbedoValue({
+			               jsonValue.at(0).get<float>(),
+			               jsonValue.at(1).get<float>(),
+			               jsonValue.at(2).get<float>()
+		               });
+	}
+	
+	{
+		const nlohmann::ordered_json& jsonMap = jsonRoot.at("normal");
+		
+		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
+		if (!jsonPath.is_null())
+		{
+			setNormalMapPath(jsonPath.get<std::string>());
+		}
+		else
+		{
+			setNormalMapPath(std::nullopt);
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& jsonMap = jsonRoot.at("roughness");
+		
+		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
+		if (!jsonPath.is_null())
+		{
+			setRoughnessMapPath(jsonPath.get<std::string>());
+		}
+		else
+		{
+			setRoughnessMapPath(std::nullopt);
+		}
+		
+		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
+		setRoughnessValue(jsonValue.get<float>());
+	}
+	
+	{
+		const nlohmann::ordered_json& jsonMap = jsonRoot.at("metalness");
+		
+		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
+		if (!jsonPath.is_null())
+		{
+			setMetalnessMapPath(jsonPath.get<std::string>());
+		}
+		else
+		{
+			setMetalnessMapPath(std::nullopt);
+		}
+		
+		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
+		setMetalnessValue(jsonValue.get<float>());
+	}
+	
+	{
+		const nlohmann::ordered_json& jsonMap = jsonRoot.at("displacement");
+		
+		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
+		if (!jsonPath.is_null())
+		{
+			setDisplacementMapPath(jsonPath.get<std::string>());
+		}
+		else
+		{
+			setDisplacementMapPath(std::nullopt);
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& jsonMap = jsonRoot.at("emissive");
+		
+		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
+		if (!jsonPath.is_null())
+		{
+			setEmissiveMapPath(jsonPath.get<std::string>());
 		}
 		else
 		{
 			setEmissiveMapPath(std::nullopt);
 		}
-
-		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
-		setEmissiveValue(jsonValue.get<float>());
+		
+		const nlohmann::ordered_json& jsonValue = jsonMap.at("scale");
+		setEmissiveScale(jsonValue.get<float>());
 	}
 }
 
 void MaterialAsset::save() const
 {
 	nlohmann::ordered_json jsonRoot;
-	jsonRoot["version"] = 2;
+	jsonRoot["version"] = 3;
 
 	{
 		nlohmann::ordered_json jsonMap;
@@ -944,8 +1040,8 @@ void MaterialAsset::save() const
 			jsonMap["path"] = nullptr;
 		}
 
-		const float& value = getEmissiveValue();
-		jsonMap["value"] = value;
+		const float& scale = getEmissiveScale();
+		jsonMap["scale"] = scale;
 
 		jsonRoot["emissive"] = jsonMap;
 	}
@@ -975,6 +1071,9 @@ void MaterialAsset::reload()
 			break;
 		case 2:
 			deserializeFromVersion2(jsonRoot);
+			break;
+		case 3:
+			deserializeFromVersion3(jsonRoot);
 			break;
 		default:
 			throw;

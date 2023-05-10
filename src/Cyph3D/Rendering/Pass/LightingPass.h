@@ -67,6 +67,7 @@ private:
 		GLSL_uint metalnessIndex;
 		GLSL_uint displacementIndex;
 		GLSL_uint emissiveIndex;
+		GLSL_float emissiveScale;
 	};
 	
 	struct PushConstantData
