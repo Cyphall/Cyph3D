@@ -5,7 +5,14 @@
 
 struct HitPayload
 {
-	vec3 value;
+	bool hit;
+	vec3 position;
+	vec3 normal;
+	vec3 tangent;
+	vec3 albedo;
+	float roughness;
+	float metalness;
+	float emissive;
 	int objectIndex;
 };
 
@@ -18,6 +25,7 @@ layout(std430, set = 1, binding = 3) uniform uniforms
 	vec3 u_rayTR;
 	vec3 u_rayBL;
 	vec3 u_rayBR;
+	uvec2 u_blueNoiseSampleOffset;
 	bool u_hasSkybox;
 	uint u_skyboxIndex;
 	mat4 u_skyboxRotation;
@@ -40,6 +48,6 @@ void main()
 		skyboxColor = vec3(0);
 	}
 	
-	hitPayload.value = skyboxColor;
-	hitPayload.objectIndex = -1;
+	hitPayload.hit = false;
+	hitPayload.albedo = skyboxColor;
 }

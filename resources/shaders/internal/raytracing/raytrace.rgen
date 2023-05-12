@@ -4,7 +4,14 @@
 
 struct HitPayload
 {
-	vec3 value;
+	bool hit;
+	vec3 position;
+	vec3 normal;
+	vec3 tangent;
+	vec3 albedo;
+	float roughness;
+	float metalness;
+	float emissive;
 	int objectIndex;
 };
 
@@ -19,65 +26,194 @@ layout(std430, set = 1, binding = 3) uniform uniforms
 	vec3 u_rayTR;
 	vec3 u_rayBL;
 	vec3 u_rayBR;
+	uvec2 u_blueNoiseSampleOffset;
 	bool u_hasSkybox;
 	uint u_skyboxIndex;
 	mat4 u_skyboxRotation;
 };
 
+layout(set = 1, binding = 5, r16f) uniform readonly image2D u_blueNoise;
+
 layout(location = 0) rayPayloadEXT HitPayload hitPayload;
 
-const int MULTISAMPLES = 1;
+const float PI = 3.14159265359;
+const float TWO_PI = PI * 2.0;
+const int SAMPLES = 8;
+const int MAX_DEPTH = 4;
+
+uint blueNoiseValueOffset = 0;
+
+vec3 calcRandomHemisphereDirectionCosWeighted(vec2 rand)
+{
+	float a = sqrt(rand.x);
+	float b = TWO_PI * rand.y;
+	
+	return vec3(
+		a * cos(b),
+		a * sin(b),
+		sqrt(1.0 - rand.x)
+	);
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 rand)
+{
+	// Section 3.2: transforming the view direction to the hemisphere configuration
+	vec3 Vh = normalize(vec3(alpha2D.x * Ve.x, alpha2D.y * Ve.y, Ve.z));
+	
+	// Section 4.1: orthonormal basis (with special case if cross product is zero)
+	float lensq = Vh.x * Vh.x + Vh.y * Vh.y;
+	vec3 T1 = lensq > 0.0 ? vec3(-Vh.y, Vh.x, 0.0) * inversesqrt(lensq) : vec3(1.0, 0.0, 0.0);
+	vec3 T2 = cross(Vh, T1);
+	
+	// Section 4.2: parameterization of the projected area
+	float r = sqrt(rand.x);
+	float phi = TWO_PI * rand.y;
+	float t1 = r * cos(phi);
+	float t2 = r * sin(phi);
+	float s = 0.5 * (1.0 + Vh.z);
+	t2 = mix(sqrt(1.0 - t1 * t1), t2, s);
+	
+	// Section 4.3: reprojection onto hemisphere
+	vec3 Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * Vh;
+	
+	// Section 3.4: transforming the normal back to the ellipsoid configuration
+	return normalize(vec3(alpha2D.x * Nh.x, alpha2D.y * Nh.y, max(0.0, Nh.z)));
+}
+
+
+vec2 sampleR2Sequence(uint index)
+{
+	float g = 1.32471795724474602596;
+	float a1 = 1.0 / g;
+	float a2 = 1.0 / (g * g);
+	return vec2(
+		fract(0.5 + a1 * index),
+		fract(0.5 + a2 * index)
+	);
+}
+
+float sampleBlueNoise()
+{
+	uvec2 samplePos = gl_LaunchIDEXT.xy;
+	samplePos += u_blueNoiseSampleOffset;
+	samplePos += uvec2(sampleR2Sequence(blueNoiseValueOffset) * imageSize(u_blueNoise).x);
+	samplePos %= imageSize(u_blueNoise).x;
+	
+	blueNoiseValueOffset++;
+	
+	return imageLoad(u_blueNoise, ivec2(samplePos)).r;
+}
 
 void main()
 {
 	vec2 PS_pixelPos = vec2(gl_LaunchIDEXT.xy);
 	vec2 resolution = vec2(gl_LaunchSizeEXT.xy);
 	
-	float PS_subPixelSize = 1.0 / MULTISAMPLES;
-	float PS_halfSubPixelSize = PS_subPixelSize * 0.5;
-	
-	vec3 rayPos = u_position;
+	vec3 cameraRayPos = u_position;
 	
 	uint rayFlags = gl_RayFlagsOpaqueEXT;
-	float tMin = 0.001;
+	float tMin = 0.0;
 	float tMax = 10000.0;
 	
-	vec3 color = vec3(0);
 	int objectIndex = -1;
-
-	for (int y = 0; y < MULTISAMPLES; y++)
+	
+	vec2 PS_rayPos = PS_pixelPos + 0.5;
+	vec2 UVS_rayPos = PS_rayPos / resolution;
+	
+	vec3 topRayDir = mix(u_rayTL, u_rayTR, UVS_rayPos.x);
+	vec3 bottomRayDir = mix(u_rayBL, u_rayBR, UVS_rayPos.x);
+	vec3 cameraRayDir = normalize(mix(topRayDir, bottomRayDir, UVS_rayPos.y));
+	
+	vec3 pixelLight = vec3(0);
+	
+	for (int s = 0; s < SAMPLES; s++)
 	{
-		for (int x = 0; x < MULTISAMPLES; x++)
+		vec3 rayPos = cameraRayPos;
+		vec3 rayDir = cameraRayDir;
+		vec3 light = vec3(0);
+		vec3 contribution = vec3(1);
+		
+		for (int d = 0; d < MAX_DEPTH; d++)
 		{
-			vec2 PS_multisampleOffset = PS_subPixelSize * vec2(x, y) + PS_halfSubPixelSize;
-			vec2 PS_rayPos = PS_pixelPos + PS_multisampleOffset;
-			vec2 UVS_rayPos = PS_rayPos / resolution;
-			
-			vec3 topRayDir = mix(u_rayTL, u_rayTR, UVS_rayPos.x);
-			vec3 bottomRayDir = mix(u_rayBL, u_rayBR, UVS_rayPos.x);
-			vec3 rayDir = mix(topRayDir, bottomRayDir, UVS_rayPos.y);
-			
 			traceRayEXT(
-				u_topLevelAS,   // acceleration structure
-				rayFlags,       // rayFlags
-				0xFF,           // cullMask
-				0,              // sbtRecordOffset
-				0,              // sbtRecordStride
-				0,              // missIndex
-				rayPos,         // ray origin
-				tMin,           // ray min range
-				rayDir,         // ray direction
-				tMax,           // ray max range
-				0               // payload (location = 0)
+			u_topLevelAS,   // acceleration structure
+			rayFlags,       // rayFlags
+			0xFF,           // cullMask
+			0,              // sbtRecordOffset
+			0,              // sbtRecordStride
+			0,              // missIndex
+			rayPos,         // ray origin
+			tMin,           // ray min range
+			rayDir,         // ray direction
+			tMax,           // ray max range
+			0               // payload (location = 0)
 			);
 			
-			color += hitPayload.value;
-			objectIndex = hitPayload.objectIndex;
+			if (hitPayload.hit)
+			{
+				light += contribution * hitPayload.albedo * hitPayload.emissive;
+				
+				vec3 bitangent = cross(hitPayload.normal, hitPayload.tangent);
+				mat3 tangentToWorld = mat3(hitPayload.tangent, bitangent, hitPayload.normal);
+				mat3 worldToTangent = transpose(tangentToWorld);
+				
+				rayPos = hitPayload.position + hitPayload.normal * 0.001;
+				
+				vec3 localRayDir = worldToTangent * rayDir;
+				float alpha = hitPayload.roughness * hitPayload.roughness;
+				vec2 alpha2D = vec2(alpha, alpha);
+				vec2 rand = vec2(sampleBlueNoise(), sampleBlueNoise());
+				vec3 microfacetNormal = normalize(tangentToWorld * sampleGGXVNDF(-localRayDir, alpha2D, rand));
+				
+				vec3 F0 = mix(vec3(0.04), hitPayload.albedo, hitPayload.metalness);
+				vec3 specularWeight = fresnelSchlick(max(dot(microfacetNormal, -rayDir), 0.0), F0);
+				vec3 diffuseWeight = 1.0 - specularWeight;
+				
+				if (sampleBlueNoise() > 0.5)
+				{
+					// next bounce is specular
+					
+					if (dot(-rayDir, microfacetNormal) < 0)
+					{
+						break;
+					}
+					
+					rayDir = reflect(rayDir, microfacetNormal);
+					
+					contribution *= specularWeight * 2;
+				}
+				else
+				{
+					// next bounce is diffuse
+					
+					rayDir = tangentToWorld * calcRandomHemisphereDirectionCosWeighted(vec2(sampleBlueNoise(), sampleBlueNoise()));
+					
+					contribution *= hitPayload.albedo * diffuseWeight * (1.0 - hitPayload.metalness) * 2;
+				}
+				
+				if (d == 0)
+				{
+					objectIndex = hitPayload.objectIndex;
+				}
+			}
+			else
+			{
+				light += contribution * hitPayload.albedo;
+				contribution *= 0;
+				break;
+			}
 		}
+		
+		pixelLight += light;
 	}
 	
-	color /= (MULTISAMPLES * MULTISAMPLES);
+	pixelLight /= SAMPLES;
 	
-	imageStore(u_color, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1.0));
+	imageStore(u_color, ivec2(gl_LaunchIDEXT.xy), vec4(pixelLight, 1.0));
 	imageStore(u_objectIndex, ivec2(gl_LaunchIDEXT.xy), ivec4(objectIndex, 0, 0, 0));
 }
