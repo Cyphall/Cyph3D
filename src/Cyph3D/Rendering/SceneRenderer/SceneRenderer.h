@@ -19,7 +19,7 @@ public:
 	SceneRenderer(std::string_view name, glm::uvec2 size);
 	virtual ~SceneRenderer() = default;
 	
-	const VKPtr<VKImageView>& render(Camera& camera);
+	const VKPtr<VKImageView>& render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera);
 	void resize(glm::uvec2 size);
 	
 	virtual void onNewFrame();

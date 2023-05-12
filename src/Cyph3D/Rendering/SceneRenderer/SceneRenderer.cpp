@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
-#include "Cyph3D/Scene/Scene.h"
 
 const vk::Format SceneRenderer::DEPTH_FORMAT = vk::Format::eD32Sfloat;
 const vk::Format SceneRenderer::HDR_COLOR_FORMAT = vk::Format::eR16G16B16A16Sfloat;
@@ -44,10 +43,8 @@ const PerfStep& SceneRenderer::getRenderPerf()
 	return _renderPerf;
 }
 
-const VKPtr<VKImageView>& SceneRenderer::render(Camera& camera)
+const VKPtr<VKImageView>& SceneRenderer::render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera)
 {
-	const VKPtr<VKCommandBuffer>& commandBuffer = Engine::getVKContext().getDefaultCommandBuffer();
-	
 	_renderPerf.clear();
 	_renderPerf.setDuration(_perfCounter.retrieve(commandBuffer));
 	

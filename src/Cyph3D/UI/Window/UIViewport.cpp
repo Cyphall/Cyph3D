@@ -130,7 +130,7 @@ void UIViewport::show()
 			
 			_sceneRenderer->onNewFrame();
 			Engine::getScene().onPreRender(*_sceneRenderer, _camera);
-			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(_camera);
+			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera);
 			
 			ImGui::Image(
 				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
@@ -313,18 +313,15 @@ void UIViewport::renderToFile(glm::uvec2 resolution)
 	renderer.onNewFrame();
 
 	Engine::getScene().onPreRender(renderer, camera);
-
-	const VKPtr<VKImageView>& textureView = renderer.render(camera);
-
-	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
-		Engine::getVKContext(),
-		textureView->getImage()->getLevelByteSize(0),
-		vk::BufferUsageFlagBits::eTransferDst,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
-
+	
+	glm::ivec2 textureSize;
+	VKPtr<VKBuffer<std::byte>> stagingBuffer;
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
+			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera);
+			textureSize = textureView->getImage()->getSize(0);
+			
 			commandBuffer->imageMemoryBarrier(
 				textureView->getImage(),
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -334,11 +331,15 @@ void UIViewport::renderToFile(glm::uvec2 resolution)
 				vk::ImageLayout::eTransferSrcOptimal,
 				0,
 				0);
+			
+			stagingBuffer = VKBuffer<std::byte>::create(
+				Engine::getVKContext(),
+				textureView->getImage()->getLevelByteSize(0),
+				vk::BufferUsageFlagBits::eTransferDst,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 
 			commandBuffer->copyImageToBuffer(textureView->getImage(), 0, 0, stagingBuffer, 0);
 		});
-
-	glm::ivec2 textureSize = textureView->getImage()->getSize(0);
 
 	std::byte* ptr = stagingBuffer->map();
 	if (filePath->extension() == ".png")
