@@ -77,6 +77,8 @@ private:
 	friend class VKSemaphore;
 	friend class VKShader;
 	friend class VKTimestampQuery;
+	friend class VKRayTracingPipeline;
+	friend class VKAccelerationStructure;
 	
 	template<typename TArg>
 	struct DynamicExtractor

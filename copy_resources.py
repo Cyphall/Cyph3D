@@ -54,6 +54,16 @@ def process_file(input_path: str):
         compile_shader(input_path, output_path)
     elif ext == ".comp":
         compile_shader(input_path, output_path)
+    elif ext == ".rgen":
+        compile_shader(input_path, output_path)
+    elif ext == ".rmiss":
+        compile_shader(input_path, output_path)
+    elif ext == ".rchit":
+        compile_shader(input_path, output_path)
+    elif ext == ".rahit":
+        compile_shader(input_path, output_path)
+    elif ext == ".rint":
+        compile_shader(input_path, output_path)
     else:
         copy_file(input_path, output_path)
 

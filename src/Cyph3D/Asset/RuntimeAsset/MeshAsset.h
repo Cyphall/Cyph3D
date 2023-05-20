@@ -10,6 +10,7 @@
 
 template<typename T>
 class VKBuffer;
+class VKAccelerationStructure;
 
 struct MeshAssetSignature
 {
@@ -36,6 +37,7 @@ public:
 
 	const VKPtr<VKBuffer<VertexData>>& getVertexBuffer() const;
 	const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const;
+	const VKPtr<VKAccelerationStructure>& getAccelerationStructure() const;
 
 private:
 	friend class AssetManager;
@@ -46,4 +48,5 @@ private:
 	
 	VKPtr<VKBuffer<VertexData>> _vertexBuffer;
 	VKPtr<VKBuffer<uint32_t>> _indexBuffer;
+	VKPtr<VKAccelerationStructure> _accelerationStructure;
 };

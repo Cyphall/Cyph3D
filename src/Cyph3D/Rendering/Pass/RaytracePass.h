@@ -1,107 +1,107 @@
-//#pragma once
-//
-//#include "Cyph3D/GLObject/Mesh.h"
-//#include "Cyph3D/GLObject/GLMutableBuffer.h"
-//#include "Cyph3D/GLObject/GLTexture.h"
-//#include "Cyph3D/GLObject/GLShaderProgram.h"
-//#include "Cyph3D/GLSL_types.h"
-//#include "Cyph3D/Rendering/Pass/RenderPass.h"
-//
-//struct RenderRegistry;
-//class Camera;
-//
-//struct RaytracePassInput
-//{
-//	RenderRegistry& registry;
-//	Camera& camera;
-//};
-//
-//struct RaytracePassOutput
-//{
-//	GLTexture& rawRender;
-//	GLTexture& objectIndex;
-//};
-//
-//class RaytracePass : public RenderPass<RaytracePassInput, RaytracePassOutput>
-//{
-//public:
-//	explicit RaytracePass(const glm::uvec2& size);
-//
-//private:
-//	struct GLSL_Material
-//	{
-//		GLSL_sampler2D albedo;
-//		GLSL_sampler2D normal;
-//		GLSL_sampler2D roughness;
-//		GLSL_sampler2D metalness;
-//		GLSL_sampler2D displacement;
-//		GLSL_sampler2D emissive;
-//	};
-//
-//	struct GLSL_Transform
-//	{
-//		GLSL_mat4 localToWorld;
-//		GLSL_mat4 worldToLocal;
-//		GLSL_mat4 localToWorldNormal;
-//	};
-//
-//	struct GLSL_DirectionalLight
-//	{
-//		GLSL_vec3 fragToLightDirection;
-//		GLSL_float angularDiameter;
-//		GLSL_vec3 color;
-//		GLSL_float intensity;
-//		GLSL_bool castShadows;
-//	};
-//
-//	struct GLSL_PointLight
-//	{
-//		GLSL_vec3 position;
-//		GLSL_float radius;
-//		GLSL_vec3 color;
-//		GLSL_float intensity;
-//		GLSL_bool castShadows;
-//	};
-//
-//	struct GLSL_Sphere
-//	{
-//		GLSL_Material material;
-//		GLSL_Transform transform;
-//		GLSL_int objectIndex;
-//		GLSL_bool contributeShadows;
-//	};
-//
-//	struct GLSL_Plane
-//	{
-//		GLSL_Material material;
-//		GLSL_Transform transform;
-//		GLSL_bool infinite;
-//		GLSL_int objectIndex;
-//		GLSL_bool contributeShadows;
-//	};
-//
-//	struct GLSL_Mesh
-//	{
-//		GLSL_Material material;
-//		GLSL_Transform transform;
-//		GLSL_int objectIndex;
-//		GLSL_int vertexOffset;
-//		GLSL_int indexOffset;
-//		GLSL_int indexCount;
-//		GLSL_bool contributeShadows;
-//	};
-//
-//	GLShaderProgram _shader;
-//	GLTexture _rawRenderTexture;
-//	GLTexture _objectIndexTexture;
-//
-//	GLMutableBuffer<GLSL_DirectionalLight> _directionalLightBuffer;
-//	GLMutableBuffer<GLSL_PointLight> _pointLightBuffer;
-//	GLMutableBuffer<GLSL_Sphere> _sphereBuffer;
-//	GLMutableBuffer<GLSL_Plane> _planeBuffer;
-//	GLMutableBuffer<GLSL_Mesh> _meshBuffer;
-//	GLMutableBuffer<Mesh::VertexData> _meshVertexDataBuffer;
-//	GLMutableBuffer<GLuint> _meshIndexDataBuffer;
-//
-//	RaytracePassOutput onRender(RaytracePassInput& input) override;
-//};
+#pragma once
+
+#include "Cyph3D/GLSL_types.h"
+#include "Cyph3D/VKObject/VKPtr.h"
+#include "Cyph3D/VKObject/VKDynamic.h"
+#include "Cyph3D/Rendering/Pass/RenderPass.h"
+
+struct RenderRegistry;
+class Camera;
+template<typename T>
+class VKBuffer;
+template<typename T>
+class VKResizableBuffer;
+class VKDescriptorSetLayout;
+class VKPipelineLayout;
+class VKRayTracingPipeline;
+class VKImage;
+class VKImageView;
+
+struct RaytracePassInput
+{
+	RenderRegistry& registry;
+	Camera& camera;
+};
+
+struct RaytracePassOutput
+{
+	const VKPtr<VKImageView>& rawRenderImageView;
+	const VKPtr<VKImageView>& objectIndexImageView;
+};
+
+class RaytracePass : public RenderPass<RaytracePassInput, RaytracePassOutput>
+{
+public:
+	explicit RaytracePass(const glm::uvec2& size);
+
+private:
+	struct GlobalUniforms
+	{
+		GLSL_vec3 cameraPosition;
+		GLSL_vec3 cameraRayTL;
+		GLSL_vec3 cameraRayTR;
+		GLSL_vec3 cameraRayBL;
+		GLSL_vec3 cameraRayBR;
+		GLSL_uvec2 blueNoiseSampleOffset;
+		GLSL_bool hasSkybox;
+		GLSL_uint skyboxIndex;
+		GLSL_mat4 skyboxRotation;
+	};
+	
+	struct ObjectUniforms
+	{
+		GLSL_mat4 normalMatrix;
+		GLSL_mat4 model;
+		GLSL_DeviceAddress vertexBuffer;
+		GLSL_DeviceAddress indexBuffer;
+		GLSL_uint albedoIndex;
+		GLSL_uint normalIndex;
+		GLSL_uint roughnessIndex;
+		GLSL_uint metalnessIndex;
+		GLSL_uint displacementIndex;
+		GLSL_uint emissiveIndex;
+		GLSL_float emissiveScale;
+	};
+	
+	VKDynamic<VKBuffer<GlobalUniforms>> _globalUniforms;
+	VKDynamic<VKResizableBuffer<ObjectUniforms>> _objectUniforms;
+	
+	VKDynamic<VKResizableBuffer<std::byte>> _tlasBackingBuffer;
+	VKDynamic<VKResizableBuffer<std::byte>> _tlasScratchBuffer;
+	VKDynamic<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>> _tlasInstancesBuffer;
+	
+	VKDynamic<VKResizableBuffer<std::byte>> _raygenSBT;
+	VKDynamic<VKResizableBuffer<std::byte>> _missSBT;
+	VKDynamic<VKResizableBuffer<std::byte>> _hitSBT;
+	
+	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
+	VKPtr<VKDescriptorSetLayout> _blueNoiseDescriptorSetLayout;
+	
+	VKPtr<VKDescriptorSet> _blueNoiseDescriptorSet;
+	
+	VKPtr<VKPipelineLayout> _pipelineLayout;
+	VKPtr<VKRayTracingPipeline> _pipeline;
+	
+	VKDynamic<VKImage> _rawRenderImage;
+	VKDynamic<VKImageView> _rawRenderImageView;
+	VKDynamic<VKImage> _objectIndexImage;
+	VKDynamic<VKImageView> _objectIndexImageView;
+	
+	VKPtr<VKImage> _blueNoiseImage;
+	VKPtr<VKImageView> _blueNoiseImageView;
+	
+	std::vector<uint32_t> _haltonSequenceBase2;
+	std::vector<uint32_t> _haltonSequenceBase3;
+	
+	uint32_t _frameIndex = 0;
+	
+	RaytracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input) override;
+	void onResize() override;
+	
+	void createBuffers();
+	void createDescriptorSetLayout();
+	void createPipelineLayout();
+	void createPipeline();
+	void createImages();
+	void createAndLoadBlueNoise();
+};

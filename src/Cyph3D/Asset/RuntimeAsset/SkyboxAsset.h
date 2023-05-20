@@ -60,7 +60,7 @@ public:
 	const std::string* getZnegPath() const;
 	void setZnegPath(std::optional<std::string_view> path);
 	
-	const VKPtr<VKImageView>& getImageView() const;
+	const uint32_t& getBindlessIndex() const;
 
 	static void create(std::string_view path);
 

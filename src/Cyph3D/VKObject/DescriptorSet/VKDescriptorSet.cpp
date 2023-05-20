@@ -1,6 +1,7 @@
 #include "VKDescriptorSet.h"
 
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
@@ -120,6 +121,8 @@ void VKDescriptorSet::bindBuffer(uint32_t bindingIndex, const VKPtr<VKBufferBase
 	descriptorWrite.pTexelBufferView = nullptr; // Optional
 	
 	_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
+	
+	_boundObjects[bindingIndex][arrayIndex] = {buffer};
 }
 
 void VKDescriptorSet::bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
@@ -217,4 +220,28 @@ void VKDescriptorSet::bindCombinedImageSampler(uint32_t bindingIndex, const VKPt
 	_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
 	
 	_boundObjects[bindingIndex][arrayIndex] = {imageView, sampler};
+}
+
+void VKDescriptorSet::bindAccelerationStructure(uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
+{
+	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
+	
+	vk::WriteDescriptorSetAccelerationStructureKHR accelerationStructureDescriptorWrite;
+	accelerationStructureDescriptorWrite.accelerationStructureCount = 1;
+	accelerationStructureDescriptorWrite.pAccelerationStructures = &accelerationStructure->getHandle();
+	
+	vk::WriteDescriptorSet descriptorWrite;
+	descriptorWrite.dstSet = VK_NULL_HANDLE;
+	descriptorWrite.dstBinding = bindingIndex;
+	descriptorWrite.dstArrayElement = arrayIndex;
+	descriptorWrite.descriptorType = bindingInfo.type;
+	descriptorWrite.descriptorCount = 1;
+	descriptorWrite.pImageInfo = nullptr;
+	descriptorWrite.pBufferInfo = nullptr;
+	descriptorWrite.pTexelBufferView = nullptr;
+	descriptorWrite.pNext = &accelerationStructureDescriptorWrite;
+	
+	_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
+	
+	_boundObjects[bindingIndex][arrayIndex] = {accelerationStructure};
 }

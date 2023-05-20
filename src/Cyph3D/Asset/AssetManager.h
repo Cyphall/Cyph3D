@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/Asset/AssetCacheDatabase.h"
+#include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/Processor/ImageData.h"
 #include "Cyph3D/Asset/Processor/MeshData.h"
 #include "Cyph3D/Asset/RuntimeAsset/TextureAsset.h"
@@ -16,11 +17,18 @@
 #include <mutex>
 #include <array>
 
+class VKSampler;
+
 class AssetManager
 {
 public:
 	explicit AssetManager(int threadCount);
 	~AssetManager();
+	
+	const VKPtr<VKSampler>& getTextureSampler();
+	const VKPtr<VKSampler>& getCubemapSampler();
+	
+	BindlessTextureManager& getBindlessTextureManager();
 	
 	ImageData readImageData(std::string_view path, ImageType type);
 	MeshData readMeshData(std::string_view path);
@@ -31,6 +39,7 @@ public:
 	MaterialAsset* loadMaterial(std::string_view path);
 	SkyboxAsset* loadSkybox(std::string_view path);
 
+	void onNewFrame();
 	void onUpdate();
 
 	template <typename TTask, typename... TArgs>
@@ -49,6 +58,11 @@ public:
 
 private:
 	AssetCacheDatabase _database;
+	
+	VKPtr<VKSampler> _textureSampler;
+	VKPtr<VKSampler> _cubemapSampler;
+	
+	BindlessTextureManager _bindlessTextureManager;
 
 	std::unordered_map<TextureAssetSignature, std::unique_ptr<TextureAsset>> _textures;
 	std::unordered_map<CubemapAssetSignature, std::unique_ptr<CubemapAsset>> _cubemaps;

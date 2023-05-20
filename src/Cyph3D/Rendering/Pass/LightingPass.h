@@ -61,6 +61,13 @@ private:
 		GLSL_mat4 model;
 		GLSL_mat4 mvp;
 		GLSL_int  objectIndex;
+		GLSL_uint albedoIndex;
+		GLSL_uint normalIndex;
+		GLSL_uint roughnessIndex;
+		GLSL_uint metalnessIndex;
+		GLSL_uint displacementIndex;
+		GLSL_uint emissiveIndex;
+		GLSL_float emissiveScale;
 	};
 	
 	struct PushConstantData
@@ -76,8 +83,6 @@ private:
 	
 	VKPtr<VKSampler> _directionalLightSampler;
 	VKPtr<VKSampler> _pointLightSampler;
-	
-	VKPtr<VKSampler> _materialSampler;
 	
 	VKPtr<VKDescriptorSetLayout> _directionalLightDescriptorSetLayout;
 	VKDynamic<VKDescriptorSet> _directionalLightDescriptorSet;

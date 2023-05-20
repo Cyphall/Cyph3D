@@ -210,10 +210,10 @@ void Camera::recalculateCornerRays() const
 	glm::mat4 projInverse = glm::inverse(getProjection());
 	glm::mat4 viewInverse = glm::inverse(getView());
 	
-	_cornerRays[0] = glm::vec3(-1, 1, 1); // top left
-	_cornerRays[1] = glm::vec3(1, 1, 1); // top right
-	_cornerRays[2] = glm::vec3(-1, -1, 1); // bottom left
-	_cornerRays[3] = glm::vec3(1, -1, 1); // bottom right
+	_cornerRays[0] = glm::vec3(-1, -1, 1); // top left
+	_cornerRays[1] = glm::vec3(1, -1, 1); // top right
+	_cornerRays[2] = glm::vec3(-1, 1, 1); // bottom left
+	_cornerRays[3] = glm::vec3(1, 1, 1); // bottom right
 	
 	for (int i = 0; i < 4; i++)
 	{

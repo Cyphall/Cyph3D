@@ -185,9 +185,9 @@ void SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
 	onPathChange();
 }
 
-const VKPtr<VKImageView>& SkyboxAsset::getImageView() const
+const uint32_t& SkyboxAsset::getBindlessIndex() const
 {
-	return _cubemap->getImageView();
+	return _cubemap->getBindlessIndex();
 }
 
 void SkyboxAsset::create(std::string_view path)

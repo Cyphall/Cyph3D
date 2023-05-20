@@ -4,6 +4,8 @@
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
@@ -188,8 +190,9 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	scissor.size = _size;
 	commandBuffer->setScissor(scissor);
 	
-	commandBuffer->bindDescriptorSet(0, _directionalLightDescriptorSet.getVKPtr());
-	commandBuffer->bindDescriptorSet(1, _pointLightDescriptorSet.getVKPtr());
+	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
+	commandBuffer->bindDescriptorSet(1, _directionalLightDescriptorSet.getVKPtr());
+	commandBuffer->bindDescriptorSet(2, _pointLightDescriptorSet.getVKPtr());
 	
 	PushConstantData pushConstantData{};
 	pushConstantData.viewProjectionInv = glm::inverse(input.camera.getProjection() * input.camera.getView());
@@ -236,15 +239,16 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		uniforms.model = modelData.matrix;
 		uniforms.mvp = vp * modelData.matrix;
 		uniforms.objectIndex = i;
+		uniforms.albedoIndex = material->getAlbedoTextureBindlessIndex();
+		uniforms.normalIndex = material->getNormalTextureBindlessIndex();
+		uniforms.roughnessIndex = material->getRoughnessTextureBindlessIndex();
+		uniforms.metalnessIndex = material->getMetalnessTextureBindlessIndex();
+		uniforms.displacementIndex = material->getDisplacementTextureBindlessIndex();
+		uniforms.emissiveIndex = material->getEmissiveTextureBindlessIndex();
+		uniforms.emissiveScale = material->getEmissiveScale();
 		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
 		
-		commandBuffer->pushDescriptor(2, 0, _objectUniforms.getVKPtr()->getBuffer(), i, 1);
-		commandBuffer->pushDescriptor(2, 1, material->getAlbedoTextureView(), _materialSampler);
-		commandBuffer->pushDescriptor(2, 2, material->getNormalTextureView(), _materialSampler);
-		commandBuffer->pushDescriptor(2, 3, material->getRoughnessTextureView(), _materialSampler);
-		commandBuffer->pushDescriptor(2, 4, material->getMetalnessTextureView(), _materialSampler);
-		commandBuffer->pushDescriptor(2, 5, material->getDisplacementTextureView(), _materialSampler);
-		commandBuffer->pushDescriptor(2, 6, material->getEmissiveTextureView(), _materialSampler);
+		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getVKPtr()->getBuffer(), i, 1);
 		
 		commandBuffer->draw(indexBuffer->getSize(), 0);
 		
@@ -330,28 +334,6 @@ void LightingPass::createSamplers()
 		
 		_pointLightSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 	}
-	
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eLinear;
-		createInfo.minFilter = vk::Filter::eLinear;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-		createInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
-		createInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
-		createInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = true;
-		createInfo.maxAnisotropy = 16;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-		createInfo.unnormalizedCoordinates = false;
-		
-		_materialSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
 }
 
 void LightingPass::createDescriptorSetLayouts()
@@ -375,12 +357,6 @@ void LightingPass::createDescriptorSetLayouts()
 	{
 		VKDescriptorSetLayoutInfo info(true);
 		info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 		
 		_objectDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 	}
@@ -389,6 +365,7 @@ void LightingPass::createDescriptorSetLayouts()
 void LightingPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
+	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_directionalLightDescriptorSetLayout);
 	info.addDescriptorSetLayout(_pointLightDescriptorSetLayout);
 	info.addDescriptorSetLayout(_objectDescriptorSetLayout);

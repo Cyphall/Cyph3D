@@ -5,6 +5,7 @@ layout (location = 0) in vec3 a_position;
 layout(push_constant) uniform constants
 {
 	mat4 u_mvp;
+	uint u_textureIndex;
 };
 
 layout(location = 0) out V2F

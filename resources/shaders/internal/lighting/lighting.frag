@@ -35,6 +35,13 @@ struct ObjectUniforms
 	mat4 model;
 	mat4 mvp;
 	int  objectIndex;
+	uint albedoIndex;
+	uint normalIndex;
+	uint roughnessIndex;
+	uint metalnessIndex;
+	uint displacementIndex;
+	uint emissiveIndex;
+	float emissiveScale;
 };
 
 /* ------ inputs ------ */
@@ -47,28 +54,24 @@ layout(location = 0) in V2F
 };
 
 /* ------ uniforms ------ */
-layout(std430, set = 0, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere1
+layout(set = 0, binding = 0) uniform sampler2D u_textures[];
+
+layout(std430, set = 1, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere1
 {
 	DirectionalLightUniforms u_directionalLightUniforms[];
 };
-layout(set = 0, binding = 1) uniform sampler2D u_directionalLightTextures[];
+layout(set = 1, binding = 1) uniform sampler2D u_directionalLightTextures[];
 
-layout(std430, set = 1, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere2
+layout(std430, set = 2, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere2
 {
 	PointLightUniforms u_pointLightUniforms[];
 };
-layout(set = 1, binding = 1) uniform samplerCube u_pointLightTextures[];
+layout(set = 2, binding = 1) uniform samplerCube u_pointLightTextures[];
 
-layout(std430, set = 2, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere3
+layout(std430, set = 3, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere3
 {
 	ObjectUniforms u_objectUniforms;
 };
-layout(set = 2, binding = 1) uniform sampler2D u_albedoMap;
-layout(set = 2, binding = 2) uniform sampler2D u_normalMap;
-layout(set = 2, binding = 3) uniform sampler2D u_roughnessMap;
-layout(set = 2, binding = 4) uniform sampler2D u_metalnessMap;
-layout(set = 2, binding = 5) uniform sampler2D u_displacementMap;
-layout(set = 2, binding = 6) uniform sampler2D u_emissiveMap;
 
 layout(push_constant) uniform constants
 {
@@ -114,26 +117,26 @@ void main()
 	
 	// ----------------- albedo -----------------
 	
-	vec3 albedo = texture(u_albedoMap, texCoords).rgb;
+	vec3 albedo = texture(u_textures[u_objectUniforms.albedoIndex], texCoords).rgb;
 	
 	// ----------------- normal -----------------
 	
 	vec3 normal = vec3(0);
-	normal.xy = texture(u_normalMap, texCoords).rg * 2.0 - 1.0;
+	normal.xy = texture(u_textures[u_objectUniforms.normalIndex], texCoords).rg * 2.0 - 1.0;
 	normal.z = sqrt(1 - min(dot(normal.xy, normal.xy), 1));
 	normal = tangentToWorld * normal;
 	
 	// ----------------- roughness -----------------
 	
-	float roughness = texture(u_roughnessMap, texCoords).r;
+	float roughness = texture(u_textures[u_objectUniforms.roughnessIndex], texCoords).r;
 	
 	// ----------------- metalness -----------------
 	
-	float metalness = texture(u_metalnessMap, texCoords).r;
+	float metalness = texture(u_textures[u_objectUniforms.metalnessIndex], texCoords).r;
 	
 	// ----------------- emissive -----------------
 	
-	float emissive = texture(u_emissiveMap, texCoords).r;
+	float emissive = texture(u_textures[u_objectUniforms.emissiveIndex], texCoords).r * u_objectUniforms.emissiveScale;
 	
 	// ----------------- object index -----------------
 	
@@ -186,7 +189,7 @@ void main()
 
 float getDepth(vec2 texCoords)
 {
-	return 1 - texture(u_displacementMap, texCoords).r;
+	return 1 - texture(u_textures[u_objectUniforms.displacementIndex], texCoords).r;
 }
 
 vec2 POM(vec2 texCoords, vec3 viewDir)

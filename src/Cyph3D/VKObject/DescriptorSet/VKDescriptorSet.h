@@ -10,6 +10,7 @@ class VKDescriptorSetLayout;
 class VKBufferBase;
 class VKSampler;
 class VKImageView;
+class VKAccelerationStructure;
 
 class VKDescriptorSet : public VKObject
 {
@@ -27,6 +28,7 @@ public:
 	void bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
 	void bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex = 0);
 	void bindCombinedImageSampler(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void bindAccelerationStructure(uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex = 0);
 	
 protected:
 	VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& info);

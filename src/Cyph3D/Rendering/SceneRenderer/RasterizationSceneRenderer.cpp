@@ -137,6 +137,11 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 
 Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 {
+	if (!_objectIndexImageView)
+	{
+		return nullptr;
+	}
+	
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{

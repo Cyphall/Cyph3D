@@ -7,10 +7,10 @@
 
 #include <memory>
 #include <vector>
-#include <unordered_set>
 #include <fstream>
 #include <stdexcept>
 #include <GLFW/glfw3.h>
+#include <vulkan/vulkan_hash.hpp>
 
 static const uint32_t VULKAN_VERSION = VK_API_VERSION_1_3;
 
@@ -20,6 +20,15 @@ struct VKContext::HelperData
 {
 	VKPtr<VKCommandBuffer> immediateCommandBuffer;
 	VKDynamic<VKCommandBuffer> defaultCommandBuffer;
+};
+
+struct PhysicalDeviceInfo
+{
+	vk::PhysicalDevice handle;
+	vk::PhysicalDeviceProperties properties;
+	bool coreLayersSupported;
+	bool coreExtensionsSupported;
+	bool rayTracingExtensionsSupported;
 };
 
 static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity, vk::DebugUtilsMessageTypeFlagsEXT messageTypes, const vk::DebugUtilsMessengerCallbackDataEXT* messageData, void* userData)
@@ -43,6 +52,258 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSev
 	return false;
 }
 
+static std::vector<const char*> getRequiredInstanceLayers()
+{
+	std::vector<const char*> layers;
+
+#if defined(_DEBUG)
+	layers.push_back("VK_LAYER_KHRONOS_validation");
+#endif
+	
+	return layers;
+}
+
+static std::vector<const char*> getRequiredInstanceExtensions()
+{
+	std::vector<const char*> extensions;
+	
+	uint32_t glfwExtensionCount = 0;
+	const char** glfwExtensions;
+	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+	
+	for (int i = 0; i < glfwExtensionCount; i++)
+	{
+		extensions.push_back(glfwExtensions[i]);
+	}
+	
+	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#if defined(_DEBUG)
+	extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+#endif
+	
+	return extensions;
+}
+
+static std::unordered_set<std::string> getSupportedInstanceLayers()
+{
+	std::unordered_set<std::string> layers;
+	
+	for (const vk::LayerProperties& layer : vk::enumerateInstanceLayerProperties())
+	{
+		layers.insert(layer.layerName);
+	}
+	
+	return layers;
+}
+
+static std::unordered_set<std::string> getSupportedInstanceExtensions(const std::unordered_set<std::string>& supportedInstanceLayers)
+{
+	std::unordered_set<std::string> extensions;
+	
+	for (const vk::ExtensionProperties& extension : vk::enumerateInstanceExtensionProperties())
+	{
+		extensions.insert(extension.extensionName);
+	}
+	
+	for (const std::string& layer : supportedInstanceLayers)
+	{
+		for (const vk::ExtensionProperties& extension : vk::enumerateInstanceExtensionProperties(layer))
+		{
+			extensions.insert(extension.extensionName);
+		}
+	}
+	
+	return extensions;
+}
+
+static void checkInstanceLayersSupport(const std::vector<const char*>& requiredInstanceLayers, const std::unordered_set<std::string>& supportedInstanceLayers)
+{
+	for (const char* requiredInstanceLayer : requiredInstanceLayers)
+	{
+		if (supportedInstanceLayers.find(std::string(requiredInstanceLayer)) == supportedInstanceLayers.end())
+		{
+			throw std::runtime_error(std::format("Vulkan instance layer \"{}\" is not supported by this driver.", requiredInstanceLayer));
+		}
+	}
+}
+
+static void checkInstanceExtensionSupport(const std::vector<const char*>& requiredInstanceExtensions, const std::unordered_set<std::string>& supportedInstanceExtensions)
+{
+	for (const char* requiredInstanceExtension : requiredInstanceExtensions)
+	{
+		if (supportedInstanceExtensions.find(std::string(requiredInstanceExtension)) == supportedInstanceExtensions.end())
+		{
+			throw std::runtime_error(std::format("Vulkan instance extension \"{}\" is not supported by this driver.", requiredInstanceExtension));
+		}
+	}
+}
+
+static std::vector<const char*> getRequiredDeviceLayers()
+{
+	std::vector<const char*> layers;
+	
+	// none
+	
+	return layers;
+}
+
+static std::vector<const char*> getRequiredDeviceCoreExtensions()
+{
+	std::vector<const char*> extensions;
+	
+	extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+	extensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
+	
+	return extensions;
+}
+
+static std::vector<const char*> getRequiredDeviceRayTracingExtensions()
+{
+	std::vector<const char*> extensions;
+	
+	extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
+	
+	return extensions;
+}
+
+static std::unordered_set<std::string> getSupportedDeviceLayers(vk::PhysicalDevice physicalDevice)
+{
+	std::unordered_set<std::string> layers;
+	
+	for (const vk::LayerProperties& layer : physicalDevice.enumerateDeviceLayerProperties())
+	{
+		layers.insert(layer.layerName);
+	}
+	
+	return layers;
+}
+
+static std::unordered_set<std::string> getSupportedDeviceExtensions(vk::PhysicalDevice physicalDevice, const std::unordered_set<std::string>& supportedDeviceLayers)
+{
+	std::unordered_set<std::string> extensions;
+	
+	for (const vk::ExtensionProperties& extension : physicalDevice.enumerateDeviceExtensionProperties())
+	{
+		extensions.insert(extension.extensionName);
+	}
+	
+	for (const std::string& layer : supportedDeviceLayers)
+	{
+		for (const vk::ExtensionProperties& extension : vk::enumerateInstanceExtensionProperties(layer))
+		{
+			extensions.insert(extension.extensionName);
+		}
+	}
+	
+	return extensions;
+}
+
+PhysicalDeviceInfo getPhysicalDeviceInfo(
+	vk::PhysicalDevice physicalDevice,
+	const std::vector<const char*>& requiredDeviceLayers,
+	const std::vector<const char*>& requiredDeviceCoreExtensions,
+	const std::vector<const char*>& requiredDeviceRayTracingExtensions)
+{
+	PhysicalDeviceInfo physicalDeviceInfo;
+	physicalDeviceInfo.handle = physicalDevice;
+	physicalDeviceInfo.properties = physicalDevice.getProperties();
+	
+	std::unordered_set<std::string> supportedDeviceLayers = getSupportedDeviceLayers(physicalDevice);
+	
+	physicalDeviceInfo.coreLayersSupported = true;
+	for (const char* requiredDeviceLayer : requiredDeviceLayers)
+	{
+		if (supportedDeviceLayers.find(std::string(requiredDeviceLayer)) == supportedDeviceLayers.end())
+		{
+			physicalDeviceInfo.coreLayersSupported = false;
+			break;
+		}
+	}
+	
+	std::unordered_set<std::string> supportedDeviceExtensions = getSupportedDeviceExtensions(physicalDevice, supportedDeviceLayers);
+	
+	physicalDeviceInfo.coreExtensionsSupported = true;
+	for (const char* requiredDeviceCoreExtension : requiredDeviceCoreExtensions)
+	{
+		if (supportedDeviceExtensions.find(std::string(requiredDeviceCoreExtension)) == supportedDeviceExtensions.end())
+		{
+			physicalDeviceInfo.coreExtensionsSupported = false;
+			break;
+		}
+	}
+	
+	physicalDeviceInfo.rayTracingExtensionsSupported = true;
+	for (const char* requiredDeviceRayTracingExtension : requiredDeviceRayTracingExtensions)
+	{
+		if (supportedDeviceExtensions.find(std::string(requiredDeviceRayTracingExtension)) == supportedDeviceExtensions.end())
+		{
+			physicalDeviceInfo.rayTracingExtensionsSupported = false;
+			break;
+		}
+	}
+	
+	return physicalDeviceInfo;
+}
+
+static int calculateDeviceScore(const PhysicalDeviceInfo& physicalDevice)
+{
+	if (physicalDevice.properties.apiVersion < VULKAN_VERSION)
+	{
+		return 0;
+	}
+	
+	if (!physicalDevice.coreLayersSupported)
+	{
+		return 0;
+	}
+	
+	if (!physicalDevice.coreExtensionsSupported)
+	{
+		return 0;
+	}
+	
+	// from here, device is at least compatible
+	
+	int score = 1;
+	
+	if (physicalDevice.properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
+	{
+		score += 1000;
+	}
+	else if (physicalDevice.properties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu)
+	{
+		score += 100;
+	}
+	
+	if (physicalDevice.rayTracingExtensionsSupported)
+	{
+		score += 1000;
+	}
+	
+	return score;
+}
+
+static const PhysicalDeviceInfo* selectPhysicalDevice(const std::vector<PhysicalDeviceInfo>& physicalDevices)
+{
+	const PhysicalDeviceInfo* bestPhysicalDevice = nullptr;
+	int bestPhysicalDeviceScore = 0;
+	for (const PhysicalDeviceInfo& physicalDevice : physicalDevices)
+	{
+		int physicalDeviceScore = calculateDeviceScore(physicalDevice);
+		if (physicalDeviceScore > bestPhysicalDeviceScore)
+		{
+			bestPhysicalDevice = &physicalDevice;
+			bestPhysicalDeviceScore = physicalDeviceScore;
+		}
+	}
+	
+	return bestPhysicalDevice;
+}
+
 std::unique_ptr<VKContext> VKContext::create(int concurrentFrameCount)
 {
 	return std::unique_ptr<VKContext>(new VKContext(concurrentFrameCount));
@@ -53,20 +314,58 @@ VKContext::VKContext(int concurrentFrameCount):
 {
 	VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::DynamicLoader().getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
 	
-	fillInstanceExtensions();
-	fillLayers();
-	fillDeviceExtensions();
+	std::vector<const char*> requiredInstanceLayers = getRequiredInstanceLayers();
+	std::vector<const char*> requiredInstanceExtensions = getRequiredInstanceExtensions();
+	std::unordered_set<std::string> supportedInstanceLayers = getSupportedInstanceLayers();
+	std::unordered_set<std::string> supportedInstanceExtensions = getSupportedInstanceExtensions(supportedInstanceLayers);
+	checkInstanceLayersSupport(requiredInstanceLayers, supportedInstanceLayers);
+	checkInstanceExtensionSupport(requiredInstanceExtensions, supportedInstanceExtensions);
 	
-	checkInstanceExtensionSupport();
-	checkLayerSupport();
-	
-	createInstance();
+	createInstance(requiredInstanceLayers, requiredInstanceExtensions);
 	
 	VULKAN_HPP_DEFAULT_DISPATCHER.init(_instance);
 	
 	createMessenger();
-	selectPhysicalDevice();
-	createLogicalDevice();
+	
+	std::vector<const char*> requiredDeviceLayers = getRequiredDeviceLayers();
+	std::vector<const char*> requiredDeviceCoreExtensions = getRequiredDeviceCoreExtensions();
+	std::vector<const char*> requiredDeviceRayTracingExtensions = getRequiredDeviceRayTracingExtensions();
+	std::vector<PhysicalDeviceInfo> physicalDevicesInfos;
+	for (vk::PhysicalDevice physicalDevice : _instance.enumeratePhysicalDevices())
+	{
+		physicalDevicesInfos.push_back(getPhysicalDeviceInfo(physicalDevice, requiredDeviceLayers, requiredDeviceCoreExtensions, requiredDeviceRayTracingExtensions));
+	}
+	
+	if (physicalDevicesInfos.empty())
+	{
+		throw std::runtime_error("Could not find a device supporting Vulkan.");
+	}
+	
+	const PhysicalDeviceInfo* bestPhysicalDevice = selectPhysicalDevice(physicalDevicesInfos);
+	
+	if (bestPhysicalDevice == nullptr)
+	{
+		std::stringstream errorMessage;
+		errorMessage << "Could not find a device supporting required Vulkan version, layers and extensions.\n\n";
+		errorMessage << "Required Vulkan version: " << VK_API_VERSION_MAJOR(VULKAN_VERSION) << '.' << VK_API_VERSION_MINOR(VULKAN_VERSION) << "\n\n";
+		errorMessage << "Required Vulkan device extensions:\n";
+		for (const char* extension : requiredDeviceCoreExtensions)
+		{
+			errorMessage << '\t' << extension << '\n';
+		}
+		errorMessage << '\n';
+		throw std::runtime_error(errorMessage.str());
+	}
+	
+	_physicalDevice = bestPhysicalDevice->handle;
+	_rayTracingSupported = bestPhysicalDevice->rayTracingExtensionsSupported;
+	
+	std::vector<const char*> deviceExtensions = requiredDeviceCoreExtensions;
+	if (_rayTracingSupported)
+	{
+		deviceExtensions.insert(deviceExtensions.end(), requiredDeviceRayTracingExtensions.begin(), requiredDeviceRayTracingExtensions.end());
+	}
+	createLogicalDevice(requiredDeviceLayers, deviceExtensions);
 	
 	VULKAN_HPP_DEFAULT_DISPATCHER.init(_device);
 	
@@ -77,7 +376,12 @@ VKContext::VKContext(int concurrentFrameCount):
 	createImmediateCommandBuffer();
 	createDefaultCommandBuffer();
 	
-	_properties = _physicalDevice.getProperties();
+	if (_rayTracingSupported)
+	{
+		_descriptorIndexingProperties.pNext = &_rayTracingPipelineProperties;
+	}
+	_properties.pNext = &_descriptorIndexingProperties;
+	_physicalDevice.getProperties2(&_properties);
 }
 
 VKContext::~VKContext()
@@ -156,179 +460,25 @@ void VKContext::executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>
 
 const vk::PhysicalDeviceProperties& VKContext::getProperties() const
 {
-	return _properties;
+	return _properties.properties;
 }
 
-int VKContext::calculateDeviceScore(const vk::PhysicalDevice& device) const
+const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& VKContext::getRayTracingPipelineProperties() const
 {
-	vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
-	
-	if (deviceProperties.apiVersion < VULKAN_VERSION)
-	{
-		return 0;
-	}
-	
-	if (!checkDeviceExtensionSupport(device))
-	{
-		return 0;
-	}
-	
-	// from here, device is at least compatible
-	
-	int score = 1;
-	
-	if (deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
-	{
-		score += 1000;
-	}
-	else if (deviceProperties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu)
-	{
-		score += 100;
-	}
-	
-	return score;
+	return _rayTracingPipelineProperties;
 }
 
-bool VKContext::checkDeviceExtensionSupport(const vk::PhysicalDevice& device) const
+const vk::PhysicalDeviceDescriptorIndexingProperties& VKContext::getDescriptorIndexingProperties() const
 {
-	std::unordered_set<std::string> supportedDeviceExtensions;
-	
-	for (const vk::ExtensionProperties& deviceExtension : device.enumerateDeviceExtensionProperties())
-	{
-		supportedDeviceExtensions.insert(deviceExtension.extensionName);
-	}
-	
-	for (const std::string& layer : _layers)
-	{
-		for (const vk::ExtensionProperties& layerDeviceExtension : device.enumerateDeviceExtensionProperties(layer))
-		{
-			supportedDeviceExtensions.insert(layerDeviceExtension.extensionName);
-		}
-	}
-	
-	for (const char* wantedDeviceExtension : _deviceExtensions)
-	{
-		bool found = false;
-		for (const std::string& supportedDeviceExtension : supportedDeviceExtensions)
-		{
-			if (wantedDeviceExtension == supportedDeviceExtension)
-			{
-				found = true;
-				break;
-			}
-		}
-		
-		if (!found)
-		{
-			return false;
-		}
-	}
-	
-	return true;
+	return _descriptorIndexingProperties;
 }
 
-void VKContext::fillInstanceExtensions()
+bool VKContext::isRayTracingSupported() const
 {
-	uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions;
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-	
-	for (int i = 0; i < glfwExtensionCount; i++)
-	{
-		_instanceExtensions.push_back(glfwExtensions[i]);
-	}
-	
-	_instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#if defined(_DEBUG)
-	_instanceExtensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
-#endif
+	return _rayTracingSupported;
 }
 
-void VKContext::fillLayers()
-{
-#if defined(_DEBUG)
-	_layers.push_back("VK_LAYER_KHRONOS_validation");
-#endif
-}
-
-void VKContext::fillDeviceExtensions()
-{
-	_deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	_deviceExtensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-	_deviceExtensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
-}
-
-void VKContext::checkInstanceExtensionSupport()
-{
-	std::unordered_set<std::string> supportedInstanceExtensions;
-	
-	for (const vk::ExtensionProperties& instanceExtension : vk::enumerateInstanceExtensionProperties())
-	{
-		supportedInstanceExtensions.insert(instanceExtension.extensionName);
-	}
-	
-	for (const std::string& layer : _layers)
-	{
-		for (const vk::ExtensionProperties& layerInstanceExtension : vk::enumerateInstanceExtensionProperties(layer))
-		{
-			supportedInstanceExtensions.insert(layerInstanceExtension.extensionName);
-		}
-	}
-	
-	for (const char* wantedInstanceExtension : _instanceExtensions)
-	{
-		bool found = false;
-		for (const std::string& supportedInstanceExtension : supportedInstanceExtensions)
-		{
-			if (wantedInstanceExtension == supportedInstanceExtension)
-			{
-				found = true;
-				break;
-			}
-		}
-		
-		if (!found)
-		{
-			std::stringstream errorMessage;
-			errorMessage << "Vulkan instance extension \"" << wantedInstanceExtension << "\" is not supported by this driver.\n";
-			errorMessage << "Please make sure your GPU is compatible and your driver is up to date.\n\n";
-			throw std::runtime_error(errorMessage.str());
-		}
-	}
-}
-
-void VKContext::checkLayerSupport()
-{
-	std::unordered_set<std::string> supportedLayers;
-	
-	for (const vk::LayerProperties& layer : vk::enumerateInstanceLayerProperties())
-	{
-		supportedLayers.insert(layer.layerName);
-	}
-	
-	for (const char* wantedLayers : _layers)
-	{
-		bool found = false;
-		for (const std::string& supportedLayer : supportedLayers)
-		{
-			if (wantedLayers == supportedLayer)
-			{
-				found = true;
-				break;
-			}
-		}
-		
-		if (!found)
-		{
-			std::stringstream errorMessage;
-			errorMessage << "Vulkan layer \"" << wantedLayers << "\" is not supported by this driver.\n";
-			errorMessage << "Please make sure your GPU is compatible and your driver is up to date.\n\n";
-			throw std::runtime_error(errorMessage.str());
-		}
-	}
-}
-
-void VKContext::createInstance()
+void VKContext::createInstance(const std::vector<const char*>& layers, const std::vector<const char*>& extensions)
 {
 	vk::ApplicationInfo appInfo;
 	appInfo.pApplicationName = "Cyph3D";
@@ -339,10 +489,10 @@ void VKContext::createInstance()
 	
 	vk::InstanceCreateInfo createInfo;
 	createInfo.pApplicationInfo = &appInfo;
-	createInfo.enabledExtensionCount = _instanceExtensions.size();
-	createInfo.ppEnabledExtensionNames = _instanceExtensions.data();
-	createInfo.enabledLayerCount = _layers.size();
-	createInfo.ppEnabledLayerNames = _layers.data();
+	createInfo.enabledExtensionCount = extensions.size();
+	createInfo.ppEnabledExtensionNames = extensions.data();
+	createInfo.enabledLayerCount = layers.size();
+	createInfo.ppEnabledLayerNames = layers.data();
 
 #if defined(_DEBUG)
 	std::vector<vk::ValidationFeatureEnableEXT> enabledFeatures{
@@ -372,48 +522,6 @@ void VKContext::createMessenger()
 	_messenger = _instance.createDebugUtilsMessengerEXT(createInfo);
 }
 
-void VKContext::selectPhysicalDevice()
-{
-	std::vector<vk::PhysicalDevice> devices = _instance.enumeratePhysicalDevices();
-	
-	if (devices.empty())
-	{
-		std::stringstream errorMessage;
-		errorMessage << "Could not find a device supporting Vulkan.\n";
-		errorMessage << "Please make sure your GPU is compatible and your driver is up to date.\n\n";
-		throw std::runtime_error(errorMessage.str());
-	}
-	
-	vk::PhysicalDevice bestDevice;
-	int bestDeviceScore = 0;
-	for (const vk::PhysicalDevice& device : devices)
-	{
-		int deviceScore = calculateDeviceScore(device);
-		if (deviceScore > bestDeviceScore)
-		{
-			bestDevice = device;
-			bestDeviceScore = deviceScore;
-		}
-	}
-	
-	if (!bestDevice)
-	{
-		std::stringstream errorMessage;
-		errorMessage << "Could not find a device supporting required Vulkan version and/or extensions.\n";
-		errorMessage << "Please make sure your GPU is compatible and your driver is up to date.\n\n";
-		errorMessage << "Required Vulkan version: " << VK_API_VERSION_MAJOR(VULKAN_VERSION) << '.' << VK_API_VERSION_MINOR(VULKAN_VERSION) << "\n\n";
-		errorMessage << "Required Vulkan device extensions:\n";
-		for (const char* extension : _deviceExtensions)
-		{
-			errorMessage << '\t' << extension << '\n';
-		}
-		errorMessage << '\n';
-		throw std::runtime_error(errorMessage.str());
-	}
-	
-	_physicalDevice = bestDevice;
-}
-
 uint32_t VKContext::findSuitableQueueFamily()
 {
 	std::vector<vk::QueueFamilyProperties> vkQueueFamilies = _physicalDevice.getQueueFamilyProperties();
@@ -432,7 +540,7 @@ uint32_t VKContext::findSuitableQueueFamily()
 	throw;
 }
 
-void VKContext::createLogicalDevice()
+void VKContext::createLogicalDevice(const std::vector<const char*>& layers, const std::vector<const char*>& extensions)
 {
 	uint32_t queueFamily = findSuitableQueueFamily();
 	
@@ -443,8 +551,32 @@ void VKContext::createLogicalDevice()
 	deviceQueueCreateInfo.queueCount = 1;
 	deviceQueueCreateInfo.pQueuePriorities = &queuePriority;
 	
+	vk::PhysicalDeviceUniformBufferStandardLayoutFeatures uniformBufferStandardLayoutFeatures;
+	uniformBufferStandardLayoutFeatures.uniformBufferStandardLayout = true;
+	
+	vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenance1Features;
+	rayTracingMaintenance1Features.rayTracingMaintenance1 = true;
+	rayTracingMaintenance1Features.pNext = &uniformBufferStandardLayoutFeatures;
+	
+	vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;
+	rayTracingPipelineFeatures.rayTracingPipeline = true;
+	rayTracingPipelineFeatures.pNext = &rayTracingMaintenance1Features;
+	
+	vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures;
+	accelerationStructureFeatures.accelerationStructure = true;
+	accelerationStructureFeatures.pNext = &rayTracingPipelineFeatures;
+	
+	vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures;
+	bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+	
+	if (_rayTracingSupported)
+	{
+		bufferDeviceAddressFeatures.pNext = &accelerationStructureFeatures;
+	}
+	
 	vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures;
 	hostQueryResetFeatures.hostQueryReset = true;
+	hostQueryResetFeatures.pNext = &bufferDeviceAddressFeatures;
 	
 	vk::PhysicalDeviceRobustness2FeaturesEXT robustness2Features;
 	robustness2Features.nullDescriptor = true;
@@ -478,10 +610,10 @@ void VKContext::createLogicalDevice()
 	deviceCreateInfo.pNext = &physicalDeviceFeatures;
 	deviceCreateInfo.queueCreateInfoCount = 1;
 	deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
-	deviceCreateInfo.enabledExtensionCount = _deviceExtensions.size();
-	deviceCreateInfo.ppEnabledExtensionNames = _deviceExtensions.data();
-	deviceCreateInfo.enabledLayerCount = 0;
-	deviceCreateInfo.ppEnabledLayerNames = nullptr;
+	deviceCreateInfo.enabledExtensionCount = extensions.size();
+	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
+	deviceCreateInfo.enabledLayerCount = layers.size();
+	deviceCreateInfo.ppEnabledLayerNames = layers.data();
 	
 	_device = _physicalDevice.createDevice(deviceCreateInfo);
 	
@@ -500,7 +632,7 @@ void VKContext::createVmaAllocator()
 	allocatorInfo.physicalDevice = _physicalDevice;
 	allocatorInfo.device = _device;
 	allocatorInfo.pVulkanFunctions = &vulkanFunctions;
-	allocatorInfo.flags = vma::AllocatorCreateFlagBits::eExtMemoryBudget;
+	allocatorInfo.flags = vma::AllocatorCreateFlagBits::eExtMemoryBudget | vma::AllocatorCreateFlagBits::eBufferDeviceAddress;
 	
 	vma::createAllocator(&allocatorInfo, &_vmaAllocator);
 }
