@@ -42,59 +42,72 @@ bool MeshAsset::load_step1_mt()
 {
 	MeshData meshData = _manager.readMeshData(_signature.path);
 	
+	vk::BufferUsageFlags vertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
+	if (Engine::getVKContext().isRayTracingSupported())
+	{
+		vertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+	}
 	_vertexBuffer = VKBuffer<VertexData>::create(
 		Engine::getVKContext(),
 		meshData.vertices.size(),
-		vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
+		vertexBufferUsage,
 		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	VertexData* vertexBufferPtr = _vertexBuffer->map();
 	std::copy(meshData.vertices.begin(), meshData.vertices.end(), vertexBufferPtr);
 	_vertexBuffer->unmap();
 	
+	vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer;
+	if (Engine::getVKContext().isRayTracingSupported())
+	{
+		indexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+	}
 	_indexBuffer = VKBuffer<uint32_t>::create(
 		Engine::getVKContext(),
 		meshData.indices.size(),
-		vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
+		indexBufferUsage,
 		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	uint32_t* indexBufferPtr = _indexBuffer->map();
 	std::copy(meshData.indices.begin(), meshData.indices.end(), indexBufferPtr);
 	_indexBuffer->unmap();
 	
-	VKBottomLevelAccelerationStructureBuildInfo buildInfo{
-		.vertexBuffer = _vertexBuffer,
-		.vertexFormat = vk::Format::eR32G32B32Sfloat,
-		.vertexStride = sizeof(VertexData),
-		.indexBuffer = _indexBuffer,
-		.indexType = vk::IndexType::eUint32
-	};
-	
-	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
-	
-	VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(
-		Engine::getVKContext(),
-		buildSizesInfo.accelerationStructureSize,
-		vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
-	
-	_accelerationStructure = VKAccelerationStructure::create(
-		Engine::getVKContext(),
-		vk::AccelerationStructureTypeKHR::eBottomLevel,
-		buildSizesInfo.accelerationStructureSize,
-		backingBuffer);
-	
-	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-		{
-			VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(
-				Engine::getVKContext(),
-				buildSizesInfo.buildScratchSize,
-				vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
-				vk::MemoryPropertyFlagBits::eDeviceLocal);
-			
-			commandBuffer->buildBottomLevelAccelerationStructure(_accelerationStructure, scratchBuffer, buildInfo);
-		});
+	if (Engine::getVKContext().isRayTracingSupported())
+	{
+		VKBottomLevelAccelerationStructureBuildInfo buildInfo{
+			.vertexBuffer = _vertexBuffer,
+			.vertexFormat = vk::Format::eR32G32B32Sfloat,
+			.vertexStride = sizeof(VertexData),
+			.indexBuffer = _indexBuffer,
+			.indexType = vk::IndexType::eUint32
+		};
+		
+		vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
+		
+		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(
+			Engine::getVKContext(),
+			buildSizesInfo.accelerationStructureSize,
+			vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_accelerationStructure = VKAccelerationStructure::create(
+			Engine::getVKContext(),
+			vk::AccelerationStructureTypeKHR::eBottomLevel,
+			buildSizesInfo.accelerationStructureSize,
+			backingBuffer);
+		
+		Engine::getVKContext().executeImmediate(
+			[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+			{
+				VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(
+					Engine::getVKContext(),
+					buildSizesInfo.buildScratchSize,
+					vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
+					vk::MemoryPropertyFlagBits::eDeviceLocal);
+				
+				commandBuffer->buildBottomLevelAccelerationStructure(_accelerationStructure, scratchBuffer, buildInfo);
+			});
+	}
 
 	_loaded = true;
 	Logger::info(std::format("Mesh {} loaded", _signature.path));

@@ -6,6 +6,7 @@
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Helper/ImGuiHelper.h"
+#include "Cyph3D/VKObject/VKContext.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -48,14 +49,17 @@ void UIMisc::show()
 				Engine::getScene().setSkyboxRotation(skyboxRotation);
 			}
 		}
-
-		ImGui::Separator();
-
-		ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
-
-		if (ImGui::Button("Render to file"))
+		
+		if (Engine::getVKContext().isRayTracingSupported())
 		{
-			UIViewport::renderToFile(_resolution);
+			ImGui::Separator();
+			
+			ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
+			
+			if (ImGui::Button("Render to file"))
+			{
+				UIViewport::renderToFile(_resolution);
+			}
 		}
 
 		ImGui::Separator();

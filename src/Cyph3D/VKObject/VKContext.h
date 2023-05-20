@@ -8,6 +8,7 @@
 #include <functional>
 #include <filesystem>
 #include <glm/glm.hpp>
+#include <unordered_set>
 
 class VKQueue;
 class VKCommandBuffer;
@@ -38,16 +39,14 @@ public:
 	const vk::PhysicalDeviceProperties& getProperties() const;
 	const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& getRayTracingPipelineProperties() const;
 	const vk::PhysicalDeviceDescriptorIndexingProperties& getDescriptorIndexingProperties() const;
+	
+	bool isRayTracingSupported() const;
 
 private:
 	struct HelperData;
 	
 	int _concurrentFrameCount;
 	int _currentConcurrentFrame = 0;
-	
-	std::vector<const char*> _instanceExtensions;
-	std::vector<const char*> _layers;
-	std::vector<const char*> _deviceExtensions;
 	
 	vk::Instance _instance;
 	
@@ -64,24 +63,15 @@ private:
 	vk::PhysicalDeviceRayTracingPipelinePropertiesKHR _rayTracingPipelineProperties;
 	vk::PhysicalDeviceDescriptorIndexingProperties _descriptorIndexingProperties;
 	
+	bool _rayTracingSupported;
+	
 	explicit VKContext(int concurrentFrameCount);
 	
-	int calculateDeviceScore(const vk::PhysicalDevice& device) const;
-	bool checkDeviceExtensionSupport(const vk::PhysicalDevice& device) const;
-	
-	void fillInstanceExtensions();
-	void fillLayers();
-	void fillDeviceExtensions();
-	
-	void checkInstanceExtensionSupport();
-	void checkLayerSupport();
-	
-	void createInstance();
+	void createInstance(const std::vector<const char*>& layers, const std::vector<const char*>& extensions);
 	
 	void createMessenger();
-	void selectPhysicalDevice();
 	uint32_t findSuitableQueueFamily();
-	void createLogicalDevice();
+	void createLogicalDevice(const std::vector<const char*>& layers, const std::vector<const char*>& extensions);
 	
 	void createVmaAllocator();
 	

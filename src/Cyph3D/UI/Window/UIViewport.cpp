@@ -264,6 +264,11 @@ void UIViewport::drawHeader()
 	{
 		for (UIViewport::RendererType sceneRendererType : magic_enum::enum_values<UIViewport::RendererType>())
 		{
+			if (sceneRendererType == RendererType::Raytracing && !Engine::getVKContext().isRayTracingSupported())
+			{
+				continue;
+			}
+			
 			const bool is_selected = (sceneRendererType == _sceneRendererType);
 			if (ImGui::Selectable(magic_enum::enum_name(sceneRendererType).data(), is_selected))
 			{
