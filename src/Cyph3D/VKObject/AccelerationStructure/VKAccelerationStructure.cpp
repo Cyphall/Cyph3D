@@ -27,6 +27,11 @@ VKAccelerationStructure::VKAccelerationStructure(
 	const VKPtr<VKBufferBase>& backingBuffer):
 	VKObject(context), _type(type)
 {
+	if (!_context.isRayTracingSupported())
+	{
+		throw;
+	}
+	
 	vk::AccelerationStructureCreateInfoKHR accelerationStructureCreateInfo;
 	accelerationStructureCreateInfo.createFlags = {};
 	accelerationStructureCreateInfo.buffer = backingBuffer->getHandle();

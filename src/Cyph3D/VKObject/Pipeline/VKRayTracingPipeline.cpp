@@ -17,6 +17,11 @@ VKDynamic<VKRayTracingPipeline> VKRayTracingPipeline::createDynamic(VKContext& c
 VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipelineInfo& info):
 	VKPipeline(context), _info(info)
 {
+	if (!_context.isRayTracingSupported())
+	{
+		throw;
+	}
+	
 	std::vector<VKPtr<VKShader>> shaders;
 	std::vector<vk::PipelineShaderStageCreateInfo> shadersStagesCreateInfos;
 	std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shadersGroupsCreateInfos;
