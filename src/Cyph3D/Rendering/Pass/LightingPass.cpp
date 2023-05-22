@@ -197,6 +197,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	PushConstantData pushConstantData{};
 	pushConstantData.viewProjectionInv = glm::inverse(input.camera.getProjection() * input.camera.getView());
 	pushConstantData.viewPos = input.camera.getPosition();
+	pushConstantData.frameIndex = _frameIndex;
 	commandBuffer->pushConstants(pushConstantData);
 	
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
@@ -259,6 +260,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->unbindPipeline();
 	
 	commandBuffer->endRendering();
+	
+	_frameIndex++;
 	
 	return {
 		.rawRenderImageView = _rawRenderImageView.getVKPtr(),

@@ -77,6 +77,7 @@ layout(push_constant) uniform constants
 {
 	mat4 u_viewProjectionInv;
 	vec3 u_viewPos;
+	uint u_frameIndex;
 };
 
 /* ------ outputs ------ */
@@ -88,7 +89,7 @@ float getDepth(vec2 texCoords);
 vec2 POM(vec2 texCoords, vec3 viewDir);
 
 vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi);
-float InterleavedGradientNoise(vec2 position_screen);
+vec4 getRandom();
 
 float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal);
 float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal);
@@ -278,10 +279,16 @@ vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
 	return vec2(r * cosine, r * sine);
 }
 
-float InterleavedGradientNoise(vec2 position_screen)
+vec4 getRandom()
 {
-	vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
-	return fract(magic.z * fract(dot(position_screen, magic.xy)));
+	uvec4 v = uvec4(uvec2(gl_FragCoord.xy), u_frameIndex, 0);
+	
+	v = v * 1664525u + 1013904223u;
+	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
+	v ^= v >> 16u;
+	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
+	
+	return clamp(v * (1.0 / float(0xffffffffu)), 0.0, 1.0);
 }
 
 vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelSize_WS, float samplingRadius)
@@ -329,7 +336,7 @@ float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 	float fUpTexelDepthDelta = vUpTexelDepthRatio.x * vShadowTexDDX.z + vUpTexelDepthRatio.y * vShadowTexDDY.z;
 	float fRightTexelDepthDelta = vRightTexelDepthRatio.x * vShadowTexDDX.z + vRightTexelDepthRatio.y * vShadowTexDDY.z;
 	
-	float phi = InterleavedGradientNoise(gl_FragCoord.xy) * TWO_PI;
+	float phi = getRandom().x * TWO_PI;
 	
 	const float bias = 0.0002;
 	const int sampleCount = 16;
@@ -378,7 +385,7 @@ float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 	
 	const float bias = 0.0002;
 	float samplingRadiusNormalized = samplingRadius * u_pointLightUniforms[lightIndex].maxTexelSizeAtUnitDistance;
-	float phi = InterleavedGradientNoise(gl_FragCoord.xy) * TWO_PI;
+	float phi = getRandom().x * TWO_PI;
 	
 	float shadow = 0.0;
 	

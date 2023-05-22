@@ -74,6 +74,7 @@ private:
 	{
 		GLSL_mat4 viewProjectionInv;
 		GLSL_vec3 viewPos;
+		GLSL_uint frameIndex;
 	};
 	
 	VKDynamic<VKResizableBuffer<DirectionalLightUniforms>> _directionalLightsUniforms;
@@ -98,6 +99,8 @@ private:
 	VKDynamic<VKImageView> _rawRenderImageView;
 	VKDynamic<VKImage> _objectIndexImage;
 	VKDynamic<VKImageView> _objectIndexImageView;
+	
+	uint32_t _frameIndex = 0;
 	
 	LightingPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input) override;
 	void onResize() override;
