@@ -408,7 +408,8 @@ void SkyboxAsset::onPathChange()
 			_yposPath.value(),
 			_ynegPath.value(),
 			_znegPath.value(),
-			_zposPath.value()
+			_zposPath.value(),
+			ImageType::ColorSrgb
 		);
 	}
 	else

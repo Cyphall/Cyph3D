@@ -9,17 +9,19 @@
 #include "Cyph3D/Asset/AssetManager.h"
 
 #include <format>
+#include <magic_enum.hpp>
 
 CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
-	Logger::info(std::format("Loading cubemap (xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {})",
+	Logger::info(std::format("Loading cubemap (xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {}) with type {}",
 		_signature.xposPath,
 		_signature.xnegPath,
 		_signature.yposPath,
 		_signature.ynegPath,
 		_signature.zposPath,
-		_signature.znegPath));
+		_signature.znegPath,
+		magic_enum::enum_name(_signature.type)));
 	_manager.addMainThreadTask(&CubemapAsset::load_step1_mt, this);
 }
 
@@ -51,7 +53,7 @@ bool CubemapAsset::load_step1_mt()
 	std::array<ImageData, 6> imageDataList;
 	for (uint32_t i = 0; i < 6; i++)
 	{
-		imageDataList[i] = _manager.readImageData(paths[i].get(), ImageType::ColorSrgb);
+		imageDataList[i] = _manager.readImageData(paths[i].get(), _signature.type);
 		
 		if (i == 0)
 		{
@@ -141,13 +143,14 @@ bool CubemapAsset::load_step1_mt()
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getCubemapSampler());
 
 	_loaded = true;
-	Logger::info(std::format("Cubemap (xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {}) loaded",
+	Logger::info(std::format("Cubemap (xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {}) with type {} loaded",
 		_signature.xposPath,
 		_signature.xnegPath,
 		_signature.yposPath,
 		_signature.ynegPath,
 		_signature.zposPath,
-		_signature.znegPath));
+		_signature.znegPath,
+		magic_enum::enum_name(_signature.type)));
 
 	return true;
 }

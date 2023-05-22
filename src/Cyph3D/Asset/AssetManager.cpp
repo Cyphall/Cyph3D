@@ -98,7 +98,7 @@ TextureAsset* AssetManager::loadTexture(std::string_view path, ImageType type)
 	return it->second.get();
 }
 
-CubemapAsset* AssetManager::loadCubemap(std::string_view xposPath, std::string_view xnegPath, std::string_view yposPath, std::string_view ynegPath, std::string_view zposPath, std::string_view znegPath)
+CubemapAsset* AssetManager::loadCubemap(std::string_view xposPath, std::string_view xnegPath, std::string_view yposPath, std::string_view ynegPath, std::string_view zposPath, std::string_view znegPath, ImageType type)
 {
 	CubemapAssetSignature signature;
 	signature.xposPath = xposPath;
@@ -107,6 +107,7 @@ CubemapAsset* AssetManager::loadCubemap(std::string_view xposPath, std::string_v
 	signature.ynegPath = ynegPath;
 	signature.zposPath = zposPath;
 	signature.znegPath = znegPath;
+	signature.type = type;
 
 	auto it = _cubemaps.find(signature);
 	if (it == _cubemaps.end())
