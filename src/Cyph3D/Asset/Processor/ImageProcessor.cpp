@@ -20,7 +20,7 @@ static void writeProcessedImage(const std::filesystem::path& path, const ImageDa
 	std::filesystem::create_directories(path.parent_path());
 	std::ofstream file = FileHelper::openFileForWriting(path);
 
-	uint8_t version = 3;
+	uint8_t version = 4;
 	FileHelper::write(file, &version);
 	
 	FileHelper::write(file, &imageData.format);
@@ -43,7 +43,7 @@ static bool readProcessedImage(const std::filesystem::path& path, ImageData& ima
 	uint8_t version;
 	FileHelper::read(file, &version);
 
-	if (version != 3)
+	if (version != 4)
 	{
 		return false;
 	}
@@ -330,26 +330,30 @@ ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format reques
 static ImageData processImage(const std::filesystem::path& input, const std::filesystem::path& output, ImageType type)
 {
 	StbImage::Channels requiredChannels;
-	StbImage::BitDepth maxBitDepth;
+	StbImage::BitDepthFlags supportedBitDepth;
 	switch (type)
 	{
 		case ImageType::ColorSrgb:
 			requiredChannels = StbImage::Channels::eRedGreenBlueAlpha;
-			maxBitDepth = StbImage::BitDepth::e8;
+			supportedBitDepth = StbImage::BitDepthFlags::e8;
 			break;
 		case ImageType::NormalMap:
 			requiredChannels = StbImage::Channels::eRedGreenBlue;
-			maxBitDepth = StbImage::BitDepth::e8;
+			supportedBitDepth = StbImage::BitDepthFlags::e8;
 			break;
 		case ImageType::Grayscale:
 			requiredChannels = StbImage::Channels::eGrey;
-			maxBitDepth = StbImage::BitDepth::e8;
+			supportedBitDepth = StbImage::BitDepthFlags::e8;
+			break;
+		case ImageType::Skybox:
+			requiredChannels = StbImage::Channels::eRedGreenBlueAlpha;
+			supportedBitDepth = StbImage::BitDepthFlags::e8 | StbImage::BitDepthFlags::e32;
 			break;
 		default:
 			throw;
 	}
 	
-	StbImage image(input, requiredChannels, maxBitDepth);
+	StbImage image(input, requiredChannels, supportedBitDepth);
 
 	if (!image.isValid())
 	{
@@ -393,6 +397,21 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 					throw;
 			}
 			break;
+		case ImageType::Skybox:
+			switch (image.getBitsPerChannel())
+			{
+				case 8:
+					mipmapGenFormat = vk::Format::eR8G8B8A8Srgb;
+					compressionFormat = vk::Format::eBc7SrgbBlock;
+					break;
+				case 32:
+					mipmapGenFormat = vk::Format::eR32G32B32A32Sfloat;
+					compressionFormat = vk::Format::eUndefined;
+					break;
+				default:
+					throw;
+			}
+			break;
 		default:
 			throw;
 	}
@@ -402,24 +421,28 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 	switch (type)
 	{
 		case ImageType::ColorSrgb:
+		case ImageType::Grayscale:
+		case ImageType::Skybox:
 			data = {image.getPtr(), image.getByteSize()};
 			break;
 		case ImageType::NormalMap:
 			convertedData = convertRgbToRg({image.getPtr(), image.getByteSize()}, 1);
 			data = convertedData;
 			break;
-		case ImageType::Grayscale:
-			data = {image.getPtr(), image.getByteSize()};
-			break;
+		default:
+			throw;
 	}
 	
-	ImageData mipmappedImageData = genMipmaps(mipmapGenFormat, image.getSize(), data);
+	ImageData imageData = genMipmaps(mipmapGenFormat, image.getSize(), data);
 	
-	ImageData compressedImageData = compressTexture(mipmappedImageData,	compressionFormat);
+	if (compressionFormat != vk::Format::eUndefined)
+	{
+		imageData = compressTexture(imageData,	compressionFormat);
+	}
 	
-	writeProcessedImage(output, compressedImageData);
+	writeProcessedImage(output, imageData);
 	
-	return compressedImageData;
+	return imageData;
 }
 
 ImageData ImageProcessor::readImageData(std::string_view path, ImageType type, std::string_view cachePath)

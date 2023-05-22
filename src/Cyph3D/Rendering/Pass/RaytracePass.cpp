@@ -335,7 +335,7 @@ void RaytracePass::createImages()
 void RaytracePass::createAndLoadBlueNoise()
 {
 	std::filesystem::path path = FileHelper::getAssetDirectoryPath() / std::format("shaderData/blue_noise.png");
-	StbImage image(path, StbImage::Channels::eGrey, StbImage::BitDepth::e16);
+	StbImage image(path, StbImage::Channels::eGrey, StbImage::BitDepthFlags::e16);
 	
 	if (!image.isValid())
 	{

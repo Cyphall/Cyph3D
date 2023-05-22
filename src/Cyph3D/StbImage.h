@@ -18,14 +18,14 @@ public:
 		eRedGreenBlueAlpha
 	};
 	
-	enum class BitDepth
+	enum class BitDepthFlags
 	{
-		e8,
-		e16,
-		e32
+		e8 = 1 << 0,
+		e16 = 1 << 1,
+		e32 = 1 << 2
 	};
 	
-	explicit StbImage(const std::filesystem::path& path, Channels desiredChannels = Channels::eAny, BitDepth maxBitDepth = BitDepth::e32);
+	explicit StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepthFlags acceptedBitDepths);
 	
 	const std::byte* getPtr() const;
 	uint32_t getBitsPerChannel() const;
@@ -44,3 +44,13 @@ private:
 	uint32_t _channelCount = 0;
 	glm::uvec2 _size = {0, 0};
 };
+
+inline StbImage::BitDepthFlags operator|(StbImage::BitDepthFlags a, StbImage::BitDepthFlags b)
+{
+	return static_cast<StbImage::BitDepthFlags>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline StbImage::BitDepthFlags operator&(StbImage::BitDepthFlags a, StbImage::BitDepthFlags b)
+{
+	return static_cast<StbImage::BitDepthFlags>(static_cast<int>(a) & static_cast<int>(b));
+}

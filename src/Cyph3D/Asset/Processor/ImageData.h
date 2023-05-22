@@ -9,7 +9,8 @@ enum class ImageType
 {
 	ColorSrgb,
 	NormalMap,
-	Grayscale
+	Grayscale,
+	Skybox
 };
 
 struct ImageLevel

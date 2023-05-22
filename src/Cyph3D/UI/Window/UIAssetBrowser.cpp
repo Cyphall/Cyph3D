@@ -77,7 +77,7 @@ public:
 						extension.begin(),
 						[](char c){ return std::tolower(c); });
 					
-					if (extension == ".png" || extension == ".jpg")
+					if (extension == ".png" || extension == ".jpg" || extension == ".hdr")
 					{
 						entryType = EntryType::Image;
 					}

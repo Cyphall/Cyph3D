@@ -3,7 +3,7 @@
 #include <stb_image.h>
 #include <string>
 
-StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepth maxBitDepth):
+StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepthFlags acceptedBitDepths):
 _data8bit(nullptr, stbi_image_free),
 _data16bit(nullptr, stbi_image_free),
 _data32bit(nullptr, stbi_image_free)
@@ -18,17 +18,17 @@ _data32bit(nullptr, stbi_image_free)
 	bool is16Bit = stbi_is_16_bit(pathStr.c_str());
 	bool is8Bit = !is32Bit && !is16Bit;
 	
-	if (maxBitDepth >= BitDepth::e32 && is32Bit)
+	if ((acceptedBitDepths & BitDepthFlags::e32) == BitDepthFlags::e32 && is32Bit)
 	{
 		_bitPerChannel = 32;
 		_data32bit.reset(stbi_loadf(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
 	}
-	else if (maxBitDepth >= BitDepth::e16 && is16Bit)
+	else if ((acceptedBitDepths & BitDepthFlags::e16) == BitDepthFlags::e16 && is16Bit)
 	{
 		_bitPerChannel = 16;
 		_data16bit.reset(stbi_load_16(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
 	}
-	else if (maxBitDepth >= BitDepth::e8 && (is8Bit || is16Bit))
+	else if ((acceptedBitDepths & BitDepthFlags::e8) == BitDepthFlags::e8 && (is8Bit || is16Bit))
 	{
 		_bitPerChannel = 8;
 		_data8bit.reset(stbi_load(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
