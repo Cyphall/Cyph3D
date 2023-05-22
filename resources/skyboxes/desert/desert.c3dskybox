@@ -1,1 +1,1 @@
-{"version":2,"pos_x":"skyboxes/desert/right.png","neg_x":"skyboxes/desert/left.png","pos_y":"skyboxes/desert/up.png","neg_y":"skyboxes/desert/down.png","pos_z":"skyboxes/desert/back.png","neg_z":"skyboxes/desert/front.png"}
+{"version":2,"pos_x":"skyboxes/desert/px.hdr","neg_x":"skyboxes/desert/nx.hdr","pos_y":"skyboxes/desert/py.hdr","neg_y":"skyboxes/desert/ny.hdr","pos_z":"skyboxes/desert/pz.hdr","neg_z":"skyboxes/desert/nz.hdr"}
