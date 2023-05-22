@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Cyph3D/GLSL_types.h"
-#include "Cyph3D/Rendering/PostProcessingEffect/PostProcessingEffect.h"
+#include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class Camera;
 class VKDescriptorSetLayout;
@@ -11,10 +11,20 @@ class VKSampler;
 class VKImage;
 class VKImageView;
 
-class BloomEffect : public PostProcessingEffect
+struct BloomPassInput
+{
+	const VKPtr<VKImageView>& inputImageView;
+};
+
+struct BloomPassOutput
+{
+	const VKPtr<VKImageView>& outputImageView;
+};
+
+class BloomPass : public RenderPass<BloomPassInput, BloomPassOutput>
 {
 public:
-	explicit BloomEffect(glm::uvec2 size);
+	explicit BloomPass(glm::uvec2 size);
 
 private:
 	
@@ -80,6 +90,6 @@ private:
 	void createImages();
 	void createSamplers();
 	
-	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera) override;
+	BloomPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, BloomPassInput& input) override;
 	void onResize() override;
 };

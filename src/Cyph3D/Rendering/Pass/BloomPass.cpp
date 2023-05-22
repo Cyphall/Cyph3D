@@ -1,4 +1,4 @@
-#include "BloomEffect.h"
+#include "BloomPass.h"
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
@@ -17,8 +17,8 @@
 static const float BLOOM_RADIUS = 0.85f;
 static const float BLOOM_STRENGTH = 0.5f;
 
-BloomEffect::BloomEffect(glm::uvec2 size):
-	PostProcessingEffect("Bloom", size)
+BloomPass::BloomPass(glm::uvec2 size):
+	RenderPass(size, "Bloom pass")
 {
 	createDescriptorSetLayouts();
 	createPipelineLayouts();
@@ -27,13 +27,13 @@ BloomEffect::BloomEffect(glm::uvec2 size):
 	createSamplers();
 }
 
-const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
+BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, BloomPassInput& input)
 {
-	// copy input image level 0 to work image level 0
+	// copy inputImageView image level 0 to work image level 0
 	commandBuffer->pushDebugGroup("copyImageBaseLevel");
 	{
 		commandBuffer->imageMemoryBarrier(
-			input->getImage(),
+			input.inputImageView->getImage(),
 			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 			vk::AccessFlagBits2::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits2::eCopy,
@@ -52,7 +52,7 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 			0,
 			0);
 		
-		commandBuffer->copyImageToImage(input->getImage(), 0, 0, _workImage.getVKPtr(), 0, 0);
+		commandBuffer->copyImageToImage(input.inputImageView->getImage(), 0, 0, _workImage.getVKPtr(), 0, 0);
 		
 		commandBuffer->imageMemoryBarrier(
 			_workImage.getVKPtr(),
@@ -126,11 +126,11 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 		commandBuffer->popDebugGroup();
 	}
 
-	// compose input image level 0 and work image level 0 to output image level 0
+	// compose inputImageView image level 0 and work image level 0 to outputImageView image level 0
 	commandBuffer->pushDebugGroup("compose");
 	{
 		commandBuffer->imageMemoryBarrier(
-			input->getImage(),
+			input.inputImageView->getImage(),
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferRead,
 			vk::PipelineStageFlagBits2::eFragmentShader,
@@ -149,30 +149,22 @@ const VKPtr<VKImageView>& BloomEffect::onRender(const VKPtr<VKCommandBuffer>& co
 			0,
 			0);
 		
-		compose(input, commandBuffer);
-		
-		commandBuffer->imageMemoryBarrier(
-			_outputImage.getVKPtr(),
-			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-			vk::AccessFlagBits2::eColorAttachmentWrite,
-			vk::PipelineStageFlagBits2::eFragmentShader,
-			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal,
-			0,
-			0);
+		compose(input.inputImageView, commandBuffer);
 	}
 	commandBuffer->popDebugGroup();
 
-	return _outputImageView.getVKPtr();
+	return {
+		_outputImageView.getVKPtr()
+	};
 }
 
-void BloomEffect::onResize()
+void BloomPass::onResize()
 {
 	_workImageViews.clear();
 	createImages();
 }
 
-void BloomEffect::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void BloomPass::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	vk::RenderingAttachmentInfo colorAttachment;
 	colorAttachment.imageView = _workImageViews[dstLevel]->getHandle();
@@ -228,7 +220,7 @@ void BloomEffect::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int ds
 	commandBuffer->endRendering();
 }
 
-void BloomEffect::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	vk::RenderingAttachmentInfo colorAttachment;
 	colorAttachment.imageView = _workImageViews[dstLevel]->getHandle();
@@ -285,7 +277,7 @@ void BloomEffect::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, i
 	commandBuffer->endRendering();
 }
 
-void BloomEffect::compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommandBuffer>& commandBuffer)
+void BloomPass::compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommandBuffer>& commandBuffer)
 {
 	vk::RenderingAttachmentInfo colorAttachment;
 	colorAttachment.imageView = _outputImageView->getHandle();
@@ -339,7 +331,7 @@ void BloomEffect::compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommand
 	commandBuffer->endRendering();
 }
 
-void BloomEffect::createDescriptorSetLayouts()
+void BloomPass::createDescriptorSetLayouts()
 {
 	{
 		VKDescriptorSetLayoutInfo info(true);
@@ -364,7 +356,7 @@ void BloomEffect::createDescriptorSetLayouts()
 	}
 }
 
-void BloomEffect::createPipelineLayouts()
+void BloomPass::createPipelineLayouts()
 {
 	{
 		VKPipelineLayoutInfo info;
@@ -391,7 +383,7 @@ void BloomEffect::createPipelineLayouts()
 	}
 }
 
-void BloomEffect::createPipelines()
+void BloomPass::createPipelines()
 {
 	{
 		VKGraphicsPipelineInfo info(
@@ -448,7 +440,7 @@ void BloomEffect::createPipelines()
 	}
 }
 
-void BloomEffect::createImages()
+void BloomPass::createImages()
 {
 	{
 		_workImage = VKImage::createDynamic(
@@ -498,7 +490,7 @@ void BloomEffect::createImages()
 	}
 }
 
-void BloomEffect::createSamplers()
+void BloomPass::createSamplers()
 {
 	{
 		vk::SamplerCreateInfo createInfo;

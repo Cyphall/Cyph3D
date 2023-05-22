@@ -1,7 +1,6 @@
-#include "ExposureEffect.h"
+#include "ToneMappingPass.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
@@ -11,10 +10,12 @@
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
-#include "Cyph3D/Scene/Camera.h"
 
-ExposureEffect::ExposureEffect(glm::uvec2 size):
-	PostProcessingEffect("Exposure", size)
+const vk::Format LINEAR_OUTPUT_FORMAT = vk::Format::eR8G8B8A8Unorm;
+const vk::Format SRGB_OUTPUT_FORMAT = vk::Format::eR8G8B8A8Srgb;
+
+ToneMappingPass::ToneMappingPass(glm::uvec2 size):
+	RenderPass(size, "ToneMapping pass")
 {
 	createDescriptorSetLayout();
 	createPipelineLayout();
@@ -23,7 +24,7 @@ ExposureEffect::ExposureEffect(glm::uvec2 size):
 	createImage();
 }
 
-const VKPtr<VKImageView>& ExposureEffect::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& input, Camera& camera)
+ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		_outputImage.getVKPtr(),
@@ -36,7 +37,7 @@ const VKPtr<VKImageView>& ExposureEffect::onRender(const VKPtr<VKCommandBuffer>&
 		0);
 	
 	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = _outputImageView->getHandle();
+	colorAttachment.imageView = _outputSrgbImageView->getHandle();
 	colorAttachment.imageLayout = _outputImage->getLayout(0, 0);
 	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	colorAttachment.resolveImageView = nullptr;
@@ -73,11 +74,7 @@ const VKPtr<VKImageView>& ExposureEffect::onRender(const VKPtr<VKCommandBuffer>&
 	scissor.size = _size;
 	commandBuffer->setScissor(scissor);
 	
-	commandBuffer->pushDescriptor(0, 0, input, _inputSampler);
-	
-	PushConstantData pushConstantData{};
-	pushConstantData.exposure = camera.getExposure();
-	commandBuffer->pushConstants(pushConstantData);
+	commandBuffer->pushDescriptor(0, 0, input.inputImageView, _inputSampler);
 	
 	commandBuffer->draw(3, 0);
 	
@@ -85,25 +82,17 @@ const VKPtr<VKImageView>& ExposureEffect::onRender(const VKPtr<VKCommandBuffer>&
 	
 	commandBuffer->endRendering();
 	
-	commandBuffer->imageMemoryBarrier(
-		_outputImage.getVKPtr(),
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal,
-		0,
-		0);
-	
-	return _outputImageView.getVKPtr();
+	return {
+		_outputLinearImageView.getVKPtr()
+	};
 }
 
-void ExposureEffect::onResize()
+void ToneMappingPass::onResize()
 {
 	createImage();
 }
 
-void ExposureEffect::createDescriptorSetLayout()
+void ToneMappingPass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
@@ -111,16 +100,15 @@ void ExposureEffect::createDescriptorSetLayout()
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void ExposureEffect::createPipelineLayout()
+void ToneMappingPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<PushConstantData>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void ExposureEffect::createPipeline()
+void ToneMappingPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
@@ -129,14 +117,14 @@ void ExposureEffect::createPipeline()
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise);
 	
-	info.setFragmentShader("resources/shaders/internal/post-processing/exposure/exposure.frag");
+	info.setFragmentShader("resources/shaders/internal/post-processing/tone mapping/tone mapping.frag");
 	
-	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
+	info.getPipelineAttachmentInfo().addColorAttachment(SRGB_OUTPUT_FORMAT);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void ExposureEffect::createSampler()
+void ToneMappingPass::createSampler()
 {
 	vk::SamplerCreateInfo createInfo;
 	createInfo.flags = {};
@@ -159,21 +147,33 @@ void ExposureEffect::createSampler()
 	_inputSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 }
 
-void ExposureEffect::createImage()
+void ToneMappingPass::createImage()
 {
 	_outputImage = VKImage::createDynamic(
 		Engine::getVKContext(),
-		SceneRenderer::HDR_COLOR_FORMAT,
+		SRGB_OUTPUT_FORMAT,
 		_size,
 		1,
 		1,
 		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
+		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
 		vk::ImageAspectFlagBits::eColor,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+		vk::MemoryPropertyFlagBits::eDeviceLocal,
+		{},
+		false,
+		{LINEAR_OUTPUT_FORMAT, SRGB_OUTPUT_FORMAT});
 	
-	_outputImageView = VKImageView::createDynamic(
+	_outputLinearImageView = VKImageView::createDynamic(
 		Engine::getVKContext(),
 		_outputImage,
-		vk::ImageViewType::e2D);
+		vk::ImageViewType::e2D,
+		std::nullopt,
+		LINEAR_OUTPUT_FORMAT);
+	
+	_outputSrgbImageView = VKImageView::createDynamic(
+		Engine::getVKContext(),
+		_outputImage,
+		vk::ImageViewType::e2D,
+		std::nullopt,
+		SRGB_OUTPUT_FORMAT);
 }

@@ -3,11 +3,16 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
+#include "Cyph3D/Rendering/Pass/BloomPass.h"
+#include "Cyph3D/Rendering/Pass/ExposurePass.h"
+#include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 
 RaytracingSceneRenderer::RaytracingSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Raytracing SceneRenderer", size),
 	_raytracePass(size),
-	_postProcessingPass(size)
+	_exposurePass(size),
+	_bloomPass(size),
+	_toneMappingPass(size)
 {
 	_objectIndexBuffer = VKBuffer<int32_t>::create(
 		Engine::getVKContext(),
@@ -71,18 +76,62 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 		0,
 		0);
 	
-	PostProcessingPassInput postProcessingPassInput{
-		.rawRenderImageView = raytracePassOutput.rawRenderImageView,
+	ExposurePassInput exposurePassInput{
+		.inputImageView = raytracePassOutput.rawRenderImageView,
 		.camera = camera
 	};
 	
-	PostProcessingPassOutput postProcessingPassOutput = _postProcessingPass.render(commandBuffer, postProcessingPassInput, _renderPerf);
+	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput, _renderPerf);
 	
-	return postProcessingPassOutput.postProcessedRenderImageView;
+	commandBuffer->imageMemoryBarrier(
+		exposurePassOutput.outputImageView->getImage(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		0,
+		0);
+	
+	BloomPassInput bloomPassInput{
+		.inputImageView = exposurePassOutput.outputImageView
+	};
+	
+	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput, _renderPerf);
+	
+	commandBuffer->imageMemoryBarrier(
+		bloomPassOutput.outputImageView->getImage(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		0,
+		0);
+	
+	ToneMappingPassInput toneMappingPassInput{
+		.inputImageView = bloomPassOutput.outputImageView
+	};
+	
+	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput, _renderPerf);
+	
+	commandBuffer->imageMemoryBarrier(
+		toneMappingPassOutput.outputImageView->getImage(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		0,
+		0);
+	
+	return toneMappingPassOutput.outputImageView;
 }
 
 void RaytracingSceneRenderer::onResize()
 {
 	_raytracePass.resize(_size);
-	_postProcessingPass.resize(_size);
+	_exposurePass.resize(_size);
+	_bloomPass.resize(_size);
+	_toneMappingPass.resize(_size);
 }

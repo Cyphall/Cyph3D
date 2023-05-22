@@ -2,7 +2,9 @@
 
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Rendering/Pass/RaytracePass.h"
-#include "Cyph3D/Rendering/Pass/PostProcessingPass.h"
+#include "Cyph3D/Rendering/Pass/ExposurePass.h"
+#include "Cyph3D/Rendering/Pass/BloomPass.h"
+#include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 
@@ -15,7 +17,9 @@ public:
 
 private:
 	RaytracePass _raytracePass;
-	PostProcessingPass _postProcessingPass;
+	ExposurePass _exposurePass;
+	BloomPass _bloomPass;
+	ToneMappingPass _toneMappingPass;
 	
 	VKPtr<VKBuffer<int32_t>> _objectIndexBuffer;
 	VKPtr<VKImageView> _objectIndexImageView;

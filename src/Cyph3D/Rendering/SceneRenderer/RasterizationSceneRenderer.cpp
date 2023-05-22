@@ -13,7 +13,9 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	_shadowMapPass(size),
 	_lightingPass(size),
 	_skyboxPass(size),
-	_postProcessingPass(size)
+	_exposurePass(size),
+	_bloomPass(size),
+	_toneMappingPass(size)
 {
 	_objectIndexBuffer = VKBuffer<int32_t>::create(
 		Engine::getVKContext(),
@@ -125,14 +127,56 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		0,
 		0);
 	
-	PostProcessingPassInput postProcessingPassInput{
-		.rawRenderImageView = lightingPassOutput.rawRenderImageView,
+	ExposurePassInput exposurePassInput{
+		.inputImageView = lightingPassOutput.rawRenderImageView,
 		.camera = camera
 	};
 	
-	PostProcessingPassOutput postProcessingPassOutput = _postProcessingPass.render(commandBuffer, postProcessingPassInput, _renderPerf);
+	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput, _renderPerf);
 	
-	return postProcessingPassOutput.postProcessedRenderImageView;
+	commandBuffer->imageMemoryBarrier(
+		exposurePassOutput.outputImageView->getImage(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		0,
+		0);
+	
+	BloomPassInput bloomPassInput{
+		.inputImageView = exposurePassOutput.outputImageView
+	};
+	
+	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput, _renderPerf);
+	
+	commandBuffer->imageMemoryBarrier(
+		bloomPassOutput.outputImageView->getImage(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		0,
+		0);
+	
+	ToneMappingPassInput toneMappingPassInput{
+		.inputImageView = bloomPassOutput.outputImageView
+	};
+	
+	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput, _renderPerf);
+	
+	commandBuffer->imageMemoryBarrier(
+		toneMappingPassOutput.outputImageView->getImage(),
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		0,
+		0);
+	
+	return toneMappingPassOutput.outputImageView;
 }
 
 Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
@@ -176,5 +220,7 @@ void RasterizationSceneRenderer::onResize()
 	_shadowMapPass.resize(_size);
 	_lightingPass.resize(_size);
 	_skyboxPass.resize(_size);
-	_postProcessingPass.resize(_size);
+	_exposurePass.resize(_size);
+	_bloomPass.resize(_size);
+	_toneMappingPass.resize(_size);
 }
