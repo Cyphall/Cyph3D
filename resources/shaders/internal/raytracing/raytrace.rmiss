@@ -25,7 +25,7 @@ layout(std430, set = 1, binding = 3) uniform uniforms
 	vec3 u_rayTR;
 	vec3 u_rayBL;
 	vec3 u_rayBR;
-	uvec2 u_blueNoiseSampleOffset;
+	uint u_frameIndex;
 	bool u_hasSkybox;
 	uint u_skyboxIndex;
 	mat4 u_skyboxRotation;

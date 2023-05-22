@@ -1,7 +1,6 @@
 #include "RaytracePass.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/StbImage.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
@@ -10,7 +9,6 @@
 #include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
-#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Helper/MathHelper.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
@@ -26,19 +24,6 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
-static double halton(int index, int base)
-{
-	double f = 1;
-	double r = 0;
-	while (index > 0)
-	{
-		f = f / base;
-		r = r + f * (index % base);
-		index = index / base;
-	}
-	return r;
-}
-
 RaytracePass::RaytracePass(const glm::uvec2& size):
 	RenderPass(size, "Raytrace pass")
 {
@@ -47,19 +32,6 @@ RaytracePass::RaytracePass(const glm::uvec2& size):
 	createPipelineLayout();
 	createPipeline();
 	createImages();
-	createAndLoadBlueNoise();
-	
-	_haltonSequenceBase2.resize(_blueNoiseImage->getSize(0).x);
-	for (int i = 0; i < _haltonSequenceBase2.size(); i++)
-	{
-		_haltonSequenceBase2[i] = static_cast<uint32_t>(halton(i, 2) * _blueNoiseImage->getSize(0).x);
-	}
-	
-	_haltonSequenceBase3.resize(_blueNoiseImage->getSize(0).x);
-	for (int i = 0; i < _haltonSequenceBase3.size(); i++)
-	{
-		_haltonSequenceBase3[i] = static_cast<uint32_t>(halton(i, 3) * _blueNoiseImage->getSize(0).x);
-	}
 }
 
 RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input)
@@ -165,8 +137,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	globalUniforms.cameraRayTR = input.camera.getCornerRays()[1];
 	globalUniforms.cameraRayBL = input.camera.getCornerRays()[2];
 	globalUniforms.cameraRayBR = input.camera.getCornerRays()[3];
-	globalUniforms.blueNoiseSampleOffset.x = _haltonSequenceBase2[_frameIndex % _blueNoiseImage->getSize(0).x];
-	globalUniforms.blueNoiseSampleOffset.y = _haltonSequenceBase3[(_frameIndex + _frameIndex / _blueNoiseImage->getSize(0).x) % _blueNoiseImage->getSize(0).x];
+	globalUniforms.frameIndex = _frameIndex;
 
 	SkyboxAsset* skybox = Engine::getScene().getSkybox();
 	if (skybox && skybox->isLoaded())
@@ -192,7 +163,6 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->pushDescriptor(1, 2, _objectIndexImageView.getVKPtr());
 	commandBuffer->pushDescriptor(1, 3, _globalUniforms.getVKPtr(), 0, 1);
 	commandBuffer->pushDescriptor(1, 4, _objectUniforms->getBuffer(), 0, actualObjectCountToBeDrawn);
-	commandBuffer->pushDescriptor(1, 5, _blueNoiseImageView);
 	
 	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getVKPtr());
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getVKPtr());
@@ -202,7 +172,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	commandBuffer->unbindPipeline();
 	
-	_frameIndex = (_frameIndex + 1) % (_blueNoiseImage->getSize(0).x * _blueNoiseImage->getSize(0).x);
+	_frameIndex++;
 	
 	return {
 		.rawRenderImageView = _rawRenderImageView.getVKPtr(),
@@ -267,7 +237,6 @@ void RaytracePass::createDescriptorSetLayout()
 	info.addBinding(vk::DescriptorType::eStorageImage, 1);
 	info.addBinding(vk::DescriptorType::eUniformBuffer, 1);
 	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
-	info.addBinding(vk::DescriptorType::eStorageImage, 1);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -330,67 +299,4 @@ void RaytracePass::createImages()
 			_objectIndexImage,
 			vk::ImageViewType::e2D);
 	}
-}
-
-void RaytracePass::createAndLoadBlueNoise()
-{
-	std::filesystem::path path = FileHelper::getAssetDirectoryPath() / std::format("shaderData/blue_noise.png");
-	StbImage image(path, StbImage::Channels::eGrey, StbImage::BitDepthFlags::e16);
-	
-	if (!image.isValid())
-	{
-		throw std::runtime_error(std::format("Unable to load image {} from disk", path.generic_string()));
-	}
-	
-	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
-		Engine::getVKContext(),
-		image.getByteSize(),
-		vk::BufferUsageFlagBits::eTransferSrc,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
-	
-	std::byte* ptr = stagingBuffer->map();
-	std::memcpy(ptr, image.getPtr(), image.getByteSize());
-	stagingBuffer->unmap();
-	
-	_blueNoiseImage = VKImage::create(
-		Engine::getVKContext(),
-		image.getBitsPerChannel() == 16 ? vk::Format::eR16Unorm : vk::Format::eR8Unorm,
-		image.getSize(),
-		1,
-		1,
-		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst,
-		vk::ImageAspectFlagBits::eColor,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
-	
-	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-		{
-			commandBuffer->imageMemoryBarrier(
-				_blueNoiseImage,
-				vk::PipelineStageFlagBits2::eNone,
-				vk::AccessFlagBits2::eNone,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
-				vk::ImageLayout::eTransferDstOptimal,
-				0,
-				0);
-			
-			commandBuffer->copyBufferToImage(stagingBuffer, 0, _blueNoiseImage, 0, 0);
-			
-			commandBuffer->imageMemoryBarrier(
-				_blueNoiseImage,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
-				vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-				vk::AccessFlagBits2::eShaderStorageRead,
-				vk::ImageLayout::eGeneral,
-				0,
-				0);
-		});
-	
-	_blueNoiseImageView = VKImageView::create(
-		Engine::getVKContext(),
-		_blueNoiseImage,
-		vk::ImageViewType::e2D);
 }

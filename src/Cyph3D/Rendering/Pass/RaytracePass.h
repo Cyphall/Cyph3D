@@ -42,7 +42,7 @@ private:
 		GLSL_vec3 cameraRayTR;
 		GLSL_vec3 cameraRayBL;
 		GLSL_vec3 cameraRayBR;
-		GLSL_uvec2 blueNoiseSampleOffset;
+		GLSL_uint frameIndex;
 		GLSL_bool hasSkybox;
 		GLSL_uint skyboxIndex;
 		GLSL_mat4 skyboxRotation;
@@ -75,9 +75,6 @@ private:
 	VKDynamic<VKResizableBuffer<std::byte>> _hitSBT;
 	
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
-	VKPtr<VKDescriptorSetLayout> _blueNoiseDescriptorSetLayout;
-	
-	VKPtr<VKDescriptorSet> _blueNoiseDescriptorSet;
 	
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKRayTracingPipeline> _pipeline;
@@ -86,12 +83,6 @@ private:
 	VKDynamic<VKImageView> _rawRenderImageView;
 	VKDynamic<VKImage> _objectIndexImage;
 	VKDynamic<VKImageView> _objectIndexImageView;
-	
-	VKPtr<VKImage> _blueNoiseImage;
-	VKPtr<VKImageView> _blueNoiseImageView;
-	
-	std::vector<uint32_t> _haltonSequenceBase2;
-	std::vector<uint32_t> _haltonSequenceBase3;
 	
 	uint32_t _frameIndex = 0;
 	
@@ -103,5 +94,4 @@ private:
 	void createPipelineLayout();
 	void createPipeline();
 	void createImages();
-	void createAndLoadBlueNoise();
 };
