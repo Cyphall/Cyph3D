@@ -122,7 +122,7 @@ void main()
 	
 	int objectIndex = -1;
 	
-	vec2 PS_rayPos = PS_pixelPos + 0.5;
+	vec2 PS_rayPos = PS_pixelPos + getRandom().xy;
 	vec2 UVS_rayPos = PS_rayPos / resolution;
 	
 	vec3 topRayDir = mix(u_rayTL, u_rayTR, UVS_rayPos.x);
