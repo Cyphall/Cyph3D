@@ -551,8 +551,12 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	deviceQueueCreateInfo.queueCount = 1;
 	deviceQueueCreateInfo.pQueuePriorities = &queuePriority;
 	
+	vk::PhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayoutFeatures;
+	scalarBlockLayoutFeatures.scalarBlockLayout = true;
+	
 	vk::PhysicalDeviceUniformBufferStandardLayoutFeatures uniformBufferStandardLayoutFeatures;
 	uniformBufferStandardLayoutFeatures.uniformBufferStandardLayout = true;
+	uniformBufferStandardLayoutFeatures.pNext = &scalarBlockLayoutFeatures;
 	
 	vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenance1Features;
 	rayTracingMaintenance1Features.rayTracingMaintenance1 = true;
