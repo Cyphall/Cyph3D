@@ -414,7 +414,7 @@ void BloomPass::createPipelines()
 			.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
 			.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
 			.colorBlendOp = vk::BlendOp::eAdd,
-			.srcAlphaBlendFactor = vk::BlendFactor::eSrcAlpha,
+			.srcAlphaBlendFactor = vk::BlendFactor::eOne,
 			.dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
 			.alphaBlendOp = vk::BlendOp::eAdd
 		};
