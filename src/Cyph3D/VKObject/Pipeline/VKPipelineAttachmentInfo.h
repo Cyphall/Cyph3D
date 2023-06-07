@@ -29,7 +29,6 @@ public:
 	bool hasDepthAttachment() const;
 	const DepthAttachmentInfo& getDepthAttachmentInfo() const;
 	void setDepthAttachment(vk::Format format, vk::CompareOp depthTestPassCondition, bool writeEnabled);
-	void unsetDepthAttachment();
 
 private:
 	std::vector<ColorAttachmentInfo> _colorAttachmentsInfos;

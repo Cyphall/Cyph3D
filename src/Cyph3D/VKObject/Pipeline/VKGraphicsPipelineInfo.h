@@ -41,22 +41,18 @@ public:
 	bool hasGeometryShader() const;
 	const std::filesystem::path& getGeometryShader() const;
 	void setGeometryShader(const std::filesystem::path& path);
-	void unsetGeometryShader();
 	
 	bool hasFragmentShader() const;
 	const std::filesystem::path& getFragmentShader() const;
 	void setFragmentShader(const std::filesystem::path& path);
-	void unsetFragmentShader();
 	
 	bool hasStaticViewport() const;
 	const VKPipelineViewport& getStaticViewport() const;
 	void setStaticViewport(const VKPipelineViewport& staticViewport);
-	void unsetStaticViewport();
 	
 	bool hasStaticScissor() const;
 	const VKPipelineScissor& getStaticScissor() const;
 	void setStaticScissor(const VKPipelineScissor& staticScissor);
-	void unsetStaticScissor();
 	
 private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;

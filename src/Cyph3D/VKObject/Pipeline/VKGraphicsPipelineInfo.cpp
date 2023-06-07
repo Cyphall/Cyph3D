@@ -75,11 +75,6 @@ void VKGraphicsPipelineInfo::setGeometryShader(const std::filesystem::path& path
 	_geometryShader = path;
 }
 
-void VKGraphicsPipelineInfo::unsetGeometryShader()
-{
-	_geometryShader = std::nullopt;
-}
-
 bool VKGraphicsPipelineInfo::hasFragmentShader() const
 {
 	return _fragmentShader.has_value();
@@ -93,11 +88,6 @@ const std::filesystem::path& VKGraphicsPipelineInfo::getFragmentShader() const
 void VKGraphicsPipelineInfo::setFragmentShader(const std::filesystem::path& path)
 {
 	_fragmentShader = path;
-}
-
-void VKGraphicsPipelineInfo::unsetFragmentShader()
-{
-	_fragmentShader = std::nullopt;
 }
 
 bool VKGraphicsPipelineInfo::hasStaticViewport() const
@@ -115,11 +105,6 @@ void VKGraphicsPipelineInfo::setStaticViewport(const VKPipelineViewport& staticV
 	_staticViewport = staticViewport;
 }
 
-void VKGraphicsPipelineInfo::unsetStaticViewport()
-{
-	_staticViewport = std::nullopt;
-}
-
 bool VKGraphicsPipelineInfo::hasStaticScissor() const
 {
 	return _staticScissor.has_value();
@@ -133,9 +118,4 @@ const VKPipelineScissor& VKGraphicsPipelineInfo::getStaticScissor() const
 void VKGraphicsPipelineInfo::setStaticScissor(const VKPipelineScissor& staticScissor)
 {
 	_staticScissor = staticScissor;
-}
-
-void VKGraphicsPipelineInfo::unsetStaticScissor()
-{
-	_staticScissor = std::nullopt;
 }

@@ -35,8 +35,3 @@ void VKPipelineAttachmentInfo::setDepthAttachment(vk::Format format, vk::Compare
 		.writeEnabled = writeEnabled
 	};
 }
-
-void VKPipelineAttachmentInfo::unsetDepthAttachment()
-{
-	_depthAttachmentInfo = std::nullopt;
-}
