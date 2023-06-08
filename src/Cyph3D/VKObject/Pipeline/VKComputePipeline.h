@@ -9,7 +9,6 @@ class VKComputePipeline : public VKPipeline
 {
 public:
 	static VKPtr<VKComputePipeline> create(VKContext& context, VKComputePipelineInfo& info);
-	static VKDynamic<VKComputePipeline> createDynamic(VKContext& context, VKComputePipelineInfo& info);
 	
 	~VKComputePipeline() override;
 	

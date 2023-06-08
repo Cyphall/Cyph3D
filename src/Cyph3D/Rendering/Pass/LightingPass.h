@@ -9,6 +9,7 @@ struct RenderRegistry;
 class Camera;
 class VKPipelineLayout;
 class VKGraphicsPipeline;
+class VKDescriptorSetLayout;
 class VKImage;
 class VKImageView;
 template<typename T>

@@ -6,8 +6,15 @@
 
 GpuPerfCounter::GpuPerfCounter()
 {
-	_queryBegin = VKTimestampQuery::createDynamic(Engine::getVKContext());
-	_queryEnd = VKTimestampQuery::createDynamic(Engine::getVKContext());
+	_queryBegin = VKDynamic<VKTimestampQuery>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKTimestampQuery::create(context);
+	});
+	
+	_queryEnd = VKDynamic<VKTimestampQuery>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKTimestampQuery::create(context);
+	});
 }
 
 GpuPerfCounter::~GpuPerfCounter()
@@ -17,12 +24,12 @@ GpuPerfCounter::~GpuPerfCounter()
 
 void GpuPerfCounter::start(const VKPtr<VKCommandBuffer>& commandBuffer)
 {
-	commandBuffer->insertTimestamp(_queryBegin.getVKPtr());
+	commandBuffer->insertTimestamp(_queryBegin.getCurrent());
 }
 
 void GpuPerfCounter::stop(const VKPtr<VKCommandBuffer>& commandBuffer)
 {
-	commandBuffer->insertTimestamp(_queryEnd.getVKPtr());
+	commandBuffer->insertTimestamp(_queryEnd.getCurrent());
 }
 
 double GpuPerfCounter::retrieve(const VKPtr<VKCommandBuffer>& commandBuffer)
@@ -48,11 +55,11 @@ double GpuPerfCounter::retrieve(const VKPtr<VKCommandBuffer>& commandBuffer)
 	
 	if (_queryBegin->isInserted())
 	{
-		commandBuffer->resetTimestamp(_queryBegin.getVKPtr());
+		commandBuffer->resetTimestamp(_queryBegin.getCurrent());
 	}
 	if (_queryEnd->isInserted())
 	{
-		commandBuffer->resetTimestamp(_queryEnd.getVKPtr());
+		commandBuffer->resetTimestamp(_queryEnd.getCurrent());
 	}
 	
 	return timeDiff / 1000000.0;

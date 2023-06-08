@@ -72,7 +72,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.textureIndex = directionalLightShadowIndex;
 			uniforms.shadowMapTexelWorldSize = renderData.shadowMapTexelWorldSize;
 			
-			_directionalLightDescriptorSet->bindCombinedImageSampler(1, renderData.shadowMapTextureView->getVKPtr(), _directionalLightSampler, directionalLightShadowIndex);
+			_directionalLightDescriptorSet->bindCombinedImageSampler(1, renderData.shadowMapTextureView->getCurrent(), _directionalLightSampler, directionalLightShadowIndex);
 			
 			directionalLightShadowIndex++;
 		}
@@ -81,7 +81,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		directionalLightUniformsPtr++;
 	}
 	_directionalLightsUniforms->unmap();
-	_directionalLightDescriptorSet->bindBuffer(0, _directionalLightsUniforms.getVKPtr()->getBuffer(), 0, input.registry.directionalLights.size());
+	_directionalLightDescriptorSet->bindBuffer(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.directionalLights.size());
 	
 	_pointLightsUniforms->resizeSmart(input.registry.pointLights.size());
 	uint32_t pointLightShadowIndex = 0;
@@ -99,7 +99,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.far = renderData.far;
 			uniforms.maxTexelSizeAtUnitDistance = 2.0f / renderData.shadowMapResolution;
 			
-			_pointLightDescriptorSet->bindCombinedImageSampler(1, renderData.shadowMapTextureView->getVKPtr(), _pointLightSampler, pointLightShadowIndex);
+			_pointLightDescriptorSet->bindCombinedImageSampler(1, renderData.shadowMapTextureView->getCurrent(), _pointLightSampler, pointLightShadowIndex);
 			
 			pointLightShadowIndex++;
 		}
@@ -108,10 +108,10 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		pointLightUniformsPtr++;
 	}
 	_pointLightsUniforms->unmap();
-	_pointLightDescriptorSet->bindBuffer(0, _pointLightsUniforms.getVKPtr()->getBuffer(), 0, input.registry.pointLights.size());
+	_pointLightDescriptorSet->bindBuffer(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.pointLights.size());
 	
 	commandBuffer->imageMemoryBarrier(
-		_rawRenderImage.getVKPtr(),
+		_rawRenderImage.getCurrent(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -121,7 +121,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		0);
 	
 	commandBuffer->imageMemoryBarrier(
-		_objectIndexImage.getVKPtr(),
+		_objectIndexImage.getCurrent(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -191,8 +191,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->setScissor(scissor);
 	
 	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
-	commandBuffer->bindDescriptorSet(1, _directionalLightDescriptorSet.getVKPtr());
-	commandBuffer->bindDescriptorSet(2, _pointLightDescriptorSet.getVKPtr());
+	commandBuffer->bindDescriptorSet(1, _directionalLightDescriptorSet.getCurrent());
+	commandBuffer->bindDescriptorSet(2, _pointLightDescriptorSet.getCurrent());
 	
 	PushConstantData pushConstantData{};
 	pushConstantData.viewProjectionInv = glm::inverse(input.camera.getProjection() * input.camera.getView());
@@ -249,7 +249,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		uniforms.emissiveScale = material->getEmissiveScale();
 		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
 		
-		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getVKPtr()->getBuffer(), i, 1);
+		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getCurrent()->getBuffer(), i, 1);
 		
 		commandBuffer->draw(indexBuffer->getSize(), 0);
 		
@@ -264,8 +264,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_frameIndex++;
 	
 	return {
-		.rawRenderImageView = _rawRenderImageView.getVKPtr(),
-		.objectIndexImageView = _objectIndexImageView.getVKPtr()
+		.rawRenderImageView = _rawRenderImageView.getCurrent(),
+		.objectIndexImageView = _objectIndexImageView.getCurrent()
 	};
 }
 
@@ -276,20 +276,29 @@ void LightingPass::onResize()
 
 void LightingPass::createUniformBuffers()
 {
-	_directionalLightsUniforms = VKResizableBuffer<DirectionalLightUniforms>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eStorageBuffer,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_directionalLightsUniforms = VKDynamic<VKResizableBuffer<DirectionalLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<DirectionalLightUniforms>::create(
+			context,
+			vk::BufferUsageFlagBits::eStorageBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 	
-	_pointLightsUniforms = VKResizableBuffer<PointLightUniforms>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eStorageBuffer,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_pointLightsUniforms = VKDynamic<VKResizableBuffer<PointLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<PointLightUniforms>::create(
+			context,
+			vk::BufferUsageFlagBits::eStorageBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 	
-	_objectUniforms = VKResizableBuffer<ObjectUniforms>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eStorageBuffer,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<ObjectUniforms>::create(
+			context,
+			vk::BufferUsageFlagBits::eStorageBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 }
 
 void LightingPass::createSamplers()
@@ -404,39 +413,51 @@ void LightingPass::createPipeline()
 void LightingPass::createImages()
 {
 	{
-		_rawRenderImage = VKImage::createDynamic(
-			Engine::getVKContext(),
-			SceneRenderer::HDR_COLOR_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		_rawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImage::create(
+				context,
+				SceneRenderer::HDR_COLOR_FORMAT,
+				_size,
+				1,
+				1,
+				vk::ImageTiling::eOptimal,
+				vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+				vk::ImageAspectFlagBits::eColor,
+				vk::MemoryPropertyFlagBits::eDeviceLocal);
+		});
 		
-		_rawRenderImageView = VKImageView::createDynamic(
-			Engine::getVKContext(),
-			_rawRenderImage,
-			vk::ImageViewType::e2D);
+		_rawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImageView::create(
+				context,
+				_rawRenderImage[index],
+				vk::ImageViewType::e2D);
+		});
 	}
 	
 	{
-		_objectIndexImage = VKImage::createDynamic(
-			Engine::getVKContext(),
-			SceneRenderer::OBJECT_INDEX_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		_objectIndexImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImage::create(
+				context,
+				SceneRenderer::OBJECT_INDEX_FORMAT,
+				_size,
+				1,
+				1,
+				vk::ImageTiling::eOptimal,
+				vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
+				vk::ImageAspectFlagBits::eColor,
+				vk::MemoryPropertyFlagBits::eDeviceLocal);
+		});
 		
-		_objectIndexImageView = VKImageView::createDynamic(
-			Engine::getVKContext(),
-			_objectIndexImage,
-			vk::ImageViewType::e2D);
+		_objectIndexImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImageView::create(
+				context,
+				_objectIndexImage[index],
+				vk::ImageViewType::e2D);
+		});
 	}
 }
 
@@ -454,7 +475,10 @@ void LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCou
 		VKDescriptorSetInfo info(_directionalLightDescriptorSetLayout);
 		info.setVariableSizeAllocatedCount(tentativeCount);
 		
-		_directionalLightDescriptorSet = VKDescriptorSet::createDynamic(Engine::getVKContext(), info);
+		_directionalLightDescriptorSet = VKDynamic<VKDescriptorSet>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKDescriptorSet::create(context, info);
+		});
 	}
 	
 	if (!_pointLightDescriptorSet || _pointLightDescriptorSet->getInfo().getVariableSizeAllocatedCount() < pointLightShadowsCount)
@@ -469,6 +493,9 @@ void LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCou
 		VKDescriptorSetInfo info(_pointLightDescriptorSetLayout);
 		info.setVariableSizeAllocatedCount(tentativeCount);
 		
-		_pointLightDescriptorSet = VKDescriptorSet::createDynamic(Engine::getVKContext(), info);
+		_pointLightDescriptorSet = VKDynamic<VKDescriptorSet>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKDescriptorSet::create(context, info);
+		});
 	}
 }

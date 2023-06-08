@@ -9,7 +9,6 @@ class VKShader : public VKObject
 {
 public:
 	static VKPtr<VKShader> create(VKContext& context, const std::filesystem::path& path);
-	static VKDynamic<VKShader> createDynamic(VKContext& context, const std::filesystem::path& path);
 	
 	~VKShader() override;
 	

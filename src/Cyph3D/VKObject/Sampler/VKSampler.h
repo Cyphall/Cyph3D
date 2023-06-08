@@ -8,7 +8,6 @@ class VKSampler : public VKObject
 {
 public:
 	static VKPtr<VKSampler> create(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo);
-	static VKDynamic<VKSampler> createDynamic(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo);
 	
 	~VKSampler() override;
 	

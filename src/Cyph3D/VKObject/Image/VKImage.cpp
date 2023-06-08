@@ -33,35 +33,6 @@ VKPtr<VKImage> VKImage::create(
 		possibleViewFormats));
 }
 
-VKDynamic<VKImage> VKImage::createDynamic(
-	VKContext& context,
-	vk::Format format,
-	const glm::uvec2& size,
-	uint32_t layers,
-	uint32_t levels,
-	vk::ImageTiling tiling,
-	vk::ImageUsageFlags usage,
-	vk::ImageAspectFlagBits aspect,
-	vk::MemoryPropertyFlags requiredProperties,
-	vk::MemoryPropertyFlags preferredProperties,
-	bool isCubeCompatible,
-	const vk::ArrayProxy<vk::Format>& possibleViewFormats)
-{
-	return VKDynamic<VKImage>(
-		context,
-		format,
-		size,
-		layers,
-		levels,
-		tiling,
-		usage,
-		aspect,
-		requiredProperties,
-		preferredProperties,
-		isCubeCompatible,
-		possibleViewFormats);
-}
-
 VKImage::VKImage(
 	VKContext& context,
 	vk::Format format,

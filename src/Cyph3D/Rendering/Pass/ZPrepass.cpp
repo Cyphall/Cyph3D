@@ -26,7 +26,7 @@ ZPrepass::ZPrepass(glm::uvec2 size):
 ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_depthImage.getVKPtr(),
+		_depthImage.getCurrent(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -98,7 +98,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	commandBuffer->endRendering();
 	
 	return {
-		.depthImageView = _depthImageView.getVKPtr()
+		.depthImageView = _depthImageView.getCurrent()
 	};
 }
 
@@ -134,19 +134,25 @@ void ZPrepass::createPipeline()
 
 void ZPrepass::createImage()
 {
-	_depthImage = VKImage::createDynamic(
-		Engine::getVKContext(),
-		SceneRenderer::DEPTH_FORMAT,
-		_size,
-		1,
-		1,
-		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eDepthStencilAttachment,
-		vk::ImageAspectFlagBits::eDepth,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	_depthImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKImage::create(
+			context,
+			SceneRenderer::DEPTH_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eDepthStencilAttachment,
+			vk::ImageAspectFlagBits::eDepth,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+	});
 	
-	_depthImageView = VKImageView::createDynamic(
-		Engine::getVKContext(),
-		_depthImage,
-		vk::ImageViewType::e2D);
+	_depthImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKImageView::create(
+			context,
+			_depthImage[index],
+			vk::ImageViewType::e2D);
+	});
 }

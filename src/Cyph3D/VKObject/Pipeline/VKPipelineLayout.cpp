@@ -9,11 +9,6 @@ VKPtr<VKPipelineLayout> VKPipelineLayout::create(VKContext& context, const VKPip
 	return VKPtr<VKPipelineLayout>(new VKPipelineLayout(context, info));
 }
 
-VKDynamic<VKPipelineLayout> VKPipelineLayout::createDynamic(VKContext& context, const VKPipelineLayoutInfo& info)
-{
-	return VKDynamic<VKPipelineLayout>(context, info);
-}
-
 VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInfo& info):
 	VKObject(context),
 	_info(info)

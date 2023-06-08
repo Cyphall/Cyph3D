@@ -9,11 +9,6 @@ VKPtr<VKComputePipeline> VKComputePipeline::create(VKContext& context, VKCompute
 	return VKPtr<VKComputePipeline>(new VKComputePipeline(context, info));
 }
 
-VKDynamic<VKComputePipeline> VKComputePipeline::createDynamic(VKContext& context, VKComputePipelineInfo& info)
-{
-	return VKDynamic<VKComputePipeline>(context, info);
-}
-
 VKComputePipeline::VKComputePipeline(VKContext& context, VKComputePipelineInfo& info):
 	VKPipeline(context), _info(info)
 {

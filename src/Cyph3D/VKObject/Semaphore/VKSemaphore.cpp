@@ -7,11 +7,6 @@ VKPtr<VKSemaphore> VKSemaphore::create(VKContext& context, const vk::SemaphoreCr
 	return VKPtr<VKSemaphore>(new VKSemaphore(context, semaphoreCreateInfo));
 }
 
-VKDynamic<VKSemaphore> VKSemaphore::createDynamic(VKContext& context, const vk::SemaphoreCreateInfo& semaphoreCreateInfo)
-{
-	return VKDynamic<VKSemaphore>(context, semaphoreCreateInfo);
-}
-
 VKSemaphore::VKSemaphore(VKContext& context, const vk::SemaphoreCreateInfo& semaphoreCreateInfo):
 	VKObject(context)
 {

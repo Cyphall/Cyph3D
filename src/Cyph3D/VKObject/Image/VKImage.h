@@ -22,19 +22,6 @@ public:
 		vk::MemoryPropertyFlags preferredProperties = {},
 		bool isCubeCompatible = false,
 		const vk::ArrayProxy<vk::Format>& possibleViewFormats = {});
-	static VKDynamic<VKImage> createDynamic(
-		VKContext& context,
-		vk::Format format,
-		const glm::uvec2& size,
-		uint32_t layers,
-		uint32_t levels,
-		vk::ImageTiling tiling,
-		vk::ImageUsageFlags usage,
-		vk::ImageAspectFlagBits aspect,
-		vk::MemoryPropertyFlags requiredProperties = {},
-		vk::MemoryPropertyFlags preferredProperties = {},
-		bool isCubeCompatible = false,
-		const vk::ArrayProxy<vk::Format>& possibleViewFormats = {});
 	
 	~VKImage() override;
 	

@@ -11,15 +11,6 @@ VKPtr<VKAccelerationStructure> VKAccelerationStructure::create(
 	return VKPtr<VKAccelerationStructure>(new VKAccelerationStructure(context, type, size, backingBuffer));
 }
 
-VKDynamic<VKAccelerationStructure> VKAccelerationStructure::createDynamic(
-	VKContext& context,
-	vk::AccelerationStructureTypeKHR type,
-	vk::DeviceSize size,
-	const VKPtr<VKBufferBase>& backingBuffer)
-{
-	return VKDynamic<VKAccelerationStructure>(context, type, size, backingBuffer);
-}
-
 VKAccelerationStructure::VKAccelerationStructure(
 	VKContext& context,
 	vk::AccelerationStructureTypeKHR type,

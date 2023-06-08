@@ -10,11 +10,6 @@ VKPtr<VKGraphicsPipeline> VKGraphicsPipeline::create(VKContext& context, VKGraph
 	return VKPtr<VKGraphicsPipeline>(new VKGraphicsPipeline(context, info));
 }
 
-VKDynamic<VKGraphicsPipeline> VKGraphicsPipeline::createDynamic(VKContext& context, VKGraphicsPipelineInfo& info)
-{
-	return VKDynamic<VKGraphicsPipeline>(context, info);
-}
-
 VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInfo& info):
 	VKPipeline(context), _info(info)
 {

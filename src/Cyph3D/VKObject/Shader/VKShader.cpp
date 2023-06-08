@@ -28,11 +28,6 @@ VKPtr<VKShader> VKShader::create(VKContext& context, const std::filesystem::path
 	return VKPtr<VKShader>(new VKShader(context, path));
 }
 
-VKDynamic<VKShader> VKShader::createDynamic(VKContext& context, const std::filesystem::path& path)
-{
-	return VKDynamic<VKShader>(context, path);
-}
-
 VKShader::VKShader(VKContext& context, const std::filesystem::path& path):
 	VKObject(context)
 {

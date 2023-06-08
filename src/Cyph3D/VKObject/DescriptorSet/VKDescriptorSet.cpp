@@ -14,11 +14,6 @@ VKPtr<VKDescriptorSet> VKDescriptorSet::create(VKContext& context, const VKDescr
 	return VKPtr<VKDescriptorSet>(new VKDescriptorSet(context, info));
 }
 
-VKDynamic<VKDescriptorSet> VKDescriptorSet::createDynamic(VKContext& context, const VKDescriptorSetInfo& info)
-{
-	return VKDynamic<VKDescriptorSet>(context, info);
-}
-
 VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& info):
 	VKObject(context), _info(info)
 {

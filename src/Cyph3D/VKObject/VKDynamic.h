@@ -11,6 +11,18 @@ class VKDynamic
 public:
 	VKDynamic() = default;
 	
+	explicit VKDynamic(VKContext& context, std::function<VKPtr<T>(VKContext&, int)> createCallback):
+		_context(&context)
+	{
+		int count = _context->getConcurrentFrameCount();
+		
+		_objects.reserve(count);
+		for (int i = 0; i < count; i++)
+		{
+			_objects.push_back(createCallback(*_context, i));
+		}
+	}
+	
 	VKDynamic(const VKDynamic& other) = delete;
 	VKDynamic& operator=(const VKDynamic& other) = delete;
 	
@@ -36,12 +48,7 @@ public:
 	
 	T* operator->() const
 	{
-		return getVKPtr().get();
-	}
-	
-	T* get() const
-	{
-		return getVKPtr().get();
+		return getCurrent().get();
 	}
 	
 	explicit operator bool() const
@@ -49,68 +56,17 @@ public:
 		return _context != nullptr;
 	}
 	
-	const VKPtr<T>& getVKPtr() const
+	const VKPtr<T>& getCurrent() const
 	{
 		return _objects.empty() ? _empty : _objects[_context->getCurrentConcurrentFrame()];
 	}
 	
-	const std::vector<VKPtr<T>>& getObjects() const
+	const VKPtr<T>& operator[](size_t index) const
 	{
-		return _objects;
+		return _objects[index];
 	}
 
 private:
-	template<typename>
-	friend class VKBuffer;
-	template<typename>
-	friend class VKResizableBuffer;
-	friend class VKCommandBuffer;
-	friend class VKDescriptorSet;
-	friend class VKDescriptorSetLayout;
-	friend class VKFence;
-	friend class VKImage;
-	friend class VKImageView;
-	friend class VKComputePipeline;
-	friend class VKGraphicsPipeline;
-	friend class VKPipelineLayout;
-	friend class VKSampler;
-	friend class VKSemaphore;
-	friend class VKShader;
-	friend class VKTimestampQuery;
-	friend class VKRayTracingPipeline;
-	friend class VKAccelerationStructure;
-	
-	template<typename TArg>
-	struct DynamicExtractor
-	{
-		TArg&& operator()(TArg&& arg, int i)
-		{
-			return std::forward<TArg>(arg);
-		}
-	};
-	
-	template<typename TArg>
-	struct DynamicExtractor<const VKDynamic<TArg>&>
-	{
-		const VKPtr<TArg>& operator()(const VKDynamic<TArg>& arg, int i)
-		{
-			return arg.getObjects()[i];
-		}
-	};
-	
-	template<typename... TArgs>
-	explicit VKDynamic(VKContext& context, TArgs&&... args):
-		_context(&context)
-	{
-		int count = _context->getConcurrentFrameCount();
-		
-		_objects.reserve(count);
-		for (int i = 0; i < count; i++)
-		{
-			_objects.push_back(T::create(context, (DynamicExtractor<TArgs>{}(std::forward<TArgs>(args), i))...));
-		}
-	}
-	
 	VKContext* _context = nullptr;
 	std::vector<VKPtr<T>> _objects;
 	VKPtr<T> _empty;

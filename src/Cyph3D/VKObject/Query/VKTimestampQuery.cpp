@@ -8,11 +8,6 @@ VKPtr<VKTimestampQuery> VKTimestampQuery::create(VKContext& context)
 	return VKPtr<VKTimestampQuery>(new VKTimestampQuery(context));
 }
 
-VKDynamic<VKTimestampQuery> VKTimestampQuery::createDynamic(VKContext& context)
-{
-	return VKDynamic<VKTimestampQuery>(context);
-}
-
 VKTimestampQuery::VKTimestampQuery(VKContext& context):
 	VKObject(context)
 {

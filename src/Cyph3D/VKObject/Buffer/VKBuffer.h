@@ -20,16 +20,6 @@ public:
 		return VKPtr<VKBuffer<T>>(new VKBuffer<T>(context, size, pipelineUsage, requiredProperties, preferredProperties));
 	}
 	
-	static VKDynamic<VKBuffer<T>> createDynamic(
-		VKContext& context,
-		size_t size,
-		vk::BufferUsageFlags pipelineUsage,
-		vk::MemoryPropertyFlags requiredProperties = {},
-		vk::MemoryPropertyFlags preferredProperties = {})
-	{
-		return VKDynamic<VKBuffer<T>>(context, size, pipelineUsage, requiredProperties, preferredProperties);
-	}
-	
 	~VKBuffer() override
 	{
 		_context.getVmaAllocator().destroyBuffer(_buffer, _bufferAlloc);

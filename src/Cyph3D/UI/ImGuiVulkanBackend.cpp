@@ -92,7 +92,7 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 	
 	commandBuffer->beginRendering(renderingInfo);
 	
-	setupRenderState(drawData, commandBuffer, _vertexBuffer.getVKPtr(), _indexBuffer.getVKPtr(), framebufferSize);
+	setupRenderState(drawData, commandBuffer, _vertexBuffer.getCurrent(), _indexBuffer.getCurrent(), framebufferSize);
 	
 	glm::vec2 clipOffset = drawData->DisplayPos;
 	glm::vec2 clipScale = drawData->FramebufferScale;
@@ -109,7 +109,7 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 			{
 				if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
 				{
-					setupRenderState(drawData, commandBuffer, _vertexBuffer.getVKPtr(), _indexBuffer.getVKPtr(), framebufferSize);
+					setupRenderState(drawData, commandBuffer, _vertexBuffer.getCurrent(), _indexBuffer.getCurrent(), framebufferSize);
 				}
 				else
 				{
@@ -329,17 +329,23 @@ void ImGuiVulkanBackend::createFontsTexture()
 
 void ImGuiVulkanBackend::createBuffers()
 {
-	_vertexBuffer = VKResizableBuffer<ImDrawVert>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eVertexBuffer,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	_vertexBuffer = VKDynamic<VKResizableBuffer<ImDrawVert>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<ImDrawVert>::create(
+			context,
+			vk::BufferUsageFlagBits::eVertexBuffer,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+	});
 	
-	_indexBuffer = VKResizableBuffer<ImDrawIdx>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eIndexBuffer,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	_indexBuffer = VKDynamic<VKResizableBuffer<ImDrawIdx>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<ImDrawIdx>::create(
+			context,
+			vk::BufferUsageFlagBits::eIndexBuffer,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+	});
 }
 
 void ImGuiVulkanBackend::setupRenderState(

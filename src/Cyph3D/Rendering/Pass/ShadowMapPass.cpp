@@ -131,7 +131,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		for (int i = 0; i < 6; i++)
 		{
 			commandBuffer->imageMemoryBarrier(
-				renderData.shadowMapTexture->getVKPtr(),
+				renderData.shadowMapTexture->getCurrent(),
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -188,7 +188,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		std::memcpy(pointLightUniformBufferPtr + shadowCastingPointLightIndex, &uniforms, sizeof(PointLightUniforms));
 		
-		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getVKPtr()->getBuffer(), shadowCastingPointLightIndex, 1);
+		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), shadowCastingPointLightIndex, 1);
 		
 		for (const ModelRenderer::RenderData& modelData : input.registry.models)
 		{
@@ -242,10 +242,13 @@ void ShadowMapPass::createDescriptorSetLayout()
 
 void ShadowMapPass::createBuffer()
 {
-	_pointLightUniformBuffer = VKResizableBuffer<PointLightUniforms>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eStorageBuffer,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_pointLightUniformBuffer = VKDynamic<VKResizableBuffer<PointLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<PointLightUniforms>::create(
+			context,
+			vk::BufferUsageFlagBits::eStorageBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 }
 
 void ShadowMapPass::createPipelineLayouts()

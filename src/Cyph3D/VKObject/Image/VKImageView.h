@@ -6,6 +6,7 @@
 #include <vk_mem_alloc.hpp>
 #include <optional>
 #include <array>
+#include <glm/glm.hpp>
 
 class VKImage;
 
@@ -15,14 +16,6 @@ public:
 	static VKPtr<VKImageView> create(
 		VKContext& context,
 		const VKPtr<VKImage>& image,
-		vk::ImageViewType viewType,
-		std::optional<std::array<vk::ComponentSwizzle, 4>> swizzle = std::nullopt,
-		std::optional<vk::Format> viewFormat = std::nullopt,
-		std::optional<glm::uvec2> referencedLayerRange = std::nullopt,
-		std::optional<glm::uvec2> referencedLevelRange = std::nullopt);
-	static VKDynamic<VKImageView> createDynamic(
-		VKContext& context,
-		const VKDynamic<VKImage>& image,
 		vk::ImageViewType viewType,
 		std::optional<std::array<vk::ComponentSwizzle, 4>> swizzle = std::nullopt,
 		std::optional<vk::Format> viewFormat = std::nullopt,

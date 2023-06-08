@@ -7,11 +7,6 @@ VKPtr<VKFence> VKFence::create(VKContext& context, const vk::FenceCreateInfo& fe
 	return VKPtr<VKFence>(new VKFence(context, fenceCreateInfo));
 }
 
-VKDynamic<VKFence> VKFence::createDynamic(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo)
-{
-	return VKDynamic<VKFence>(context, fenceCreateInfo);
-}
-
 VKFence::VKFence(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo):
 	VKObject(context)
 {

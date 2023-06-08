@@ -7,11 +7,6 @@ VKPtr<VKSampler> VKSampler::create(VKContext& context, const vk::SamplerCreateIn
 	return VKPtr<VKSampler>(new VKSampler(context, samplerCreateInfo));
 }
 
-VKDynamic<VKSampler> VKSampler::createDynamic(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo)
-{
-	return VKDynamic<VKSampler>(context, samplerCreateInfo);
-}
-
 VKSampler::VKSampler(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo):
 	VKObject(context)
 {

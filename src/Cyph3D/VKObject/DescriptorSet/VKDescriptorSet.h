@@ -16,7 +16,6 @@ class VKDescriptorSet : public VKObject
 {
 public:
 	static VKPtr<VKDescriptorSet> create(VKContext& context, const VKDescriptorSetInfo& info);
-	static VKDynamic<VKDescriptorSet> createDynamic(VKContext& context, const VKDescriptorSetInfo& info);
 	
 	~VKDescriptorSet() override;
 	

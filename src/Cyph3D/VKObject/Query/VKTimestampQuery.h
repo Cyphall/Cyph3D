@@ -8,7 +8,6 @@ class VKTimestampQuery : public VKObject
 {
 public:
 	static VKPtr<VKTimestampQuery> create(VKContext& context);
-	static VKDynamic<VKTimestampQuery> createDynamic(VKContext& context);
 	
 	~VKTimestampQuery() override;
 	

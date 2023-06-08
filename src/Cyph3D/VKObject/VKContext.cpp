@@ -438,7 +438,7 @@ vma::Allocator VKContext::getVmaAllocator()
 
 const VKPtr<VKCommandBuffer>& VKContext::getDefaultCommandBuffer()
 {
-	return _helperData->defaultCommandBuffer.getVKPtr();
+	return _helperData->defaultCommandBuffer.getCurrent();
 }
 
 void VKContext::executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>& commandBuffer)>&& function)
@@ -648,5 +648,8 @@ void VKContext::createImmediateCommandBuffer()
 
 void VKContext::createDefaultCommandBuffer()
 {
-	_helperData->defaultCommandBuffer = VKCommandBuffer::createDynamic(*this);
+	_helperData->defaultCommandBuffer = VKDynamic<VKCommandBuffer>(*this, [](VKContext& context, int index)
+	{
+		return VKCommandBuffer::create(context);
+	});
 }

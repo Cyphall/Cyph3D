@@ -8,7 +8,6 @@ class VKFence : public VKObject
 {
 public:
 	static VKPtr<VKFence> create(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo);
-	static VKDynamic<VKFence> createDynamic(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo);
 	
 	~VKFence() override;
 	

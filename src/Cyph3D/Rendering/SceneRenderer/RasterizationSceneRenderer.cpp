@@ -73,7 +73,7 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 			for (int i = 0; i < 6; i++)
 			{
 				commandBuffer->imageMemoryBarrier(
-					renderData.shadowMapTexture->getVKPtr(),
+					renderData.shadowMapTexture->getCurrent(),
 					vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
 					vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 					vk::PipelineStageFlagBits2::eFragmentShader,

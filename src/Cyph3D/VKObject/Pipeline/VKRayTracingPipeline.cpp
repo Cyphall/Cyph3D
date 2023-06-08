@@ -9,11 +9,6 @@ VKPtr<VKRayTracingPipeline> VKRayTracingPipeline::create(VKContext& context, VKR
 	return VKPtr<VKRayTracingPipeline>(new VKRayTracingPipeline(context, info));
 }
 
-VKDynamic<VKRayTracingPipeline> VKRayTracingPipeline::createDynamic(VKContext& context, VKRayTracingPipelineInfo& info)
-{
-	return VKDynamic<VKRayTracingPipeline>(context, info);
-}
-
 VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipelineInfo& info):
 	VKPipeline(context), _info(info)
 {

@@ -37,7 +37,7 @@ RaytracePass::RaytracePass(const glm::uvec2& size):
 RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_rawRenderImage.getVKPtr(),
+		_rawRenderImage.getCurrent(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
@@ -47,7 +47,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		0);
 	
 	commandBuffer->imageMemoryBarrier(
-		_objectIndexImage.getVKPtr(),
+		_objectIndexImage.getCurrent(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
@@ -122,7 +122,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	_tlasScratchBuffer->resizeSmart(buildSizesInfo.buildScratchSize);
 	
-	commandBuffer->buildTopLevelAccelerationStructure(tlas, _tlasScratchBuffer->getBuffer(), buildInfo, _tlasInstancesBuffer.getVKPtr());
+	commandBuffer->buildTopLevelAccelerationStructure(tlas, _tlasScratchBuffer->getBuffer(), buildInfo, _tlasInstancesBuffer.getCurrent());
 	
 	commandBuffer->bufferMemoryBarrier(
 		_tlasBackingBuffer->getBuffer(),
@@ -159,14 +159,14 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
 	commandBuffer->pushDescriptor(1, 0, tlas);
-	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView.getVKPtr());
-	commandBuffer->pushDescriptor(1, 2, _objectIndexImageView.getVKPtr());
-	commandBuffer->pushDescriptor(1, 3, _globalUniforms.getVKPtr(), 0, 1);
+	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView.getCurrent());
+	commandBuffer->pushDescriptor(1, 2, _objectIndexImageView.getCurrent());
+	commandBuffer->pushDescriptor(1, 3, _globalUniforms.getCurrent(), 0, 1);
 	commandBuffer->pushDescriptor(1, 4, _objectUniforms->getBuffer(), 0, actualObjectCountToBeDrawn);
 	
-	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getVKPtr());
-	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getVKPtr());
-	VKHelper::buildHitShaderBindingTable(Engine::getVKContext(), _pipeline, _hitSBT.getVKPtr());
+	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getCurrent());
+	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getCurrent());
+	VKHelper::buildHitShaderBindingTable(Engine::getVKContext(), _pipeline, _hitSBT.getCurrent());
 	
 	commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
 	
@@ -175,8 +175,8 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_frameIndex++;
 	
 	return {
-		.rawRenderImageView = _rawRenderImageView.getVKPtr(),
-		.objectIndexImageView = _objectIndexImageView.getVKPtr()
+		.rawRenderImageView = _rawRenderImageView.getCurrent(),
+		.objectIndexImageView = _objectIndexImageView.getCurrent()
 	};
 }
 
@@ -187,46 +187,70 @@ void RaytracePass::onResize()
 
 void RaytracePass::createBuffers()
 {
-	_globalUniforms = VKBuffer<GlobalUniforms>::createDynamic(
-		Engine::getVKContext(),
-		1,
-		vk::BufferUsageFlagBits::eUniformBuffer,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_globalUniforms = VKDynamic<VKBuffer<GlobalUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKBuffer<GlobalUniforms>::create(
+			context,
+			1,
+			vk::BufferUsageFlagBits::eUniformBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 	
-	_objectUniforms = VKResizableBuffer<ObjectUniforms>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eStorageBuffer,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<ObjectUniforms>::create(
+			context,
+			vk::BufferUsageFlagBits::eStorageBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 	
-	_tlasBackingBuffer = VKResizableBuffer<std::byte>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	_tlasBackingBuffer = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<std::byte>::create(
+			context,
+			vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+	});
 	
-	_tlasScratchBuffer = VKResizableBuffer<std::byte>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	_tlasScratchBuffer = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<std::byte>::create(
+			context,
+			vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+	});
 	
-	_tlasInstancesBuffer = VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_tlasInstancesBuffer = VKDynamic<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(
+			context,
+			vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 	
-	_raygenSBT = VKResizableBuffer<std::byte>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_raygenSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<std::byte>::create(
+			context,
+			vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 	
-	_missSBT = VKResizableBuffer<std::byte>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_missSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<std::byte>::create(
+			context,
+			vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 	
-	_hitSBT = VKResizableBuffer<std::byte>::createDynamic(
-		Engine::getVKContext(),
-		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	_hitSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKResizableBuffer<std::byte>::create(
+			context,
+			vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
+			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	});
 }
 
 void RaytracePass::createDescriptorSetLayout()
@@ -265,38 +289,50 @@ void RaytracePass::createPipeline()
 void RaytracePass::createImages()
 {
 	{
-		_rawRenderImage = VKImage::createDynamic(
-			Engine::getVKContext(),
-			SceneRenderer::HDR_COLOR_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		_rawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImage::create(
+				context,
+				SceneRenderer::HDR_COLOR_FORMAT,
+				_size,
+				1,
+				1,
+				vk::ImageTiling::eOptimal,
+				vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled,
+				vk::ImageAspectFlagBits::eColor,
+				vk::MemoryPropertyFlagBits::eDeviceLocal);
+		});
 		
-		_rawRenderImageView = VKImageView::createDynamic(
-			Engine::getVKContext(),
-			_rawRenderImage,
-			vk::ImageViewType::e2D);
+		_rawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImageView::create(
+				context,
+				_rawRenderImage[index],
+				vk::ImageViewType::e2D);
+		});
 	}
 	
 	{
-		_objectIndexImage = VKImage::createDynamic(
-			Engine::getVKContext(),
-			SceneRenderer::OBJECT_INDEX_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		_objectIndexImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImage::create(
+				context,
+				SceneRenderer::OBJECT_INDEX_FORMAT,
+				_size,
+				1,
+				1,
+				vk::ImageTiling::eOptimal,
+				vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
+				vk::ImageAspectFlagBits::eColor,
+				vk::MemoryPropertyFlagBits::eDeviceLocal);
+		});
 		
-		_objectIndexImageView = VKImageView::createDynamic(
-			Engine::getVKContext(),
-			_objectIndexImage,
-			vk::ImageViewType::e2D);
+		_objectIndexImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImageView::create(
+				context,
+				_objectIndexImage[index],
+				vk::ImageViewType::e2D);
+		});
 	}
 }

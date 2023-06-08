@@ -57,7 +57,7 @@ const VKPtr<VKDescriptorSetLayout>& BindlessTextureManager::getDescriptorSetLayo
 
 const VKPtr<VKDescriptorSet>& BindlessTextureManager::getDescriptorSet()
 {
-	return _descriptorSet.getVKPtr();
+	return _descriptorSet.getCurrent();
 }
 
 void BindlessTextureManager::onNewFrame()
@@ -81,17 +81,20 @@ void BindlessTextureManager::expand()
 	
 	VKDescriptorSetInfo descriptorSetInfo(newDescriptorSetLayout);
 	descriptorSetInfo.setVariableSizeAllocatedCount(newSize);
-	VKDynamic<VKDescriptorSet> newDescriptorSet = VKDescriptorSet::createDynamic(Engine::getVKContext(), descriptorSetInfo);
+	VKDynamic<VKDescriptorSet> newDescriptorSet = VKDynamic<VKDescriptorSet>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKDescriptorSet::create(context, descriptorSetInfo);
+	});
 	
 	if (_descriptorSet && _descriptorSetLayout)
 	{
 		for (int i = 0; i < Engine::getVKContext().getConcurrentFrameCount(); i++)
 		{
 			vk::CopyDescriptorSet copyDescriptorSet;
-			copyDescriptorSet.srcSet = _descriptorSet.getObjects()[i]->getHandle();
+			copyDescriptorSet.srcSet = _descriptorSet[i]->getHandle();
 			copyDescriptorSet.srcBinding = 0;
 			copyDescriptorSet.srcArrayElement = 0;
-			copyDescriptorSet.dstSet = newDescriptorSet.getObjects()[i]->getHandle();
+			copyDescriptorSet.dstSet = newDescriptorSet[i]->getHandle();
 			copyDescriptorSet.dstBinding = 0;
 			copyDescriptorSet.dstArrayElement = 0;
 			copyDescriptorSet.descriptorCount = oldSize;

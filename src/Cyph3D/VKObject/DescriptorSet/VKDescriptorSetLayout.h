@@ -10,7 +10,6 @@ class VKDescriptorSetLayout : public VKObject
 {
 public:
 	static VKPtr<VKDescriptorSetLayout> create(VKContext& context, const VKDescriptorSetLayoutInfo& info);
-	static VKDynamic<VKDescriptorSetLayout> createDynamic(VKContext& context, const VKDescriptorSetLayoutInfo& info);
 	
 	~VKDescriptorSetLayout() override;
 	

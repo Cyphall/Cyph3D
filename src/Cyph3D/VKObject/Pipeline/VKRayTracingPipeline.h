@@ -10,7 +10,6 @@ class VKRayTracingPipeline : public VKPipeline
 {
 public:
 	static VKPtr<VKRayTracingPipeline> create(VKContext& context, VKRayTracingPipelineInfo& info);
-	static VKDynamic<VKRayTracingPipeline> createDynamic(VKContext& context, VKRayTracingPipelineInfo& info);
 	
 	~VKRayTracingPipeline() override;
 	

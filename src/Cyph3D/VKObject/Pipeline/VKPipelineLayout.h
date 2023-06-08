@@ -9,7 +9,6 @@ class VKPipelineLayout : public VKObject
 {
 public:
 	static VKPtr<VKPipelineLayout> create(VKContext& context, const VKPipelineLayoutInfo& info);
-	static VKDynamic<VKPipelineLayout> createDynamic(VKContext& context, const VKPipelineLayoutInfo& info);
 	
 	~VKPipelineLayout() override;
 	

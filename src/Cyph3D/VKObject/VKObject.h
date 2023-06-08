@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKPtr.h"
-#include "Cyph3D/VKObject/VKDynamic.h"
 
 class VKContext;
 

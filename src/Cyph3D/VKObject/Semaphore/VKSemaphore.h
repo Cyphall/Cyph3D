@@ -8,7 +8,6 @@ class VKSemaphore : public VKObject
 {
 public:
 	static VKPtr<VKSemaphore> create(VKContext& context, const vk::SemaphoreCreateInfo& semaphoreCreateInfo);
-	static VKDynamic<VKSemaphore> createDynamic(VKContext& context, const vk::SemaphoreCreateInfo& semaphoreCreateInfo);
 	
 	~VKSemaphore() override;
 	

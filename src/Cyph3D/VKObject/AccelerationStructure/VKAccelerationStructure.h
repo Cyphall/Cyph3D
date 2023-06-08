@@ -16,11 +16,6 @@ public:
 		vk::AccelerationStructureTypeKHR type,
 		vk::DeviceSize size,
 		const VKPtr<VKBufferBase>& backingBuffer);
-	static VKDynamic<VKAccelerationStructure> createDynamic(
-		VKContext& context,
-		vk::AccelerationStructureTypeKHR type,
-		vk::DeviceSize size,
-		const VKPtr<VKBufferBase>& backingBuffer);
 	
 	~VKAccelerationStructure() override;
 	

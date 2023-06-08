@@ -26,7 +26,6 @@ class VKCommandBuffer : public VKObject
 {
 public:
 	static VKPtr<VKCommandBuffer> create(VKContext& context);
-	static VKDynamic<VKCommandBuffer> createDynamic(VKContext& context);
 	
 	~VKCommandBuffer() override;
 	

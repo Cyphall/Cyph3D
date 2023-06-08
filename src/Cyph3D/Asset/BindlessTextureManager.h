@@ -11,6 +11,7 @@
 class VKImageView;
 class VKDescriptorSetLayout;
 class VKDescriptorSet;
+class VKSampler;
 
 class BindlessTextureManager
 {

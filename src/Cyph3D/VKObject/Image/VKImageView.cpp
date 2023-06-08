@@ -15,18 +15,6 @@ VKPtr<VKImageView> VKImageView::create(
 	return VKPtr<VKImageView>(new VKImageView(context, image, viewType, swizzle, viewFormat, referencedLayerRange, referencedLevelRange));
 }
 
-VKDynamic<VKImageView> VKImageView::createDynamic(
-	VKContext& context,
-	const VKDynamic<VKImage>& image,
-	vk::ImageViewType viewType,
-	std::optional<std::array<vk::ComponentSwizzle, 4>> swizzle,
-	std::optional<vk::Format> viewFormat,
-	std::optional<glm::uvec2> referencedLayerRange,
-	std::optional<glm::uvec2> referencedLevelRange)
-{
-	return VKDynamic<VKImageView>(context, image, viewType, swizzle, viewFormat, referencedLayerRange, referencedLevelRange);
-}
-
 VKImageView::VKImageView(
 	VKContext& context,
 	const VKPtr<VKImage>& image,

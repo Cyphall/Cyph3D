@@ -26,7 +26,7 @@ ExposurePass::ExposurePass(glm::uvec2 size):
 ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_outputImage.getVKPtr(),
+		_outputImage.getCurrent(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -86,7 +86,7 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->endRendering();
 	
 	return {
-		_outputImageView.getVKPtr()
+		_outputImageView.getCurrent()
 	};
 }
 
@@ -153,19 +153,25 @@ void ExposurePass::createSampler()
 
 void ExposurePass::createImage()
 {
-	_outputImage = VKImage::createDynamic(
-		Engine::getVKContext(),
-		SceneRenderer::HDR_COLOR_FORMAT,
-		_size,
-		1,
-		1,
-		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
-		vk::ImageAspectFlagBits::eColor,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+	_outputImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKImage::create(
+			context,
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+	});
 	
-	_outputImageView = VKImageView::createDynamic(
-		Engine::getVKContext(),
-		_outputImage,
-		vk::ImageViewType::e2D);
+	_outputImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKImageView::create(
+			context,
+			_outputImage[index],
+			vk::ImageViewType::e2D);
+	});
 }

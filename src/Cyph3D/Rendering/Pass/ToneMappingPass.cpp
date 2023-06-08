@@ -27,7 +27,7 @@ ToneMappingPass::ToneMappingPass(glm::uvec2 size):
 ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_outputImage.getVKPtr(),
+		_outputImage.getCurrent(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -83,7 +83,7 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 	commandBuffer->endRendering();
 	
 	return {
-		_outputLinearImageView.getVKPtr()
+		_outputLinearImageView.getCurrent()
 	};
 }
 
@@ -149,31 +149,40 @@ void ToneMappingPass::createSampler()
 
 void ToneMappingPass::createImage()
 {
-	_outputImage = VKImage::createDynamic(
-		Engine::getVKContext(),
-		SRGB_OUTPUT_FORMAT,
-		_size,
-		1,
-		1,
-		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
-		vk::ImageAspectFlagBits::eColor,
-		vk::MemoryPropertyFlagBits::eDeviceLocal,
-		{},
-		false,
-		{LINEAR_OUTPUT_FORMAT, SRGB_OUTPUT_FORMAT});
+	_outputImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKImage::create(
+			context,
+			SRGB_OUTPUT_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+			vk::ImageAspectFlagBits::eColor,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			{},
+			false,
+			{LINEAR_OUTPUT_FORMAT, SRGB_OUTPUT_FORMAT});
+	});
 	
-	_outputLinearImageView = VKImageView::createDynamic(
-		Engine::getVKContext(),
-		_outputImage,
-		vk::ImageViewType::e2D,
-		std::nullopt,
-		LINEAR_OUTPUT_FORMAT);
+	_outputLinearImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKImageView::create(
+			context,
+			_outputImage[index],
+			vk::ImageViewType::e2D,
+			std::nullopt,
+			LINEAR_OUTPUT_FORMAT);
+	});
 	
-	_outputSrgbImageView = VKImageView::createDynamic(
-		Engine::getVKContext(),
-		_outputImage,
-		vk::ImageViewType::e2D,
-		std::nullopt,
-		SRGB_OUTPUT_FORMAT);
+	_outputSrgbImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKImageView::create(
+			context,
+			_outputImage[index],
+			vk::ImageViewType::e2D,
+			std::nullopt,
+			SRGB_OUTPUT_FORMAT);
+	});
 }

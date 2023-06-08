@@ -27,11 +27,6 @@ VKPtr<VKCommandBuffer> VKCommandBuffer::create(VKContext& context)
 	return VKPtr<VKCommandBuffer>(new VKCommandBuffer(context));
 }
 
-VKDynamic<VKCommandBuffer> VKCommandBuffer::createDynamic(VKContext& context)
-{
-	return VKDynamic<VKCommandBuffer>(context);
-}
-
 VKCommandBuffer::VKCommandBuffer(VKContext& context):
 	VKObject(context)
 {

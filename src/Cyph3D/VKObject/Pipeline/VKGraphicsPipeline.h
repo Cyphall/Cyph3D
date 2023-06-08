@@ -9,7 +9,6 @@ class VKGraphicsPipeline : public VKPipeline
 {
 public:
 	static VKPtr<VKGraphicsPipeline> create(VKContext& context, VKGraphicsPipelineInfo& info);
-	static VKDynamic<VKGraphicsPipeline> createDynamic(VKContext& context, VKGraphicsPipelineInfo& info);
 	
 	~VKGraphicsPipeline() override;
 	

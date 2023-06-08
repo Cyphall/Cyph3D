@@ -16,15 +16,6 @@ public:
 		return VKPtr<VKResizableBuffer<T>>(new VKResizableBuffer<T>(context, pipelineUsage, requiredProperties, preferredProperties));
 	}
 	
-	static VKDynamic<VKResizableBuffer<T>> createDynamic(
-		VKContext& context,
-		vk::BufferUsageFlags pipelineUsage,
-		vk::MemoryPropertyFlags requiredProperties = {},
-		vk::MemoryPropertyFlags preferredProperties = {})
-	{
-		return VKDynamic<VKResizableBuffer<T>>(context, pipelineUsage, requiredProperties, preferredProperties);
-	}
-	
 	T* map()
 	{
 		return _buffer ? _buffer->map() : nullptr;

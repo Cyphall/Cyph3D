@@ -8,11 +8,6 @@ VKPtr<VKDescriptorSetLayout> VKDescriptorSetLayout::create(VKContext& context, c
 	return VKPtr<VKDescriptorSetLayout>(new VKDescriptorSetLayout(context, info));
 }
 
-VKDynamic<VKDescriptorSetLayout> VKDescriptorSetLayout::createDynamic(VKContext& context, const VKDescriptorSetLayoutInfo& info)
-{
-	return VKDynamic<VKDescriptorSetLayout>(context, info);
-}
-
 VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescriptorSetLayoutInfo& info):
 	VKObject(context), _info(info)
 {
