@@ -1,20 +1,22 @@
 #include "VKSwapchainImage.h"
 
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+
+VKPtr<VKSwapchainImage> VKSwapchainImage::create(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index)
+{
+	return VKPtr<VKSwapchainImage>(new VKSwapchainImage(context, handle, format, size, swapchain, index));
+}
 
 VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index):
-	VKImage(
-		context,
-		handle,
-		format,
-		size,
-		1,
-		1,
-		vk::ImageAspectFlagBits::eColor),
+	VKObject(context),
 	_swapchain(swapchain),
 	_index(index)
 {
-
+	VKImageInfo info(format, size, 1, 1, vk::ImageTiling::eOptimal, {});
+	info.setSwapchainImageHandle(handle);
+	
+	_image = VKImage::create(_context, info);
 }
 
 VKSwapchainImage::~VKSwapchainImage()
@@ -25,6 +27,11 @@ VKSwapchainImage::~VKSwapchainImage()
 VKSwapchain& VKSwapchainImage::getSwapchain() const
 {
 	return _swapchain;
+}
+
+const VKPtr<VKImage>& VKSwapchainImage::getImage()
+{
+	return _image;
 }
 
 uint32_t VKSwapchainImage::getIndex() const

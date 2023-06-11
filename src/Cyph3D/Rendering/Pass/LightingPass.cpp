@@ -134,7 +134,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	vk::RenderingAttachmentInfo& rawRenderAttachment = colorAttachments.emplace_back();
 	rawRenderAttachment.imageView = _rawRenderImageView->getHandle();
-	rawRenderAttachment.imageLayout = _rawRenderImageView->getImage()->getLayout(0, 0);
+	rawRenderAttachment.imageLayout = _rawRenderImageView->getInfo().getImage()->getLayout(0, 0);
 	rawRenderAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	rawRenderAttachment.resolveImageView = nullptr;
 	rawRenderAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -147,7 +147,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	vk::RenderingAttachmentInfo& objectIndexAttachment = colorAttachments.emplace_back();
 	objectIndexAttachment.imageView = _objectIndexImageView->getHandle();
-	objectIndexAttachment.imageLayout = _objectIndexImageView->getImage()->getLayout(0, 0);
+	objectIndexAttachment.imageLayout = _objectIndexImageView->getInfo().getImage()->getLayout(0, 0);
 	objectIndexAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	objectIndexAttachment.resolveImageView = nullptr;
 	objectIndexAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -157,7 +157,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	vk::RenderingAttachmentInfo depthAttachment;
 	depthAttachment.imageView = input.depthImageView->getHandle();
-	depthAttachment.imageLayout = input.depthImageView->getImage()->getLayout(0, 0);
+	depthAttachment.imageLayout = input.depthImageView->getInfo().getImage()->getLayout(0, 0);
 	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	depthAttachment.resolveImageView = nullptr;
 	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -413,50 +413,52 @@ void LightingPass::createPipeline()
 void LightingPass::createImages()
 {
 	{
+		VKImageInfo imageInfo(
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
 		_rawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImage::create(
-				context,
-				SceneRenderer::HDR_COLOR_FORMAT,
-				_size,
-				1,
-				1,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
-				vk::ImageAspectFlagBits::eColor,
-				vk::MemoryPropertyFlagBits::eDeviceLocal);
+			return VKImage::create(context, imageInfo);
 		});
 		
 		_rawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImageView::create(
-				context,
+			VKImageViewInfo imageViewInfo(
 				_rawRenderImage[index],
 				vk::ImageViewType::e2D);
+			
+			return VKImageView::create(context, imageViewInfo);
 		});
 	}
 	
 	{
+		VKImageInfo imageInfo(
+			SceneRenderer::OBJECT_INDEX_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
 		_objectIndexImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImage::create(
-				context,
-				SceneRenderer::OBJECT_INDEX_FORMAT,
-				_size,
-				1,
-				1,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
-				vk::ImageAspectFlagBits::eColor,
-				vk::MemoryPropertyFlagBits::eDeviceLocal);
+			return VKImage::create(context, imageInfo);
 		});
 		
 		_objectIndexImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImageView::create(
-				context,
+			VKImageViewInfo imageViewInfo(
 				_objectIndexImage[index],
 				vk::ImageViewType::e2D);
+			
+			return VKImageView::create(context, imageViewInfo);
 		});
 	}
 }

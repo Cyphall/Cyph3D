@@ -34,26 +34,27 @@ void DirectionalLight::setCastShadows(bool value)
 	
 	if (value)
 	{
+		VKImageInfo imageInfo(
+			depthFormat,
+			glm::uvec2(_resolution),
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
 		_shadowMap = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImage::create(
-				context,
-				depthFormat,
-				glm::uvec2(_resolution),
-				1,
-				1,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled,
-				vk::ImageAspectFlagBits::eDepth,
-				vk::MemoryPropertyFlagBits::eDeviceLocal);
+			return VKImage::create(context, imageInfo);
 		});
 		
 		_shadowMapView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImageView::create(
-				context,
+			VKImageViewInfo imageViewInfo(
 				_shadowMap[index],
 				vk::ImageViewType::e2D);
+			
+			return VKImageView::create(context, imageViewInfo);
 		});
 	}
 	else

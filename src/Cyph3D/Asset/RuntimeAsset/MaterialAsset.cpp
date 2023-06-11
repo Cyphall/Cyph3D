@@ -18,6 +18,26 @@
 MaterialAsset* MaterialAsset::_defaultMaterial = nullptr;
 MaterialAsset* MaterialAsset::_missingMaterial = nullptr;
 
+static void createVKImageAndView(vk::Format format, VKPtr<VKImage>& image, VKPtr<VKImageView>& imageView)
+{
+	VKImageInfo imageInfo(
+		format,
+		{1, 1},
+		1,
+		1,
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
+	image = VKImage::create(Engine::getVKContext(), imageInfo);
+	
+	VKImageViewInfo imageViewInfo(
+		image,
+		vk::ImageViewType::e2D);
+	
+	imageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
+}
+
 template<typename T>
 static void updateImageData(const VKPtr<VKImage>& image, const T& value)
 {
@@ -233,21 +253,7 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 		_albedoMapPath = std::nullopt;
 		_albedoMap = nullptr;
 		
-		_albedoValueTexture = VKImage::create(
-			Engine::getVKContext(),
-			vk::Format::eR8G8B8A8Srgb,
-			{1, 1},
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-		
-		_albedoValueTextureView = VKImageView::create(
-			Engine::getVKContext(),
-			_albedoValueTexture,
-			vk::ImageViewType::e2D);
+		createVKImageAndView(vk::Format::eR8G8B8A8Srgb, _albedoValueTexture, _albedoValueTextureView);
 		
 		setAlbedoValue(getAlbedoValue()); // updates the texture with the current value
 		
@@ -286,21 +292,7 @@ void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
 		_normalMapPath = std::nullopt;
 		_normalMap = nullptr;
 		
-		_normalValueTexture = VKImage::create(
-			Engine::getVKContext(),
-			vk::Format::eR8G8Unorm,
-			{1, 1},
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-		
-		_normalValueTextureView = VKImageView::create(
-			Engine::getVKContext(),
-			_normalValueTexture,
-			vk::ImageViewType::e2D);
+		createVKImageAndView(vk::Format::eR8G8Unorm, _normalValueTexture, _normalValueTextureView);
 		
 		updateImageData(_normalValueTexture, glm::u8vec2{128, 128});
 		
@@ -339,21 +331,7 @@ void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
 		_roughnessMapPath = std::nullopt;
 		_roughnessMap = nullptr;
 		
-		_roughnessValueTexture = VKImage::create(
-			Engine::getVKContext(),
-			vk::Format::eR8Unorm,
-			{1, 1},
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-		
-		_roughnessValueTextureView = VKImageView::create(
-			Engine::getVKContext(),
-			_roughnessValueTexture,
-			vk::ImageViewType::e2D);
+		createVKImageAndView(vk::Format::eR8Unorm, _roughnessValueTexture, _roughnessValueTextureView);
 		
 		setRoughnessValue(getRoughnessValue()); // updates the texture with the current value
 		
@@ -392,21 +370,7 @@ void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
 		_metalnessMapPath = std::nullopt;
 		_metalnessMap = nullptr;
 		
-		_metalnessValueTexture = VKImage::create(
-			Engine::getVKContext(),
-			vk::Format::eR8Unorm,
-			{1, 1},
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-		
-		_metalnessValueTextureView = VKImageView::create(
-			Engine::getVKContext(),
-			_metalnessValueTexture,
-			vk::ImageViewType::e2D);
+		createVKImageAndView(vk::Format::eR8Unorm, _metalnessValueTexture, _metalnessValueTextureView);
 		
 		setMetalnessValue(getMetalnessValue()); // updates the texture with the current value
 		
@@ -445,21 +409,7 @@ void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
 		_displacementMapPath = std::nullopt;
 		_displacementMap = nullptr;
 		
-		_displacementValueTexture = VKImage::create(
-			Engine::getVKContext(),
-			vk::Format::eR8Unorm,
-			{1, 1},
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-		
-		_displacementValueTextureView = VKImageView::create(
-			Engine::getVKContext(),
-			_displacementValueTexture,
-			vk::ImageViewType::e2D);
+		createVKImageAndView(vk::Format::eR8Unorm, _displacementValueTexture, _displacementValueTextureView);
 		
 		updateImageData<uint8_t>(_displacementValueTexture, 255);
 		
@@ -498,21 +448,7 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 		_emissiveMapPath = std::nullopt;
 		_emissiveMap = nullptr;
 		
-		_emissiveValueTexture = VKImage::create(
-			Engine::getVKContext(),
-			vk::Format::eR8Unorm,
-			{1, 1},
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-		
-		_emissiveValueTextureView = VKImageView::create(
-			Engine::getVKContext(),
-			_emissiveValueTexture,
-			vk::ImageViewType::e2D);
+		createVKImageAndView(vk::Format::eR8Unorm, _emissiveValueTexture, _emissiveValueTextureView);
 		
 		updateImageData<uint8_t>(_emissiveValueTexture, 255);
 		

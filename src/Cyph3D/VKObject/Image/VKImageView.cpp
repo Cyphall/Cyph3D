@@ -2,41 +2,36 @@
 
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/VKHelper.h"
 
-VKPtr<VKImageView> VKImageView::create(
-	VKContext& context,
-	const VKPtr<VKImage>& image,
-	vk::ImageViewType viewType,
-	std::optional<std::array<vk::ComponentSwizzle, 4>> swizzle,
-	std::optional<vk::Format> viewFormat,
-	std::optional<glm::uvec2> referencedLayerRange,
-	std::optional<glm::uvec2> referencedLevelRange)
+VKPtr<VKImageView> VKImageView::create(VKContext& context, const VKImageViewInfo& info)
 {
-	return VKPtr<VKImageView>(new VKImageView(context, image, viewType, swizzle, viewFormat, referencedLayerRange, referencedLevelRange));
+	return VKPtr<VKImageView>(new VKImageView(context, info));
 }
 
-VKImageView::VKImageView(
-	VKContext& context,
-	const VKPtr<VKImage>& image,
-	vk::ImageViewType viewType,
-	std::optional<std::array<vk::ComponentSwizzle, 4>> swizzle,
-	std::optional<vk::Format> viewFormat,
-	std::optional<glm::uvec2> referencedLayerRange,
-	std::optional<glm::uvec2> referencedLevelRange):
+VKImageView::VKImageView(VKContext& context, const VKImageViewInfo& info):
 	VKObject(context),
-	_image(image)
+	_info(info)
 {
 	vk::ImageViewCreateInfo imageViewCreateInfo;
-	imageViewCreateInfo.image = image->getHandle();
-	imageViewCreateInfo.viewType = viewType;
-	imageViewCreateInfo.format = viewFormat ? viewFormat.value() : image->getFormat();
+	imageViewCreateInfo.image = _info.getImage()->getHandle();
+	imageViewCreateInfo.viewType = _info.getViewType();
 	
-	if (swizzle.has_value())
+	if (_info.hasCustomViewFormat())
 	{
-		imageViewCreateInfo.components.r = swizzle->at(0);
-		imageViewCreateInfo.components.g = swizzle->at(1);
-		imageViewCreateInfo.components.b = swizzle->at(2);
-		imageViewCreateInfo.components.a = swizzle->at(3);
+		imageViewCreateInfo.format = _info.getCustomViewFormat();
+	}
+	else
+	{
+		imageViewCreateInfo.format = _info.getImage()->getInfo().getFormat();
+	}
+	
+	if (_info.hasSwizzle())
+	{
+		imageViewCreateInfo.components.r = _info.getSwizzle()[0];
+		imageViewCreateInfo.components.g = _info.getSwizzle()[1];
+		imageViewCreateInfo.components.b = _info.getSwizzle()[2];
+		imageViewCreateInfo.components.a = _info.getSwizzle()[3];
 	}
 	else
 	{
@@ -46,39 +41,31 @@ VKImageView::VKImageView(
 		imageViewCreateInfo.components.a = vk::ComponentSwizzle::eIdentity;
 	}
 	
-	imageViewCreateInfo.subresourceRange.aspectMask = image->getAspect();
+	imageViewCreateInfo.subresourceRange.aspectMask = VKHelper::getAspect(imageViewCreateInfo.format);
 	
-	if (referencedLayerRange)
+	if (_info.hasCustomLayerRange())
 	{
-		imageViewCreateInfo.subresourceRange.baseArrayLayer = referencedLayerRange->x;
-		imageViewCreateInfo.subresourceRange.layerCount = referencedLayerRange->y - referencedLayerRange->x + 1;
-		
-		_referencedLayerRange = *referencedLayerRange;
+		_referencedLayerRange = _info.getCustomLayerRange();
 	}
 	else
 	{
-		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		imageViewCreateInfo.subresourceRange.layerCount = image->getLayers();
-		
-		_referencedLayerRange.x = 0;
-		_referencedLayerRange.y = image->getLayers() - 1;
+		_referencedLayerRange = {0, _info.getImage()->getInfo().getLayers()-1};
 	}
 	
-	if (referencedLevelRange)
+	imageViewCreateInfo.subresourceRange.baseArrayLayer = _referencedLayerRange.x;
+	imageViewCreateInfo.subresourceRange.layerCount = _referencedLayerRange.y - _referencedLayerRange.x + 1;
+	
+	if (_info.hasCustomLevelRange())
 	{
-		imageViewCreateInfo.subresourceRange.baseMipLevel = referencedLevelRange->x;
-		imageViewCreateInfo.subresourceRange.levelCount = referencedLevelRange->y - referencedLevelRange->x + 1;
-		
-		_referencedLevelRange = *referencedLevelRange;
+		_referencedLevelRange = _info.getCustomLevelRange();
 	}
 	else
 	{
-		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-		imageViewCreateInfo.subresourceRange.levelCount = image->getLevels();
-		
-		_referencedLevelRange.x = 0;
-		_referencedLevelRange.y = image->getLevels() - 1;
+		_referencedLevelRange = {0, _info.getImage()->getInfo().getLevels()-1};
 	}
+	
+	imageViewCreateInfo.subresourceRange.baseMipLevel = _referencedLevelRange.x;
+	imageViewCreateInfo.subresourceRange.levelCount = _referencedLevelRange.y - _referencedLevelRange.x + 1;
 	
 	_handle = _context.getDevice().createImageView(imageViewCreateInfo);
 }
@@ -88,9 +75,9 @@ VKImageView::~VKImageView()
 	_context.getDevice().destroyImageView(_handle);
 }
 
-const VKPtr<VKImage>& VKImageView::getImage()
+const VKImageViewInfo& VKImageView::getInfo() const
 {
-	return _image;
+	return _info;
 }
 
 vk::ImageView& VKImageView::getHandle()

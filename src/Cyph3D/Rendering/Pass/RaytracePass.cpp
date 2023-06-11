@@ -289,50 +289,52 @@ void RaytracePass::createPipeline()
 void RaytracePass::createImages()
 {
 	{
+		VKImageInfo imageInfo(
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
 		_rawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImage::create(
-				context,
-				SceneRenderer::HDR_COLOR_FORMAT,
-				_size,
-				1,
-				1,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled,
-				vk::ImageAspectFlagBits::eColor,
-				vk::MemoryPropertyFlagBits::eDeviceLocal);
+			return VKImage::create(context, imageInfo);
 		});
 		
 		_rawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImageView::create(
-				context,
+			VKImageViewInfo imageViewInfo(
 				_rawRenderImage[index],
 				vk::ImageViewType::e2D);
+			
+			return VKImageView::create(context, imageViewInfo);
 		});
 	}
 	
 	{
+		VKImageInfo imageInfo(
+			SceneRenderer::OBJECT_INDEX_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
 		_objectIndexImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImage::create(
-				context,
-				SceneRenderer::OBJECT_INDEX_FORMAT,
-				_size,
-				1,
-				1,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
-				vk::ImageAspectFlagBits::eColor,
-				vk::MemoryPropertyFlagBits::eDeviceLocal);
+			return VKImage::create(context, imageInfo);
 		});
 		
 		_objectIndexImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImageView::create(
-				context,
+			VKImageViewInfo imageViewInfo(
 				_objectIndexImage[index],
 				vk::ImageViewType::e2D);
+			
+			return VKImageView::create(context, imageViewInfo);
 		});
 	}
 }

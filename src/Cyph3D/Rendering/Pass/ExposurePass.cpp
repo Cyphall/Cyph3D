@@ -153,25 +153,26 @@ void ExposurePass::createSampler()
 
 void ExposurePass::createImage()
 {
+	VKImageInfo imageInfo(
+		SceneRenderer::HDR_COLOR_FORMAT,
+		_size,
+		1,
+		1,
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
 	_outputImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKImage::create(
-			context,
-			SceneRenderer::HDR_COLOR_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		return VKImage::create(context, imageInfo);
 	});
 	
 	_outputImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKImageView::create(
-			context,
+		VKImageViewInfo imageViewInfo(
 			_outputImage[index],
 			vk::ImageViewType::e2D);
+		
+		return VKImageView::create(context, imageViewInfo);
 	});
 }

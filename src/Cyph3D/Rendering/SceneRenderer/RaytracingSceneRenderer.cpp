@@ -32,7 +32,7 @@ Entity* RaytracingSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
 			commandBuffer->imageMemoryBarrier(
-				_objectIndexImageView->getImage(),
+				_objectIndexImageView->getInfo().getImage(),
 				vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 				vk::AccessFlagBits2::eShaderStorageWrite,
 				vk::PipelineStageFlagBits2::eCopy,
@@ -41,7 +41,7 @@ Entity* RaytracingSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 				0,
 				0);
 			
-			commandBuffer->copyPixelToBuffer(_objectIndexImageView->getImage(), 0, 0, clickPos, _objectIndexBuffer, 0);
+			commandBuffer->copyPixelToBuffer(_objectIndexImageView->getInfo().getImage(), 0, 0, clickPos, _objectIndexBuffer, 0);
 		});
 	
 	int32_t* ptr = _objectIndexBuffer->map();
@@ -67,7 +67,7 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 	_objectIndexImageView = raytracePassOutput.objectIndexImageView;
 	
 	commandBuffer->imageMemoryBarrier(
-		raytracePassOutput.rawRenderImageView->getImage(),
+		raytracePassOutput.rawRenderImageView->getInfo().getImage(),
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
@@ -84,7 +84,7 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		exposurePassOutput.outputImageView->getImage(),
+		exposurePassOutput.outputImageView->getInfo().getImage(),
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
@@ -100,7 +100,7 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		bloomPassOutput.outputImageView->getImage(),
+		bloomPassOutput.outputImageView->getInfo().getImage(),
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
@@ -116,7 +116,7 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		toneMappingPassOutput.outputImageView->getImage(),
+		toneMappingPassOutput.outputImageView->getInfo().getImage(),
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,

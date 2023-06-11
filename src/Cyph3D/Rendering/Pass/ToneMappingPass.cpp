@@ -149,40 +149,38 @@ void ToneMappingPass::createSampler()
 
 void ToneMappingPass::createImage()
 {
+	VKImageInfo imageInfo(
+		SRGB_OUTPUT_FORMAT,
+		_size,
+		1,
+		1,
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	imageInfo.addAdditionalCompatibleViewFormat(LINEAR_OUTPUT_FORMAT);
+	
 	_outputImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKImage::create(
-			context,
-			SRGB_OUTPUT_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
-			vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal,
-			{},
-			false,
-			{LINEAR_OUTPUT_FORMAT, SRGB_OUTPUT_FORMAT});
+		return VKImage::create(context, imageInfo);
 	});
 	
 	_outputLinearImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKImageView::create(
-			context,
+		VKImageViewInfo imageViewInfo(
 			_outputImage[index],
-			vk::ImageViewType::e2D,
-			std::nullopt,
-			LINEAR_OUTPUT_FORMAT);
+			vk::ImageViewType::e2D);
+		imageViewInfo.setCustomViewFormat(LINEAR_OUTPUT_FORMAT);
+		
+		return VKImageView::create(context, imageViewInfo);
 	});
 	
 	_outputSrgbImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKImageView::create(
-			context,
+		VKImageViewInfo imageViewInfo(
 			_outputImage[index],
-			vk::ImageViewType::e2D,
-			std::nullopt,
-			SRGB_OUTPUT_FORMAT);
+			vk::ImageViewType::e2D);
+		imageViewInfo.setCustomViewFormat(SRGB_OUTPUT_FORMAT);
+		
+		return VKImageView::create(context, imageViewInfo);
 	});
 }

@@ -4,135 +4,88 @@
 
 #include <vulkan/vulkan_format_traits.hpp>
 
-VKPtr<VKImage> VKImage::create(
-	VKContext& context,
-	vk::Format format,
-	const glm::uvec2& size,
-	uint32_t layers,
-	uint32_t levels,
-	vk::ImageTiling tiling,
-	vk::ImageUsageFlags usage,
-	vk::ImageAspectFlagBits aspect,
-	vk::MemoryPropertyFlags requiredProperties,
-	vk::MemoryPropertyFlags preferredProperties,
-	bool isCubeCompatible,
-	const vk::ArrayProxy<vk::Format>& possibleViewFormats)
+VKPtr<VKImage> VKImage::create(VKContext& context, const VKImageInfo& info)
 {
-	return VKPtr<VKImage>(new VKImage(
-		context,
-		format,
-		size,
-		layers,
-		levels,
-		tiling,
-		usage,
-		aspect,
-		requiredProperties,
-		preferredProperties,
-		isCubeCompatible,
-		possibleViewFormats));
+	return VKPtr<VKImage>(new VKImage(context, info));
 }
 
-VKImage::VKImage(
-	VKContext& context,
-	vk::Format format,
-	const glm::uvec2& size,
-	uint32_t layers,
-	uint32_t levels,
-	vk::ImageTiling tiling,
-	vk::ImageUsageFlags usage,
-	vk::ImageAspectFlagBits aspect,
-	vk::MemoryPropertyFlags requiredProperties,
-	vk::MemoryPropertyFlags preferredProperties,
-	bool isCubeCompatible,
-	const vk::ArrayProxy<vk::Format>& possibleViewFormats):
+VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 	VKObject(context),
-	_ownsHandle(true),
-	_format(format),
-	_layers(layers),
-	_levels(levels),
-	_aspect(aspect)
+	_info(info)
 {
-	vk::ImageCreateFlags flags;
-	
-	if (isCubeCompatible)
+	if (_info.hasSwapchainImageHandle())
 	{
-		flags |= vk::ImageCreateFlagBits::eCubeCompatible;
-	}
-	
-	vk::ImageFormatListCreateInfo viewFormatsCreateInfo;
-	if (!possibleViewFormats.empty())
-	{
-		flags |= vk::ImageCreateFlagBits::eMutableFormat;
-		
-		viewFormatsCreateInfo.viewFormatCount = possibleViewFormats.size();
-		viewFormatsCreateInfo.pViewFormats = possibleViewFormats.data();
+		_handle = _info.getSwapchainImageHandle();
 	}
 	else
 	{
-		viewFormatsCreateInfo.viewFormatCount = 0;
-		viewFormatsCreateInfo.pViewFormats = nullptr;
+		vk::ImageCreateFlags flags = vk::ImageCreateFlagBits::eMutableFormat;
+		
+		if (_info.isCubeCompatible())
+		{
+			flags |= vk::ImageCreateFlagBits::eCubeCompatible;
+		}
+		
+		vk::ImageFormatListCreateInfo viewFormatsCreateInfo;
+		viewFormatsCreateInfo.viewFormatCount = _info.getCompatibleViewFormats().size();
+		viewFormatsCreateInfo.pViewFormats = _info.getCompatibleViewFormats().data();
+		
+		vk::ImageCreateInfo createInfo;
+		createInfo.imageType = vk::ImageType::e2D;
+		createInfo.extent = vk::Extent3D(_info.getSize().x, _info.getSize().y, 1);
+		createInfo.mipLevels = _info.getLevels();
+		createInfo.arrayLayers = _info.getLayers();
+		createInfo.format = _info.getFormat();
+		createInfo.tiling = _info.getTiling();
+		createInfo.initialLayout = vk::ImageLayout::eUndefined;
+		createInfo.usage = _info.getUsage();
+		createInfo.sharingMode = vk::SharingMode::eExclusive;
+		createInfo.samples = vk::SampleCountFlagBits::e1;
+		createInfo.flags = flags;
+		createInfo.pNext = &viewFormatsCreateInfo;
+		
+		vma::AllocationCreateInfo allocationCreateInfo;
+		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
+		allocationCreateInfo.requiredFlags = _info.getRequiredMemoryProperties();
+		allocationCreateInfo.preferredFlags = _info.getPreferredMemoryProperties();
+		
+		std::tie(_handle, _imageAlloc) = _context.getVmaAllocator().createImage(createInfo, allocationCreateInfo);
 	}
 	
-	vk::ImageCreateInfo createInfo;
-	createInfo.imageType = vk::ImageType::e2D;
-	createInfo.extent = vk::Extent3D(size.x, size.y, 1);
-	createInfo.mipLevels = levels;
-	createInfo.arrayLayers = layers;
-	createInfo.format = format;
-	createInfo.tiling = tiling;
-	createInfo.initialLayout = vk::ImageLayout::eUndefined;
-	createInfo.usage = usage;
-	createInfo.sharingMode = vk::SharingMode::eExclusive;
-	createInfo.samples = vk::SampleCountFlagBits::e1;
-	createInfo.flags = flags;
-	createInfo.pNext = &viewFormatsCreateInfo;
+	uint32_t layers = _info.getLayers();
+	uint32_t levels = _info.getLevels();
 	
-	vma::AllocationCreateInfo allocationCreateInfo;
-	allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
-	allocationCreateInfo.requiredFlags = requiredProperties;
-	allocationCreateInfo.preferredFlags = preferredProperties;
+	_currentLayouts.resize(layers);
+	for (uint32_t i = 0; i < layers; i++)
+	{
+		_currentLayouts[i].resize(levels);
+		std::fill(_currentLayouts[i].begin(), _currentLayouts[i].end(), vk::ImageLayout::eUndefined);
+	}
 	
-	std::tie(_handle, _imageAlloc) = _context.getVmaAllocator().createImage(createInfo, allocationCreateInfo);
-	
-	initLayoutsAndSizes(size);
-}
-
-VKImage::VKImage(
-	VKContext& context,
-	vk::Image handle,
-	vk::Format format,
-	const glm::uvec2& size,
-	uint32_t layers,
-	uint32_t levels,
-	vk::ImageAspectFlagBits aspect):
-	VKObject(context),
-	_ownsHandle(false),
-	_handle(handle),
-	_format(format),
-	_layers(layers),
-	_levels(levels),
-	_aspect(aspect)
-{
-	initLayoutsAndSizes(size);
+	_sizes.resize(levels);
+	_sizes[0] = _info.getSize();
+	for (uint32_t i = 1; i < levels; i++)
+	{
+		_sizes[i] = glm::max(_sizes[i-1] / 2u, glm::uvec2(1, 1));
+	}
 }
 
 VKImage::~VKImage()
 {
-	if (_ownsHandle)
+	if (_imageAlloc)
 	{
 		_context.getVmaAllocator().destroyImage(_handle, _imageAlloc);
 	}
 }
 
+const VKImageInfo& VKImage::getInfo() const
+{
+	return _info;
+}
+
 const vk::Image& VKImage::getHandle()
 {
 	return _handle;
-}
-
-vk::Format VKImage::getFormat() const
-{
-	return _format;
 }
 
 const glm::uvec2& VKImage::getSize(uint32_t level) const
@@ -145,25 +98,10 @@ vk::ImageLayout VKImage::getLayout(uint32_t layer, uint32_t level) const
 	return _currentLayouts[layer][level];
 }
 
-vk::ImageAspectFlags VKImage::getAspect() const
-{
-	return _aspect;
-}
-
-uint32_t VKImage::getLayers() const
-{
-	return _layers;
-}
-
-uint32_t VKImage::getLevels() const
-{
-	return _levels;
-}
-
 vk::DeviceSize VKImage::getLayerByteSize() const
 {
 	vk::DeviceSize totalSize = 0;
-	for (uint32_t i = 0; i < getLevels(); i++)
+	for (uint32_t i = 0; i < _info.getLevels(); i++)
 	{
 		totalSize += getLevelByteSize(i);
 	}
@@ -172,9 +110,10 @@ vk::DeviceSize VKImage::getLayerByteSize() const
 
 vk::DeviceSize VKImage::getLevelByteSize(uint32_t level) const
 {
-	uint32_t blocksInXAxis = (_sizes[level].x + vk::blockExtent(_format)[0] - 1) / vk::blockExtent(_format)[0];
-	uint32_t blocksInYAxis = (_sizes[level].y + vk::blockExtent(_format)[1] - 1) / vk::blockExtent(_format)[1];
-	return blocksInXAxis * blocksInYAxis * vk::blockSize(_format);
+	vk::Format format = _info.getFormat();
+	uint32_t blocksInXAxis = (_sizes[level].x + vk::blockExtent(format)[0] - 1) / vk::blockExtent(format)[0];
+	uint32_t blocksInYAxis = (_sizes[level].y + vk::blockExtent(format)[1] - 1) / vk::blockExtent(format)[1];
+	return blocksInXAxis * blocksInYAxis * vk::blockSize(format);
 }
 
 vk::DeviceSize VKImage::getPixelByteSize() const
@@ -184,12 +123,13 @@ vk::DeviceSize VKImage::getPixelByteSize() const
 		throw;
 	}
 	
-	return vk::blockSize(_format) / vk::texelsPerBlock(_format);
+	vk::Format format = _info.getFormat();
+	return vk::blockSize(format) / vk::texelsPerBlock(format);
 }
 
 bool VKImage::isCompressed() const
 {
-	return vk::isCompressed(_format);
+	return vk::isCompressed(_info.getFormat());
 }
 
 int VKImage::calcMaxMipLevels(const glm::uvec2& size)
@@ -197,24 +137,7 @@ int VKImage::calcMaxMipLevels(const glm::uvec2& size)
 	return static_cast<int>(glm::floor(glm::log2(static_cast<float>(glm::max(size.x, size.y))))) + 1;
 }
 
-void VKImage::initLayoutsAndSizes(glm::uvec2 size)
-{
-	_currentLayouts.resize(_layers);
-	for (uint32_t i = 0; i < _layers; i++)
-	{
-		_currentLayouts[i].resize(_levels);
-		std::fill(_currentLayouts[i].begin(), _currentLayouts[i].end(), vk::ImageLayout::eUndefined);
-	}
-	
-	_sizes.resize(_levels);
-	_sizes[0] = size;
-	for (uint32_t i = 1; i < _levels; i++)
-	{
-		_sizes[i] = glm::max(_sizes[i-1] / 2u, glm::uvec2(1, 1));
-	}
-}
-
-void VKImage::setLayout(vk::ImageLayout layout, uint32_t layer, uint32_t level)
+void VKImage::setLayout(uint32_t layer, uint32_t level, vk::ImageLayout layout)
 {
 	_currentLayouts[layer][level] = layout;
 }

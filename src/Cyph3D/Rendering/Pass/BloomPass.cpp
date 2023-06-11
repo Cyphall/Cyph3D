@@ -33,7 +33,7 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	commandBuffer->pushDebugGroup("copyImageBaseLevel");
 	{
 		commandBuffer->imageMemoryBarrier(
-			input.inputImageView->getImage(),
+			input.inputImageView->getInfo().getImage(),
 			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 			vk::AccessFlagBits2::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits2::eCopy,
@@ -52,7 +52,7 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 			0,
 			0);
 		
-		commandBuffer->copyImageToImage(input.inputImageView->getImage(), 0, 0, _workImage.getCurrent(), 0, 0);
+		commandBuffer->copyImageToImage(input.inputImageView->getInfo().getImage(), 0, 0, _workImage.getCurrent(), 0, 0);
 		
 		commandBuffer->imageMemoryBarrier(
 			_workImage.getCurrent(),
@@ -67,7 +67,7 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	commandBuffer->popDebugGroup();
 
 	// downsample work image
-	for (int i = 1; i < _workImage->getLevels(); i++)
+	for (int i = 1; i < _workImage->getInfo().getLevels(); i++)
 	{
 		commandBuffer->pushDebugGroup(std::format("downsample({}->{})", i-1, i));
 		{
@@ -97,7 +97,7 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	}
 
 	// upsample and blur work image
-	for (int i = _workImage->getLevels() - 2; i >= 0; i--)
+	for (int i = _workImage->getInfo().getLevels() - 2; i >= 0; i--)
 	{
 		commandBuffer->pushDebugGroup(std::format("upsampleAndBlur({}->{})", i+1, i));
 		{
@@ -130,7 +130,7 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	commandBuffer->pushDebugGroup("compose");
 	{
 		commandBuffer->imageMemoryBarrier(
-			input.inputImageView->getImage(),
+			input.inputImageView->getInfo().getImage(),
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferRead,
 			vk::PipelineStageFlagBits2::eFragmentShader,
@@ -443,57 +443,56 @@ void BloomPass::createPipelines()
 void BloomPass::createImages()
 {
 	{
+		VKImageInfo imageInfo(
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			VKImage::calcMaxMipLevels(_size),
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
 		_workImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImage::create(
-				context,
-				SceneRenderer::HDR_COLOR_FORMAT,
-				_size,
-				1,
-				VKImage::calcMaxMipLevels(_size),
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-				vk::ImageAspectFlagBits::eColor,
-				vk::MemoryPropertyFlagBits::eDeviceLocal);
+			return VKImage::create(context, imageInfo);
 		});
 		
-		for (int i = 0; i < _workImage->getLevels(); i++)
+		for (int i = 0; i < _workImage->getInfo().getLevels(); i++)
 		{
-			_workImageViews.emplace_back(VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+			_workImageViews.emplace_back(Engine::getVKContext(), [&](VKContext& context, int index)
 			{
-				return VKImageView::create(
-					context,
+				VKImageViewInfo imageViewInfo(
 					_workImage[index],
-					vk::ImageViewType::e2D,
-					std::nullopt,
-					std::nullopt,
-					std::nullopt,
-					glm::vec2(i, i));
-			}));
+					vk::ImageViewType::e2D);
+				imageViewInfo.setCustomLevelRange({i, i});
+				
+				return VKImageView::create(context, imageViewInfo);
+			});
 		}
 	}
 	
 	{
+		VKImageInfo imageInfo(
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
 		_outputImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImage::create(
-				context,
-				SceneRenderer::HDR_COLOR_FORMAT,
-				_size,
-				1,
-				1,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
-				vk::ImageAspectFlagBits::eColor,
-				vk::MemoryPropertyFlagBits::eDeviceLocal);
+			return VKImage::create(context, imageInfo);
 		});
 		
 		_outputImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
-			return VKImageView::create(
-				context,
+			VKImageViewInfo imageViewInfo(
 				_outputImage[index],
 				vk::ImageViewType::e2D);
+			
+			return VKImageView::create(context, imageViewInfo);
 		});
 	}
 }

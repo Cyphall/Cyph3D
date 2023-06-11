@@ -72,18 +72,17 @@ bool CubemapAsset::load_step1_mt()
 		}
 	}
 	
-	_image = VKImage::create(
-		Engine::getVKContext(),
+	VKImageInfo imageInfo(
 		format,
 		size,
 		6,
 		levels,
 		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-		vk::ImageAspectFlagBits::eColor,
-		vk::MemoryPropertyFlagBits::eDeviceLocal,
-		{},
-		true);
+		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	imageInfo.enableCubeCompatibility();
+	
+	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 	
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
 		Engine::getVKContext(),
@@ -106,7 +105,7 @@ bool CubemapAsset::load_step1_mt()
 			[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 			{
 				vk::DeviceSize bufferOffset = 0;
-				for (uint32_t level = 0; level < _image->getLevels(); level++)
+				for (uint32_t level = 0; level < _image->getInfo().getLevels(); level++)
 				{
 					commandBuffer->imageMemoryBarrier(
 						_image,
@@ -134,10 +133,11 @@ bool CubemapAsset::load_step1_mt()
 			});
 	}
 	
-	_imageView = VKImageView::create(
-		Engine::getVKContext(),
+	VKImageViewInfo imageViewInfo(
 		_image,
 		vk::ImageViewType::eCube);
+	
+	_imageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	
 	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getCubemapSampler());

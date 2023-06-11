@@ -134,7 +134,7 @@ void UIViewport::show()
 			
 			ImGui::Image(
 				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
-				glm::vec2(textureView->getImage()->getSize(0)),
+				glm::vec2(textureView->getInfo().getImage()->getSize(0)),
 				ImVec2(0, 0),
 				ImVec2(1, 1));
 			
@@ -325,10 +325,10 @@ void UIViewport::renderToFile(glm::uvec2 resolution)
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
 			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera);
-			textureSize = textureView->getImage()->getSize(0);
+			textureSize = textureView->getInfo().getImage()->getSize(0);
 			
 			commandBuffer->imageMemoryBarrier(
-				textureView->getImage(),
+				textureView->getInfo().getImage(),
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eCopy,
@@ -339,11 +339,11 @@ void UIViewport::renderToFile(glm::uvec2 resolution)
 			
 			stagingBuffer = VKBuffer<std::byte>::create(
 				Engine::getVKContext(),
-				textureView->getImage()->getLevelByteSize(0),
+				textureView->getInfo().getImage()->getLevelByteSize(0),
 				vk::BufferUsageFlagBits::eTransferDst,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 
-			commandBuffer->copyImageToBuffer(textureView->getImage(), 0, 0, stagingBuffer, 0);
+			commandBuffer->copyImageToBuffer(textureView->getInfo().getImage(), 0, 0, stagingBuffer, 0);
 		});
 
 	std::byte* ptr = stagingBuffer->map();

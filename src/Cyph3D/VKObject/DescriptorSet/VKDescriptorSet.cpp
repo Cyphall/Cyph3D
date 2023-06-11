@@ -145,7 +145,7 @@ void VKDescriptorSet::bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>&
 void VKDescriptorSet::bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex)
 {
 	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getImage();
+	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
 	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
 	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
 	{
@@ -182,7 +182,7 @@ void VKDescriptorSet::bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>&
 void VKDescriptorSet::bindCombinedImageSampler(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getImage();
+	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
 	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
 	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
 	{

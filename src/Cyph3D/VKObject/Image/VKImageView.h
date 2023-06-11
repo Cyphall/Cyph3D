@@ -1,30 +1,16 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
-#include "glm/fwd.hpp"
-
-#include <vk_mem_alloc.hpp>
-#include <optional>
-#include <array>
-#include <glm/glm.hpp>
-
-class VKImage;
+#include "Cyph3D/VKObject/Image/VKImageViewInfo.h"
 
 class VKImageView : public VKObject
 {
 public:
-	static VKPtr<VKImageView> create(
-		VKContext& context,
-		const VKPtr<VKImage>& image,
-		vk::ImageViewType viewType,
-		std::optional<std::array<vk::ComponentSwizzle, 4>> swizzle = std::nullopt,
-		std::optional<vk::Format> viewFormat = std::nullopt,
-		std::optional<glm::uvec2> referencedLayerRange = std::nullopt,
-		std::optional<glm::uvec2> referencedLevelRange = std::nullopt);
+	static VKPtr<VKImageView> create(VKContext& context, const VKImageViewInfo& info);
 	
 	~VKImageView() override;
 	
-	const VKPtr<VKImage>& getImage();
+	const VKImageViewInfo& getInfo() const;
 	
 	vk::ImageView& getHandle();
 	
@@ -35,17 +21,12 @@ public:
 	uint32_t getLastReferencedLevel() const;
 
 private:
-	VKImageView(
-		VKContext& context,
-		const VKPtr<VKImage>& image,
-		vk::ImageViewType viewType,
-		std::optional<std::array<vk::ComponentSwizzle, 4>> swizzle,
-		std::optional<vk::Format> viewFormat,
-		std::optional<glm::uvec2> referencedLayerRange,
-		std::optional<glm::uvec2> referencedLevelRange);
+	VKImageView(VKContext& context, const VKImageViewInfo& info);
+	
+	VKImageViewInfo _info;
 	
 	vk::ImageView _handle;
-	VKPtr<VKImage> _image;
+	
 	glm::uvec2 _referencedLayerRange;
 	glm::uvec2 _referencedLevelRange;
 };

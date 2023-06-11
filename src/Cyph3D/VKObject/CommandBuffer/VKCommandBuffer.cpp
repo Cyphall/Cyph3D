@@ -122,11 +122,11 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 	imageMemoryBarrier.oldLayout = vk::ImageLayout::eUndefined;
 	imageMemoryBarrier.newLayout = vk::ImageLayout::eUndefined;
 	imageMemoryBarrier.image = image->getHandle();
-	imageMemoryBarrier.subresourceRange.aspectMask = image->getAspect();
+	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
 	imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-	imageMemoryBarrier.subresourceRange.levelCount = image->getLevels();
+	imageMemoryBarrier.subresourceRange.levelCount = image->getInfo().getLevels();
 	imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
-	imageMemoryBarrier.subresourceRange.layerCount = image->getLayers();
+	imageMemoryBarrier.subresourceRange.layerCount = image->getInfo().getLayers();
 	
 	vk::DependencyInfo dependencyInfo;
 	dependencyInfo.imageMemoryBarrierCount = 1;
@@ -147,7 +147,7 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 	imageMemoryBarrier.oldLayout = image->getLayout(layer, level);
 	imageMemoryBarrier.newLayout = newImageLayout;
 	imageMemoryBarrier.image = image->getHandle();
-	imageMemoryBarrier.subresourceRange.aspectMask = image->getAspect();
+	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());;
 	imageMemoryBarrier.subresourceRange.baseMipLevel = level;
 	imageMemoryBarrier.subresourceRange.levelCount = 1;
 	imageMemoryBarrier.subresourceRange.baseArrayLayer = layer;
@@ -159,7 +159,7 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 	
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 	
-	image->setLayout(newImageLayout, layer, level);
+	image->setLayout(layer, level, newImageLayout);
 	
 	_usedObjects.emplace_back(image);
 }
@@ -306,7 +306,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		throw;
 	
 	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getImage();
+	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
 	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
 	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
 	{
@@ -350,7 +350,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		throw;
 	
 	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getImage();
+	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
 	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
 	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
 	{
@@ -475,7 +475,7 @@ void VKCommandBuffer::copyBufferToImage(const VKPtr<VKBufferBase>& srcBuffer, vk
 	copiedRegion.bufferOffset = srcByteOffset;
 	copiedRegion.bufferRowLength = 0;
 	copiedRegion.bufferImageHeight = 0;
-	copiedRegion.imageSubresource.aspectMask = dstImage->getAspect();
+	copiedRegion.imageSubresource.aspectMask = VKHelper::getAspect(dstImage->getInfo().getFormat());
 	copiedRegion.imageSubresource.mipLevel = dstLevel;
 	copiedRegion.imageSubresource.baseArrayLayer = dstLayer;
 	copiedRegion.imageSubresource.layerCount = 1;
@@ -528,7 +528,7 @@ void VKCommandBuffer::copyImageToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 	copiedRegion.bufferOffset = dstByteOffset;
 	copiedRegion.bufferRowLength = 0;
 	copiedRegion.bufferImageHeight = 0;
-	copiedRegion.imageSubresource.aspectMask = srcImage->getAspect();
+	copiedRegion.imageSubresource.aspectMask = VKHelper::getAspect(srcImage->getInfo().getFormat());
 	copiedRegion.imageSubresource.mipLevel = srcLevel;
 	copiedRegion.imageSubresource.baseArrayLayer = srcLayer;
 	copiedRegion.imageSubresource.layerCount = 1;
@@ -560,12 +560,12 @@ void VKCommandBuffer::copyImageToImage(const VKPtr<VKImage>& srcImage, uint32_t 
 		throw;
 	
 	vk::ImageCopy2 copiedRegion;
-	copiedRegion.srcSubresource.aspectMask = srcImage->getAspect();
+	copiedRegion.srcSubresource.aspectMask = VKHelper::getAspect(srcImage->getInfo().getFormat());
 	copiedRegion.srcSubresource.mipLevel = srcLevel;
 	copiedRegion.srcSubresource.baseArrayLayer = srcLayer;
 	copiedRegion.srcSubresource.layerCount = 1;
 	copiedRegion.srcOffset = vk::Offset3D(0, 0, 0);
-	copiedRegion.dstSubresource.aspectMask = dstImage->getAspect();
+	copiedRegion.dstSubresource.aspectMask = VKHelper::getAspect(dstImage->getInfo().getFormat());
 	copiedRegion.dstSubresource.mipLevel = dstLevel;
 	copiedRegion.dstSubresource.baseArrayLayer = dstLayer;
 	copiedRegion.dstSubresource.layerCount = 1;
@@ -595,7 +595,7 @@ void VKCommandBuffer::copyPixelToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 	copiedRegion.bufferOffset = dstByteOffset;
 	copiedRegion.bufferRowLength = 0;
 	copiedRegion.bufferImageHeight = 0;
-	copiedRegion.imageSubresource.aspectMask = srcImage->getAspect();
+	copiedRegion.imageSubresource.aspectMask = VKHelper::getAspect(srcImage->getInfo().getFormat());
 	copiedRegion.imageSubresource.mipLevel = srcLevel;
 	copiedRegion.imageSubresource.baseArrayLayer = srcLayer;
 	copiedRegion.imageSubresource.layerCount = 1;
@@ -618,7 +618,7 @@ void VKCommandBuffer::copyPixelToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 void VKCommandBuffer::blitImage(const VKPtr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, const VKPtr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel)
 {
 	vk::ImageBlit2 imageBlit;
-	imageBlit.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+	imageBlit.srcSubresource.aspectMask = VKHelper::getAspect(srcImage->getInfo().getFormat());
 	imageBlit.srcSubresource.mipLevel = srcLevel;
 	imageBlit.srcSubresource.baseArrayLayer = srcLayer;
 	imageBlit.srcSubresource.layerCount = 1;
@@ -628,7 +628,7 @@ void VKCommandBuffer::blitImage(const VKPtr<VKImage>& srcImage, uint32_t srcLaye
 	imageBlit.srcOffsets[1].x = srcImage->getSize(srcLevel).x;
 	imageBlit.srcOffsets[1].y = srcImage->getSize(srcLevel).y;
 	imageBlit.srcOffsets[1].z = 1;
-	imageBlit.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+	imageBlit.dstSubresource.aspectMask = VKHelper::getAspect(dstImage->getInfo().getFormat());
 	imageBlit.dstSubresource.mipLevel = dstLevel;
 	imageBlit.dstSubresource.baseArrayLayer = dstLayer;
 	imageBlit.dstSubresource.layerCount = 1;
@@ -739,7 +739,7 @@ void VKCommandBuffer::resetTimestamp(const VKPtr<VKTimestampQuery>& timestampQue
 void VKCommandBuffer::clearColorImage(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, const vk::ClearColorValue& clearColor)
 {
 	vk::ImageSubresourceRange range;
-	range.aspectMask = image->getAspect();
+	range.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
 	range.baseMipLevel = level;
 	range.levelCount = 1;
 	range.baseArrayLayer = layer;

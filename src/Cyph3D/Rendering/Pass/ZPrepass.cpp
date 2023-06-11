@@ -134,25 +134,26 @@ void ZPrepass::createPipeline()
 
 void ZPrepass::createImage()
 {
+	VKImageInfo imageInfo(
+		SceneRenderer::DEPTH_FORMAT,
+		_size,
+		1,
+		1,
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
 	_depthImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKImage::create(
-			context,
-			SceneRenderer::DEPTH_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eDepthStencilAttachment,
-			vk::ImageAspectFlagBits::eDepth,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		return VKImage::create(context, imageInfo);
 	});
 	
 	_depthImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKImageView::create(
-			context,
+		VKImageViewInfo imageViewInfo(
 			_depthImage[index],
 			vk::ImageViewType::e2D);
+		
+		return VKImageView::create(context, imageViewInfo);
 	});
 }

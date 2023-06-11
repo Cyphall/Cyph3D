@@ -2,6 +2,7 @@
 
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
 
@@ -68,12 +69,12 @@ const vk::SwapchainKHR& VKSwapchain::getHandle()
 
 vk::Format VKSwapchain::getFormat() const
 {
-	return _swapchainImages.front()->getFormat();
+	return _swapchainImages.front()->getImage()->getInfo().getFormat();
 }
 
 const glm::uvec2& VKSwapchain::getSize() const
 {
-	return _swapchainImages.front()->getSize(0);
+	return _swapchainImages.front()->getImage()->getSize(0);
 }
 
 size_t VKSwapchain::getImageCount() const
@@ -109,19 +110,19 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 	_swapchainImageViews.reserve(swapchainImages.size());
 	for (int i = 0; i < swapchainImages.size(); i++)
 	{
-		_swapchainImages.push_back(VKPtr<VKSwapchainImage>(new VKSwapchainImage(
+		_swapchainImages.push_back(VKSwapchainImage::create(
 			_context,
 			swapchainImages[i],
 			createInfo.imageFormat,
 			glm::uvec2(createInfo.imageExtent.width, createInfo.imageExtent.height),
 			*this,
-			i
-		)));
+			i));
 		
-		_swapchainImageViews.push_back(VKImageView::create(
-			_context,
-			_swapchainImages.back(),
-			vk::ImageViewType::e2D));
+		VKImageViewInfo imageViewInfo(
+			_swapchainImages.back()->getImage(),
+			vk::ImageViewType::e2D);
+		
+		_swapchainImageViews.push_back(VKImageView::create(_context, imageViewInfo));
 	}
 }
 

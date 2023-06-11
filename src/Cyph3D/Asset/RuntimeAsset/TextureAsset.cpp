@@ -33,16 +33,16 @@ bool TextureAsset::load_step1_mt()
 {
 	ImageData imageData = _manager.readImageData(_signature.path, _signature.type);
 	
-	_image = VKImage::create(
-		Engine::getVKContext(),
+	VKImageInfo imageInfo(
 		imageData.format,
 		imageData.size,
 		1,
 		imageData.levels.size(),
 		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-		vk::ImageAspectFlagBits::eColor,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
+	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 	
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
 		Engine::getVKContext(),
@@ -63,7 +63,7 @@ bool TextureAsset::load_step1_mt()
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
 			vk::DeviceSize bufferOffset = 0;
-			for (uint32_t i = 0; i < _image->getLevels(); i++)
+			for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
 			{
 				commandBuffer->imageMemoryBarrier(
 					_image,
@@ -90,10 +90,11 @@ bool TextureAsset::load_step1_mt()
 			}
 		});
 	
-	_imageView = VKImageView::create(
-		Engine::getVKContext(),
+	VKImageViewInfo imageViewInfo(
 		_image,
 		vk::ImageViewType::e2D);
+	
+	_imageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	
 	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getTextureSampler());

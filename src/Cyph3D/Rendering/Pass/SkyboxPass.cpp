@@ -35,7 +35,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 {
 	vk::RenderingAttachmentInfo colorAttachment;
 	colorAttachment.imageView = input.rawRenderImageView->getHandle();
-	colorAttachment.imageLayout = input.rawRenderImageView->getImage()->getLayout(0, 0);
+	colorAttachment.imageLayout = input.rawRenderImageView->getInfo().getImage()->getLayout(0, 0);
 	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	colorAttachment.resolveImageView = nullptr;
 	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -48,7 +48,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	
 	vk::RenderingAttachmentInfo depthAttachment;
 	depthAttachment.imageView = input.depthImageView->getHandle();
-	depthAttachment.imageLayout = input.depthImageView->getImage()->getLayout(0, 0);
+	depthAttachment.imageLayout = input.depthImageView->getInfo().getImage()->getLayout(0, 0);
 	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	depthAttachment.resolveImageView = nullptr;
 	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;

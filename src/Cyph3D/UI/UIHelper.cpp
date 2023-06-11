@@ -79,7 +79,7 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageVi
 	ImGui::Render();
 	
 	commandBuffer->imageMemoryBarrier(
-		destImageView->getImage(),
+		destImageView->getInfo().getImage(),
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -91,7 +91,7 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageVi
 	_vulkanBackend->renderDrawData(ImGui::GetDrawData(), commandBuffer, destImageView);
 	
 	commandBuffer->imageMemoryBarrier(
-		destImageView->getImage(),
+		destImageView->getInfo().getImage(),
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eNone,

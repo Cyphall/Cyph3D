@@ -45,7 +45,7 @@ ImGuiVulkanBackend::~ImGuiVulkanBackend()
 
 void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& outputImageView)
 {
-	glm::uvec2 framebufferSize = outputImageView->getImage()->getSize(0);
+	glm::uvec2 framebufferSize = outputImageView->getInfo().getImage()->getSize(0);
 	
 	_vertexBuffer->resizeSmart(drawData->TotalVtxCount);
 	_indexBuffer->resizeSmart(drawData->TotalIdxCount);
@@ -137,7 +137,7 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 				
 				const VKPtr<VKImageView>& textureView = *static_cast<const VKPtr<VKImageView>*>(pcmd->TextureId);
 				
-				if (textureView->getImage()->getLayout(0, 0) != vk::ImageLayout::eReadOnlyOptimal)
+				if (textureView->getInfo().getImage()->getLayout(0, 0) != vk::ImageLayout::eReadOnlyOptimal)
 				{
 					Logger::error("VKImage passed to ImGui has the wrong layout");
 				}
@@ -280,16 +280,16 @@ void ImGuiVulkanBackend::createFontsTexture()
 	std::copy(data, data + dataSize, ptr);
 	stagingBuffer->unmap();
 	
-	_fontsTexture = VKImage::create(
-		Engine::getVKContext(),
+	VKImageInfo imageInfo(
 		vk::Format::eR8Unorm,
 		glm::uvec2(width, height),
 		1,
 		1,
 		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-		vk::ImageAspectFlagBits::eColor,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
+	_fontsTexture = VKImage::create(Engine::getVKContext(), imageInfo);
 	
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
@@ -318,11 +318,12 @@ void ImGuiVulkanBackend::createFontsTexture()
 		}
 	);
 	
-	_fontsTextureView = VKImageView::create(
-		Engine::getVKContext(),
+	VKImageViewInfo imageViewInfo(
 		_fontsTexture,
-		vk::ImageViewType::e2D,
-		std::array<vk::ComponentSwizzle, 4>{vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eR});
+		vk::ImageViewType::e2D);
+	imageViewInfo.setSwizzle({vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eR});
+	
+	_fontsTextureView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	
 	io.Fonts->SetTexID(static_cast<ImTextureID>(&_fontsTextureView));
 }

@@ -82,16 +82,16 @@ static std::vector<std::byte> convertRgbToRg(std::span<const std::byte> input, i
 
 static ImageData genMipmaps(vk::Format format, glm::uvec2 size, std::span<const std::byte> data)
 {
-	VKPtr<VKImage> texture = VKImage::create(
-		Engine::getVKContext(),
+	VKImageInfo imageInfo(
 		format,
 		size,
 		1,
 		VKImage::calcMaxMipLevels(size),
 		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc,
-		vk::ImageAspectFlagBits::eColor,
-		vk::MemoryPropertyFlagBits::eDeviceLocal);
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
+	VKPtr<VKImage> texture = VKImage::create(Engine::getVKContext(), imageInfo);
 	
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
 		Engine::getVKContext(),
@@ -129,7 +129,7 @@ static ImageData genMipmaps(vk::Format format, glm::uvec2 size, std::span<const 
 				0);
 			
 			vk::DeviceSize bufferOffset = texture->getLevelByteSize(0);
-			for (uint32_t i = 1; i < texture->getLevels(); i++)
+			for (uint32_t i = 1; i < texture->getInfo().getLevels(); i++)
 			{
 				commandBuffer->imageMemoryBarrier(
 					texture,
@@ -161,7 +161,7 @@ static ImageData genMipmaps(vk::Format format, glm::uvec2 size, std::span<const 
 	ImageData imageData;
 	imageData.format = format;
 	imageData.size = size;
-	imageData.levels.resize(texture->getLevels());
+	imageData.levels.resize(texture->getInfo().getLevels());
 	
 	ptr = stagingBuffer->map();
 	for (uint32_t i = 0; i < imageData.levels.size(); i++)

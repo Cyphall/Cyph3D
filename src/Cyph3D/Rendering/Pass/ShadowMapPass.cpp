@@ -32,7 +32,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		}
 		
 		commandBuffer->imageMemoryBarrier(
-			(*renderData.shadowMapTextureView)->getImage(),
+			(*renderData.shadowMapTextureView)->getInfo().getImage(),
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -43,7 +43,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		vk::RenderingAttachmentInfo depthAttachment;
 		depthAttachment.imageView = (*renderData.shadowMapTextureView)->getHandle();
-		depthAttachment.imageLayout = (*renderData.shadowMapTextureView)->getImage()->getLayout(0, 0);
+		depthAttachment.imageLayout = (*renderData.shadowMapTextureView)->getInfo().getImage()->getLayout(0, 0);
 		depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 		depthAttachment.resolveImageView = nullptr;
 		depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -51,7 +51,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 		depthAttachment.clearValue.depthStencil.depth = 1.0f;
 		
-		glm::uvec2 shadowMapSize = (*renderData.shadowMapTextureView)->getImage()->getSize(0);
+		glm::uvec2 shadowMapSize = (*renderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
 		
 		vk::RenderingInfo renderingInfo;
 		renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
