@@ -38,23 +38,23 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 {
 	commandBuffer->imageMemoryBarrier(
 		_rawRenderImage.getCurrent(),
+		0,
+		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::ImageLayout::eGeneral,
-		0,
-		0);
+		vk::ImageLayout::eGeneral);
 	
 	commandBuffer->imageMemoryBarrier(
 		_objectIndexImage.getCurrent(),
+		0,
+		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::ImageLayout::eGeneral,
-		0,
-		0);
+		vk::ImageLayout::eGeneral);
 	
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
 	buildInfo.instancesInfos.reserve(input.registry.models.size());

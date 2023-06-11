@@ -27,13 +27,13 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 {
 	commandBuffer->imageMemoryBarrier(
 		_depthImage.getCurrent(),
+		0,
+		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::ImageLayout::eDepthAttachmentOptimal,
-		0,
-		0);
+		vk::ImageLayout::eDepthAttachmentOptimal);
 	
 	vk::RenderingAttachmentInfo depthAttachment;
 	depthAttachment.imageView = _depthImageView->getHandle();

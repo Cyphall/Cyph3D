@@ -109,26 +109,26 @@ bool CubemapAsset::load_step1_mt()
 				{
 					commandBuffer->imageMemoryBarrier(
 						_image,
+						face,
+						level,
 						vk::PipelineStageFlagBits2::eNone,
 						vk::AccessFlagBits2::eNone,
 						vk::PipelineStageFlagBits2::eCopy,
 						vk::AccessFlagBits2::eTransferWrite,
-						vk::ImageLayout::eTransferDstOptimal,
-						face,
-						level);
+						vk::ImageLayout::eTransferDstOptimal);
 					
 					commandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, face, level);
 					bufferOffset += _image->getLevelByteSize(level);
 					
 					commandBuffer->imageMemoryBarrier(
 						_image,
+						face,
+						level,
 						vk::PipelineStageFlagBits2::eCopy,
 						vk::AccessFlagBits2::eTransferWrite,
 						vk::PipelineStageFlagBits2::eFragmentShader,
 						vk::AccessFlagBits2::eShaderSampledRead,
-						vk::ImageLayout::eReadOnlyOptimal,
-						face,
-						level);
+						vk::ImageLayout::eReadOnlyOptimal);
 				}
 			});
 	}

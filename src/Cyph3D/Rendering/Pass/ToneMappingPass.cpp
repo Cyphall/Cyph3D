@@ -28,13 +28,13 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 {
 	commandBuffer->imageMemoryBarrier(
 		_outputImage.getCurrent(),
+		0,
+		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal,
-		0,
-		0);
+		vk::ImageLayout::eColorAttachmentOptimal);
 	
 	vk::RenderingAttachmentInfo colorAttachment;
 	colorAttachment.imageView = _outputSrgbImageView->getHandle();

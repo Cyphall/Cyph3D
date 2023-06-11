@@ -296,25 +296,25 @@ void ImGuiVulkanBackend::createFontsTexture()
 		{
 			commandBuffer->imageMemoryBarrier(
 				_fontsTexture,
+				0,
+				0,
 				vk::PipelineStageFlagBits2::eHost,
 				vk::AccessFlagBits2::eHostWrite,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
-				vk::ImageLayout::eTransferDstOptimal,
-				0,
-				0);
+				vk::ImageLayout::eTransferDstOptimal);
 			
 			commandBuffer->copyBufferToImage(stagingBuffer, 0, _fontsTexture, 0, 0);
 			
 			commandBuffer->imageMemoryBarrier(
 				_fontsTexture,
+				0,
+				0,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
 				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal,
-				0,
-				0);
+				vk::ImageLayout::eReadOnlyOptimal);
 		}
 	);
 	

@@ -108,50 +108,50 @@ static ImageData genMipmaps(vk::Format format, glm::uvec2 size, std::span<const 
 		{
 			commandBuffer->imageMemoryBarrier(
 				texture,
+				0,
+				0,
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
-				vk::ImageLayout::eTransferDstOptimal,
-				0,
-				0);
+				vk::ImageLayout::eTransferDstOptimal);
 			
 			commandBuffer->copyBufferToImage(stagingBuffer, 0, texture, 0, 0);
 			
 			commandBuffer->imageMemoryBarrier(
 				texture,
+				0,
+				0,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
 				vk::PipelineStageFlagBits2::eBlit,
 				vk::AccessFlagBits2::eTransferRead,
-				vk::ImageLayout::eTransferSrcOptimal,
-				0,
-				0);
+				vk::ImageLayout::eTransferSrcOptimal);
 			
 			vk::DeviceSize bufferOffset = texture->getLevelByteSize(0);
 			for (uint32_t i = 1; i < texture->getInfo().getLevels(); i++)
 			{
 				commandBuffer->imageMemoryBarrier(
 					texture,
+					0,
+					i,
 					vk::PipelineStageFlagBits2::eNone,
 					vk::AccessFlagBits2::eNone,
 					vk::PipelineStageFlagBits2::eBlit,
 					vk::AccessFlagBits2::eTransferWrite,
-					vk::ImageLayout::eTransferDstOptimal,
-					0,
-					i);
+					vk::ImageLayout::eTransferDstOptimal);
 				
 				commandBuffer->blitImage(texture, 0, i-1, texture, 0, i);
 				
 				commandBuffer->imageMemoryBarrier(
 					texture,
+					0,
+					i,
 					vk::PipelineStageFlagBits2::eBlit,
 					vk::AccessFlagBits2::eTransferWrite,
 					vk::PipelineStageFlagBits2::eCopy | vk::PipelineStageFlagBits2::eBlit,
 					vk::AccessFlagBits2::eTransferRead,
-					vk::ImageLayout::eTransferSrcOptimal,
-					0,
-					i);
+					vk::ImageLayout::eTransferSrcOptimal);
 				
 				commandBuffer->copyImageToBuffer(texture, 0, i, stagingBuffer, bufferOffset);
 				bufferOffset += texture->getLevelByteSize(i);

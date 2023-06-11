@@ -112,7 +112,7 @@ void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk:
 	_usedObjects.emplace_back(buffer);
 }
 
-void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
+void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
 {
 	vk::ImageMemoryBarrier2 imageMemoryBarrier;
 	imageMemoryBarrier.srcStageMask = srcStageMask;
@@ -123,10 +123,10 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 	imageMemoryBarrier.newLayout = vk::ImageLayout::eUndefined;
 	imageMemoryBarrier.image = image->getHandle();
 	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
-	imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-	imageMemoryBarrier.subresourceRange.levelCount = image->getInfo().getLevels();
-	imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
-	imageMemoryBarrier.subresourceRange.layerCount = image->getInfo().getLayers();
+	imageMemoryBarrier.subresourceRange.baseMipLevel = level;
+	imageMemoryBarrier.subresourceRange.levelCount = 1;
+	imageMemoryBarrier.subresourceRange.baseArrayLayer = layer;
+	imageMemoryBarrier.subresourceRange.layerCount = 1;
 	
 	vk::DependencyInfo dependencyInfo;
 	dependencyInfo.imageMemoryBarrierCount = 1;
@@ -137,7 +137,7 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout, uint32_t layer, uint32_t level)
+void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
 {
 	vk::ImageMemoryBarrier2 imageMemoryBarrier;
 	imageMemoryBarrier.srcStageMask = srcStageMask;
@@ -147,7 +147,7 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 	imageMemoryBarrier.oldLayout = image->getLayout(layer, level);
 	imageMemoryBarrier.newLayout = newImageLayout;
 	imageMemoryBarrier.image = image->getHandle();
-	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());;
+	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
 	imageMemoryBarrier.subresourceRange.baseMipLevel = level;
 	imageMemoryBarrier.subresourceRange.levelCount = 1;
 	imageMemoryBarrier.subresourceRange.baseArrayLayer = layer;

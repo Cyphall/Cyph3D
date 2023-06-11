@@ -329,13 +329,13 @@ void UIViewport::renderToFile(glm::uvec2 resolution)
 			
 			commandBuffer->imageMemoryBarrier(
 				textureView->getInfo().getImage(),
+				0,
+				0,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferRead,
-				vk::ImageLayout::eTransferSrcOptimal,
-				0,
-				0);
+				vk::ImageLayout::eTransferSrcOptimal);
 			
 			stagingBuffer = VKBuffer<std::byte>::create(
 				Engine::getVKContext(),

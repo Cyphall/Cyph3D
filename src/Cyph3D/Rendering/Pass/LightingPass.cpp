@@ -112,23 +112,23 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	commandBuffer->imageMemoryBarrier(
 		_rawRenderImage.getCurrent(),
+		0,
+		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal,
-		0,
-		0);
+		vk::ImageLayout::eColorAttachmentOptimal);
 	
 	commandBuffer->imageMemoryBarrier(
 		_objectIndexImage.getCurrent(),
+		0,
+		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal,
-		0,
-		0);
+		vk::ImageLayout::eColorAttachmentOptimal);
 	
 	std::vector<vk::RenderingAttachmentInfo> colorAttachments;
 	

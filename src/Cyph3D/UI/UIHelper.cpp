@@ -80,25 +80,25 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageVi
 	
 	commandBuffer->imageMemoryBarrier(
 		destImageView->getInfo().getImage(),
+		0,
+		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal,
-		0,
-		0);
+		vk::ImageLayout::eColorAttachmentOptimal);
 	
 	_vulkanBackend->renderDrawData(ImGui::GetDrawData(), commandBuffer, destImageView);
 	
 	commandBuffer->imageMemoryBarrier(
 		destImageView->getInfo().getImage(),
+		0,
+		0,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
-		vk::ImageLayout::ePresentSrcKHR,
-		0,
-		0);
+		vk::ImageLayout::ePresentSrcKHR);
 	
 	commandBuffer->end();
 	

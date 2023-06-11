@@ -34,35 +34,35 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	{
 		commandBuffer->imageMemoryBarrier(
 			input.inputImageView->getInfo().getImage(),
+			0,
+			0,
 			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 			vk::AccessFlagBits2::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferRead,
-			vk::ImageLayout::eTransferSrcOptimal,
-			0,
-			0);
+			vk::ImageLayout::eTransferSrcOptimal);
 		
 		commandBuffer->imageMemoryBarrier(
 			_workImage.getCurrent(),
+			0,
+			0,
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferWrite,
-			vk::ImageLayout::eTransferDstOptimal,
-			0,
-			0);
+			vk::ImageLayout::eTransferDstOptimal);
 		
 		commandBuffer->copyImageToImage(input.inputImageView->getInfo().getImage(), 0, 0, _workImage.getCurrent(), 0, 0);
 		
 		commandBuffer->imageMemoryBarrier(
 			_workImage.getCurrent(),
+			0,
+			0,
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferWrite,
 			vk::PipelineStageFlagBits2::eFragmentShader,
 			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal,
-			0,
-			0);
+			vk::ImageLayout::eReadOnlyOptimal);
 	}
 	commandBuffer->popDebugGroup();
 
@@ -73,25 +73,25 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 		{
 			commandBuffer->imageMemoryBarrier(
 				_workImage.getCurrent(),
+				0,
+				i,
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
-				vk::ImageLayout::eColorAttachmentOptimal,
-				0,
-				i);
+				vk::ImageLayout::eColorAttachmentOptimal);
 			
 			downsample(commandBuffer, i);
 			
 			commandBuffer->imageMemoryBarrier(
 				_workImage.getCurrent(),
+				0,
+				i,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
 				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal,
-				0,
-				i);
+				vk::ImageLayout::eReadOnlyOptimal);
 		}
 		commandBuffer->popDebugGroup();
 	}
@@ -103,25 +103,25 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 		{
 			commandBuffer->imageMemoryBarrier(
 				_workImage.getCurrent(),
+				0,
+				i,
 				vk::PipelineStageFlagBits2::eFragmentShader,
 				vk::AccessFlagBits2::eShaderSampledRead,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentRead,
-				vk::ImageLayout::eColorAttachmentOptimal,
-				0,
-				i);
+				vk::ImageLayout::eColorAttachmentOptimal);
 			
 			upsampleAndBlur(commandBuffer, i);
 			
 			commandBuffer->imageMemoryBarrier(
 				_workImage.getCurrent(),
+				0,
+				i,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
 				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal,
-				0,
-				i);
+				vk::ImageLayout::eReadOnlyOptimal);
 		}
 		commandBuffer->popDebugGroup();
 	}
@@ -131,23 +131,23 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	{
 		commandBuffer->imageMemoryBarrier(
 			input.inputImageView->getInfo().getImage(),
+			0,
+			0,
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferRead,
 			vk::PipelineStageFlagBits2::eFragmentShader,
 			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal,
-			0,
-			0);
+			vk::ImageLayout::eReadOnlyOptimal);
 		
 		commandBuffer->imageMemoryBarrier(
 			_outputImage.getCurrent(),
+			0,
+			0,
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 			vk::AccessFlagBits2::eColorAttachmentWrite,
-			vk::ImageLayout::eColorAttachmentOptimal,
-			0,
-			0);
+			vk::ImageLayout::eColorAttachmentOptimal);
 		
 		compose(input.inputImageView, commandBuffer);
 	}

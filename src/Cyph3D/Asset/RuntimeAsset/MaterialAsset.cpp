@@ -56,25 +56,25 @@ static void updateImageData(const VKPtr<VKImage>& image, const T& value)
 		{
 			commandBuffer->imageMemoryBarrier(
 				image,
+				0,
+				0,
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
-				vk::ImageLayout::eTransferDstOptimal,
-				0,
-				0);
+				vk::ImageLayout::eTransferDstOptimal);
 			
 			commandBuffer->copyBufferToImage(stagingBuffer, 0, image, 0, 0);
 			
 			commandBuffer->imageMemoryBarrier(
 				image,
+				0,
+				0,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
 				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal,
-				0,
-				0);
+				vk::ImageLayout::eReadOnlyOptimal);
 		});
 }
 

@@ -67,26 +67,26 @@ bool TextureAsset::load_step1_mt()
 			{
 				commandBuffer->imageMemoryBarrier(
 					_image,
+					0,
+					i,
 					vk::PipelineStageFlagBits2::eNone,
 					vk::AccessFlagBits2::eNone,
 					vk::PipelineStageFlagBits2::eCopy,
 					vk::AccessFlagBits2::eTransferWrite,
-					vk::ImageLayout::eTransferDstOptimal,
-					0,
-					i);
+					vk::ImageLayout::eTransferDstOptimal);
 				
 				commandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, 0, i);
 				bufferOffset += _image->getLevelByteSize(i);
 				
 				commandBuffer->imageMemoryBarrier(
 					_image,
+					0,
+					i,
 					vk::PipelineStageFlagBits2::eCopy,
 					vk::AccessFlagBits2::eTransferWrite,
 					vk::PipelineStageFlagBits2::eFragmentShader,
 					vk::AccessFlagBits2::eShaderSampledRead,
-					vk::ImageLayout::eReadOnlyOptimal,
-					0,
-					i);
+					vk::ImageLayout::eReadOnlyOptimal);
 			}
 		});
 	

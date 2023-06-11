@@ -33,13 +33,13 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		commandBuffer->imageMemoryBarrier(
 			(*renderData.shadowMapTextureView)->getInfo().getImage(),
+			0,
+			0,
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
 			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-			vk::ImageLayout::eDepthAttachmentOptimal,
-			0,
-			0);
+			vk::ImageLayout::eDepthAttachmentOptimal);
 		
 		vk::RenderingAttachmentInfo depthAttachment;
 		depthAttachment.imageView = (*renderData.shadowMapTextureView)->getHandle();
@@ -132,13 +132,13 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		{
 			commandBuffer->imageMemoryBarrier(
 				renderData.shadowMapTexture->getCurrent(),
+				i,
+				0,
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
 				vk::AccessFlagBits2::eDepthStencilAttachmentRead,
-				vk::ImageLayout::eDepthAttachmentOptimal,
-				i,
-				0);
+				vk::ImageLayout::eDepthAttachmentOptimal);
 		}
 		
 		vk::ClearValue depthClearValue;
