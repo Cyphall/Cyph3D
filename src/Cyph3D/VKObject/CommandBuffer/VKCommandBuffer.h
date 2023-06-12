@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
 
+class VKQueue;
 class VKBufferBase;
 template<typename T>
 class VKResizableBuffer;
@@ -25,7 +26,7 @@ struct VKTopLevelAccelerationStructureBuildInfo;
 class VKCommandBuffer : public VKObject
 {
 public:
-	static VKPtr<VKCommandBuffer> create(VKContext& context);
+	static VKPtr<VKCommandBuffer> create(VKContext& context, const VKQueue& queue);
 	
 	~VKCommandBuffer() override;
 	
@@ -103,7 +104,7 @@ public:
 	const VKPtr<VKSemaphore>& getStatusSemaphore() const;
 	
 private:
-	explicit VKCommandBuffer(VKContext& context);
+	explicit VKCommandBuffer(VKContext& context, const VKQueue& queue);
 	
 	void pushConstants(const void* data, uint32_t dataSize);
 	

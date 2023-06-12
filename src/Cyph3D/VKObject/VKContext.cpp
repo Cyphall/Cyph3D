@@ -386,7 +386,9 @@ VKContext::VKContext(int concurrentFrameCount):
 
 VKContext::~VKContext()
 {
-	_queue->handleCompletedSubmits();
+	_mainQueue->handleCompletedSubmits();
+	_computeQueue->handleCompletedSubmits();
+	_transferQueue->handleCompletedSubmits();
 	_helperData.reset();
 	_vmaAllocator.destroy();
 	_device.destroy();
@@ -407,7 +409,9 @@ int VKContext::getCurrentConcurrentFrame() const
 void VKContext::onNewFrame()
 {
 	_currentConcurrentFrame = (_currentConcurrentFrame + 1) % _concurrentFrameCount;
-	_queue->handleCompletedSubmits();
+	_mainQueue->handleCompletedSubmits();
+	_computeQueue->handleCompletedSubmits();
+	_transferQueue->handleCompletedSubmits();
 	_vmaAllocator.setCurrentFrameIndex(_currentConcurrentFrame);
 }
 
@@ -426,9 +430,19 @@ const vk::Device& VKContext::getDevice()
 	return _device;
 }
 
-VKQueue& VKContext::getQueue()
+VKQueue& VKContext::getMainQueue()
 {
-	return *_queue;
+	return *_mainQueue;
+}
+
+VKQueue& VKContext::getComputeQueue()
+{
+	return *_computeQueue;
+}
+
+VKQueue& VKContext::getTransferQueue()
+{
+	return *_transferQueue;
 }
 
 vma::Allocator VKContext::getVmaAllocator()
@@ -449,7 +463,7 @@ void VKContext::executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>
 	
 	_helperData->immediateCommandBuffer->end();
 	
-	_queue->submit(
+	_mainQueue->submit(
 		_helperData->immediateCommandBuffer,
 		nullptr,
 		nullptr);
@@ -522,34 +536,112 @@ void VKContext::createMessenger()
 	_messenger = _instance.createDebugUtilsMessengerEXT(createInfo);
 }
 
-uint32_t VKContext::findSuitableQueueFamily()
+bool VKContext::findBestQueueFamilies(uint32_t& mainQueueFamily, uint32_t& computeQueueFamily, uint32_t& transferQueueFamily)
 {
-	std::vector<vk::QueueFamilyProperties> vkQueueFamilies = _physicalDevice.getQueueFamilyProperties();
+	std::vector<vk::QueueFamilyProperties> queueFamilyProperties = _physicalDevice.getQueueFamilyProperties();
 	
-	vk::QueueFlags flags = vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eTransfer;
-	
-	for (int i = 0; i < vkQueueFamilies.size(); i++)
+	struct QueueFamilyInfo
 	{
-		vk::QueueFamilyProperties queueFamilyProperties = vkQueueFamilies[i];
-		if ((queueFamilyProperties.queueFlags & flags) == flags)
+		uint32_t index{};
+		uint32_t usageCount{};
+		vk::QueueFlags usages{};
+	};
+	
+	std::vector<QueueFamilyInfo> queueFamilyInfos(queueFamilyProperties.size());
+	
+	for (int i = 0; i < queueFamilyProperties.size(); i++)
+	{
+		queueFamilyInfos[i].index = i;
+		
+		if (queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics)
 		{
-			return i;
+			queueFamilyInfos[i].usages |= vk::QueueFlagBits::eGraphics;
+			queueFamilyInfos[i].usageCount++;
+		}
+		
+		if (queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eCompute)
+		{
+			queueFamilyInfos[i].usages |= vk::QueueFlagBits::eCompute;
+			queueFamilyInfos[i].usageCount++;
+		}
+		
+		if (queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eTransfer)
+		{
+			queueFamilyInfos[i].usages |= vk::QueueFlagBits::eTransfer;
+			queueFamilyInfos[i].usageCount++;
 		}
 	}
 	
-	throw;
+	std::sort(queueFamilyInfos.begin(), queueFamilyInfos.end(), [](const QueueFamilyInfo& a, const QueueFamilyInfo& b)
+	{
+		return a.usageCount < b.usageCount;
+	});
+	
+	bool mainQueueFamilyFound = false;
+	bool computeQueueFamilyFound = false;
+	bool transferQueueFamilyFound = false;
+	for (const QueueFamilyInfo& queueFamilyInfo : queueFamilyInfos)
+	{
+		if (!mainQueueFamilyFound &&
+			queueFamilyInfo.usages & vk::QueueFlagBits::eGraphics &&
+			queueFamilyInfo.usages & vk::QueueFlagBits::eCompute &&
+			queueFamilyInfo.usages & vk::QueueFlagBits::eTransfer)
+		{
+			mainQueueFamily = queueFamilyInfo.index;
+			mainQueueFamilyFound = true;
+		}
+		
+		if (!computeQueueFamilyFound &&
+		    queueFamilyInfo.usages & vk::QueueFlagBits::eCompute)
+		{
+			computeQueueFamily = queueFamilyInfo.index;
+			computeQueueFamilyFound = true;
+		}
+		
+		if (!transferQueueFamilyFound &&
+		    queueFamilyInfo.usages & vk::QueueFlagBits::eTransfer)
+		{
+			transferQueueFamily = queueFamilyInfo.index;
+			transferQueueFamilyFound = true;
+		}
+	}
+	
+	return mainQueueFamilyFound && computeQueueFamilyFound && transferQueueFamilyFound;
 }
 
 void VKContext::createLogicalDevice(const std::vector<const char*>& layers, const std::vector<const char*>& extensions)
 {
-	uint32_t queueFamily = findSuitableQueueFamily();
+	uint32_t mainQueueFamily;
+	uint32_t computeQueueFamily;
+	uint32_t transferQueueFamily;
+	if (!findBestQueueFamilies(mainQueueFamily, computeQueueFamily, transferQueueFamily))
+	{
+		throw;
+	}
 	
 	float queuePriority = 1.0f;
+	std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos;
 	
-	vk::DeviceQueueCreateInfo deviceQueueCreateInfo;
-	deviceQueueCreateInfo.queueFamilyIndex = queueFamily;
-	deviceQueueCreateInfo.queueCount = 1;
-	deviceQueueCreateInfo.pQueuePriorities = &queuePriority;
+	{
+		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
+		createInfo.queueFamilyIndex = mainQueueFamily;
+		createInfo.queueCount = 1;
+		createInfo.pQueuePriorities = &queuePriority;
+	}
+	
+	{
+		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
+		createInfo.queueFamilyIndex = computeQueueFamily;
+		createInfo.queueCount = 1;
+		createInfo.pQueuePriorities = &queuePriority;
+	}
+	
+	{
+		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
+		createInfo.queueFamilyIndex = transferQueueFamily;
+		createInfo.queueCount = 1;
+		createInfo.pQueuePriorities = &queuePriority;
+	}
 	
 	vk::PhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayoutFeatures;
 	scalarBlockLayoutFeatures.scalarBlockLayout = true;
@@ -612,8 +704,8 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	
 	vk::DeviceCreateInfo deviceCreateInfo;
 	deviceCreateInfo.pNext = &physicalDeviceFeatures;
-	deviceCreateInfo.queueCreateInfoCount = 1;
-	deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
+	deviceCreateInfo.queueCreateInfoCount = deviceQueueCreateInfos.size();
+	deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos.data();
 	deviceCreateInfo.enabledExtensionCount = extensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
 	deviceCreateInfo.enabledLayerCount = layers.size();
@@ -621,7 +713,9 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	
 	_device = _physicalDevice.createDevice(deviceCreateInfo);
 	
-	_queue = std::unique_ptr<VKQueue>(new VKQueue(*this, queueFamily, 0));
+	_mainQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, mainQueueFamily, 0));
+	_computeQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, computeQueueFamily, 0));
+	_transferQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, transferQueueFamily, 0));
 }
 
 void VKContext::createVmaAllocator()
@@ -643,13 +737,13 @@ void VKContext::createVmaAllocator()
 
 void VKContext::createImmediateCommandBuffer()
 {
-	_helperData->immediateCommandBuffer = VKCommandBuffer::create(*this);
+	_helperData->immediateCommandBuffer = VKCommandBuffer::create(*this, *_mainQueue);
 }
 
 void VKContext::createDefaultCommandBuffer()
 {
 	_helperData->defaultCommandBuffer = VKDynamic<VKCommandBuffer>(*this, [](VKContext& context, int index)
 	{
-		return VKCommandBuffer::create(context);
+		return VKCommandBuffer::create(context, context.getMainQueue());
 	});
 }

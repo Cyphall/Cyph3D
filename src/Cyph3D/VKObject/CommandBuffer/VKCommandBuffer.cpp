@@ -22,16 +22,16 @@
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
 #include "Cyph3D/VKObject/Query/VKTimestampQuery.h"
 
-VKPtr<VKCommandBuffer> VKCommandBuffer::create(VKContext& context)
+VKPtr<VKCommandBuffer> VKCommandBuffer::create(VKContext& context, const VKQueue& queue)
 {
-	return VKPtr<VKCommandBuffer>(new VKCommandBuffer(context));
+	return VKPtr<VKCommandBuffer>(new VKCommandBuffer(context, queue));
 }
 
-VKCommandBuffer::VKCommandBuffer(VKContext& context):
+VKCommandBuffer::VKCommandBuffer(VKContext& context, const VKQueue& queue):
 	VKObject(context)
 {
 	vk::CommandPoolCreateInfo poolCreateInfo;
-	poolCreateInfo.queueFamilyIndex = _context.getQueue().getFamily();
+	poolCreateInfo.queueFamilyIndex = queue.getFamily();
 	
 	_commandPool = _context.getDevice().createCommandPool(poolCreateInfo);
 	

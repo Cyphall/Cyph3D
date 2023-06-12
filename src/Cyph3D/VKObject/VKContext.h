@@ -28,7 +28,9 @@ public:
 	const vk::Instance& getInstance();
 	const vk::PhysicalDevice& getPhysicalDevice();
 	const vk::Device& getDevice();
-	VKQueue& getQueue();
+	VKQueue& getMainQueue();
+	VKQueue& getComputeQueue();
+	VKQueue& getTransferQueue();
 	
 	vma::Allocator getVmaAllocator();
 	
@@ -52,7 +54,9 @@ private:
 	
 	vk::DebugUtilsMessengerEXT _messenger;
 	vk::PhysicalDevice _physicalDevice;
-	std::unique_ptr<VKQueue> _queue;
+	std::unique_ptr<VKQueue> _mainQueue;
+	std::unique_ptr<VKQueue> _computeQueue;
+	std::unique_ptr<VKQueue> _transferQueue;
 	vk::Device _device;
 	
 	vma::Allocator _vmaAllocator;
@@ -70,7 +74,7 @@ private:
 	void createInstance(const std::vector<const char*>& layers, const std::vector<const char*>& extensions);
 	
 	void createMessenger();
-	uint32_t findSuitableQueueFamily();
+	bool findBestQueueFamilies(uint32_t& mainQueueFamily, uint32_t& computeQueueFamily, uint32_t& transferQueueFamily);
 	void createLogicalDevice(const std::vector<const char*>& layers, const std::vector<const char*>& extensions);
 	
 	void createVmaAllocator();

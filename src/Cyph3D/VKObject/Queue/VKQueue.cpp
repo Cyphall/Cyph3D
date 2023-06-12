@@ -25,6 +25,8 @@ uint32_t VKQueue::getFamily() const
 
 void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKSemaphore>* waitSemaphore, const VKPtr<VKSemaphore>* signalSemaphore)
 {
+	std::scoped_lock lock(_mutex);
+	
 	VKQueue::SubmitInfo& submitInfo = _submits.emplace_back();
 	
 	vk::SubmitInfo2 vkSubmitInfo;

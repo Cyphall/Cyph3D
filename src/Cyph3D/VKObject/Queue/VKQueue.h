@@ -35,6 +35,7 @@ private:
 	
 	uint32_t _queueFamily;
 	vk::Queue _queue;
+	std::mutex _mutex;
 	
 	std::vector<SubmitInfo> _submits;
 };
