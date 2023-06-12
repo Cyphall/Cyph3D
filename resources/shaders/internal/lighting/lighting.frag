@@ -107,7 +107,7 @@ void main()
 {
 	vec3 T = normalize(i_T);
 	vec3 N = normalize(i_N);
-	vec3 B = normalize(cross(i_N, i_T));
+	vec3 B = normalize(cross(i_T, i_N));
 	mat3 tangentToWorld = mat3(T, B, N);
 	mat3 worldToTangent = transpose(tangentToWorld);
 	vec3 viewDir = normalize(u_viewPos - i_fragPos);
@@ -209,7 +209,6 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 	
 	if (viewDir.z <= 0) return texCoords;
 	
-	viewDir.y = -viewDir.y;
 	// Offsets applied at each steps
 	vec2  texCoordsStepOffset = -(viewDir.xy / viewDir.z) / linearSamples * depthScale;
 	float depthStepOffset     = 1.0 / linearSamples;
