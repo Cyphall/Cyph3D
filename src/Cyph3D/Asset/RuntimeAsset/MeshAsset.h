@@ -1,13 +1,14 @@
 #pragma once
 
-#include "Cyph3D/Asset/RuntimeAsset/GPUAsset.h"
-#include "Cyph3D/Asset/Processor/MeshData.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 #include "Cyph3D/HashBuilder.h"
+#include "Cyph3D/Asset/RuntimeAsset/GPUAsset.h"
+#include "Cyph3D/Asset/Processing/MeshData.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <string>
 #include <memory>
 
+class AssetManager;
 template<typename T>
 class VKBuffer;
 class VKAccelerationStructure;

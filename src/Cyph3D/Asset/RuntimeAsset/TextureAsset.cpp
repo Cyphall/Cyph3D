@@ -31,7 +31,7 @@ const uint32_t& TextureAsset::getBindlessIndex() const
 
 bool TextureAsset::load_step1_mt()
 {
-	ImageData imageData = _manager.readImageData(_signature.path, _signature.type);
+	ImageData imageData = _manager.getAssetProcessor().readImageData(_signature.path, _signature.type);
 	
 	VKImageInfo imageInfo(
 		imageData.format,

@@ -1,8 +1,8 @@
 #include "AssetManager.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Asset/Processor/ImageProcessor.h"
-#include "Cyph3D/Asset/Processor/MeshProcessor.h"
+#include "Cyph3D/Asset/Processing/ImageProcessor.h"
+#include "Cyph3D/Asset/Processing/MeshProcessor.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
 AssetManager::AssetManager(int threadCount):
@@ -66,21 +66,14 @@ const VKPtr<VKSampler>& AssetManager::getCubemapSampler()
 	return _cubemapSampler;
 }
 
+AssetProcessor& AssetManager::getAssetProcessor()
+{
+	return _assetProcessor;
+}
+
 BindlessTextureManager& AssetManager::getBindlessTextureManager()
 {
 	return _bindlessTextureManager;
-}
-
-ImageData AssetManager::readImageData(std::string_view path, ImageType type)
-{
-	std::string cachePath = _database.getImageCachePath(path, type);
-	return ImageProcessor::readImageData(path, type, cachePath);
-}
-
-MeshData AssetManager::readMeshData(std::string_view path)
-{
-	std::string cachePath = _database.getMeshCachePath(path);
-	return MeshProcessor::readMeshData(path, cachePath);
 }
 
 TextureAsset* AssetManager::loadTexture(std::string_view path, ImageType type)

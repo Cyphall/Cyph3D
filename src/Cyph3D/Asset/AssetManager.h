@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Cyph3D/Asset/AssetCacheDatabase.h"
 #include "Cyph3D/Asset/BindlessTextureManager.h"
-#include "Cyph3D/Asset/Processor/ImageData.h"
-#include "Cyph3D/Asset/Processor/MeshData.h"
+#include "Cyph3D/Asset/Processing/AssetProcessor.h"
+#include "Cyph3D/Asset/Processing/ImageData.h"
+#include "Cyph3D/Asset/Processing/MeshData.h"
 #include "Cyph3D/Asset/RuntimeAsset/TextureAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
@@ -28,10 +28,9 @@ public:
 	const VKPtr<VKSampler>& getTextureSampler();
 	const VKPtr<VKSampler>& getCubemapSampler();
 	
-	BindlessTextureManager& getBindlessTextureManager();
+	AssetProcessor& getAssetProcessor();
 	
-	ImageData readImageData(std::string_view path, ImageType type);
-	MeshData readMeshData(std::string_view path);
+	BindlessTextureManager& getBindlessTextureManager();
 
 	TextureAsset* loadTexture(std::string_view path, ImageType type);
 	CubemapAsset* loadCubemap(std::string_view xposPath, std::string_view xnegPath, std::string_view yposPath, std::string_view ynegPath, std::string_view zposPath, std::string_view znegPath, ImageType type);
@@ -57,7 +56,7 @@ public:
 	}
 
 private:
-	AssetCacheDatabase _database;
+	AssetProcessor _assetProcessor;
 	
 	VKPtr<VKSampler> _textureSampler;
 	VKPtr<VKSampler> _cubemapSampler;

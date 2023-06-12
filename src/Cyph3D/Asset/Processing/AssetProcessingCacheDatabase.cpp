@@ -1,10 +1,10 @@
-#include "AssetCacheDatabase.h"
+#include "AssetProcessingCacheDatabase.h"
 
 #include "Cyph3D/Helper/FileHelper.h"
 
-#include <SQLiteCpp/Database.h>
-#include <sqlite3.h>
-#include <crossguid/guid.hpp>
+#include "SQLiteCpp/Database.h"
+#include "sqlite3.h"
+#include "crossguid/guid.hpp"
 #include <filesystem>
 
 static xg::Guid columnToGuid(const SQLite::Column& column)
@@ -21,7 +21,7 @@ static xg::Guid columnToGuid(const SQLite::Column& column)
 	return xg::Guid(guidBytes);
 }
 
-AssetCacheDatabase::AssetCacheDatabase()
+AssetProcessingCacheDatabase::AssetProcessingCacheDatabase()
 {
 	std::filesystem::path databaseFilePath = FileHelper::getCacheRootDirectoryPath() / "assets/cache_database.sqlite";
 
@@ -48,10 +48,10 @@ AssetCacheDatabase::AssetCacheDatabase()
 		") WITHOUT ROWID;");
 }
 
-AssetCacheDatabase::~AssetCacheDatabase()
+AssetProcessingCacheDatabase::~AssetProcessingCacheDatabase()
 {}
 
-std::string AssetCacheDatabase::getImageCachePath(std::string_view path, ImageType type)
+std::string AssetProcessingCacheDatabase::getImageCachePath(std::string_view path, ImageType type)
 {
 	int64_t currentLastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
 
@@ -107,7 +107,7 @@ std::string AssetCacheDatabase::getImageCachePath(std::string_view path, ImageTy
 	return cachePath;
 }
 
-std::string AssetCacheDatabase::getMeshCachePath(std::string_view path)
+std::string AssetProcessingCacheDatabase::getMeshCachePath(std::string_view path)
 {
 	int64_t currentLastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
 

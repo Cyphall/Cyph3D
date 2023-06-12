@@ -40,7 +40,7 @@ const VKPtr<VKAccelerationStructure>& MeshAsset::getAccelerationStructure() cons
 
 bool MeshAsset::load_step1_mt()
 {
-	MeshData meshData = _manager.readMeshData(_signature.path);
+	MeshData meshData = _manager.getAssetProcessor().readMeshData(_signature.path);
 	
 	vk::BufferUsageFlags vertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
 	if (Engine::getVKContext().isRayTracingSupported())

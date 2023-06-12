@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Asset/Processor/ImageData.h"
+#include "Cyph3D/Asset/Processing/ImageData.h"
 
 #include <memory>
 #include <string>
@@ -10,11 +10,11 @@ namespace SQLite
 	class Database;
 }
 
-class AssetCacheDatabase
+class AssetProcessingCacheDatabase
 {
 public:
-	AssetCacheDatabase();
-	~AssetCacheDatabase();
+	AssetProcessingCacheDatabase();
+	~AssetProcessingCacheDatabase();
 
 	std::string getImageCachePath(std::string_view path, ImageType type);
 	std::string getMeshCachePath(std::string_view path);

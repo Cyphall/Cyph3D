@@ -53,7 +53,7 @@ bool CubemapAsset::load_step1_mt()
 	std::array<ImageData, 6> imageDataList;
 	for (uint32_t i = 0; i < 6; i++)
 	{
-		imageDataList[i] = _manager.readImageData(paths[i].get(), _signature.type);
+		imageDataList[i] = _manager.getAssetProcessor().readImageData(paths[i].get(), _signature.type);
 		
 		if (i == 0)
 		{
