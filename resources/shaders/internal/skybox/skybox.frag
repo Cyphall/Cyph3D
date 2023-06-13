@@ -1,5 +1,5 @@
 #version 460 core
-#extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_EXT_nonuniform_qualifier : require
 
 layout(location = 0) in V2F
 {
