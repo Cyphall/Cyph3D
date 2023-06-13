@@ -42,5 +42,7 @@ private:
 	
 	uint32_t _upperBound;
 	
+	std::mutex _mutex;
+	
 	void expand();
 };

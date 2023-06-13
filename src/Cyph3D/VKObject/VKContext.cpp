@@ -511,8 +511,8 @@ void VKContext::createInstance(const std::vector<const char*>& layers, const std
 #if defined(_DEBUG)
 	std::vector<vk::ValidationFeatureEnableEXT> enabledFeatures{
 //		vk::ValidationFeatureEnableEXT::eGpuAssisted, // TODO: re-enable once https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/5321 is fixed
-		vk::ValidationFeatureEnableEXT::eBestPractices,
-		vk::ValidationFeatureEnableEXT::eSynchronizationValidation
+		vk::ValidationFeatureEnableEXT::eBestPractices
+//		vk::ValidationFeatureEnableEXT::eSynchronizationValidation
 	};
 	
 	vk::ValidationFeaturesEXT validationFeatures;
@@ -701,6 +701,8 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	physicalDeviceFeatures.pNext = &dynamicRenderingFeatures;
 	physicalDeviceFeatures.features.samplerAnisotropy = true;
 	physicalDeviceFeatures.features.geometryShader = true;
+	physicalDeviceFeatures.features.shaderStorageImageReadWithoutFormat = true;
+	physicalDeviceFeatures.features.shaderStorageImageWriteWithoutFormat = true;
 	
 	vk::DeviceCreateInfo deviceCreateInfo;
 	deviceCreateInfo.pNext = &physicalDeviceFeatures;

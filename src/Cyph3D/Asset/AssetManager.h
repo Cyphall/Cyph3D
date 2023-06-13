@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cyph3D/Asset/AssetManagerWorkerData.h"
 #include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/Processing/AssetProcessor.h"
 #include "Cyph3D/Asset/Processing/ImageData.h"
@@ -69,7 +70,7 @@ private:
 	std::unordered_map<MaterialAssetSignature, std::unique_ptr<MaterialAsset>> _materials;
 	std::unordered_map<SkyboxAssetSignature, std::unique_ptr<SkyboxAsset>> _skyboxes;
 
-	BS::thread_pool _threadPool;
+	BS::thread_pool<AssetManagerWorkerData> _threadPool;
 
 	std::list<std::function<bool()>> _mainThreadTasks;
 

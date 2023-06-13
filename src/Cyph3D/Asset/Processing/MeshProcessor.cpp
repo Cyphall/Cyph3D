@@ -39,7 +39,7 @@ static bool readProcessedMesh(const std::filesystem::path& path, MeshData& meshD
 	return true;
 }
 
-static MeshData processMesh(const std::filesystem::path& input, const std::filesystem::path& output)
+static MeshData processMesh(AssetManagerWorkerData& workerData, const std::filesystem::path& input, const std::filesystem::path& output)
 {
 	MeshData meshData;
 
@@ -70,7 +70,7 @@ static MeshData processMesh(const std::filesystem::path& input, const std::files
 	return meshData;
 }
 
-MeshData MeshProcessor::readMeshData(std::string_view path, std::string_view cachePath)
+MeshData MeshProcessor::readMeshData(AssetManagerWorkerData& workerData, std::string_view path, std::string_view cachePath)
 {
 	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
 	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;
@@ -84,14 +84,14 @@ MeshData MeshProcessor::readMeshData(std::string_view path, std::string_view cac
 		{
 			Logger::warning(std::format("Cannot parse cached mesh {}. Reprocessing...", path));
 			std::filesystem::remove(cacheAbsolutePath);
-			meshData = processMesh(absolutePath, cacheAbsolutePath);
+			meshData = processMesh(workerData, absolutePath, cacheAbsolutePath);
 			Logger::info(std::format("Mesh {} reprocessed succesfully", path));
 		}
 	}
 	else
 	{
 		Logger::info(std::format("Processing mesh {}", path));
-		meshData = processMesh(absolutePath, cacheAbsolutePath);
+		meshData = processMesh(workerData, absolutePath, cacheAbsolutePath);
 		Logger::info(std::format("Mesh {} processed succesfully", path));
 	}
 

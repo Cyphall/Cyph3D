@@ -4,9 +4,15 @@
 #include "Cyph3D/StbImage.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
+#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
+#include "Cyph3D/VKObject/Pipeline/VKComputePipeline.h"
+#include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/GLSL_types.h"
 
 #include <filesystem>
 #include <array>
@@ -14,6 +20,12 @@
 #include <vulkan/vulkan_format_traits.hpp>
 #include <bc7enc.h>
 #include <rgbcx.h>
+
+struct PushConstantData
+{
+	GLSL_bool srgb;
+	GLSL_uint reduceMode;
+};
 
 static void writeProcessedImage(const std::filesystem::path& path, const ImageData& imageData)
 {
@@ -80,103 +92,6 @@ static std::vector<std::byte> convertRgbToRg(std::span<const std::byte> input, i
 	return output;
 }
 
-static ImageData genMipmaps(vk::Format format, glm::uvec2 size, std::span<const std::byte> data)
-{
-	VKImageInfo imageInfo(
-		format,
-		size,
-		1,
-		VKImage::calcMaxMipLevels(size),
-		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	
-	VKPtr<VKImage> texture = VKImage::create(Engine::getVKContext(), imageInfo);
-	
-	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
-		Engine::getVKContext(),
-		texture->getLayerByteSize(),
-		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
-	
-	std::byte* ptr = stagingBuffer->map();
-	std::copy(data.data(), data.data() + texture->getLevelByteSize(0), ptr);
-	stagingBuffer->unmap();
-	
-	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-		{
-			commandBuffer->imageMemoryBarrier(
-				texture,
-				0,
-				0,
-				vk::PipelineStageFlagBits2::eNone,
-				vk::AccessFlagBits2::eNone,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
-				vk::ImageLayout::eTransferDstOptimal);
-			
-			commandBuffer->copyBufferToImage(stagingBuffer, 0, texture, 0, 0);
-			
-			commandBuffer->imageMemoryBarrier(
-				texture,
-				0,
-				0,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
-				vk::PipelineStageFlagBits2::eBlit,
-				vk::AccessFlagBits2::eTransferRead,
-				vk::ImageLayout::eTransferSrcOptimal);
-			
-			vk::DeviceSize bufferOffset = texture->getLevelByteSize(0);
-			for (uint32_t i = 1; i < texture->getInfo().getLevels(); i++)
-			{
-				commandBuffer->imageMemoryBarrier(
-					texture,
-					0,
-					i,
-					vk::PipelineStageFlagBits2::eNone,
-					vk::AccessFlagBits2::eNone,
-					vk::PipelineStageFlagBits2::eBlit,
-					vk::AccessFlagBits2::eTransferWrite,
-					vk::ImageLayout::eTransferDstOptimal);
-				
-				commandBuffer->blitImage(texture, 0, i-1, texture, 0, i);
-				
-				commandBuffer->imageMemoryBarrier(
-					texture,
-					0,
-					i,
-					vk::PipelineStageFlagBits2::eBlit,
-					vk::AccessFlagBits2::eTransferWrite,
-					vk::PipelineStageFlagBits2::eCopy | vk::PipelineStageFlagBits2::eBlit,
-					vk::AccessFlagBits2::eTransferRead,
-					vk::ImageLayout::eTransferSrcOptimal);
-				
-				commandBuffer->copyImageToBuffer(texture, 0, i, stagingBuffer, bufferOffset);
-				bufferOffset += texture->getLevelByteSize(i);
-			}
-		});
-	
-	ImageData imageData;
-	imageData.format = format;
-	imageData.size = size;
-	imageData.levels.resize(texture->getInfo().getLevels());
-	
-	ptr = stagingBuffer->map();
-	for (uint32_t i = 0; i < imageData.levels.size(); i++)
-	{
-		imageData.levels[i].data.resize(texture->getLevelByteSize(i));
-		
-		std::memcpy(imageData.levels[i].data.data(), ptr, imageData.levels[i].data.size());
-		
-		ptr += imageData.levels[i].data.size();
-	}
-	stagingBuffer->unmap();
-	
-	return imageData;
-}
-
 static void compressLevelBC4(const ImageLevel& uncompressedLevel, ImageLevel& compressedLevel, glm::uvec2 inputSize, glm::uvec2 outputSize)
 {
 	glm::uvec2 inputPixelOffset{
@@ -185,8 +100,6 @@ static void compressLevelBC4(const ImageLevel& uncompressedLevel, ImageLevel& co
 	};
 	
 	glm::uvec2 inputBlockOffset = inputPixelOffset * glm::uvec2(4, 4);
-	
-	rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
 	
 	std::array<uint8_t, 16> blockInput{};
 	std::array<uint8_t, 8> blockOutput{};
@@ -218,8 +131,6 @@ static void compressLevelBC5(const ImageLevel& uncompressedLevel, ImageLevel& co
 	};
 	
 	glm::uvec2 inputBlockOffset = inputPixelOffset * glm::uvec2(4, 4);
-	
-	rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
 	
 	std::array<uint8_t, 32> blockInput{};
 	std::array<uint8_t, 16> blockOutput{};
@@ -327,7 +238,58 @@ ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format reques
 	return compressedImageData;
 }
 
-static ImageData processImage(const std::filesystem::path& input, const std::filesystem::path& output, ImageType type)
+ImageProcessor::ImageProcessor()
+{
+	VKDescriptorSetLayoutInfo descriptorSetLayoutInfo(true);
+	descriptorSetLayoutInfo.addBinding(vk::DescriptorType::eStorageImage, 1);
+	descriptorSetLayoutInfo.addBinding(vk::DescriptorType::eStorageImage, 1);
+	
+	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), descriptorSetLayoutInfo);
+	
+	VKPipelineLayoutInfo pipelineLayoutInfo;
+	pipelineLayoutInfo.addDescriptorSetLayout(_descriptorSetLayout);
+	pipelineLayoutInfo.setPushConstantLayout<PushConstantData>();
+	
+	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), pipelineLayoutInfo);
+	
+	VKComputePipelineInfo computePipelineInfo(
+		_pipelineLayout,
+		"resources/shaders/internal/asset processing/gen mipmap.comp");
+	
+	_pipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
+	
+	rgbcx::init();
+}
+
+ImageData ImageProcessor::readImageData(AssetManagerWorkerData& workerData, std::string_view path, ImageType type, std::string_view cachePath)
+{
+	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
+	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;
+
+	ImageData imageData;
+	
+	if (std::filesystem::exists(cacheAbsolutePath))
+	{
+		Logger::info(std::format("Loading image {} with type {} from cache", path, magic_enum::enum_name(type)));
+		if (!readProcessedImage(cacheAbsolutePath, imageData))
+		{
+			Logger::warning(std::format("Cannot parse cached image {} with type {}. Reprocessing...", path, magic_enum::enum_name(type)));
+			std::filesystem::remove(cacheAbsolutePath);
+			imageData = processImage(workerData, absolutePath, cacheAbsolutePath, type);
+			Logger::info(std::format("Image {} with type {} reprocessed succesfully", path, magic_enum::enum_name(type)));
+		}
+	}
+	else
+	{
+		Logger::info(std::format("Processing image {} with type {}", path, magic_enum::enum_name(type)));
+		imageData = processImage(workerData, absolutePath, cacheAbsolutePath, type);
+		Logger::info(std::format("Image {} with type {} processed succesfully", path, magic_enum::enum_name(type)));
+	}
+	
+	return imageData;
+}
+
+ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const std::filesystem::path& input, const std::filesystem::path& output, ImageType type)
 {
 	StbImage::Channels requiredChannels;
 	StbImage::BitDepthFlags supportedBitDepth;
@@ -354,13 +316,14 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 	}
 	
 	StbImage image(input, requiredChannels, supportedBitDepth);
-
+	
 	if (!image.isValid())
 	{
 		throw std::runtime_error(std::format("Unable to load image {} from disk", input.generic_string()));
 	}
 	
 	vk::Format mipmapGenFormat;
+	bool isMipmapGenFormatSrgb;
 	vk::Format compressionFormat;
 	switch (type)
 	{
@@ -368,7 +331,8 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 			switch (image.getBitsPerChannel())
 			{
 				case 8:
-					mipmapGenFormat = vk::Format::eR8G8B8A8Srgb;
+					mipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
+					isMipmapGenFormatSrgb = true;
 					compressionFormat = vk::Format::eBc7SrgbBlock;
 					break;
 				default:
@@ -380,6 +344,7 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 			{
 				case 8:
 					mipmapGenFormat = vk::Format::eR8G8Unorm;
+					isMipmapGenFormatSrgb = false;
 					compressionFormat = vk::Format::eBc5UnormBlock;
 					break;
 				default:
@@ -391,6 +356,7 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 			{
 				case 8:
 					mipmapGenFormat = vk::Format::eR8Unorm;
+					isMipmapGenFormatSrgb = false;
 					compressionFormat = vk::Format::eBc4UnormBlock;
 					break;
 				default:
@@ -401,11 +367,13 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 			switch (image.getBitsPerChannel())
 			{
 				case 8:
-					mipmapGenFormat = vk::Format::eR8G8B8A8Srgb;
+					mipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
+					isMipmapGenFormatSrgb = true;
 					compressionFormat = vk::Format::eBc7SrgbBlock;
 					break;
 				case 32:
 					mipmapGenFormat = vk::Format::eR32G32B32A32Sfloat;
+					isMipmapGenFormatSrgb = false;
 					compressionFormat = vk::Format::eUndefined;
 					break;
 				default:
@@ -433,7 +401,7 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 			throw;
 	}
 	
-	ImageData imageData = genMipmaps(mipmapGenFormat, image.getSize(), data);
+	ImageData imageData = genMipmaps(workerData, mipmapGenFormat, image.getSize(), data, isMipmapGenFormatSrgb);
 	
 	if (compressionFormat != vk::Format::eUndefined)
 	{
@@ -445,30 +413,148 @@ static ImageData processImage(const std::filesystem::path& input, const std::fil
 	return imageData;
 }
 
-ImageData ImageProcessor::readImageData(std::string_view path, ImageType type, std::string_view cachePath)
+ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb)
 {
-	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
-	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;
-
-	ImageData imageData;
+	// create texture
+	VKImageInfo imageInfo(
+		format,
+		size,
+		1,
+		VKImage::calcMaxMipLevels(size),
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
-	if (std::filesystem::exists(cacheAbsolutePath))
+	VKPtr<VKImage> texture = VKImage::create(Engine::getVKContext(), imageInfo);
+	
+	// create texture views
+	std::vector<VKPtr<VKImageView>> textureViews;
+	for (int i = 0; i < texture->getInfo().getLevels(); i++)
 	{
-		Logger::info(std::format("Loading image {} with type {} from cache", path, magic_enum::enum_name(type)));
-		if (!readProcessedImage(cacheAbsolutePath, imageData))
-		{
-			Logger::warning(std::format("Cannot parse cached image {} with type {}. Reprocessing...", path, magic_enum::enum_name(type)));
-			std::filesystem::remove(cacheAbsolutePath);
-			imageData = processImage(absolutePath, cacheAbsolutePath, type);
-			Logger::info(std::format("Image {} with type {} reprocessed succesfully", path, magic_enum::enum_name(type)));
-		}
+		VKImageViewInfo imageViewInfo(texture, vk::ImageViewType::e2D);
+		imageViewInfo.setCustomLevelRange({i, i});
+		
+		textureViews.push_back(VKImageView::create(Engine::getVKContext(), imageViewInfo));
 	}
-	else
+	
+	// create staging buffer
+	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
+		Engine::getVKContext(),
+		texture->getLayerByteSize(),
+		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
+	
+	// copy texture data to staging buffer
+	std::byte* ptr = stagingBuffer->map();
+	std::copy(data.data(), data.data() + texture->getLevelByteSize(0), ptr);
+	stagingBuffer->unmap();
+	
+	// upload staging buffer to texture
+	workerData.transferCommandBuffer->begin();
+	
+	workerData.transferCommandBuffer->imageMemoryBarrier(
+		texture, 0, 0,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferWrite,
+		vk::ImageLayout::eTransferDstOptimal);
+	
+	workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, 0, texture, 0, 0);
+	
+	workerData.transferCommandBuffer->end();
+	
+	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, nullptr, nullptr);
+	
+	workerData.transferCommandBuffer->waitExecution();
+	
+	// generate mipmaps
+	workerData.computeCommandBuffer->begin();
+	
+	workerData.computeCommandBuffer->bindPipeline(_pipeline);
+	
+	PushConstantData pushConstantData{
+		.srgb = isSrgb,
+		.reduceMode = 0
+	};
+	workerData.computeCommandBuffer->pushConstants(pushConstantData);
+	
+	workerData.computeCommandBuffer->imageMemoryBarrier(
+		texture, 0, 0,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eComputeShader,
+		vk::AccessFlagBits2::eShaderStorageWrite,
+		vk::ImageLayout::eGeneral);
+	
+	for (int i = 1; i < texture->getInfo().getLevels(); i++)
 	{
-		Logger::info(std::format("Processing image {} with type {}", path, magic_enum::enum_name(type)));
-		imageData = processImage(absolutePath, cacheAbsolutePath, type);
-		Logger::info(std::format("Image {} with type {} processed succesfully", path, magic_enum::enum_name(type)));
+		workerData.computeCommandBuffer->imageMemoryBarrier(
+			texture, 0, i-1,
+			vk::PipelineStageFlagBits2::eComputeShader,
+			vk::AccessFlagBits2::eShaderStorageWrite,
+			vk::PipelineStageFlagBits2::eComputeShader,
+			vk::AccessFlagBits2::eShaderStorageRead);
+		
+		workerData.computeCommandBuffer->imageMemoryBarrier(
+			texture, 0, i,
+			vk::PipelineStageFlagBits2::eNone,
+			vk::AccessFlagBits2::eNone,
+			vk::PipelineStageFlagBits2::eComputeShader,
+			vk::AccessFlagBits2::eShaderStorageWrite,
+			vk::ImageLayout::eGeneral);
+		
+		workerData.computeCommandBuffer->pushDescriptor(0, 0, textureViews[i-1]);
+		workerData.computeCommandBuffer->pushDescriptor(0, 1, textureViews[i]);
+		
+		glm::uvec2 dstSize = texture->getSize(i);
+		workerData.computeCommandBuffer->dispatch({(dstSize.x * dstSize.y + 31) / 32, 1, 1});
 	}
+	workerData.computeCommandBuffer->end();
+	
+	Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);
+	
+	workerData.computeCommandBuffer->waitExecution();
+	
+	// download texture to staging buffer
+	workerData.transferCommandBuffer->begin();
+	
+	vk::DeviceSize bufferOffset = texture->getLevelByteSize(0);
+	for (uint32_t i = 1; i < texture->getInfo().getLevels(); i++)
+	{
+		workerData.transferCommandBuffer->imageMemoryBarrier(
+			texture, 0, i,
+			vk::PipelineStageFlagBits2::eNone,
+			vk::AccessFlagBits2::eNone,
+			vk::PipelineStageFlagBits2::eCopy,
+			vk::AccessFlagBits2::eTransferRead,
+			vk::ImageLayout::eTransferSrcOptimal);
+		
+		workerData.transferCommandBuffer->copyImageToBuffer(texture, 0, i, stagingBuffer, bufferOffset);
+		bufferOffset += texture->getLevelByteSize(i);
+	}
+	
+	workerData.transferCommandBuffer->end();
+	
+	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, nullptr, nullptr);
+	
+	workerData.transferCommandBuffer->waitExecution();
+	
+	ImageData imageData;
+	imageData.format = format;
+	imageData.size = size;
+	imageData.levels.resize(texture->getInfo().getLevels());
+	
+	ptr = stagingBuffer->map();
+	for (uint32_t i = 0; i < imageData.levels.size(); i++)
+	{
+		imageData.levels[i].data.resize(texture->getLevelByteSize(i));
+		
+		std::memcpy(imageData.levels[i].data.data(), ptr, imageData.levels[i].data.size());
+		
+		ptr += imageData.levels[i].data.size();
+	}
+	stagingBuffer->unmap();
 	
 	return imageData;
 }

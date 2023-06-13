@@ -12,6 +12,7 @@ class AssetManager;
 class VKImage;
 class VKImageView;
 class VKSampler;
+struct AssetManagerWorkerData;
 
 struct TextureAssetSignature
 {
@@ -44,8 +45,8 @@ private:
 	friend class AssetManager;
 
 	TextureAsset(AssetManager& manager, const TextureAssetSignature& signature);
-
-	bool load_step1_mt();
+	
+	void load_async(AssetManagerWorkerData& workerData);
 	
 	VKPtr<VKImage> _image;
 	VKPtr<VKImageView> _imageView;

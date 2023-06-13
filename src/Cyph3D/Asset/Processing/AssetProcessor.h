@@ -4,11 +4,13 @@
 #include "Cyph3D/Asset/Processing/ImageProcessor.h"
 #include "Cyph3D/Asset/Processing/MeshProcessor.h"
 
+struct AssetManagerWorkerData;
+
 class AssetProcessor
 {
 public:
-	ImageData readImageData(std::string_view path, ImageType type);
-	MeshData readMeshData(std::string_view path);
+	ImageData readImageData(AssetManagerWorkerData& workerData, std::string_view path, ImageType type);
+	MeshData readMeshData(AssetManagerWorkerData& workerData, std::string_view path);
 	
 private:
 	AssetProcessingCacheDatabase _database;

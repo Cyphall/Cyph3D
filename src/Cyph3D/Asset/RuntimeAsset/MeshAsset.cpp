@@ -4,6 +4,7 @@
 #include "Cyph3D/VKObject/AccelerationStructure/VKBottomLevelAccelerationStructureBuildInfo.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
+#include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Engine.h"
@@ -14,7 +15,7 @@ MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature)
 	GPUAsset(manager, signature)
 {
 	Logger::info(std::format("Loading mesh {}", _signature.path));
-	_manager.addMainThreadTask(&MeshAsset::load_step1_mt, this);
+	_manager.addThreadPoolTask(&MeshAsset::load_async, this);
 }
 
 MeshAsset::~MeshAsset()
@@ -38,9 +39,9 @@ const VKPtr<VKAccelerationStructure>& MeshAsset::getAccelerationStructure() cons
 	return _accelerationStructure;
 }
 
-bool MeshAsset::load_step1_mt()
+void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 {
-	MeshData meshData = _manager.getAssetProcessor().readMeshData(_signature.path);
+	MeshData meshData = _manager.getAssetProcessor().readMeshData(workerData, _signature.path);
 	
 	vk::BufferUsageFlags vertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
 	if (Engine::getVKContext().isRayTracingSupported())
@@ -96,21 +97,21 @@ bool MeshAsset::load_step1_mt()
 			buildSizesInfo.accelerationStructureSize,
 			backingBuffer);
 		
-		Engine::getVKContext().executeImmediate(
-			[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-			{
-				VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(
-					Engine::getVKContext(),
-					buildSizesInfo.buildScratchSize,
-					vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
-					vk::MemoryPropertyFlagBits::eDeviceLocal);
-				
-				commandBuffer->buildBottomLevelAccelerationStructure(_accelerationStructure, scratchBuffer, buildInfo);
-			});
+		VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(
+			Engine::getVKContext(),
+			buildSizesInfo.buildScratchSize,
+			vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		workerData.computeCommandBuffer->begin();
+		workerData.computeCommandBuffer->buildBottomLevelAccelerationStructure(_accelerationStructure, scratchBuffer, buildInfo);
+		workerData.computeCommandBuffer->end();
+		
+		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);
+		
+		workerData.computeCommandBuffer->waitExecution();
 	}
 
 	_loaded = true;
 	Logger::info(std::format("Mesh {} loaded", _signature.path));
-
-	return true;
 }

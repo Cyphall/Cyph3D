@@ -12,6 +12,7 @@ class AssetManager;
 template<typename T>
 class VKBuffer;
 class VKAccelerationStructure;
+struct AssetManagerWorkerData;
 
 struct MeshAssetSignature
 {
@@ -45,7 +46,7 @@ private:
 
 	MeshAsset(AssetManager& manager, const MeshAssetSignature& signature);
 
-	bool load_step1_mt();
+	void load_async(AssetManagerWorkerData& workerData);
 	
 	VKPtr<VKBuffer<VertexData>> _vertexBuffer;
 	VKPtr<VKBuffer<uint32_t>> _indexBuffer;

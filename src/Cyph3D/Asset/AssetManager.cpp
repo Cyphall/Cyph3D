@@ -4,9 +4,18 @@
 #include "Cyph3D/Asset/Processing/ImageProcessor.h"
 #include "Cyph3D/Asset/Processing/MeshProcessor.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+
+static AssetManagerWorkerData threadInit()
+{
+	return {
+		.computeCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getComputeQueue()),
+		.transferCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getTransferQueue())
+	};
+}
 
 AssetManager::AssetManager(int threadCount):
-	_threadPool(threadCount)
+	_threadPool(threadInit, threadCount)
 {
 	{
 		vk::SamplerCreateInfo createInfo;

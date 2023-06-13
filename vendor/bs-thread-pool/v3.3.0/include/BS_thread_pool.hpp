@@ -237,6 +237,7 @@ private:
 /**
  * @brief A fast, lightweight, and easy-to-use C++17 thread pool class.
  */
+template<typename TWorkerData>
 class [[nodiscard]] thread_pool
 {
 public:
@@ -249,9 +250,9 @@ public:
      *
      * @param thread_count_ The number of threads to use. The default value is the total number of hardware threads available, as reported by the implementation. This is usually determined by the number of cores in the CPU. If a core is hyperthreaded, it will count as two threads.
      */
-    thread_pool(const concurrency_t thread_count_ = 0) : thread_count(determine_thread_count(thread_count_)), threads(std::make_unique<std::thread[]>(determine_thread_count(thread_count_)))
+    thread_pool(const std::function<TWorkerData()>& threadInit, const concurrency_t thread_count_ = 0) : thread_count(determine_thread_count(thread_count_)), threads(std::make_unique<std::thread[]>(determine_thread_count(thread_count_)))
     {
-        create_threads();
+        create_threads(threadInit);
     }
 
     /**
@@ -424,7 +425,7 @@ public:
     template <typename F, typename... A>
     void push_task(F&& task, A&&... args)
     {
-        std::function<void()> task_function = std::bind(std::forward<F>(task), std::forward<A>(args)...);
+        std::function<void(TWorkerData&)> task_function = std::bind(std::forward<F>(task), std::forward<A>(args)..., std::placeholders::_1);
         {
             const std::scoped_lock tasks_lock(tasks_mutex);
             tasks.push(task_function);
@@ -521,12 +522,12 @@ private:
     /**
      * @brief Create the threads in the pool and assign a worker to each thread.
      */
-    void create_threads()
+    void create_threads(const std::function<TWorkerData()>& threadInit)
     {
         running = true;
         for (concurrency_t i = 0; i < thread_count; ++i)
         {
-            threads[i] = std::thread(&thread_pool::worker, this);
+            threads[i] = std::thread(&thread_pool::worker, this, std::forward<TWorkerData>(threadInit()));
         }
     }
 
@@ -565,11 +566,11 @@ private:
     /**
      * @brief A worker function to be assigned to each thread in the pool. Waits until it is notified by push_task() that a task is available, and then retrieves the task from the queue and executes it. Once the task finishes, the worker notifies wait_for_tasks() in case it is waiting.
      */
-    void worker()
+    void worker(TWorkerData&& workerData)
     {
         while (running)
         {
-            std::function<void()> task;
+            std::function<void(TWorkerData&)> task;
             std::unique_lock<std::mutex> tasks_lock(tasks_mutex);
             task_available_cv.wait(tasks_lock, [this] { return !tasks.empty() || !running; });
             if (running && !paused)
@@ -577,7 +578,7 @@ private:
                 task = std::move(tasks.front());
                 tasks.pop();
                 tasks_lock.unlock();
-                task();
+                task(workerData);
                 tasks_lock.lock();
                 --tasks_total;
                 if (waiting)
@@ -613,7 +614,7 @@ private:
     /**
      * @brief A queue of tasks to be executed by the threads.
      */
-    std::queue<std::function<void()>> tasks = {};
+    std::queue<std::function<void(TWorkerData&)>> tasks = {};
 
     /**
      * @brief An atomic variable to keep track of the total number of unfinished tasks - either still in the queue, or running in a thread.
