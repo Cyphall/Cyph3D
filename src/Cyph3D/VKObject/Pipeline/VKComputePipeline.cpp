@@ -15,7 +15,7 @@ VKComputePipeline::VKComputePipeline(VKContext& context, VKComputePipelineInfo& 
 	VKPtr<VKShader> shader = VKShader::create(_context, _info.getComputeShader());
 	
 	vk::PipelineShaderStageCreateInfo createInfo;
-	createInfo.stage = vk::ShaderStageFlagBits::eVertex;
+	createInfo.stage = vk::ShaderStageFlagBits::eCompute;
 	createInfo.module = shader->getHandle();
 	createInfo.pName = "main";
 	
