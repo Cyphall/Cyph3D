@@ -134,7 +134,7 @@ bool VKImage::isCompressed() const
 
 int VKImage::calcMaxMipLevels(const glm::uvec2& size)
 {
-	return static_cast<int>(glm::floor(glm::log2(static_cast<float>(glm::max(size.x, size.y))))) + 1;
+	return static_cast<int>(glm::floor(glm::log2(static_cast<float>(glm::min(size.x, size.y))))) + 1;
 }
 
 void VKImage::setLayout(uint32_t layer, uint32_t level, vk::ImageLayout layout)
