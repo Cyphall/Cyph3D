@@ -144,13 +144,11 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 				
 				if (textureView.get() == _fontsTextureView.get())
 				{
-					commandBuffer->pushDescriptor(0, 0, _fontsTextureView);
-					commandBuffer->pushDescriptor(0, 1, _fontsSampler);
+					commandBuffer->pushDescriptor(0, 0, _fontsTextureView, _fontsSampler);
 				}
 				else
 				{
-					commandBuffer->pushDescriptor(0, 0, textureView);
-					commandBuffer->pushDescriptor(0, 1, _textureSampler);
+					commandBuffer->pushDescriptor(0, 0, textureView, _textureSampler);
 				}
 				
 				commandBuffer->drawIndexed(pcmd->ElemCount, pcmd->IdxOffset + globalIndexOffset, pcmd->VtxOffset + globalVertexOffset);
@@ -215,8 +213,7 @@ void ImGuiVulkanBackend::createSamplers()
 void ImGuiVulkanBackend::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
-	info.addBinding(vk::DescriptorType::eSampledImage, 1);
-	info.addBinding(vk::DescriptorType::eSampler, 1);
+	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 	_imageSamplerDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
