@@ -68,33 +68,36 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	
 	commandBuffer->beginRendering(renderingInfo);
 	
-	commandBuffer->bindPipeline(_pipeline);
-	
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = _size;
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-	
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = _size;
-	commandBuffer->setScissor(scissor);
-	
-	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
-	
-	PushConstantData pushConstantData{};
-	pushConstantData.mvp = input.camera.getProjection() *
-						   glm::mat4(glm::mat3(input.camera.getView())) *
-						   glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
-	pushConstantData.textureIndex = Engine::getScene().getSkybox()->getBindlessIndex();
-	commandBuffer->pushConstants(pushConstantData);
-	
-	commandBuffer->bindVertexBuffer(0, _vertexBuffer);
-	
-	commandBuffer->draw(_vertexBuffer->getSize(), 0);
-	
-	commandBuffer->unbindPipeline();
+	if (Engine::getScene().getSkybox() != nullptr && Engine::getScene().getSkybox()->isLoaded())
+	{
+		commandBuffer->bindPipeline(_pipeline);
+		
+		VKPipelineViewport viewport;
+		viewport.offset = {0, 0};
+		viewport.size = _size;
+		viewport.depthRange = {0.0f, 1.0f};
+		commandBuffer->setViewport(viewport);
+		
+		VKPipelineScissor scissor;
+		scissor.offset = {0, 0};
+		scissor.size = _size;
+		commandBuffer->setScissor(scissor);
+		
+		commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
+		
+		PushConstantData pushConstantData{};
+		pushConstantData.mvp = input.camera.getProjection() *
+		                       glm::mat4(glm::mat3(input.camera.getView())) *
+		                       glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
+		pushConstantData.textureIndex = Engine::getScene().getSkybox()->getBindlessIndex();
+		commandBuffer->pushConstants(pushConstantData);
+		
+		commandBuffer->bindVertexBuffer(0, _vertexBuffer);
+		
+		commandBuffer->draw(_vertexBuffer->getSize(), 0);
+		
+		commandBuffer->unbindPipeline();
+	}
 	
 	commandBuffer->endRendering();
 	

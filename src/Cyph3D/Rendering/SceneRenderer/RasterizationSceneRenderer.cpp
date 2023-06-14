@@ -3,7 +3,6 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
-#include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 
@@ -94,28 +93,23 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput, _renderPerf);
 	_objectIndexImageView = lightingPassOutput.objectIndexImageView;
 	
-	Scene& scene = Engine::getScene();
+	commandBuffer->imageMemoryBarrier(
+		lightingPassOutput.rawRenderImageView->getInfo().getImage(),
+		0,
+		0,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentRead,
+		vk::ImageLayout::eColorAttachmentOptimal);
 	
-	if (scene.getSkybox() != nullptr && scene.getSkybox()->isLoaded())
-	{
-		commandBuffer->imageMemoryBarrier(
-			lightingPassOutput.rawRenderImageView->getInfo().getImage(),
-			0,
-			0,
-			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-			vk::AccessFlagBits2::eColorAttachmentWrite,
-			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-			vk::AccessFlagBits2::eColorAttachmentRead,
-			vk::ImageLayout::eColorAttachmentOptimal);
-		
-		SkyboxPassInput skyboxPassInput{
-			.camera = camera,
-			.rawRenderImageView = lightingPassOutput.rawRenderImageView,
-			.depthImageView = zPrepassOutput.depthImageView
-		};
-		
-		_skyboxPass.render(commandBuffer, skyboxPassInput, _renderPerf);
-	}
+	SkyboxPassInput skyboxPassInput{
+		.camera = camera,
+		.rawRenderImageView = lightingPassOutput.rawRenderImageView,
+		.depthImageView = zPrepassOutput.depthImageView
+	};
+	
+	_skyboxPass.render(commandBuffer, skyboxPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
 		lightingPassOutput.rawRenderImageView->getInfo().getImage(),
