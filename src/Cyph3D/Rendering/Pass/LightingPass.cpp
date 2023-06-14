@@ -111,7 +111,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_pointLightDescriptorSet->bindBuffer(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.pointLights.size());
 	
 	commandBuffer->imageMemoryBarrier(
-		_rawRenderImage.getCurrent(),
+		_multisampledRawRenderImage.getCurrent(),
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -121,7 +121,17 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		vk::ImageLayout::eColorAttachmentOptimal);
 	
 	commandBuffer->imageMemoryBarrier(
-		_objectIndexImage.getCurrent(),
+		_multisampledObjectIndexImage.getCurrent(),
+		0,
+		0,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal);
+	
+	commandBuffer->imageMemoryBarrier(
+		_resolvedObjectIndexImage.getCurrent(),
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -133,8 +143,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	std::vector<vk::RenderingAttachmentInfo> colorAttachments;
 	
 	vk::RenderingAttachmentInfo& rawRenderAttachment = colorAttachments.emplace_back();
-	rawRenderAttachment.imageView = _rawRenderImageView->getHandle();
-	rawRenderAttachment.imageLayout = _rawRenderImageView->getInfo().getImage()->getLayout(0, 0);
+	rawRenderAttachment.imageView = _multisampledRawRenderImageView->getHandle();
+	rawRenderAttachment.imageLayout = _multisampledRawRenderImage->getLayout(0, 0);
 	rawRenderAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	rawRenderAttachment.resolveImageView = nullptr;
 	rawRenderAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -146,18 +156,18 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	rawRenderAttachment.clearValue.color.float32[3] = 1.0f;
 	
 	vk::RenderingAttachmentInfo& objectIndexAttachment = colorAttachments.emplace_back();
-	objectIndexAttachment.imageView = _objectIndexImageView->getHandle();
-	objectIndexAttachment.imageLayout = _objectIndexImageView->getInfo().getImage()->getLayout(0, 0);
-	objectIndexAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	objectIndexAttachment.resolveImageView = nullptr;
-	objectIndexAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
+	objectIndexAttachment.imageView = _multisampledObjectIndexImageView->getHandle();
+	objectIndexAttachment.imageLayout = _multisampledObjectIndexImage->getLayout(0, 0);
+	objectIndexAttachment.resolveMode = vk::ResolveModeFlagBits::eSampleZero;
+	objectIndexAttachment.resolveImageView = _resolvedObjectIndexImageView->getHandle();
+	objectIndexAttachment.resolveImageLayout = _resolvedObjectIndexImage->getLayout(0, 0);
 	objectIndexAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 	objectIndexAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 	objectIndexAttachment.clearValue.color.int32[0] = -1;
 	
 	vk::RenderingAttachmentInfo depthAttachment;
-	depthAttachment.imageView = input.depthImageView->getHandle();
-	depthAttachment.imageLayout = input.depthImageView->getInfo().getImage()->getLayout(0, 0);
+	depthAttachment.imageView = input.multisampledDepthImageView->getHandle();
+	depthAttachment.imageLayout = input.multisampledDepthImageView->getInfo().getImage()->getLayout(0, 0);
 	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	depthAttachment.resolveImageView = nullptr;
 	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -264,8 +274,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_frameIndex++;
 	
 	return {
-		.rawRenderImageView = _rawRenderImageView.getCurrent(),
-		.objectIndexImageView = _objectIndexImageView.getCurrent()
+		.multisampledRawRenderImageView = _multisampledRawRenderImageView.getCurrent(),
+		.objectIndexImageView = _resolvedObjectIndexImageView.getCurrent()
 	};
 }
 
@@ -403,6 +413,8 @@ void LightingPass::createPipeline()
 	info.getVertexInputLayoutInfo().defineAttribute(0, 2, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, normal));
 	info.getVertexInputLayoutInfo().defineAttribute(0, 3, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, tangent));
 	
+	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
+	
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::OBJECT_INDEX_FORMAT);
 	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eEqual, false);
@@ -421,16 +433,43 @@ void LightingPass::createImages()
 			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
 		
-		_rawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+		_multisampledRawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
 			return VKImage::create(context, imageInfo);
 		});
 		
-		_rawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+		_multisampledRawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
 			VKImageViewInfo imageViewInfo(
-				_rawRenderImage[index],
+				_multisampledRawRenderImage[index],
+				vk::ImageViewType::e2D);
+			
+			return VKImageView::create(context, imageViewInfo);
+		});
+	}
+	
+	{
+		VKImageInfo imageInfo(
+			SceneRenderer::OBJECT_INDEX_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
+		
+		_multisampledObjectIndexImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImage::create(context, imageInfo);
+		});
+		
+		_multisampledObjectIndexImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			VKImageViewInfo imageViewInfo(
+				_multisampledObjectIndexImage[index],
 				vk::ImageViewType::e2D);
 			
 			return VKImageView::create(context, imageViewInfo);
@@ -447,15 +486,15 @@ void LightingPass::createImages()
 			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
-		_objectIndexImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+		_resolvedObjectIndexImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
 			return VKImage::create(context, imageInfo);
 		});
 		
-		_objectIndexImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+		_resolvedObjectIndexImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
 			VKImageViewInfo imageViewInfo(
-				_objectIndexImage[index],
+				_resolvedObjectIndexImage[index],
 				vk::ImageViewType::e2D);
 			
 			return VKImageView::create(context, imageViewInfo);

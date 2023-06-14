@@ -20,7 +20,7 @@ struct ZPrepassInput
 
 struct ZPrepassOutput
 {
-	const VKPtr<VKImageView>& depthImageView;
+	const VKPtr<VKImageView>& multisampledDepthImageView;
 };
 
 class ZPrepass : public RenderPass<ZPrepassInput, ZPrepassOutput>

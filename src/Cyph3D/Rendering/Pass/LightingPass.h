@@ -17,14 +17,14 @@ class VKResizableBuffer;
 
 struct LightingPassInput
 {
-	const VKPtr<VKImageView>& depthImageView;
+	const VKPtr<VKImageView>& multisampledDepthImageView;
 	RenderRegistry& registry;
 	Camera& camera;
 };
 
 struct LightingPassOutput
 {
-	const VKPtr<VKImageView>& rawRenderImageView;
+	const VKPtr<VKImageView>& multisampledRawRenderImageView;
 	const VKPtr<VKImageView>& objectIndexImageView;
 };
 
@@ -96,10 +96,12 @@ private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
-	VKDynamic<VKImage> _rawRenderImage;
-	VKDynamic<VKImageView> _rawRenderImageView;
-	VKDynamic<VKImage> _objectIndexImage;
-	VKDynamic<VKImageView> _objectIndexImageView;
+	VKDynamic<VKImage> _multisampledRawRenderImage;
+	VKDynamic<VKImageView> _multisampledRawRenderImageView;
+	VKDynamic<VKImage> _multisampledObjectIndexImage;
+	VKDynamic<VKImageView> _multisampledObjectIndexImageView;
+	VKDynamic<VKImage> _resolvedObjectIndexImage;
+	VKDynamic<VKImageView> _resolvedObjectIndexImageView;
 	
 	uint32_t _frameIndex = 0;
 	

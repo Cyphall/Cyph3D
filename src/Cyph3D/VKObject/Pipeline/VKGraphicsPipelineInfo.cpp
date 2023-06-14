@@ -119,3 +119,13 @@ void VKGraphicsPipelineInfo::setStaticScissor(const VKPipelineScissor& staticSci
 {
 	_staticScissor = staticScissor;
 }
+
+void VKGraphicsPipelineInfo::setRasterizationSampleCount(vk::SampleCountFlagBits sampleCount)
+{
+	_rasterizationSampleCount = sampleCount;
+}
+
+const vk::SampleCountFlagBits& VKGraphicsPipelineInfo::getRasterizationSampleCount() const
+{
+	return _rasterizationSampleCount;
+}

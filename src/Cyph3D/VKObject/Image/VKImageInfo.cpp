@@ -90,3 +90,13 @@ const vk::Image& VKImageInfo::getSwapchainImageHandle() const
 {
 	return _swapchainImageHandle.value();
 }
+
+void VKImageInfo::setSampleCount(vk::SampleCountFlagBits sampleCount)
+{
+	_sampleCount = sampleCount;
+}
+
+const vk::SampleCountFlagBits& VKImageInfo::getSampleCount() const
+{
+	return _sampleCount;
+}

@@ -40,7 +40,7 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		createInfo.initialLayout = vk::ImageLayout::eUndefined;
 		createInfo.usage = _info.getUsage();
 		createInfo.sharingMode = vk::SharingMode::eExclusive;
-		createInfo.samples = vk::SampleCountFlagBits::e1;
+		createInfo.samples = _info.getSampleCount();
 		createInfo.flags = flags;
 		createInfo.pNext = &viewFormatsCreateInfo;
 		

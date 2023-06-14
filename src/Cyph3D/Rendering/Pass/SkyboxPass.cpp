@@ -27,18 +27,29 @@ SkyboxPass::SkyboxPass(glm::uvec2 size):
 {
 	createPipelineLayout();
 	createPipeline();
+	createImages();
 	createBuffer();
 	createSampler();
 }
 
 SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
 {
+	commandBuffer->imageMemoryBarrier(
+		_resolvedRawRenderImage.getCurrent(),
+		0,
+		0,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal);
+	
 	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = input.rawRenderImageView->getHandle();
-	colorAttachment.imageLayout = input.rawRenderImageView->getInfo().getImage()->getLayout(0, 0);
-	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	colorAttachment.resolveImageView = nullptr;
-	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
+	colorAttachment.imageView = input.multisampledRawRenderImageView->getHandle();
+	colorAttachment.imageLayout = input.multisampledRawRenderImageView->getInfo().getImage()->getLayout(0, 0);
+	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eAverage;
+	colorAttachment.resolveImageView = _resolvedRawRenderImageView->getHandle();
+	colorAttachment.resolveImageLayout = _resolvedRawRenderImage->getLayout(0, 0);
 	colorAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
 	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 	colorAttachment.clearValue.color.float32[0] = 0.0f;
@@ -47,8 +58,8 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	colorAttachment.clearValue.color.float32[3] = 1.0f;
 	
 	vk::RenderingAttachmentInfo depthAttachment;
-	depthAttachment.imageView = input.depthImageView->getHandle();
-	depthAttachment.imageLayout = input.depthImageView->getInfo().getImage()->getLayout(0, 0);
+	depthAttachment.imageView = input.multisampledDepthImageView->getHandle();
+	depthAttachment.imageLayout = input.multisampledDepthImageView->getInfo().getImage()->getLayout(0, 0);
 	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
 	depthAttachment.resolveImageView = nullptr;
 	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
@@ -101,12 +112,14 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	
 	commandBuffer->endRendering();
 	
-	return {};
+	return {
+		.rawRenderImageView = _resolvedRawRenderImageView.getCurrent()
+	};
 }
 
 void SkyboxPass::onResize()
 {
-
+	createImages();
 }
 
 void SkyboxPass::createPipelineLayout()
@@ -132,10 +145,40 @@ void SkyboxPass::createPipeline()
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(SkyboxPass::VertexData), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(SkyboxPass::VertexData, position));
 	
+	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
+	
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLessOrEqual, false);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
+}
+
+void SkyboxPass::createImages()
+{
+	{
+		VKImageInfo imageInfo(
+			SceneRenderer::HDR_COLOR_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_resolvedRawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKImage::create(context, imageInfo);
+		});
+		
+		_resolvedRawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			VKImageViewInfo imageViewInfo(
+				_resolvedRawRenderImage[index],
+				vk::ImageViewType::e2D);
+			
+			return VKImageView::create(context, imageViewInfo);
+		});
+	}
 }
 
 void SkyboxPass::createBuffer()

@@ -98,7 +98,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	commandBuffer->endRendering();
 	
 	return {
-		.depthImageView = _depthImageView.getCurrent()
+		.multisampledDepthImageView = _depthImageView.getCurrent()
 	};
 }
 
@@ -127,6 +127,8 @@ void ZPrepass::createPipeline()
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
 	
+	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
+	
 	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLess, true);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
@@ -142,6 +144,7 @@ void ZPrepass::createImage()
 		vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eDepthStencilAttachment);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
 	
 	_depthImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{

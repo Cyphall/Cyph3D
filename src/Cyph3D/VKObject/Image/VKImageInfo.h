@@ -38,6 +38,9 @@ public:
 	void setSwapchainImageHandle(vk::Image handle);
 	bool hasSwapchainImageHandle() const;
 	const vk::Image& getSwapchainImageHandle() const;
+	
+	void setSampleCount(vk::SampleCountFlagBits sampleCount);
+	const vk::SampleCountFlagBits& getSampleCount() const;
 
 private:
 	vk::Format _format;
@@ -51,4 +54,5 @@ private:
 	bool _cubeCompatible = false;
 	std::vector<vk::Format> _compatibleViewFormats;
 	std::optional<vk::Image> _swapchainImageHandle;
+	vk::SampleCountFlagBits _sampleCount = vk::SampleCountFlagBits::e1;
 };

@@ -54,6 +54,9 @@ public:
 	const VKPipelineScissor& getStaticScissor() const;
 	void setStaticScissor(const VKPipelineScissor& staticScissor);
 	
+	void setRasterizationSampleCount(vk::SampleCountFlagBits sampleCount);
+	const vk::SampleCountFlagBits& getRasterizationSampleCount() const;
+	
 private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	std::filesystem::path _vertexShader;
@@ -66,4 +69,5 @@ private:
 	std::optional<std::filesystem::path> _fragmentShader;
 	std::optional<VKPipelineViewport> _staticViewport;
 	std::optional<VKPipelineScissor> _staticScissor;
+	vk::SampleCountFlagBits _rasterizationSampleCount = vk::SampleCountFlagBits::e1;
 };

@@ -40,7 +40,7 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	_shadowMapPass.render(commandBuffer, shadowMapPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		zPrepassOutput.depthImageView->getInfo().getImage(),
+		zPrepassOutput.multisampledDepthImageView->getInfo().getImage(),
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -85,7 +85,7 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	}
 	
 	LightingPassInput lightingPassInput{
-		.depthImageView = zPrepassOutput.depthImageView,
+		.multisampledDepthImageView = zPrepassOutput.multisampledDepthImageView,
 		.registry = _registry,
 		.camera = camera
 	};
@@ -94,7 +94,7 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	_objectIndexImageView = lightingPassOutput.objectIndexImageView;
 	
 	commandBuffer->imageMemoryBarrier(
-		lightingPassOutput.rawRenderImageView->getInfo().getImage(),
+		lightingPassOutput.multisampledRawRenderImageView->getInfo().getImage(),
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -105,14 +105,14 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	
 	SkyboxPassInput skyboxPassInput{
 		.camera = camera,
-		.rawRenderImageView = lightingPassOutput.rawRenderImageView,
-		.depthImageView = zPrepassOutput.depthImageView
+		.multisampledRawRenderImageView = lightingPassOutput.multisampledRawRenderImageView,
+		.multisampledDepthImageView = zPrepassOutput.multisampledDepthImageView
 	};
 	
-	_skyboxPass.render(commandBuffer, skyboxPassInput, _renderPerf);
+	SkyboxPassOutput skyboxPassOutput = _skyboxPass.render(commandBuffer, skyboxPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		lightingPassOutput.rawRenderImageView->getInfo().getImage(),
+		skyboxPassOutput.rawRenderImageView->getInfo().getImage(),
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -122,7 +122,7 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		vk::ImageLayout::eReadOnlyOptimal);
 	
 	ExposurePassInput exposurePassInput{
-		.inputImageView = lightingPassOutput.rawRenderImageView,
+		.inputImageView = skyboxPassOutput.rawRenderImageView,
 		.camera = camera
 	};
 	

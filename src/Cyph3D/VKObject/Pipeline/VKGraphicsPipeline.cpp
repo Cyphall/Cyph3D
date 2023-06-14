@@ -100,7 +100,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 	rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
 	
 	vk::PipelineMultisampleStateCreateInfo multisampling;
-	multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+	multisampling.rasterizationSamples = _info.getRasterizationSampleCount();
 	multisampling.sampleShadingEnable = false;
 	multisampling.minSampleShading = 1.0f; // Optional
 	multisampling.pSampleMask = nullptr; // Optional
