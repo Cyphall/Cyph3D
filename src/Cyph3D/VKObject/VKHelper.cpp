@@ -3,6 +3,8 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
+#include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
 
 size_t VKHelper::alignUp(size_t size, size_t alignment)
 {
@@ -78,4 +80,23 @@ vk::ImageAspectFlags VKHelper::getAspect(vk::Format format)
 		default:
 			return vk::ImageAspectFlagBits::eColor;
 	}
+}
+
+void VKHelper::assertImageViewHasUniqueLayout(const VKPtr<VKImageView>& imageView)
+{
+#if defined(_DEBUG)
+	// make sure all referenced layers and levels have the same layout
+	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
+	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
+	{
+		for (uint32_t level = imageView->getFirstReferencedLevel(); level <= imageView->getLastReferencedLevel(); level++)
+		{
+			if (image->getLayout(layer, level) != layout)
+			{
+				throw;
+			}
+		}
+	}
+#endif
 }

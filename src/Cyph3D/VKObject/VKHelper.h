@@ -10,6 +10,7 @@ template<typename T>
 class VKResizableBuffer;
 class VKContext;
 class VKRayTracingPipeline;
+class VKImageView;
 
 class VKHelper
 {
@@ -21,4 +22,6 @@ public:
 	static void buildHitShaderBindingTable(VKContext& context, const VKPtr<VKRayTracingPipeline>& pipeline, const VKPtr<VKResizableBuffer<std::byte>>& destBuffer);
 	
 	static vk::ImageAspectFlags getAspect(vk::Format format);
+	
+	static void assertImageViewHasUniqueLayout(const VKPtr<VKImageView>& imageView);
 };

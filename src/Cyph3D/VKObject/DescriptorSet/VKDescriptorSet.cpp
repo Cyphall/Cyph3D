@@ -1,6 +1,7 @@
 #include "VKDescriptorSet.h"
 
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/VKHelper.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
@@ -144,23 +145,11 @@ void VKDescriptorSet::bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>&
 
 void VKDescriptorSet::bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex)
 {
-	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
-	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
-	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
-	{
-		for (uint32_t level = imageView->getFirstReferencedLevel(); level <= imageView->getLastReferencedLevel(); level++)
-		{
-			if (image->getLayout(layer, level) != layout)
-			{
-				throw;
-			}
-		}
-	}
+	VKHelper::assertImageViewHasUniqueLayout(imageView);
 	
 	vk::DescriptorImageInfo imageInfo;
 	imageInfo.imageView = imageView->getHandle();
-	imageInfo.imageLayout = layout;
+	imageInfo.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
 	
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
 	
@@ -181,23 +170,11 @@ void VKDescriptorSet::bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>&
 
 void VKDescriptorSet::bindCombinedImageSampler(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
 {
-	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
-	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
-	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
-	{
-		for (uint32_t level = imageView->getFirstReferencedLevel(); level <= imageView->getLastReferencedLevel(); level++)
-		{
-			if (image->getLayout(layer, level) != layout)
-			{
-				throw;
-			}
-		}
-	}
+	VKHelper::assertImageViewHasUniqueLayout(imageView);
 	
 	vk::DescriptorImageInfo combinedImageSamplerInfo;
 	combinedImageSamplerInfo.imageView = imageView->getHandle();
-	combinedImageSamplerInfo.imageLayout = layout;
+	combinedImageSamplerInfo.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
 	combinedImageSamplerInfo.sampler = sampler->getHandle();
 	
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);

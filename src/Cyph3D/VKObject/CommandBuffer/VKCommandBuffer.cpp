@@ -305,23 +305,11 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	if (_boundPipeline == nullptr)
 		throw;
 	
-	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
-	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
-	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
-	{
-		for (uint32_t level = imageView->getFirstReferencedLevel(); level <= imageView->getLastReferencedLevel(); level++)
-		{
-			if (image->getLayout(layer, level) != layout)
-			{
-				throw;
-			}
-		}
-	}
+	VKHelper::assertImageViewHasUniqueLayout(imageView);
 	
 	vk::DescriptorImageInfo imageInfo;
 	imageInfo.imageView = imageView->getHandle();
-	imageInfo.imageLayout = layout;
+	imageInfo.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
 	
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
 	
@@ -349,23 +337,11 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	if (_boundPipeline == nullptr)
 		throw;
 	
-	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
-	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
-	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
-	{
-		for (uint32_t level = imageView->getFirstReferencedLevel(); level <= imageView->getLastReferencedLevel(); level++)
-		{
-			if (image->getLayout(layer, level) != layout)
-			{
-				throw;
-			}
-		}
-	}
+	VKHelper::assertImageViewHasUniqueLayout(imageView);
 	
 	vk::DescriptorImageInfo combinedImageSamplerInfo;
 	combinedImageSamplerInfo.imageView = imageView->getHandle();
-	combinedImageSamplerInfo.imageLayout = layout;
+	combinedImageSamplerInfo.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
 	combinedImageSamplerInfo.sampler = sampler->getHandle();
 	
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
