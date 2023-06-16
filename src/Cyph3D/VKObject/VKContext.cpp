@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_set>
 #include <fstream>
 #include <stdexcept>
 #include <GLFW/glfw3.h>

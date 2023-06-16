@@ -8,7 +8,6 @@
 #include <functional>
 #include <filesystem>
 #include <glm/glm.hpp>
-#include <unordered_set>
 
 class VKQueue;
 class VKCommandBuffer;
