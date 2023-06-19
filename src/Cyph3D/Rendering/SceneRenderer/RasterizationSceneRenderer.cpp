@@ -196,9 +196,7 @@ Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 			commandBuffer->copyPixelToBuffer(_objectIndexImageView->getInfo().getImage(), 0, 0, clickPos, _objectIndexBuffer, 0);
 		});
 	
-	int32_t* ptr = _objectIndexBuffer->map();
-	int32_t objectIndex = *ptr;
-	_objectIndexBuffer->unmap();
+	int32_t objectIndex = *_objectIndexBuffer->getHostPointer();
 	
 	if (objectIndex != -1)
 	{

@@ -16,17 +16,9 @@ public:
 		return VKPtr<VKResizableBuffer<T>>(new VKResizableBuffer<T>(context, pipelineUsage, requiredProperties, preferredProperties));
 	}
 	
-	T* map()
+	T* getHostPointer()
 	{
-		return _buffer ? _buffer->map() : nullptr;
-	}
-	
-	void unmap()
-	{
-		if (_buffer)
-		{
-			_buffer->unmap();
-		}
+		return _buffer ? _buffer->getHostPointer() : nullptr;
 	}
 	
 	const VKPtr<VKBuffer<T>>& getBuffer()

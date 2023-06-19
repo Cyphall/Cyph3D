@@ -47,9 +47,7 @@ static void updateImageData(const VKPtr<VKImage>& image, const T& value)
 		vk::BufferUsageFlagBits::eTransferSrc,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 	
-	T* ptr = stagingBuffer->map();
-	std::copy(&value, &value + 1, ptr);
-	stagingBuffer->unmap();
+	std::copy(&value, &value + 1, stagingBuffer->getHostPointer());
 	
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)

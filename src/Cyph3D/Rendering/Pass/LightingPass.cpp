@@ -58,7 +58,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	_directionalLightsUniforms->resizeSmart(input.registry.directionalLights.size());
 	uint32_t directionalLightShadowIndex = 0;
-	DirectionalLightUniforms* directionalLightUniformsPtr = _directionalLightsUniforms->map();
+	DirectionalLightUniforms* directionalLightUniformsPtr = _directionalLightsUniforms->getHostPointer();
 	for (DirectionalLight::RenderData& renderData : input.registry.directionalLights)
 	{
 		DirectionalLightUniforms uniforms{};
@@ -80,12 +80,11 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		std::memcpy(directionalLightUniformsPtr, &uniforms, sizeof(DirectionalLightUniforms));
 		directionalLightUniformsPtr++;
 	}
-	_directionalLightsUniforms->unmap();
 	_directionalLightDescriptorSet->bindBuffer(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.directionalLights.size());
 	
 	_pointLightsUniforms->resizeSmart(input.registry.pointLights.size());
 	uint32_t pointLightShadowIndex = 0;
-	PointLightUniforms* pointLightUniformsPtr = _pointLightsUniforms->map();
+	PointLightUniforms* pointLightUniformsPtr = _pointLightsUniforms->getHostPointer();
 	for (PointLight::RenderData& renderData : input.registry.pointLights)
 	{
 		PointLightUniforms uniforms{};
@@ -107,7 +106,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		std::memcpy(pointLightUniformsPtr, &uniforms, sizeof(PointLightUniforms));
 		pointLightUniformsPtr++;
 	}
-	_pointLightsUniforms->unmap();
 	_pointLightDescriptorSet->bindBuffer(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.pointLights.size());
 	
 	commandBuffer->imageMemoryBarrier(
@@ -213,7 +211,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
 	_objectUniforms->resizeSmart(input.registry.models.size());
-	ObjectUniforms* objectUniformsPtr = _objectUniforms->map();
+	ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer();
 	for (int i = 0; i < input.registry.models.size(); i++)
 	{
 		ModelRenderer::RenderData modelData = input.registry.models[i];
@@ -265,7 +263,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		
 		objectUniformsPtr++;
 	}
-	_objectUniforms->unmap();
 	
 	commandBuffer->unbindPipeline();
 	

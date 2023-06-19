@@ -59,7 +59,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
 	buildInfo.instancesInfos.reserve(input.registry.models.size());
 	_objectUniforms->resizeSmart(input.registry.models.size());
-	ObjectUniforms* objectUniformsPtr = _objectUniforms->map();
+	ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer();
 	int actualObjectCountToBeDrawn = 0;
 	for (int i = 0; i < input.registry.models.size(); i++)
 	{
@@ -108,7 +108,6 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		
 		actualObjectCountToBeDrawn++;
 	}
-	_objectUniforms->unmap();
 	
 	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
 	
@@ -151,9 +150,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		globalUniforms.hasSkybox = false;
 	}
 	
-	GlobalUniforms* globalUniformsPtr = _globalUniforms->map();
-	std::memcpy(globalUniformsPtr, &globalUniforms, sizeof(GlobalUniforms));
-	_globalUniforms->unmap();
+	std::memcpy(_globalUniforms->getHostPointer(), &globalUniforms, sizeof(GlobalUniforms));
 	
 	commandBuffer->bindPipeline(_pipeline);
 	

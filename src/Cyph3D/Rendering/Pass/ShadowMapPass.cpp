@@ -120,7 +120,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 	
 	int shadowCastingPointLightIndex = 0;
 	_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights);
-	PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->map();
+	PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer();
 	for (PointLight::RenderData& renderData : input.registry.pointLights)
 	{
 		if (!renderData.castShadows)
@@ -222,7 +222,6 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		shadowCastingPointLightIndex++;
 	}
-	_pointLightUniformBuffer->unmap();
 	
 	return {};
 }

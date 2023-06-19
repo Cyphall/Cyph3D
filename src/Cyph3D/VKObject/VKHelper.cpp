@@ -19,9 +19,7 @@ void VKHelper::buildRaygenShaderBindingTable(VKContext& context, const VKPtr<VKR
 	
 	destBuffer->resizeSmart(size);
 	
-	std::byte* destBufferPtr = destBuffer->map();
-	std::memcpy(destBufferPtr, pipeline->getRaygenGroupHandle().data(), pipeline->getRaygenGroupHandle().size());
-	destBuffer->unmap();
+	std::memcpy(destBuffer->getHostPointer(), pipeline->getRaygenGroupHandle().data(), pipeline->getRaygenGroupHandle().size());
 }
 
 void VKHelper::buildMissShaderBindingTable(VKContext& context, const VKPtr<VKRayTracingPipeline>& pipeline, const VKPtr<VKResizableBuffer<std::byte>>& destBuffer)
@@ -32,14 +30,13 @@ void VKHelper::buildMissShaderBindingTable(VKContext& context, const VKPtr<VKRay
 	
 	destBuffer->resizeSmart(size);
 	
-	std::byte* destBufferPtr = destBuffer->map();
+	std::byte* destBufferPtr = destBuffer->getHostPointer();
 	for (uint32_t i = 0; i < pipeline->getMissGroupCount(); i++)
 	{
 		const std::array<std::byte, 32>& handle = pipeline->getMissGroupHandle(i);
 		std::memcpy(destBufferPtr, handle.data(), handle.size());
 		destBufferPtr += stride;
 	}
-	destBuffer->unmap();
 }
 
 void VKHelper::buildHitShaderBindingTable(VKContext& context, const VKPtr<VKRayTracingPipeline>& pipeline, const VKPtr<VKResizableBuffer<std::byte>>& destBuffer)
@@ -50,7 +47,7 @@ void VKHelper::buildHitShaderBindingTable(VKContext& context, const VKPtr<VKRayT
 	
 	destBuffer->resizeSmart(size);
 	
-	std::byte* destBufferPtr = destBuffer->map();
+	std::byte* destBufferPtr = destBuffer->getHostPointer();
 	for (uint32_t i = 0; i < pipeline->getMissGroupCount(); i++)
 	{
 		for (uint32_t j = 0; j < pipeline->getHitGroupCount(i); j++)
@@ -60,7 +57,6 @@ void VKHelper::buildHitShaderBindingTable(VKContext& context, const VKPtr<VKRayT
 			destBufferPtr += stride;
 		}
 	}
-	destBuffer->unmap();
 }
 
 vk::ImageAspectFlags VKHelper::getAspect(vk::Format format)

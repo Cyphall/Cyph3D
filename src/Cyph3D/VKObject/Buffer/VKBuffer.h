@@ -22,17 +22,12 @@ public:
 	
 	~VKBuffer() override
 	{
-		_context.getVmaAllocator().destroyBuffer(_buffer, _bufferAlloc);
+		_context.getVmaAllocator().destroyBuffer(_buffer, _allocation);
 	}
 	
-	T* map()
+	T* getHostPointer()
 	{
-		return static_cast<T*>(_context.getVmaAllocator().mapMemory(_bufferAlloc));
-	}
-	
-	void unmap()
-	{
-		_context.getVmaAllocator().unmapMemory(_bufferAlloc);
+		return static_cast<T*>(_allocationInfo.pMappedData);
 	}
 	
 	const vk::Buffer& getHandle() override
@@ -83,8 +78,9 @@ private:
 		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
 		allocationCreateInfo.requiredFlags = requiredProperties;
 		allocationCreateInfo.preferredFlags = preferredProperties;
+		allocationCreateInfo.flags = vma::AllocationCreateFlagBits::eMapped;
 		
-		std::tie(_buffer, _bufferAlloc) = _context.getVmaAllocator().createBuffer(bufferCreateInfo, allocationCreateInfo);
+		std::tie(_buffer, _allocation) = _context.getVmaAllocator().createBuffer(bufferCreateInfo, allocationCreateInfo, _allocationInfo);
 		_size = size;
 		
 		if (pipelineUsage & vk::BufferUsageFlagBits::eShaderDeviceAddress)
@@ -97,7 +93,8 @@ private:
 	}
 	
 	vk::Buffer _buffer;
-	vma::Allocation _bufferAlloc;
+	vma::Allocation _allocation;
+	vma::AllocationInfo _allocationInfo;
 	size_t _size = 0;
 	vk::DeviceAddress _deviceAddress = 0;
 };

@@ -62,14 +62,13 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 	
 	// copy texture data to staging buffer
-	std::byte* ptr = stagingBuffer->map();
+	std::byte* ptr = stagingBuffer->getHostPointer();
 	for (uint32_t i = 0; i < imageData.levels.size(); i++)
 	{
 		vk::DeviceSize byteSize = _image->getLevelByteSize(i);
 		std::memcpy(ptr, imageData.levels[i].data.data(), byteSize);
 		ptr += byteSize;
 	}
-	stagingBuffer->unmap();
 	
 	// upload staging buffer to texture
 	workerData.transferCommandBuffer->begin();

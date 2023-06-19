@@ -233,9 +233,7 @@ void SkyboxPass::createBuffer()
 		vk::BufferUsageFlagBits::eVertexBuffer,
 		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 	
-	VertexData* vertexBufferPtr = _vertexBuffer->map();
-	std::copy(vertices.begin(), vertices.end(), vertexBufferPtr);
-	_vertexBuffer->unmap();
+	std::copy(vertices.begin(), vertices.end(), _vertexBuffer->getHostPointer());
 }
 
 void SkyboxPass::createSampler()

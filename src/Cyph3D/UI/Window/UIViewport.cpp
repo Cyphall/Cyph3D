@@ -346,16 +346,14 @@ void UIViewport::renderToFile(glm::uvec2 resolution)
 			commandBuffer->copyImageToBuffer(textureView->getInfo().getImage(), 0, 0, stagingBuffer, 0);
 		});
 
-	std::byte* ptr = stagingBuffer->map();
 	if (filePath->extension() == ".png")
 	{
-		stbi_write_png(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 4, ptr, textureSize.x * 4);
+		stbi_write_png(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), textureSize.x * 4);
 	}
 	else if (filePath->extension() == ".jpg")
 	{
-		stbi_write_jpg(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 4, ptr, 95);
+		stbi_write_jpg(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), 95);
 	}
-	stagingBuffer->unmap();
 }
 
 const PerfStep* UIViewport::getPreviousFramePerfStep()

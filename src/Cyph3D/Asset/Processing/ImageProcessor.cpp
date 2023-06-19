@@ -445,9 +445,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 	
 	// copy texture data to staging buffer
-	std::byte* ptr = stagingBuffer->map();
-	std::copy(data.data(), data.data() + texture->getLevelByteSize(0), ptr);
-	stagingBuffer->unmap();
+	std::copy(data.data(), data.data() + texture->getLevelByteSize(0), stagingBuffer->getHostPointer());
 	
 	// upload staging buffer to texture
 	workerData.transferCommandBuffer->begin();
@@ -545,7 +543,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	imageData.size = size;
 	imageData.levels.resize(texture->getInfo().getLevels());
 	
-	ptr = stagingBuffer->map();
+	std::byte* ptr = stagingBuffer->getHostPointer();
 	for (uint32_t i = 0; i < imageData.levels.size(); i++)
 	{
 		imageData.levels[i].data.resize(texture->getLevelByteSize(i));
@@ -554,7 +552,6 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		
 		ptr += imageData.levels[i].data.size();
 	}
-	stagingBuffer->unmap();
 	
 	return imageData;
 }

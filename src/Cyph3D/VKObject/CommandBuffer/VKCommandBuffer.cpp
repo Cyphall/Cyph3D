@@ -782,7 +782,7 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 	
 	instancesBuffer->resizeSmart(buildInfo.instancesInfos.size());
 	
-	vk::AccelerationStructureInstanceKHR* instancesBufferPtr = instancesBuffer->map();
+	vk::AccelerationStructureInstanceKHR* instancesBufferPtr = instancesBuffer->getHostPointer();
 	for (const VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo : buildInfo.instancesInfos)
 	{
 		vk::AccelerationStructureInstanceKHR instance;
@@ -802,7 +802,6 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 		std::memcpy(instancesBufferPtr, &instance, sizeof(vk::AccelerationStructureInstanceKHR));
 		instancesBufferPtr++;
 	}
-	instancesBuffer->unmap();
 	
 	vk::AccelerationStructureGeometryKHR geometry;
 	geometry.geometryType = vk::GeometryTypeKHR::eInstances;

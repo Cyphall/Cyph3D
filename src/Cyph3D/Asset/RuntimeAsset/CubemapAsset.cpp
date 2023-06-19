@@ -104,14 +104,13 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	for (uint32_t face = 0; face < 6; face++)
 	{
 		// copy face data to staging buffer
-		std::byte* ptr = stagingBuffer->map();
+		std::byte* ptr = stagingBuffer->getHostPointer();
 		for (uint32_t i = 0; i < imageDataList[face].levels.size(); i++)
 		{
 			vk::DeviceSize byteSize = _image->getLevelByteSize(i);
 			std::memcpy(ptr, imageDataList[face].levels[i].data.data(), byteSize);
 			ptr += byteSize;
 		}
-		stagingBuffer->unmap();
 		
 		// upload staging buffer to texture
 		workerData.transferCommandBuffer->begin();

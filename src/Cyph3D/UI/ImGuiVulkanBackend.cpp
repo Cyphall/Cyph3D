@@ -50,9 +50,8 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 	_vertexBuffer->resizeSmart(drawData->TotalVtxCount);
 	_indexBuffer->resizeSmart(drawData->TotalIdxCount);
 	
-	ImDrawVert* vertexBufferPtr = _vertexBuffer->map();
-	ImDrawIdx* indexBufferPtr = _indexBuffer->map();
-	
+	ImDrawVert* vertexBufferPtr = _vertexBuffer->getHostPointer();
+	ImDrawIdx* indexBufferPtr = _indexBuffer->getHostPointer();
 	for (int i = 0; i < drawData->CmdListsCount; i++)
 	{
 		const ImDrawList* cmdList = drawData->CmdLists[i];
@@ -63,9 +62,6 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 		vertexBufferPtr += cmdList->VtxBuffer.Size;
 		indexBufferPtr += cmdList->IdxBuffer.Size;
 	}
-	
-	_vertexBuffer->unmap();
-	_indexBuffer->unmap();
 	
 	vk::RenderingAttachmentInfo colorAttachment;
 	colorAttachment.imageView = outputImageView->getHandle();
@@ -273,9 +269,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 		vk::MemoryPropertyFlagBits::eHostCached);
 	
-	uint8_t* ptr = stagingBuffer->map();
-	std::copy(data, data + dataSize, ptr);
-	stagingBuffer->unmap();
+	std::copy(data, data + dataSize, stagingBuffer->getHostPointer());
 	
 	VKImageInfo imageInfo(
 		vk::Format::eR8Unorm,

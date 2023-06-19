@@ -54,9 +54,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		vertexBufferUsage,
 		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 	
-	VertexData* vertexBufferPtr = _vertexBuffer->map();
-	std::copy(meshData.vertices.begin(), meshData.vertices.end(), vertexBufferPtr);
-	_vertexBuffer->unmap();
+	std::copy(meshData.vertices.begin(), meshData.vertices.end(), _vertexBuffer->getHostPointer());
 	
 	vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer;
 	if (Engine::getVKContext().isRayTracingSupported())
@@ -69,9 +67,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		indexBufferUsage,
 		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 	
-	uint32_t* indexBufferPtr = _indexBuffer->map();
-	std::copy(meshData.indices.begin(), meshData.indices.end(), indexBufferPtr);
-	_indexBuffer->unmap();
+	std::copy(meshData.indices.begin(), meshData.indices.end(), _indexBuffer->getHostPointer());
 	
 	if (Engine::getVKContext().isRayTracingSupported())
 	{
