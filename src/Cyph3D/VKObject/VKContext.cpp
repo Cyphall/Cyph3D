@@ -313,7 +313,8 @@ std::unique_ptr<VKContext> VKContext::create(int concurrentFrameCount)
 VKContext::VKContext(int concurrentFrameCount):
 	_concurrentFrameCount(concurrentFrameCount)
 {
-	VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::DynamicLoader().getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
+	vk::DynamicLoader dynamicLoader;
+	VULKAN_HPP_DEFAULT_DISPATCHER.init(dynamicLoader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
 	
 	std::vector<const char*> requiredInstanceLayers = getRequiredInstanceLayers();
 	std::vector<const char*> requiredInstanceExtensions = getRequiredInstanceExtensions();
