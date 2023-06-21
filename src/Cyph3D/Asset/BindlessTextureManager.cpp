@@ -34,6 +34,8 @@ uint32_t BindlessTextureManager::acquireIndex()
 
 void BindlessTextureManager::releaseIndex(uint32_t index)
 {
+	setTexture(index, {}, {});
+	
 	std::scoped_lock lock(_mutex);
 	
 	_availableIndices.push(index);
@@ -52,7 +54,10 @@ void BindlessTextureManager::setTexture(uint32_t index, const VKPtr<VKImageView>
 			continue;
 		}
 		
-		_pendingChanges[i].emplace_back(index, texture, sampler);
+		TextureChange& textureChange = _pendingChanges[i].emplace_back();
+		textureChange.index = index;
+		textureChange.texture = texture;
+		textureChange.sampler = sampler;
 	}
 }
 
