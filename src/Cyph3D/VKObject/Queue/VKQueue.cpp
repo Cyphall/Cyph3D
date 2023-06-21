@@ -118,6 +118,8 @@ bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, const VKPtr
 
 void VKQueue::handleCompletedSubmits()
 {
+	std::scoped_lock lock(_mutex);
+	
 	std::erase_if(_submits, [](VKQueue::SubmitInfo& submitInfo)
 	{
 		return submitInfo.commandBuffer->getStatusFence()->isSignaled();
