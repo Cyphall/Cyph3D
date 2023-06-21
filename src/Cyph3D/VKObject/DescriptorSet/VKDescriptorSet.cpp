@@ -203,7 +203,7 @@ void VKDescriptorSet::bindAccelerationStructure(uint32_t bindingIndex, const VKP
 	accelerationStructureDescriptorWrite.pAccelerationStructures = &accelerationStructure->getHandle();
 	
 	vk::WriteDescriptorSet descriptorWrite;
-	descriptorWrite.dstSet = VK_NULL_HANDLE;
+	descriptorWrite.dstSet = _descriptorSet;
 	descriptorWrite.dstBinding = bindingIndex;
 	descriptorWrite.dstArrayElement = arrayIndex;
 	descriptorWrite.descriptorType = bindingInfo.type;
