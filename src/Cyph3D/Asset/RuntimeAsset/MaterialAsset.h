@@ -98,6 +98,13 @@ private:
 	void save() const;
 	void reload();
 	
+	void uploadAlbedoValue(const glm::vec3& albedo);
+	void uploadNormalValue(const glm::vec3& normal);
+	void uploadRoughnessValue(const float& roughness);
+	void uploadMetalnessValue(const float& metalness);
+	void uploadDisplacementValue(const float& displacement);
+	void uploadEmissiveValue(const float& emissive);
+	
 	std::optional<std::string> _albedoMapPath;
 	TextureAsset* _albedoMap = nullptr;
 	VKPtr<VKImage> _albedoValueTexture;
