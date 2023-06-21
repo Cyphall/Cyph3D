@@ -100,16 +100,7 @@ void BindlessTextureManager::expand()
 	{
 		for (int i = 0; i < Engine::getVKContext().getConcurrentFrameCount(); i++)
 		{
-			vk::CopyDescriptorSet copyDescriptorSet;
-			copyDescriptorSet.srcSet = _descriptorSet[i]->getHandle();
-			copyDescriptorSet.srcBinding = 0;
-			copyDescriptorSet.srcArrayElement = 0;
-			copyDescriptorSet.dstSet = newDescriptorSet[i]->getHandle();
-			copyDescriptorSet.dstBinding = 0;
-			copyDescriptorSet.dstArrayElement = 0;
-			copyDescriptorSet.descriptorCount = oldSize;
-			
-			Engine::getVKContext().getDevice().updateDescriptorSets({}, copyDescriptorSet);
+			_descriptorSet[i]->copyTo(0, 0, newDescriptorSet[i], 0, 0, oldSize);
 		}
 	}
 	

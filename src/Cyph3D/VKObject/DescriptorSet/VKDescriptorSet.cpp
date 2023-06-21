@@ -222,3 +222,22 @@ void VKDescriptorSet::bindAccelerationStructure(uint32_t bindingIndex, const VKP
 	
 	_boundObjects[bindingIndex][arrayIndex] = {accelerationStructure};
 }
+
+void VKDescriptorSet::copyTo(uint32_t srcBindingIndex, uint32_t srcArrayIndex, const VKPtr<VKDescriptorSet>& dst, uint32_t dstBindingIndex, uint32_t dstArrayIndex, uint32_t count)
+{
+	vk::CopyDescriptorSet copyDescriptorSet;
+	copyDescriptorSet.srcSet = _descriptorSet;
+	copyDescriptorSet.srcBinding = srcBindingIndex;
+	copyDescriptorSet.srcArrayElement = srcArrayIndex;
+	copyDescriptorSet.dstSet = dst->_descriptorSet;
+	copyDescriptorSet.dstBinding = dstBindingIndex;
+	copyDescriptorSet.dstArrayElement = dstArrayIndex;
+	copyDescriptorSet.descriptorCount = count;
+	
+	_context.getDevice().updateDescriptorSets({}, copyDescriptorSet);
+	
+	for (uint32_t i = 0; i < count; i++)
+	{
+		dst->_boundObjects[dstBindingIndex][dstArrayIndex + i] = _boundObjects[srcBindingIndex][srcArrayIndex + i];
+	}
+}
