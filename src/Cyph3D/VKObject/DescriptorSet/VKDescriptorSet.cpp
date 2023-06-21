@@ -38,14 +38,19 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 		{
 			descriptorSetVariableDescriptorCountAllocateInfo.descriptorSetCount = 1;
 			descriptorSetVariableDescriptorCountAllocateInfo.pDescriptorCounts = &_info.getVariableSizeAllocatedCount();
+			
+			_boundObjects[i].resize(*descriptorSetVariableDescriptorCountAllocateInfo.pDescriptorCounts);
+		}
+		else
+		{
+			
+			_boundObjects[i].resize(bindingInfo.count);
 		}
 		
 		if (bindingInfo.flags & vk::DescriptorBindingFlagBits::eUpdateAfterBind)
 		{
 			anyBindingHasUpdateAfterBind = true;
 		}
-		
-		_boundObjects[i].resize(bindingInfo.count);
 	}
 	
 	vk::DescriptorPoolCreateInfo poolInfo;

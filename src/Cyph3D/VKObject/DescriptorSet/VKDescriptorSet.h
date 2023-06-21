@@ -37,7 +37,7 @@ protected:
 	vk::DescriptorPool _descriptorPool;
 	vk::DescriptorSet _descriptorSet;
 	
-	// _boundObjects[setIndex][bindingIndex][object]
+	// _boundObjects[bindingIndex][arrayIndex][object]
 	// third vector is to support multiple VKObjects being bound to a single binding at the same time (e.g. combined image sampler)
 	std::vector<std::vector<std::vector<VKPtr<VKObject>>>> _boundObjects;
 };
