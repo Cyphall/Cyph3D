@@ -28,9 +28,9 @@ vec4 toLinear(vec4 srgb)
 	return vec4(mix(higher, lower, cutoff), srgb.a);
 }
 
-vec4 load(readonly image2D image, uvec2 pos)
+vec4 load(uvec2 pos)
 {
-	vec4 value = imageLoad(image, ivec2(pos));
+	vec4 value = imageLoad(u_input, ivec2(pos));
 	
 	if (u_srgb)
 	{
@@ -55,14 +55,14 @@ vec4 reduce(vec4 a, vec4 b, vec4 c, vec4 d)
 	return vec4(0);
 }
 
-void store(writeonly image2D image, uvec2 pos, vec4 value)
+void store(uvec2 pos, vec4 value)
 {
 	if (u_srgb)
 	{
 		value = toSrgb(value);
 	}
 	
-	imageStore(image, ivec2(pos), value);
+	imageStore(u_output, ivec2(pos), value);
 }
 
 layout (local_size_x = 32) in;
@@ -76,12 +76,12 @@ void main()
 		return;
 	}
 	
-	vec4 a = load(u_input, dstPos * 2 + uvec2(0, 0));
-	vec4 b = load(u_input, dstPos * 2 + uvec2(0, 1));
-	vec4 c = load(u_input, dstPos * 2 + uvec2(1, 0));
-	vec4 d = load(u_input, dstPos * 2 + uvec2(1, 1));
+	vec4 a = load(dstPos * 2 + uvec2(0, 0));
+	vec4 b = load(dstPos * 2 + uvec2(0, 1));
+	vec4 c = load(dstPos * 2 + uvec2(1, 0));
+	vec4 d = load(dstPos * 2 + uvec2(1, 1));
 	
 	vec4 result = reduce(a, b, c, d);
 	
-	store(u_output, dstPos, result);
+	store(dstPos, result);
 }
