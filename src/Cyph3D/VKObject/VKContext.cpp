@@ -37,16 +37,16 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSev
 	switch (messageSeverity)
 	{
 		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
-			Logger::error(messageData->pMessage, "VULKAN");
+			Logger::error(messageData->pMessage, "Vulkan");
 			break;
 		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
-			Logger::warning(messageData->pMessage, "VULKAN");
+			Logger::warning(messageData->pMessage, "Vulkan");
 			break;
 		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
-			Logger::info(messageData->pMessage, "VULKAN");
+			Logger::info(messageData->pMessage, "Vulkan");
 			break;
 		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
-			Logger::debug(messageData->pMessage, "VULKAN");
+			Logger::debug(messageData->pMessage, "Vulkan");
 			break;
 	}
 	
