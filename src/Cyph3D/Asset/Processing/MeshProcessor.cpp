@@ -79,20 +79,24 @@ MeshData MeshProcessor::readMeshData(AssetManagerWorkerData& workerData, std::st
 
 	if (std::filesystem::exists(cacheAbsolutePath))
 	{
-		Logger::info(std::format("Loading mesh {} from cache", path));
-		if (!readProcessedMesh(cacheAbsolutePath, meshData))
+		Logger::info(std::format("Loading mesh [{}] from cache...", path));
+		if (readProcessedMesh(cacheAbsolutePath, meshData))
 		{
-			Logger::warning(std::format("Cannot parse cached mesh {}. Reprocessing...", path));
+			Logger::info(std::format("Mesh [{}] loaded from cache succesfully", path));
+		}
+		else
+		{
+			Logger::warning(std::format("Could not load mesh [{}] from cache. Reprocessing...", path));
 			std::filesystem::remove(cacheAbsolutePath);
 			meshData = processMesh(workerData, absolutePath, cacheAbsolutePath);
-			Logger::info(std::format("Mesh {} reprocessed succesfully", path));
+			Logger::info(std::format("Mesh [{}] reprocessed succesfully", path));
 		}
 	}
 	else
 	{
-		Logger::info(std::format("Processing mesh {}", path));
+		Logger::info(std::format("Processing mesh [{}]", path));
 		meshData = processMesh(workerData, absolutePath, cacheAbsolutePath);
-		Logger::info(std::format("Mesh {} processed succesfully", path));
+		Logger::info(std::format("Mesh [{}] processed succesfully", path));
 	}
 
 	return meshData;

@@ -15,14 +15,6 @@
 CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
-	Logger::info(std::format("Loading cubemap (xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {}) with type {}",
-		_signature.xposPath,
-		_signature.xnegPath,
-		_signature.yposPath,
-		_signature.ynegPath,
-		_signature.zposPath,
-		_signature.znegPath,
-		magic_enum::enum_name(_signature.type)));
 	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 	_manager.addThreadPoolTask(&CubemapAsset::load_async, this);
 }
@@ -73,6 +65,15 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 				throw std::runtime_error("All 6 faces of a cubemap must have the same level count.");
 		}
 	}
+	
+	Logger::info(std::format("Uploading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
+		_signature.xposPath,
+		_signature.xnegPath,
+		_signature.yposPath,
+		_signature.ynegPath,
+		_signature.zposPath,
+		_signature.znegPath,
+		magic_enum::enum_name(_signature.type)));
 	
 	// create cubemap
 	VKImageInfo imageInfo(
@@ -149,7 +150,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getCubemapSampler());
 
 	_loaded = true;
-	Logger::info(std::format("Cubemap (xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {}) with type {} loaded",
+	Logger::info(std::format("Cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})] uploaded succesfully",
 		_signature.xposPath,
 		_signature.xnegPath,
 		_signature.yposPath,

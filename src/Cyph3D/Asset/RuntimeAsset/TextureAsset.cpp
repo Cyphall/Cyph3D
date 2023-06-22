@@ -15,7 +15,6 @@
 TextureAsset::TextureAsset(AssetManager& manager, const TextureAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
-	Logger::info(std::format("Loading texture {} with type {}", _signature.path, magic_enum::enum_name(_signature.type)));
 	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 	_manager.addThreadPoolTask(&TextureAsset::load_async, this);
 }
@@ -34,6 +33,8 @@ const uint32_t& TextureAsset::getBindlessIndex() const
 void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 {
 	ImageData imageData = _manager.getAssetProcessor().readImageData(workerData, _signature.path, _signature.type);
+	
+	Logger::info(std::format("Uploading texture [{} ({})]...", _signature.path, magic_enum::enum_name(_signature.type)));
 	
 	// create texture
 	VKImageInfo imageInfo(
@@ -106,5 +107,5 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getTextureSampler());
 
 	_loaded = true;
-	Logger::info(std::format("Texture {} with type {} loaded", _signature.path, magic_enum::enum_name(_signature.type)));
+	Logger::info(std::format("Texture [{} ({})] uploaded succesfully", _signature.path, magic_enum::enum_name(_signature.type)));
 }

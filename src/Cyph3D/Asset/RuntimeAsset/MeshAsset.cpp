@@ -14,7 +14,6 @@
 MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
-	Logger::info(std::format("Loading mesh {}", _signature.path));
 	_manager.addThreadPoolTask(&MeshAsset::load_async, this);
 }
 
@@ -42,6 +41,8 @@ const VKPtr<VKAccelerationStructure>& MeshAsset::getAccelerationStructure() cons
 void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 {
 	MeshData meshData = _manager.getAssetProcessor().readMeshData(workerData, _signature.path);
+	
+	Logger::info(std::format("Uploading mesh [{}]...", _signature.path));
 	
 	vk::BufferUsageFlags vertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
 	if (Engine::getVKContext().isRayTracingSupported())
@@ -109,5 +110,5 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 
 	_loaded = true;
-	Logger::info(std::format("Mesh {} loaded", _signature.path));
+	Logger::info(std::format("Mesh [{}] uploaded succesfully", _signature.path));
 }
