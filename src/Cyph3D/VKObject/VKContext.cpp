@@ -34,6 +34,11 @@ struct PhysicalDeviceInfo
 
 static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity, vk::DebugUtilsMessageTypeFlagsEXT messageTypes, const vk::DebugUtilsMessengerCallbackDataEXT* messageData, void* userData)
 {
+	if (messageData->messageIdNumber == 1218486124) // UNASSIGNED-BestPractices-pipeline-stage-flags
+	{
+		return false;
+	}
+	
 	switch (messageSeverity)
 	{
 		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
