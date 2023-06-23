@@ -517,9 +517,9 @@ void VKContext::createInstance(const std::vector<const char*>& layers, const std
 
 #if defined(_DEBUG)
 	std::vector<vk::ValidationFeatureEnableEXT> enabledFeatures{
-//		vk::ValidationFeatureEnableEXT::eGpuAssisted, // TODO: re-enable once https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/5321 is fixed
-		vk::ValidationFeatureEnableEXT::eBestPractices
-//		vk::ValidationFeatureEnableEXT::eSynchronizationValidation
+//		vk::ValidationFeatureEnableEXT::eGpuAssisted, //TODO: re-enable once https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/5691 is fixed in SDK
+		vk::ValidationFeatureEnableEXT::eBestPractices,
+		vk::ValidationFeatureEnableEXT::eSynchronizationValidation
 	};
 	
 	vk::ValidationFeaturesEXT validationFeatures;
