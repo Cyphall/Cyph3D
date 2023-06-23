@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKPtr.h"
-#include "Cyph3D/VKObject/VKDynamic.h"
 
 #include <vector>
 #include <vulkan/vulkan.hpp>
@@ -37,8 +36,10 @@ private:
 	
 	std::stack<uint32_t> _availableIndices;
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
-	VKDynamic<VKDescriptorSet> _descriptorSet;
+	std::vector<VKPtr<VKDescriptorSet>> _descriptorSets;
 	std::vector<std::vector<TextureChange>> _pendingChanges;
+	
+	uint32_t _currentFrame = 0;
 	
 	uint32_t _upperBound;
 	

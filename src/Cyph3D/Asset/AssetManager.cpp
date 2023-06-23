@@ -1,6 +1,7 @@
 #include "AssetManager.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/Asset/Processing/ImageProcessor.h"
 #include "Cyph3D/Asset/Processing/MeshProcessor.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
