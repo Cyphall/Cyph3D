@@ -3,6 +3,7 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
@@ -166,30 +167,11 @@ void BloomPass::onResize()
 
 void BloomPass::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
-	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = _workImageViews[dstLevel]->getHandle();
-	colorAttachment.imageLayout = _workImage->getLayout(0, dstLevel);
-	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	colorAttachment.resolveImageView = nullptr;
-	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	colorAttachment.clearValue.color.float32[0] = 0.0f;
-	colorAttachment.clearValue.color.float32[1] = 0.0f;
-	colorAttachment.clearValue.color.float32[2] = 0.0f;
-	colorAttachment.clearValue.color.float32[3] = 1.0f;
+	VKRenderingInfo renderingInfo(_workImage->getSize(dstLevel));
 	
-	glm::uvec2 viewportSize = _workImage->getSize(dstLevel);
-	
-	vk::RenderingInfo renderingInfo;
-	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-	renderingInfo.renderArea.extent = vk::Extent2D(viewportSize.x, viewportSize.y);
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = 1;
-	renderingInfo.pColorAttachments = &colorAttachment;
-	renderingInfo.pDepthAttachment = nullptr;
-	renderingInfo.pStencilAttachment = nullptr;
+	renderingInfo.addColorAttachment(_workImageViews[dstLevel].getCurrent())
+		.setLoadOpDontCare()
+		.setStoreOpStore();
 	
 	commandBuffer->beginRendering(renderingInfo);
 	
@@ -197,13 +179,13 @@ void BloomPass::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstL
 	
 	VKPipelineViewport viewport;
 	viewport.offset = {0, 0};
-	viewport.size = viewportSize;
+	viewport.size = _workImage->getSize(dstLevel);
 	viewport.depthRange = {0.0f, 1.0f};
 	commandBuffer->setViewport(viewport);
 	
 	VKPipelineScissor scissor;
 	scissor.offset = {0, 0};
-	scissor.size = viewportSize;
+	scissor.size = _workImage->getSize(dstLevel);
 	commandBuffer->setScissor(scissor);
 	
 	commandBuffer->pushDescriptor(0, 0, _workImageViews[dstLevel-1].getCurrent(), _workImageSampler);
@@ -222,30 +204,11 @@ void BloomPass::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstL
 
 void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
-	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = _workImageViews[dstLevel]->getHandle();
-	colorAttachment.imageLayout = _workImage->getLayout(0, dstLevel);
-	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	colorAttachment.resolveImageView = nullptr;
-	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	colorAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
-	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	colorAttachment.clearValue.color.float32[0] = 0.0f;
-	colorAttachment.clearValue.color.float32[1] = 0.0f;
-	colorAttachment.clearValue.color.float32[2] = 0.0f;
-	colorAttachment.clearValue.color.float32[3] = 1.0f;
+	VKRenderingInfo renderingInfo(_workImage->getSize(dstLevel));
 	
-	glm::uvec2 viewportSize = _workImage->getSize(dstLevel);
-	
-	vk::RenderingInfo renderingInfo;
-	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-	renderingInfo.renderArea.extent = vk::Extent2D(viewportSize.x, viewportSize.y);
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = 1;
-	renderingInfo.pColorAttachments = &colorAttachment;
-	renderingInfo.pDepthAttachment = nullptr;
-	renderingInfo.pStencilAttachment = nullptr;
+	renderingInfo.addColorAttachment(_workImageViews[dstLevel].getCurrent())
+		.setLoadOpLoad()
+		.setStoreOpStore();
 	
 	commandBuffer->beginRendering(renderingInfo);
 	
@@ -253,13 +216,13 @@ void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int
 	
 	VKPipelineViewport viewport;
 	viewport.offset = {0, 0};
-	viewport.size = viewportSize;
+	viewport.size = _workImage->getSize(dstLevel);
 	viewport.depthRange = {0.0f, 1.0f};
 	commandBuffer->setViewport(viewport);
 	
 	VKPipelineScissor scissor;
 	scissor.offset = {0, 0};
-	scissor.size = viewportSize;
+	scissor.size = _workImage->getSize(dstLevel);
 	commandBuffer->setScissor(scissor);
 	
 	commandBuffer->pushDescriptor(0, 0, _workImageViews[dstLevel+1].getCurrent(), _workImageSampler);
@@ -279,28 +242,11 @@ void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int
 
 void BloomPass::compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommandBuffer>& commandBuffer)
 {
-	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = _outputImageView->getHandle();
-	colorAttachment.imageLayout = _outputImage->getLayout(0, 0);
-	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	colorAttachment.resolveImageView = nullptr;
-	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	colorAttachment.clearValue.color.float32[0] = 0.0f;
-	colorAttachment.clearValue.color.float32[1] = 0.0f;
-	colorAttachment.clearValue.color.float32[2] = 0.0f;
-	colorAttachment.clearValue.color.float32[3] = 1.0f;
+	VKRenderingInfo renderingInfo(_size);
 	
-	vk::RenderingInfo renderingInfo;
-	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-	renderingInfo.renderArea.extent = vk::Extent2D(_size.x, _size.y);
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = 1;
-	renderingInfo.pColorAttachments = &colorAttachment;
-	renderingInfo.pDepthAttachment = nullptr;
-	renderingInfo.pStencilAttachment = nullptr;
+	renderingInfo.addColorAttachment(_outputImageView.getCurrent())
+		.setLoadOpDontCare()
+		.setStoreOpStore();
 	
 	commandBuffer->beginRendering(renderingInfo);
 	

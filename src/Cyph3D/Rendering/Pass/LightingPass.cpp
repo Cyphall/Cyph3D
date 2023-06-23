@@ -3,6 +3,7 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Asset/BindlessTextureManager.h"
@@ -138,50 +139,20 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal);
 	
-	std::vector<vk::RenderingAttachmentInfo> colorAttachments;
+	VKRenderingInfo renderingInfo(_size);
 	
-	vk::RenderingAttachmentInfo& rawRenderAttachment = colorAttachments.emplace_back();
-	rawRenderAttachment.imageView = _multisampledRawRenderImageView->getHandle();
-	rawRenderAttachment.imageLayout = _multisampledRawRenderImage->getLayout(0, 0);
-	rawRenderAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	rawRenderAttachment.resolveImageView = nullptr;
-	rawRenderAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	rawRenderAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-	rawRenderAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	rawRenderAttachment.clearValue.color.float32[0] = 0.0f;
-	rawRenderAttachment.clearValue.color.float32[1] = 0.0f;
-	rawRenderAttachment.clearValue.color.float32[2] = 0.0f;
-	rawRenderAttachment.clearValue.color.float32[3] = 1.0f;
+	renderingInfo.addColorAttachment(_multisampledRawRenderImageView.getCurrent())
+		.setLoadOpClear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
+		.setStoreOpStore();
 	
-	vk::RenderingAttachmentInfo& objectIndexAttachment = colorAttachments.emplace_back();
-	objectIndexAttachment.imageView = _multisampledObjectIndexImageView->getHandle();
-	objectIndexAttachment.imageLayout = _multisampledObjectIndexImage->getLayout(0, 0);
-	objectIndexAttachment.resolveMode = vk::ResolveModeFlagBits::eSampleZero;
-	objectIndexAttachment.resolveImageView = _resolvedObjectIndexImageView->getHandle();
-	objectIndexAttachment.resolveImageLayout = _resolvedObjectIndexImage->getLayout(0, 0);
-	objectIndexAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-	objectIndexAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	objectIndexAttachment.clearValue.color.int32[0] = -1;
+	renderingInfo.addColorAttachment(_multisampledObjectIndexImageView.getCurrent())
+		.enableResolve(vk::ResolveModeFlagBits::eSampleZero, _resolvedObjectIndexImageView.getCurrent())
+		.setLoadOpClear(glm::ivec4(-1, 0, 0, 0))
+		.setStoreOpStore();
 	
-	vk::RenderingAttachmentInfo depthAttachment;
-	depthAttachment.imageView = input.multisampledDepthImageView->getHandle();
-	depthAttachment.imageLayout = input.multisampledDepthImageView->getInfo().getImage()->getLayout(0, 0);
-	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	depthAttachment.resolveImageView = nullptr;
-	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	depthAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
-	depthAttachment.storeOp = vk::AttachmentStoreOp::eNone;
-	depthAttachment.clearValue.depthStencil.depth = 1.0f;
-	
-	vk::RenderingInfo renderingInfo;
-	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-	renderingInfo.renderArea.extent = vk::Extent2D(_size.x, _size.y);
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = colorAttachments.size();
-	renderingInfo.pColorAttachments = colorAttachments.data();
-	renderingInfo.pDepthAttachment = &depthAttachment;
-	renderingInfo.pStencilAttachment = nullptr;
+	renderingInfo.setDepthAttachment(input.multisampledDepthImageView)
+		.setLoadOpLoad()
+		.setStoreOpNone();
 	
 	commandBuffer->beginRendering(renderingInfo);
 	

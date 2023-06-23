@@ -4,6 +4,7 @@
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Asset/BindlessTextureManager.h"

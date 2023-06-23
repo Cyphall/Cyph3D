@@ -3,6 +3,7 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
@@ -41,27 +42,13 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 			vk::ImageLayout::eDepthAttachmentOptimal);
 		
-		vk::RenderingAttachmentInfo depthAttachment;
-		depthAttachment.imageView = (*renderData.shadowMapTextureView)->getHandle();
-		depthAttachment.imageLayout = (*renderData.shadowMapTextureView)->getInfo().getImage()->getLayout(0, 0);
-		depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-		depthAttachment.resolveImageView = nullptr;
-		depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-		depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-		depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-		depthAttachment.clearValue.depthStencil.depth = 1.0f;
-		
 		glm::uvec2 shadowMapSize = (*renderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
 		
-		vk::RenderingInfo renderingInfo;
-		renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-		renderingInfo.renderArea.extent = vk::Extent2D(shadowMapSize.x, shadowMapSize.y);
-		renderingInfo.layerCount = 1;
-		renderingInfo.viewMask = 0;
-		renderingInfo.colorAttachmentCount = 0;
-		renderingInfo.pColorAttachments = nullptr;
-		renderingInfo.pDepthAttachment = &depthAttachment;
-		renderingInfo.pStencilAttachment = nullptr;
+		VKRenderingInfo renderingInfo(shadowMapSize);
+		
+		renderingInfo.setDepthAttachment(renderData.shadowMapTextureView->getCurrent())
+			.setLoadOpClear(1.0f)
+			.setStoreOpStore();
 		
 		commandBuffer->beginRendering(renderingInfo);
 		
@@ -141,30 +128,14 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 				vk::ImageLayout::eDepthAttachmentOptimal);
 		}
 		
-		vk::ClearValue depthClearValue;
-		depthClearValue.depthStencil.depth = 1.0f;
-		
-		vk::RenderingAttachmentInfo depthAttachment;
-		depthAttachment.imageView = (*renderData.shadowMapTextureView)->getHandle();
-		depthAttachment.imageLayout = (*renderData.shadowMapTexture)->getLayout(0, 0);
-		depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-		depthAttachment.resolveImageView = nullptr;
-		depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-		depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-		depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-		depthAttachment.clearValue = depthClearValue;
-		
 		glm::uvec2 shadowMapSize = (*renderData.shadowMapTexture)->getSize(0);
 		
-		vk::RenderingInfo renderingInfo;
-		renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-		renderingInfo.renderArea.extent = vk::Extent2D(shadowMapSize.x, shadowMapSize.y);
-		renderingInfo.layerCount = 6;
-		renderingInfo.viewMask = 0;
-		renderingInfo.colorAttachmentCount = 0;
-		renderingInfo.pColorAttachments = nullptr;
-		renderingInfo.pDepthAttachment = &depthAttachment;
-		renderingInfo.pStencilAttachment = nullptr;
+		VKRenderingInfo renderingInfo(shadowMapSize);
+		renderingInfo.setLayers(6);
+		
+		renderingInfo.setDepthAttachment(renderData.shadowMapTextureView->getCurrent())
+			.setLoadOpClear(1.0f)
+			.setStoreOpStore();
 		
 		commandBuffer->beginRendering(renderingInfo);
 		

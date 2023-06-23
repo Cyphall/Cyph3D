@@ -3,6 +3,7 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
@@ -44,38 +45,16 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal);
 	
-	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = input.multisampledRawRenderImageView->getHandle();
-	colorAttachment.imageLayout = input.multisampledRawRenderImageView->getInfo().getImage()->getLayout(0, 0);
-	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eAverage;
-	colorAttachment.resolveImageView = _resolvedRawRenderImageView->getHandle();
-	colorAttachment.resolveImageLayout = _resolvedRawRenderImage->getLayout(0, 0);
-	colorAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
-	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	colorAttachment.clearValue.color.float32[0] = 0.0f;
-	colorAttachment.clearValue.color.float32[1] = 0.0f;
-	colorAttachment.clearValue.color.float32[2] = 0.0f;
-	colorAttachment.clearValue.color.float32[3] = 1.0f;
+	VKRenderingInfo renderingInfo(_size);
 	
-	vk::RenderingAttachmentInfo depthAttachment;
-	depthAttachment.imageView = input.multisampledDepthImageView->getHandle();
-	depthAttachment.imageLayout = input.multisampledDepthImageView->getInfo().getImage()->getLayout(0, 0);
-	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	depthAttachment.resolveImageView = nullptr;
-	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	depthAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
-	depthAttachment.storeOp = vk::AttachmentStoreOp::eNone;
-	depthAttachment.clearValue.depthStencil.depth = 1.0f;
+	renderingInfo.addColorAttachment(input.multisampledRawRenderImageView)
+		.enableResolve(vk::ResolveModeFlagBits::eAverage, _resolvedRawRenderImageView.getCurrent())
+		.setLoadOpLoad()
+		.setStoreOpStore();
 	
-	vk::RenderingInfo renderingInfo;
-	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-	renderingInfo.renderArea.extent = vk::Extent2D(_size.x, _size.y);
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = 1;
-	renderingInfo.pColorAttachments = &colorAttachment;
-	renderingInfo.pDepthAttachment = &depthAttachment;
-	renderingInfo.pStencilAttachment = nullptr;
+	renderingInfo.setDepthAttachment(input.multisampledDepthImageView)
+		.setLoadOpLoad()
+		.setStoreOpNone();
 	
 	commandBuffer->beginRendering(renderingInfo);
 	

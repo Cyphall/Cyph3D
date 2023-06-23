@@ -3,6 +3,7 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
@@ -35,25 +36,11 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 		vk::ImageLayout::eDepthAttachmentOptimal);
 	
-	vk::RenderingAttachmentInfo depthAttachment;
-	depthAttachment.imageView = _depthImageView->getHandle();
-	depthAttachment.imageLayout = _depthImage->getLayout(0, 0);
-	depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	depthAttachment.resolveImageView = nullptr;
-	depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-	depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	depthAttachment.clearValue.depthStencil.depth = 1.0f;
+	VKRenderingInfo renderingInfo(_size);
 	
-	vk::RenderingInfo renderingInfo;
-	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-	renderingInfo.renderArea.extent = vk::Extent2D(_size.x, _size.y);
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = 0;
-	renderingInfo.pColorAttachments = nullptr;
-	renderingInfo.pDepthAttachment = &depthAttachment;
-	renderingInfo.pStencilAttachment = nullptr;
+	renderingInfo.setDepthAttachment(_depthImageView.getCurrent())
+		.setLoadOpClear(1.0f)
+		.setStoreOpStore();
 	
 	commandBuffer->beginRendering(renderingInfo);
 	

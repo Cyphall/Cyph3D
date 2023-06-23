@@ -9,6 +9,7 @@
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
@@ -63,28 +64,11 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 		indexBufferPtr += cmdList->IdxBuffer.Size;
 	}
 	
-	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = outputImageView->getHandle();
-	colorAttachment.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
-	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	colorAttachment.resolveImageView = nullptr;
-	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	colorAttachment.clearValue.color.float32[0] = 0.0f;
-	colorAttachment.clearValue.color.float32[1] = 0.0f;
-	colorAttachment.clearValue.color.float32[2] = 0.0f;
-	colorAttachment.clearValue.color.float32[3] = 1.0f;
+	VKRenderingInfo renderingInfo(framebufferSize);
 	
-	vk::RenderingInfo renderingInfo;
-	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-	renderingInfo.renderArea.extent = vk::Extent2D(framebufferSize.x, framebufferSize.y);
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = 1;
-	renderingInfo.pColorAttachments = &colorAttachment;
-	renderingInfo.pDepthAttachment = nullptr;
-	renderingInfo.pStencilAttachment = nullptr;
+	renderingInfo.addColorAttachment(outputImageView)
+		.setLoadOpClear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
+		.setStoreOpStore();
 	
 	commandBuffer->beginRendering(renderingInfo);
 	

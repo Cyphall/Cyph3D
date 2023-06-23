@@ -2,6 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
@@ -36,28 +37,11 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal);
 	
-	vk::RenderingAttachmentInfo colorAttachment;
-	colorAttachment.imageView = _outputSrgbImageView->getHandle();
-	colorAttachment.imageLayout = _outputImage->getLayout(0, 0);
-	colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
-	colorAttachment.resolveImageView = nullptr;
-	colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
-	colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	colorAttachment.clearValue.color.float32[0] = 0.0f;
-	colorAttachment.clearValue.color.float32[1] = 0.0f;
-	colorAttachment.clearValue.color.float32[2] = 0.0f;
-	colorAttachment.clearValue.color.float32[3] = 1.0f;
+	VKRenderingInfo renderingInfo(_size);
 	
-	vk::RenderingInfo renderingInfo;
-	renderingInfo.renderArea.offset = vk::Offset2D(0, 0);
-	renderingInfo.renderArea.extent = vk::Extent2D(_size.x, _size.y);
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = 1;
-	renderingInfo.pColorAttachments = &colorAttachment;
-	renderingInfo.pDepthAttachment = nullptr;
-	renderingInfo.pStencilAttachment = nullptr;
+	renderingInfo.addColorAttachment(_outputSrgbImageView.getCurrent())
+		.setLoadOpDontCare()
+		.setStoreOpStore();
 	
 	commandBuffer->beginRendering(renderingInfo);
 	

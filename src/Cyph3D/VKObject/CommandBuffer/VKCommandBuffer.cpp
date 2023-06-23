@@ -8,6 +8,7 @@
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
@@ -164,12 +165,104 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t l
 	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::beginRendering(const vk::RenderingInfo& renderingInfo)
+void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 {
 	if (_boundPipeline != nullptr)
 		throw;
 	
-	_commandBuffer.beginRendering(renderingInfo);
+	std::vector<vk::RenderingAttachmentInfo> colorAttachments;
+	colorAttachments.reserve(renderingInfo.getColorAttachmentInfos().size());
+	for (const VKRenderingColorAttachmentInfo& colorAttachmentInfo : renderingInfo.getColorAttachmentInfos())
+	{
+		const VKPtr<VKImageView>& imageView = colorAttachmentInfo.getImageView();
+		
+		_usedObjects.emplace_back(imageView);
+
+		VKHelper::assertImageViewHasUniqueLayout(imageView);
+		
+		vk::RenderingAttachmentInfo& colorAttachment = colorAttachments.emplace_back();
+		colorAttachment.imageView = imageView->getHandle();
+		colorAttachment.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+		
+		if (colorAttachmentInfo.getResolveMode() != vk::ResolveModeFlagBits::eNone)
+		{
+			colorAttachment.resolveMode = colorAttachmentInfo.getResolveMode();
+			
+			const VKPtr<VKImageView>& resolveImageView = colorAttachmentInfo.getResolveImageView();
+			
+			VKHelper::assertImageViewHasUniqueLayout(resolveImageView);
+			
+			colorAttachment.resolveImageView = resolveImageView->getHandle();
+			colorAttachment.resolveImageLayout = resolveImageView->getInfo().getImage()->getLayout(resolveImageView->getFirstReferencedLayer(), resolveImageView->getFirstReferencedLevel());
+		}
+		else
+		{
+			colorAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
+			colorAttachment.resolveImageView = nullptr;
+			colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
+		}
+		
+		colorAttachment.loadOp = colorAttachmentInfo.getLoadOp();
+		colorAttachment.storeOp = colorAttachmentInfo.getStoreOp();
+		colorAttachment.clearValue = colorAttachmentInfo.getClearValue();
+	}
+	
+	vk::RenderingInfo vkRenderingInfo;
+	vkRenderingInfo.renderArea.offset = vk::Offset2D(0, 0);
+	vkRenderingInfo.renderArea.extent = vk::Extent2D(renderingInfo.getSize().x, renderingInfo.getSize().y);
+	vkRenderingInfo.layerCount = renderingInfo.getLayers();
+	vkRenderingInfo.viewMask = 0;
+	vkRenderingInfo.colorAttachmentCount = colorAttachments.size();
+	vkRenderingInfo.pColorAttachments = colorAttachments.data();
+	vkRenderingInfo.pDepthAttachment = nullptr;
+	
+	vk::RenderingAttachmentInfo depthAttachment;
+	if (renderingInfo.hasDepthAttachment())
+	{
+		const VKRenderingDepthAttachmentInfo& depthAttachmentInfo = renderingInfo.getDepthAttachmentInfo();
+		
+		const VKPtr<VKImageView>& imageView = depthAttachmentInfo.getImageView();
+		
+		_usedObjects.emplace_back(imageView);
+		
+		VKHelper::assertImageViewHasUniqueLayout(imageView);
+		
+		depthAttachment.imageView = imageView->getHandle();
+		depthAttachment.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+		
+		if (depthAttachmentInfo.getResolveMode() != vk::ResolveModeFlagBits::eNone)
+		{
+			depthAttachment.resolveMode = depthAttachmentInfo.getResolveMode();
+			
+			const VKPtr<VKImageView>& resolveImageView = depthAttachmentInfo.getResolveImageView();
+			
+			VKHelper::assertImageViewHasUniqueLayout(resolveImageView);
+			
+			depthAttachment.resolveImageView = resolveImageView->getHandle();
+			depthAttachment.resolveImageLayout = resolveImageView->getInfo().getImage()->getLayout(resolveImageView->getFirstReferencedLayer(), resolveImageView->getFirstReferencedLevel());
+		}
+		else
+		{
+			depthAttachment.resolveMode = vk::ResolveModeFlagBits::eNone;
+			depthAttachment.resolveImageView = nullptr;
+			depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
+		}
+		
+		depthAttachment.loadOp = depthAttachmentInfo.getLoadOp();
+		depthAttachment.storeOp = depthAttachmentInfo.getStoreOp();
+		depthAttachment.clearValue = depthAttachmentInfo.getClearValue();
+		
+		
+		vkRenderingInfo.pDepthAttachment = &depthAttachment;
+	}
+	else
+	{
+		vkRenderingInfo.pDepthAttachment = nullptr;
+	}
+	
+	vkRenderingInfo.pStencilAttachment = nullptr;
+	
+	_commandBuffer.beginRendering(vkRenderingInfo);
 }
 
 void VKCommandBuffer::endRendering()
