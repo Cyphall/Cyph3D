@@ -64,7 +64,7 @@ void Engine::init()
 
 void Engine::run()
 {
-	bool swapchainOutOfData = true;
+	bool swapchainOutOfData = false;
 	
 	while (!_window->shouldClose())
 	{
