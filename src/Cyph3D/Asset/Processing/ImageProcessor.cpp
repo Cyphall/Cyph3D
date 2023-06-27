@@ -510,7 +510,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		workerData.computeCommandBuffer->pushDescriptor(0, 1, textureViews[i]);
 		
 		glm::uvec2 dstSize = texture->getSize(i);
-		workerData.computeCommandBuffer->dispatch({(dstSize.x * dstSize.y + 31) / 32, 1, 1});
+		workerData.computeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
 	}
 	workerData.computeCommandBuffer->end();
 	

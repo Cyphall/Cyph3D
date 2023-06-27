@@ -65,11 +65,11 @@ void store(uvec2 pos, vec4 value)
 	imageStore(u_output, ivec2(pos), value);
 }
 
-layout (local_size_x = 32) in;
+layout (local_size_x = 8, local_size_y = 8) in;
 void main()
 {
 	uvec2 dstSize = imageSize(u_output);
-	uvec2 dstPos = uvec2(gl_GlobalInvocationID.x % dstSize.x, gl_GlobalInvocationID.x / dstSize.x);
+	uvec2 dstPos = gl_GlobalInvocationID.xy;
 	
 	if (any(greaterThanEqual(dstPos, dstSize)))
 	{
