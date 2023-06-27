@@ -38,8 +38,10 @@ public:
 	void executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>& commandBuffer)>&& function);
 	
 	const vk::PhysicalDeviceProperties& getProperties() const;
-	const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& getRayTracingPipelineProperties() const;
 	const vk::PhysicalDeviceDescriptorIndexingProperties& getDescriptorIndexingProperties() const;
+	const vk::PhysicalDevicePushDescriptorPropertiesKHR& getPushDescriptorProperties() const;
+	const vk::PhysicalDeviceAccelerationStructurePropertiesKHR& getAccelerationStructureProperties() const;
+	const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& getRayTracingPipelineProperties() const;
 	
 	bool isRayTracingSupported() const;
 
@@ -63,8 +65,10 @@ private:
 	std::unique_ptr<HelperData> _helperData;
 	
 	vk::PhysicalDeviceProperties2 _properties;
-	vk::PhysicalDeviceRayTracingPipelinePropertiesKHR _rayTracingPipelineProperties;
 	vk::PhysicalDeviceDescriptorIndexingProperties _descriptorIndexingProperties;
+	vk::PhysicalDevicePushDescriptorPropertiesKHR _pushDescriptorProperties;
+	vk::PhysicalDeviceAccelerationStructurePropertiesKHR _accelerationStructureProperties;
+	vk::PhysicalDeviceRayTracingPipelinePropertiesKHR _rayTracingPipelineProperties;
 	
 	bool _rayTracingSupported;
 	

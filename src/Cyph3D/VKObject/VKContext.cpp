@@ -385,8 +385,10 @@ VKContext::VKContext(int concurrentFrameCount):
 	
 	if (_rayTracingSupported)
 	{
-		_descriptorIndexingProperties.pNext = &_rayTracingPipelineProperties;
+		_accelerationStructureProperties.pNext = &_rayTracingPipelineProperties;
+		_pushDescriptorProperties.pNext = &_accelerationStructureProperties;
 	}
+	_descriptorIndexingProperties.pNext = &_pushDescriptorProperties;
 	_properties.pNext = &_descriptorIndexingProperties;
 	_physicalDevice.getProperties2(&_properties);
 }
@@ -484,14 +486,24 @@ const vk::PhysicalDeviceProperties& VKContext::getProperties() const
 	return _properties.properties;
 }
 
-const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& VKContext::getRayTracingPipelineProperties() const
-{
-	return _rayTracingPipelineProperties;
-}
-
 const vk::PhysicalDeviceDescriptorIndexingProperties& VKContext::getDescriptorIndexingProperties() const
 {
 	return _descriptorIndexingProperties;
+}
+
+const vk::PhysicalDevicePushDescriptorPropertiesKHR& VKContext::getPushDescriptorProperties() const
+{
+	return _pushDescriptorProperties;
+}
+
+const vk::PhysicalDeviceAccelerationStructurePropertiesKHR& VKContext::getAccelerationStructureProperties() const
+{
+	return _accelerationStructureProperties;
+}
+
+const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& VKContext::getRayTracingPipelineProperties() const
+{
+	return _rayTracingPipelineProperties;
 }
 
 bool VKContext::isRayTracingSupported() const
