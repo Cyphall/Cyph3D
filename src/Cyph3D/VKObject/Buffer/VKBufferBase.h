@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
 #include "Cyph3D/VKObject/VKObject.h"
+
+#include <vulkan/vulkan.hpp>
 
 class VKBufferBase : public VKObject
 {
