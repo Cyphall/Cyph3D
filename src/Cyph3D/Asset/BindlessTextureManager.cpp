@@ -7,9 +7,7 @@
 
 BindlessTextureManager::BindlessTextureManager()
 {
-	_upperBound = std::min(
-		Engine::getVKContext().getDescriptorIndexingProperties().maxPerStageDescriptorUpdateAfterBindSampledImages,
-		Engine::getVKContext().getDescriptorIndexingProperties().maxPerStageDescriptorUpdateAfterBindSamplers);
+	_upperBound = 1000000;
 	_upperBound -= 1024; // directional lights shadow maps
 	_upperBound -= 1024; // point lights shadow maps
 	
