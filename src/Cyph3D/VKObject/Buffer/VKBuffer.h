@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
+#include "Cyph3D/VKObject/Buffer/VKBufferInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
 #include <stdexcept>
@@ -10,14 +11,9 @@ template<typename T>
 class VKBuffer : public VKBufferBase
 {
 public:
-	static VKPtr<VKBuffer<T>> create(
-		VKContext& context,
-		size_t size,
-		vk::BufferUsageFlags pipelineUsage,
-		vk::MemoryPropertyFlags requiredProperties = {},
-		vk::MemoryPropertyFlags preferredProperties = {})
+	static VKPtr<VKBuffer<T>> create(VKContext& context, const VKBufferInfo& info)
 	{
-		return VKPtr<VKBuffer<T>>(new VKBuffer<T>(context, size, pipelineUsage, requiredProperties, preferredProperties));
+		return VKPtr<VKBuffer<T>>(new VKBuffer<T>(context, info));
 	}
 	
 	~VKBuffer() override
@@ -30,6 +26,11 @@ public:
 		return static_cast<T*>(_allocationInfo.pMappedData);
 	}
 	
+	const VKBufferInfo& getInfo() const
+	{
+		return _info;
+	}
+	
 	const vk::Buffer& getHandle() override
 	{
 		return _buffer;
@@ -37,12 +38,12 @@ public:
 	
 	size_t getSize() const override
 	{
-		return _size;
+		return _info.getSize();
 	}
 	
 	vk::DeviceSize getByteSize() const override
 	{
-		return _size * sizeof(T);
+		return _info.getSize() * sizeof(T);
 	}
 	
 	size_t getStride() const override
@@ -61,40 +62,38 @@ public:
 	}
 
 private:
-	VKBuffer(
-		VKContext& context,
-		size_t size,
-		vk::BufferUsageFlags pipelineUsage,
-		vk::MemoryPropertyFlags requiredProperties,
-		vk::MemoryPropertyFlags preferredProperties):
-		VKBufferBase(context)
+	VKBuffer(VKContext& context, const VKBufferInfo& info):
+		VKBufferBase(context),
+		_info(info)
 	{
 		vk::BufferCreateInfo bufferCreateInfo;
-		bufferCreateInfo.size = size * sizeof(T);
-		bufferCreateInfo.usage = pipelineUsage;
+		bufferCreateInfo.size = _info.getSize() * sizeof(T);
+		bufferCreateInfo.usage = _info.getUsage();
 		bufferCreateInfo.sharingMode = vk::SharingMode::eExclusive;
 		
 		vma::AllocationCreateInfo allocationCreateInfo{};
 		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
-		allocationCreateInfo.requiredFlags = requiredProperties;
-		allocationCreateInfo.preferredFlags = preferredProperties;
+		allocationCreateInfo.requiredFlags = _info.getRequiredMemoryProperties();
+		allocationCreateInfo.preferredFlags = _info.getPreferredMemoryProperties();
 		allocationCreateInfo.flags = vma::AllocationCreateFlagBits::eMapped;
 		
 		std::tie(_buffer, _allocation) = _context.getVmaAllocator().createBuffer(bufferCreateInfo, allocationCreateInfo, _allocationInfo);
-		_size = size;
 		
-		if (pipelineUsage & vk::BufferUsageFlagBits::eShaderDeviceAddress)
+		if (_info.getUsage() & vk::BufferUsageFlagBits::eShaderDeviceAddress)
 		{
-			vk::BufferDeviceAddressInfo info;
-			info.buffer = _buffer;
+			vk::BufferDeviceAddressInfo bufferDeviceAddressInfo;
+			bufferDeviceAddressInfo.buffer = _buffer;
 			
-			_deviceAddress = _context.getDevice().getBufferAddress(info);
+			_deviceAddress = _context.getDevice().getBufferAddress(bufferDeviceAddressInfo);
 		}
 	}
 	
+	VKBufferInfo _info;
+	
 	vk::Buffer _buffer;
+	
 	vma::Allocation _allocation;
 	vma::AllocationInfo _allocationInfo;
-	size_t _size = 0;
+	
 	vk::DeviceAddress _deviceAddress = 0;
 };

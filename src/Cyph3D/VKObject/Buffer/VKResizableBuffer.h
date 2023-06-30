@@ -1,19 +1,16 @@
 #pragma once
 
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
+#include "Cyph3D/VKObject/Buffer/VKResizableBufferInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
 template<typename T>
 class VKResizableBuffer : public VKObject
 {
 public:
-	static VKPtr<VKResizableBuffer<T>> create(
-		VKContext& context,
-		vk::BufferUsageFlags pipelineUsage,
-		vk::MemoryPropertyFlags requiredProperties = {},
-		vk::MemoryPropertyFlags preferredProperties = {})
+	static VKPtr<VKResizableBuffer<T>> create(VKContext& context, const VKResizableBufferInfo& info)
 	{
-		return VKPtr<VKResizableBuffer<T>>(new VKResizableBuffer<T>(context, pipelineUsage, requiredProperties, preferredProperties));
+		return VKPtr<VKResizableBuffer<T>>(new VKResizableBuffer<T>(context, info));
 	}
 	
 	T* getHostPointer()
@@ -86,15 +83,9 @@ public:
 	}
 	
 private:
-	VKResizableBuffer(
-		VKContext& context,
-		vk::BufferUsageFlags pipelineUsage,
-		vk::MemoryPropertyFlags requiredProperties,
-		vk::MemoryPropertyFlags preferredProperties):
+	VKResizableBuffer(VKContext& context, const VKResizableBufferInfo& info):
 		VKObject(context),
-		_pipelineUsage(pipelineUsage),
-		_requiredProperties(requiredProperties),
-		_preferredProperties(preferredProperties)
+		_info(info)
 	{
 	
 	}
@@ -106,12 +97,14 @@ private:
 	
 	void createBuffer(size_t size)
 	{
-		_buffer = VKBuffer<T>::create(_context, size, _pipelineUsage, _requiredProperties, _preferredProperties);
+		VKBufferInfo info(size, _info.getUsage());
+		info.setRequiredMemoryProperties(_info.getRequiredMemoryProperties());
+		info.setPreferredMemoryProperties(_info.getPreferredMemoryProperties());
+		
+		_buffer = VKBuffer<T>::create(_context, info);
 	}
 	
-	vk::BufferUsageFlags _pipelineUsage;
-	vk::MemoryPropertyFlags _requiredProperties;
-	vk::MemoryPropertyFlags _preferredProperties;
+	VKResizableBufferInfo _info;
 	
 	VKPtr<VKBuffer<T>> _buffer;
 };

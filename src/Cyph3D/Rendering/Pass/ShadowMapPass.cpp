@@ -212,12 +212,14 @@ void ShadowMapPass::createDescriptorSetLayout()
 
 void ShadowMapPass::createBuffer()
 {
+	VKResizableBufferInfo bufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	
 	_pointLightUniformBuffer = VKDynamic<VKResizableBuffer<PointLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<PointLightUniforms>::create(
-			context,
-			vk::BufferUsageFlagBits::eStorageBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<PointLightUniforms>::create(context, bufferInfo);
 	});
 }
 

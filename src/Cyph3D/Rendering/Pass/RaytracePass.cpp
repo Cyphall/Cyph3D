@@ -185,69 +185,80 @@ void RaytracePass::onResize()
 
 void RaytracePass::createBuffers()
 {
+	VKBufferInfo globalUniformsBufferInfo(1, vk::BufferUsageFlagBits::eUniformBuffer);
+	globalUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	globalUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	globalUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	
 	_globalUniforms = VKDynamic<VKBuffer<GlobalUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKBuffer<GlobalUniforms>::create(
-			context,
-			1,
-			vk::BufferUsageFlagBits::eUniformBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKBuffer<GlobalUniforms>::create(context, globalUniformsBufferInfo);
 	});
+	
+	VKResizableBufferInfo objectUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
+	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
 	
 	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<ObjectUniforms>::create(
-			context,
-			vk::BufferUsageFlagBits::eStorageBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<ObjectUniforms>::create(context, objectUniformsBufferInfo);
 	});
+	
+	VKResizableBufferInfo tlasBackingBufferInfo(vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
+	tlasBackingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
 	_tlasBackingBuffer = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<std::byte>::create(
-			context,
-			vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		return VKResizableBuffer<std::byte>::create(context, tlasBackingBufferInfo);
 	});
+	
+	VKResizableBufferInfo tlasScratchBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
+	tlasScratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
 	_tlasScratchBuffer = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<std::byte>::create(
-			context,
-			vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		return VKResizableBuffer<std::byte>::create(context, tlasScratchBufferInfo);
 	});
+	
+	VKResizableBufferInfo tlasInstancesBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR);
+	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	_tlasInstancesBuffer = VKDynamic<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(
-			context,
-			vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(context, tlasInstancesBufferInfo);
 	});
+	
+	VKResizableBufferInfo raygenSBTInfo(vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
+	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	_raygenSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<std::byte>::create(
-			context,
-			vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<std::byte>::create(context, raygenSBTInfo);
 	});
+	
+	VKResizableBufferInfo missSBTInfo(vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
+	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	_missSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<std::byte>::create(
-			context,
-			vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<std::byte>::create(context, missSBTInfo);
 	});
+	
+	VKResizableBufferInfo hitSBTInfo(vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
+	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	_hitSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<std::byte>::create(
-			context,
-			vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<std::byte>::create(context, hitSBTInfo);
 	});
 }
 

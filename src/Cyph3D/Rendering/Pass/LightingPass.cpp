@@ -254,28 +254,34 @@ void LightingPass::onResize()
 
 void LightingPass::createUniformBuffers()
 {
+	VKResizableBufferInfo directionalLightsUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
+	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	
 	_directionalLightsUniforms = VKDynamic<VKResizableBuffer<DirectionalLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<DirectionalLightUniforms>::create(
-			context,
-			vk::BufferUsageFlagBits::eStorageBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<DirectionalLightUniforms>::create(context, directionalLightsUniformsBufferInfo);
 	});
+	
+	VKResizableBufferInfo pointLightsUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
+	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	_pointLightsUniforms = VKDynamic<VKResizableBuffer<PointLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<PointLightUniforms>::create(
-			context,
-			vk::BufferUsageFlagBits::eStorageBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<PointLightUniforms>::create(context, pointLightsUniformsBufferInfo);
 	});
+	
+	VKResizableBufferInfo objectUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
+	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<ObjectUniforms>::create(
-			context,
-			vk::BufferUsageFlagBits::eStorageBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		return VKResizableBuffer<ObjectUniforms>::create(context, objectUniformsBufferInfo);
 	});
 }
 

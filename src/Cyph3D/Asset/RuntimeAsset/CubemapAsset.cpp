@@ -96,11 +96,12 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	_imageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	
 	// create staging buffer
-	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
-		Engine::getVKContext(),
-		_image->getLayerByteSize(),
-		vk::BufferUsageFlagBits::eTransferSrc,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
+	VKBufferInfo bufferInfo(_image->getLayerByteSize(), vk::BufferUsageFlagBits::eTransferSrc);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+	
+	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
 	
 	for (uint32_t face = 0; face < 6; face++)
 	{

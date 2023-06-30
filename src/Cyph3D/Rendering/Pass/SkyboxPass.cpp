@@ -206,11 +206,12 @@ void SkyboxPass::createBuffer()
 		{{ 1.0f, -1.0f,  1.0f}}
 	};
 	
-	_vertexBuffer = VKBuffer<VertexData>::create(
-		Engine::getVKContext(),
-		vertices.size(),
-		vk::BufferUsageFlagBits::eVertexBuffer,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	VKBufferInfo vertexBufferInfo(vertices.size(), vk::BufferUsageFlagBits::eVertexBuffer);
+	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_vertexBuffer = VKBuffer<VertexData>::create(Engine::getVKContext(), vertexBufferInfo);
 	
 	std::copy(vertices.begin(), vertices.end(), _vertexBuffer->getHostPointer());
 }

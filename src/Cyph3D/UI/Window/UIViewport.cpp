@@ -337,11 +337,12 @@ void UIViewport::renderToFile(glm::uvec2 resolution)
 				vk::AccessFlagBits2::eTransferRead,
 				vk::ImageLayout::eTransferSrcOptimal);
 			
-			stagingBuffer = VKBuffer<std::byte>::create(
-				Engine::getVKContext(),
-				textureView->getInfo().getImage()->getLevelByteSize(0),
-				vk::BufferUsageFlagBits::eTransferDst,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
+			VKBufferInfo bufferInfo(textureView->getInfo().getImage()->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
+			bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+			bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+			bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+			
+			stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
 
 			commandBuffer->copyImageToBuffer(textureView->getInfo().getImage(), 0, 0, stagingBuffer, 0);
 		});

@@ -16,11 +16,12 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	_bloomPass(size),
 	_toneMappingPass(size)
 {
-	_objectIndexBuffer = VKBuffer<int32_t>::create(
-		Engine::getVKContext(),
-		1,
-		vk::BufferUsageFlagBits::eTransferDst,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
+	VKBufferInfo bufferInfo(1, vk::BufferUsageFlagBits::eTransferDst);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+	
+	_objectIndexBuffer = VKBuffer<int32_t>::create(Engine::getVKContext(), bufferInfo);
 }
 
 const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera)

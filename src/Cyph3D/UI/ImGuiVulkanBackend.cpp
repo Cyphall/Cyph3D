@@ -246,12 +246,12 @@ void ImGuiVulkanBackend::createFontsTexture()
 	
 	uint64_t dataSize = width * height;
 	
-	VKPtr<VKBuffer<uint8_t>> stagingBuffer = VKBuffer<uint8_t>::create(
-		Engine::getVKContext(),
-		dataSize,
-		vk::BufferUsageFlagBits::eTransferSrc,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-		vk::MemoryPropertyFlagBits::eHostCached);
+	VKBufferInfo bufferInfo(dataSize, vk::BufferUsageFlagBits::eTransferSrc);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	bufferInfo.addPreferredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+	
+	VKPtr<VKBuffer<uint8_t>> stagingBuffer = VKBuffer<uint8_t>::create(Engine::getVKContext(), bufferInfo);
 	
 	std::copy(data, data + dataSize, stagingBuffer->getHostPointer());
 	
@@ -305,23 +305,29 @@ void ImGuiVulkanBackend::createFontsTexture()
 
 void ImGuiVulkanBackend::createBuffers()
 {
-	_vertexBuffer = VKDynamic<VKResizableBuffer<ImDrawVert>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<ImDrawVert>::create(
-			context,
-			vk::BufferUsageFlagBits::eVertexBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-	});
+		VKResizableBufferInfo info(vk::BufferUsageFlagBits::eVertexBuffer);
+		info.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+		info.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+		info.addPreferredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_vertexBuffer = VKDynamic<VKResizableBuffer<ImDrawVert>>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKResizableBuffer<ImDrawVert>::create(context, info);
+		});
+	}
 	
-	_indexBuffer = VKDynamic<VKResizableBuffer<ImDrawIdx>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		return VKResizableBuffer<ImDrawIdx>::create(
-			context,
-			vk::BufferUsageFlagBits::eIndexBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
-	});
+		VKResizableBufferInfo info(vk::BufferUsageFlagBits::eIndexBuffer);
+		info.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+		info.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+		info.addPreferredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_indexBuffer = VKDynamic<VKResizableBuffer<ImDrawIdx>>(Engine::getVKContext(), [&](VKContext& context, int index)
+		{
+			return VKResizableBuffer<ImDrawIdx>::create(context, info);
+		});
+	}
 }
 
 void ImGuiVulkanBackend::setupRenderState(

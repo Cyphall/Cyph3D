@@ -442,11 +442,12 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	}
 	
 	// create staging buffer
-	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(
-		Engine::getVKContext(),
-		texture->getLayerByteSize(),
-		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
+	VKBufferInfo bufferInfo(texture->getLayerByteSize(), vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+	
+	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
 	
 	// copy texture data to staging buffer
 	std::copy(data.data(), data.data() + texture->getLevelByteSize(0), stagingBuffer->getHostPointer());

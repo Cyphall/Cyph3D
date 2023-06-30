@@ -41,11 +41,12 @@ static void createVKImageAndView(vk::Format format, VKPtr<VKImage>& image, VKPtr
 template<typename T>
 static void uploadImageData(const VKPtr<VKImage>& image, const T& value)
 {
-	VKPtr<VKBuffer<T>> stagingBuffer = VKBuffer<T>::create(
-		Engine::getVKContext(),
-		1,
-		vk::BufferUsageFlagBits::eTransferSrc,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
+	VKBufferInfo bufferInfo(1, vk::BufferUsageFlagBits::eTransferSrc);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+	
+	VKPtr<VKBuffer<T>> stagingBuffer = VKBuffer<T>::create(Engine::getVKContext(), bufferInfo);
 	
 	std::memcpy(stagingBuffer->getHostPointer(), &value, sizeof(T));
 	

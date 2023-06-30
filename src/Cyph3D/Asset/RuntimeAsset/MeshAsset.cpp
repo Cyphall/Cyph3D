@@ -49,11 +49,12 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	{
 		vertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
 	}
-	_vertexBuffer = VKBuffer<VertexData>::create(
-		Engine::getVKContext(),
-		meshData.vertices.size(),
-		vertexBufferUsage,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	VKBufferInfo vertexBufferInfo(meshData.vertices.size(), vertexBufferUsage);
+	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_vertexBuffer = VKBuffer<VertexData>::create(Engine::getVKContext(), vertexBufferInfo);
 	
 	std::copy(meshData.vertices.begin(), meshData.vertices.end(), _vertexBuffer->getHostPointer());
 	
@@ -62,11 +63,12 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	{
 		indexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
 	}
-	_indexBuffer = VKBuffer<uint32_t>::create(
-		Engine::getVKContext(),
-		meshData.indices.size(),
-		indexBufferUsage,
-		vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	VKBufferInfo indexBufferInfo(meshData.indices.size(), indexBufferUsage);
+	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_indexBuffer = VKBuffer<uint32_t>::create(Engine::getVKContext(), indexBufferInfo);
 	
 	std::copy(meshData.indices.begin(), meshData.indices.end(), _indexBuffer->getHostPointer());
 	
@@ -82,11 +84,10 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		
 		vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
 		
-		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(
-			Engine::getVKContext(),
-			buildSizesInfo.accelerationStructureSize,
-			vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		VKBufferInfo backingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
+		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
 		
 		_accelerationStructure = VKAccelerationStructure::create(
 			Engine::getVKContext(),
@@ -94,11 +95,10 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 			buildSizesInfo.accelerationStructureSize,
 			backingBuffer);
 		
-		VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(
-			Engine::getVKContext(),
-			buildSizesInfo.buildScratchSize,
-			vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize,vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
+		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
 		
 		workerData.computeCommandBuffer->begin();
 		workerData.computeCommandBuffer->buildBottomLevelAccelerationStructure(_accelerationStructure, scratchBuffer, buildInfo);
