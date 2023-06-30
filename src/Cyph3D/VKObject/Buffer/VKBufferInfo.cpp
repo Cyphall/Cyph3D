@@ -45,3 +45,13 @@ const vk::MemoryPropertyFlags& VKBufferInfo::getPreferredMemoryProperties() cons
 {
 	return _preferredMemoryProperties;
 }
+
+void VKBufferInfo::setRequiredAlignment(vk::DeviceSize requiredAlignment)
+{
+	_requiredAlignment = requiredAlignment;
+}
+
+const vk::DeviceSize& VKBufferInfo::getRequiredAlignment() const
+{
+	return _requiredAlignment;
+}

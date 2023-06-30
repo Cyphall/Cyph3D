@@ -40,3 +40,13 @@ const vk::MemoryPropertyFlags& VKResizableBufferInfo::getPreferredMemoryProperti
 {
 	return _preferredMemoryProperties;
 }
+
+void VKResizableBufferInfo::setRequiredAlignment(vk::DeviceSize requiredAlignment)
+{
+	_requiredAlignment = requiredAlignment;
+}
+
+const vk::DeviceSize& VKResizableBufferInfo::getRequiredAlignment() const
+{
+	return _requiredAlignment;
+}

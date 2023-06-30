@@ -45,28 +45,34 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	Logger::info(std::format("Uploading mesh [{}]...", _signature.path));
 	
 	vk::BufferUsageFlags vertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
+	vk::DeviceAddress vertexBufferAlignment = 1;
 	if (Engine::getVKContext().isRayTracingSupported())
 	{
 		vertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+		vertexBufferAlignment = sizeof(float);
 	}
 	VKBufferInfo vertexBufferInfo(meshData.vertices.size(), vertexBufferUsage);
 	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	vertexBufferInfo.setRequiredAlignment(vertexBufferAlignment);
 	
 	_vertexBuffer = VKBuffer<VertexData>::create(Engine::getVKContext(), vertexBufferInfo);
 	
 	std::copy(meshData.vertices.begin(), meshData.vertices.end(), _vertexBuffer->getHostPointer());
 	
 	vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer;
+	vk::DeviceAddress indexBufferAlignment = 1;
 	if (Engine::getVKContext().isRayTracingSupported())
 	{
 		indexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+		indexBufferAlignment = sizeof(uint32_t);
 	}
 	VKBufferInfo indexBufferInfo(meshData.indices.size(), indexBufferUsage);
 	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	indexBufferInfo.setRequiredAlignment(indexBufferAlignment);
 	
 	_indexBuffer = VKBuffer<uint32_t>::create(Engine::getVKContext(), indexBufferInfo);
 	
@@ -85,7 +91,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
 		
 		VKBufferInfo backingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
-		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
 		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
 		
@@ -96,7 +102,8 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 			backingBuffer);
 		
 		VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize,vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
-		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
 		
 		VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
 		

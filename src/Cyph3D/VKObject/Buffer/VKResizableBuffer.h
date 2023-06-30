@@ -100,6 +100,7 @@ private:
 		VKBufferInfo info(size, _info.getUsage());
 		info.setRequiredMemoryProperties(_info.getRequiredMemoryProperties());
 		info.setPreferredMemoryProperties(_info.getPreferredMemoryProperties());
+		info.setRequiredAlignment(_info.getRequiredAlignment());
 		
 		_buffer = VKBuffer<T>::create(_context, info);
 	}

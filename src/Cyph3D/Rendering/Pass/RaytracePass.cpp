@@ -215,6 +215,7 @@ void RaytracePass::createBuffers()
 	
 	VKResizableBufferInfo tlasScratchBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
 	tlasScratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	tlasScratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
 	
 	_tlasScratchBuffer = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
@@ -225,6 +226,7 @@ void RaytracePass::createBuffers()
 	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	tlasInstancesBufferInfo.setRequiredAlignment(16);
 	
 	_tlasInstancesBuffer = VKDynamic<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
@@ -235,6 +237,7 @@ void RaytracePass::createBuffers()
 	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	raygenSBTInfo.setRequiredAlignment(Engine::getVKContext().getRayTracingPipelineProperties().shaderGroupBaseAlignment);
 	
 	_raygenSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
@@ -245,6 +248,7 @@ void RaytracePass::createBuffers()
 	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	missSBTInfo.setRequiredAlignment(Engine::getVKContext().getRayTracingPipelineProperties().shaderGroupBaseAlignment);
 	
 	_missSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
@@ -255,6 +259,7 @@ void RaytracePass::createBuffers()
 	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	hitSBTInfo.setRequiredAlignment(Engine::getVKContext().getRayTracingPipelineProperties().shaderGroupBaseAlignment);
 	
 	_hitSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{

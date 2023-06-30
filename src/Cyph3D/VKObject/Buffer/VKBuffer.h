@@ -77,7 +77,7 @@ private:
 		allocationCreateInfo.preferredFlags = _info.getPreferredMemoryProperties();
 		allocationCreateInfo.flags = vma::AllocationCreateFlagBits::eMapped;
 		
-		std::tie(_buffer, _allocation) = _context.getVmaAllocator().createBuffer(bufferCreateInfo, allocationCreateInfo, _allocationInfo);
+		std::tie(_buffer, _allocation) = _context.getVmaAllocator().createBufferWithAlignment(bufferCreateInfo, allocationCreateInfo, _info.getRequiredAlignment(), _allocationInfo);
 		
 		if (_info.getUsage() & vk::BufferUsageFlagBits::eShaderDeviceAddress)
 		{
