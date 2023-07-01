@@ -196,7 +196,7 @@ const glm::mat4& Transform::getWorldToLocalMatrix() const
 }
 
 Transform::Transform() :
-_owner(nullptr), _parent(nullptr), _localPosition(0), _localRotation(glm::vec3(0)), _localScale(1)
+_owner(nullptr), _parent(nullptr), _localPosition(0), _localRotation(glm::identity<glm::quat>()), _localScale(1)
 {
 
 }
