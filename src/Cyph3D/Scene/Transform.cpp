@@ -149,7 +149,7 @@ glm::vec3 Transform::getEulerLocalRotation() const
 
 glm::vec3 Transform::getEulerWorldRotation() const
 {
-	return glm::degrees(glm::eulerAngles(_cachedWorldRotation));
+	return glm::degrees(glm::eulerAngles(getWorldRotation()));
 }
 
 void Transform::setEulerLocalRotation(glm::vec3 eulerRotation)
