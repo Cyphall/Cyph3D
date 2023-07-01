@@ -171,7 +171,7 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 	ImGuizmo::SetRect(viewportStart.x, viewportStart.y, viewportSize.x, viewportSize.y);
 	
 	Transform& transform = entity->getTransform();
-	glm::mat4 worldModel = transform.getLocalToWorldMatrix();
+	glm::mat4 localToWorld = transform.getLocalToWorldMatrix();
 	
 	glm::mat4 view = _camera.getView();
 	glm::mat4 projection = _camera.getProjection();
@@ -185,32 +185,23 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 		glm::value_ptr(projection),
 		_gizmoMode,
 		_gizmoSpace,
-		glm::value_ptr(worldModel));
+		glm::value_ptr(localToWorld));
 	
 	ImGui::PopClipRect();
 	
 	if (changed)
 	{
-		glm::mat4 localModel = transform.getParent()->getWorldToLocalMatrix() * worldModel;
+		glm::mat4 localToParent = transform.getParent()->getWorldToLocalMatrix() * localToWorld;
 		
 		glm::vec3 position;
 		glm::vec3 rotation;
 		glm::vec3 scale;
 		
-		ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localModel), glm::value_ptr(position), glm::value_ptr(rotation), glm::value_ptr(scale));
+		ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localToParent), glm::value_ptr(position), glm::value_ptr(rotation), glm::value_ptr(scale));
 		
-		if (position != transform.getLocalPosition())
-		{
-			transform.setLocalPosition(position);
-		}
-		else if (rotation != transform.getEulerLocalRotation())
-		{
-			transform.setEulerLocalRotation(rotation);
-		}
-		else if (scale != transform.getLocalScale())
-		{
-			transform.setLocalScale(scale);
-		}
+		transform.setLocalPosition(position);
+		transform.setEulerLocalRotation(rotation);
+		transform.setLocalScale(scale);
 	}
 }
 
@@ -241,7 +232,7 @@ void UIViewport::drawHeader()
 	
 	ImGui::Dummy({20.0f * pixelScale, 0});
 	
-	if (ImGui::Button(_gizmoSpace == ImGuizmo::LOCAL ? "Local" : "Global"))
+	if (ImGui::Button(_gizmoSpace == ImGuizmo::LOCAL ? "Local" : "World"))
 	{
 		if (_gizmoSpace == ImGuizmo::LOCAL)
 		{
