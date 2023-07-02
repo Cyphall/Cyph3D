@@ -61,53 +61,30 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	buildInfo.instancesInfos.reserve(input.registry.models.size());
 	_objectUniforms->resizeSmart(input.registry.models.size());
 	ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer();
-	int actualObjectCountToBeDrawn = 0;
-	for (int i = 0; i < input.registry.models.size(); i++)
+	int drawCount = 0;
+	for (const ModelRenderer::RenderData& renderData : input.registry.models)
 	{
-		ModelRenderer::RenderData modelRenderData = input.registry.models[i];
-		
-		MaterialAsset* material = modelRenderData.material;
-		if (material == nullptr)
-		{
-			material = MaterialAsset::getMissingMaterial();
-		}
-		else if (!material->isLoaded())
-		{
-			material = MaterialAsset::getDefaultMaterial();
-		}
-		
-		if (material == nullptr || !material->isLoaded())
-		{
-			continue;
-		}
-		
-		MeshAsset* mesh = modelRenderData.mesh;
-		if (mesh == nullptr || !mesh->isLoaded())
-		{
-			continue;
-		}
-		
 		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
-		instanceInfo.localToWorld = modelRenderData.matrix;
-		instanceInfo.customIndex = i;
-		instanceInfo.accelerationStructure = mesh->getAccelerationStructure();
+		instanceInfo.localToWorld = renderData.matrix;
+		instanceInfo.customIndex = drawCount;
+		instanceInfo.accelerationStructure = renderData.mesh->getAccelerationStructure();
 		
 		ObjectUniforms uniforms{};
-		uniforms.normalMatrix = glm::inverseTranspose(glm::mat3(modelRenderData.matrix));
-		uniforms.model = modelRenderData.matrix;
-		uniforms.vertexBuffer = mesh->getVertexBuffer()->getDeviceAddress();
-		uniforms.indexBuffer = mesh->getIndexBuffer()->getDeviceAddress();
-		uniforms.albedoIndex = material->getAlbedoTextureBindlessIndex();
-		uniforms.normalIndex = material->getNormalTextureBindlessIndex();
-		uniforms.roughnessIndex = material->getRoughnessTextureBindlessIndex();
-		uniforms.metalnessIndex = material->getMetalnessTextureBindlessIndex();
-		uniforms.displacementIndex = material->getDisplacementTextureBindlessIndex();
-		uniforms.emissiveIndex = material->getEmissiveTextureBindlessIndex();
-		uniforms.emissiveScale = material->getEmissiveScale();
+		uniforms.normalMatrix = glm::inverseTranspose(glm::mat3(renderData.matrix));
+		uniforms.model = renderData.matrix;
+		uniforms.vertexBuffer = renderData.mesh->getVertexBuffer()->getDeviceAddress();
+		uniforms.indexBuffer = renderData.mesh->getIndexBuffer()->getDeviceAddress();
+		uniforms.albedoIndex = renderData.material->getAlbedoTextureBindlessIndex();
+		uniforms.normalIndex = renderData.material->getNormalTextureBindlessIndex();
+		uniforms.roughnessIndex = renderData.material->getRoughnessTextureBindlessIndex();
+		uniforms.metalnessIndex = renderData.material->getMetalnessTextureBindlessIndex();
+		uniforms.displacementIndex = renderData.material->getDisplacementTextureBindlessIndex();
+		uniforms.emissiveIndex = renderData.material->getEmissiveTextureBindlessIndex();
+		uniforms.emissiveScale = renderData.material->getEmissiveScale();
 		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
 		objectUniformsPtr++;
 		
-		actualObjectCountToBeDrawn++;
+		drawCount++;
 	}
 	
 	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
@@ -159,7 +136,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView.getCurrent());
 	commandBuffer->pushDescriptor(1, 2, _objectIndexImageView.getCurrent());
 	commandBuffer->pushDescriptor(1, 3, _globalUniforms.getCurrent(), 0, 1);
-	commandBuffer->pushDescriptor(1, 4, _objectUniforms->getBuffer(), 0, actualObjectCountToBeDrawn);
+	commandBuffer->pushDescriptor(1, 4, _objectUniforms->getBuffer(), 0, drawCount);
 	
 	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getCurrent());
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getCurrent());

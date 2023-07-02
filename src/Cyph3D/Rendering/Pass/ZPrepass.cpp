@@ -59,22 +59,16 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
-	for (const ModelRenderer::RenderData& modelData : input.registry.models)
+	for (const ModelRenderer::RenderData& renderData : input.registry.models)
 	{
-		MeshAsset* mesh = modelData.mesh;
-		if (mesh == nullptr || !mesh->isLoaded())
-		{
-			continue;
-		}
-		
-		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = mesh->getVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = mesh->getIndexBuffer();
+		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = renderData.mesh->getVertexBuffer();
+		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = renderData.mesh->getIndexBuffer();
 		
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);
 		
 		PushConstantData pushConstantData{};
-		pushConstantData.mvp = vp * modelData.matrix;
+		pushConstantData.mvp = vp * renderData.matrix;
 		commandBuffer->pushConstants(pushConstantData);
 		
 		commandBuffer->draw(indexBuffer->getSize(), 0);

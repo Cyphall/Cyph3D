@@ -25,15 +25,15 @@ ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 
 ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
 {
-	for (DirectionalLight::RenderData& renderData : input.registry.directionalLights)
+	for (DirectionalLight::RenderData& directionalLightRenderData : input.registry.directionalLights)
 	{
-		if (!renderData.castShadows)
+		if (!directionalLightRenderData.castShadows)
 		{
 			continue;
 		}
 		
 		commandBuffer->imageMemoryBarrier(
-			(*renderData.shadowMapTextureView)->getInfo().getImage(),
+			(*directionalLightRenderData.shadowMapTextureView)->getInfo().getImage(),
 			0,
 			0,
 			vk::PipelineStageFlagBits2::eNone,
@@ -42,11 +42,11 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 			vk::ImageLayout::eDepthAttachmentOptimal);
 		
-		glm::uvec2 shadowMapSize = (*renderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
+		glm::uvec2 shadowMapSize = (*directionalLightRenderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
 		
 		VKRenderingInfo renderingInfo(shadowMapSize);
 		
-		renderingInfo.setDepthAttachment(renderData.shadowMapTextureView->getCurrent())
+		renderingInfo.setDepthAttachment(directionalLightRenderData.shadowMapTextureView->getCurrent())
 			.setLoadOpClear(1.0f)
 			.setStoreOpStore();
 		
@@ -65,27 +65,21 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		scissor.size = shadowMapSize;
 		commandBuffer->setScissor(scissor);
 		
-		for (const ModelRenderer::RenderData& modelData : input.registry.models)
+		for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.models)
 		{
-			if (!modelData.contributeShadows)
+			if (!modelRendererRenderData.contributeShadows)
 			{
 				continue;
 			}
 			
-			MeshAsset* mesh = modelData.mesh;
-			if (mesh == nullptr || !mesh->isLoaded())
-			{
-				continue;
-			}
-			
-			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = mesh->getVertexBuffer();
-			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = mesh->getIndexBuffer();
+			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = modelRendererRenderData.mesh->getVertexBuffer();
+			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelRendererRenderData.mesh->getIndexBuffer();
 			
 			commandBuffer->bindVertexBuffer(0, vertexBuffer);
 			commandBuffer->bindIndexBuffer(indexBuffer);
 			
 			DirectionalLightPushConstantData pushConstantData{};
-			pushConstantData.mvp = renderData.lightViewProjection * modelData.matrix;
+			pushConstantData.mvp = directionalLightRenderData.lightViewProjection * modelRendererRenderData.matrix;
 			commandBuffer->pushConstants(pushConstantData);
 			
 			commandBuffer->draw(indexBuffer->getSize(), 0);
@@ -108,9 +102,9 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 	int shadowCastingPointLightIndex = 0;
 	_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights);
 	PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer();
-	for (PointLight::RenderData& renderData : input.registry.pointLights)
+	for (PointLight::RenderData& pointLightRenderData : input.registry.pointLights)
 	{
-		if (!renderData.castShadows)
+		if (!pointLightRenderData.castShadows)
 		{
 			continue;
 		}
@@ -118,7 +112,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		for (int i = 0; i < 6; i++)
 		{
 			commandBuffer->imageMemoryBarrier(
-				renderData.shadowMapTexture->getCurrent(),
+				pointLightRenderData.shadowMapTexture->getCurrent(),
 				i,
 				0,
 				vk::PipelineStageFlagBits2::eNone,
@@ -128,12 +122,12 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 				vk::ImageLayout::eDepthAttachmentOptimal);
 		}
 		
-		glm::uvec2 shadowMapSize = (*renderData.shadowMapTexture)->getSize(0);
+		glm::uvec2 shadowMapSize = (*pointLightRenderData.shadowMapTexture)->getSize(0);
 		
 		VKRenderingInfo renderingInfo(shadowMapSize);
 		renderingInfo.setLayers(6);
 		
-		renderingInfo.setDepthAttachment(renderData.shadowMapTextureView->getCurrent())
+		renderingInfo.setDepthAttachment(pointLightRenderData.shadowMapTextureView->getCurrent())
 			.setLoadOpClear(1.0f)
 			.setStoreOpStore();
 		
@@ -153,35 +147,29 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		commandBuffer->setScissor(scissor);
 		
 		PointLightUniforms uniforms{};
-		std::copy(std::begin(renderData.viewProjections), std::end(renderData.viewProjections), std::begin(uniforms.viewProjections));
-		uniforms.lightPos = renderData.pos;
-		uniforms.far = renderData.far;
+		std::copy(std::begin(pointLightRenderData.viewProjections), std::end(pointLightRenderData.viewProjections), std::begin(uniforms.viewProjections));
+		uniforms.lightPos = pointLightRenderData.pos;
+		uniforms.far = pointLightRenderData.far;
 		
 		std::memcpy(pointLightUniformBufferPtr + shadowCastingPointLightIndex, &uniforms, sizeof(PointLightUniforms));
 		
 		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), shadowCastingPointLightIndex, 1);
 		
-		for (const ModelRenderer::RenderData& modelData : input.registry.models)
+		for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.models)
 		{
-			if (!modelData.contributeShadows)
+			if (!modelRendererRenderData.contributeShadows)
 			{
 				continue;
 			}
 			
-			MeshAsset* mesh = modelData.mesh;
-			if (mesh == nullptr || !mesh->isLoaded())
-			{
-				continue;
-			}
-			
-			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = mesh->getVertexBuffer();
-			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = mesh->getIndexBuffer();
+			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = modelRendererRenderData.mesh->getVertexBuffer();
+			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelRendererRenderData.mesh->getIndexBuffer();
 			
 			commandBuffer->bindVertexBuffer(0, vertexBuffer);
 			commandBuffer->bindIndexBuffer(indexBuffer);
 			
 			PointLightPushConstantData pushConstantData{};
-			pushConstantData.model = modelData.matrix;
+			pushConstantData.model = modelRendererRenderData.matrix;
 			commandBuffer->pushConstants(pushConstantData);
 			
 			commandBuffer->draw(indexBuffer->getSize(), 0);

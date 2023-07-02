@@ -20,6 +20,7 @@ ModelRenderer::ModelRenderer(Entity& entity):
 Component(entity)
 {
 	setMaterialPath("materials/internal/Default Material/Default Material.c3dmaterial");
+	setMeshPath("meshes/internal/Default Mesh/Default Mesh.obj");
 }
 
 const std::string* ModelRenderer::getMaterialPath() const
@@ -135,6 +136,10 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 			setMaterialPath(modelRendererSerialization.data["material"].get<std::string>());
 		}
 	}
+	else
+	{
+		setMaterialPath(std::nullopt);
+	}
 	
 	if (modelRendererSerialization.version <= 2)
 	{
@@ -164,6 +169,10 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 					setMeshPath(jsonMeshPath.get<std::string>());
 				}
 			}
+			else
+			{
+				setMeshPath(std::nullopt);
+			}
 		}
 		else if (shapeSerialization.identifier == "PlaneShape")
 		{
@@ -180,6 +189,10 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 		{
 			setMeshPath(modelRendererSerialization.data["mesh"].get<std::string>());
 		}
+		else
+		{
+			setMeshPath(std::nullopt);
+		}
 	}
 	
 	setContributeShadows(modelRendererSerialization.data["contribute_shadows"].get<bool>());
@@ -187,14 +200,45 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 
 void ModelRenderer::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 {
-	RenderData data{};
-	data.material = getMaterial();
-	data.mesh = getMesh();
-	data.owner = &getEntity();
-	data.contributeShadows = getContributeShadows();
-	data.matrix = getTransform().getLocalToWorldMatrix();
+	MaterialAsset* material;
+	if (!_material)
+	{
+		material = MaterialAsset::getMissingMaterial();
+	}
+	else if (!_material->isLoaded())
+	{
+		material = MaterialAsset::getDefaultMaterial();
+	}
+	else
+	{
+		material = _material;
+	}
 	
-	sceneRenderer.requestModelRendering(data);
+	MeshAsset* mesh;
+	if (!_mesh)
+	{
+		mesh = MeshAsset::getMissingMesh();
+	}
+	else if (!_mesh->isLoaded())
+	{
+		mesh = MeshAsset::getDefaultMesh();
+	}
+	else
+	{
+		mesh = _mesh;
+	}
+	
+	if (material->isLoaded() && mesh->isLoaded())
+	{
+		RenderData data{};
+		data.material = material;
+		data.mesh = mesh;
+		data.owner = &getEntity();
+		data.contributeShadows = getContributeShadows();
+		data.matrix = getTransform().getLocalToWorldMatrix();
+		
+		sceneRenderer.requestModelRendering(data);
+	}
 }
 
 void ModelRenderer::onDrawUi()

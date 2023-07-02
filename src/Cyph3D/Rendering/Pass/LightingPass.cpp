@@ -187,29 +187,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	{
 		ModelRenderer::RenderData modelData = input.registry.models[i];
 		
-		MaterialAsset* material = modelData.material;
-		if (material == nullptr)
-		{
-			material = MaterialAsset::getMissingMaterial();
-		}
-		else if (!material->isLoaded())
-		{
-			material = MaterialAsset::getDefaultMaterial();
-		}
-		
-		if (material == nullptr || !material->isLoaded())
-		{
-			continue;
-		}
-		
-		MeshAsset* mesh = modelData.mesh;
-		if (mesh == nullptr || !mesh->isLoaded())
-		{
-			continue;
-		}
-		
-		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = mesh->getVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = mesh->getIndexBuffer();
+		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = modelData.mesh->getVertexBuffer();
+		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelData.mesh->getIndexBuffer();
 		
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);
@@ -219,13 +198,13 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		uniforms.model = modelData.matrix;
 		uniforms.mvp = vp * modelData.matrix;
 		uniforms.objectIndex = i;
-		uniforms.albedoIndex = material->getAlbedoTextureBindlessIndex();
-		uniforms.normalIndex = material->getNormalTextureBindlessIndex();
-		uniforms.roughnessIndex = material->getRoughnessTextureBindlessIndex();
-		uniforms.metalnessIndex = material->getMetalnessTextureBindlessIndex();
-		uniforms.displacementIndex = material->getDisplacementTextureBindlessIndex();
-		uniforms.emissiveIndex = material->getEmissiveTextureBindlessIndex();
-		uniforms.emissiveScale = material->getEmissiveScale();
+		uniforms.albedoIndex = modelData.material->getAlbedoTextureBindlessIndex();
+		uniforms.normalIndex = modelData.material->getNormalTextureBindlessIndex();
+		uniforms.roughnessIndex = modelData.material->getRoughnessTextureBindlessIndex();
+		uniforms.metalnessIndex = modelData.material->getMetalnessTextureBindlessIndex();
+		uniforms.displacementIndex = modelData.material->getDisplacementTextureBindlessIndex();
+		uniforms.emissiveIndex = modelData.material->getEmissiveTextureBindlessIndex();
+		uniforms.emissiveScale = modelData.material->getEmissiveScale();
 		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
 		
 		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getCurrent()->getBuffer(), i, 1);
