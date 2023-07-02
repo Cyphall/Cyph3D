@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
+int UIMisc::_sampleCount = 1024;
 
 void UIMisc::show()
 {
@@ -56,9 +57,11 @@ void UIMisc::show()
 			
 			ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
 			
+			ImGui::InputInt("Sample count", &_sampleCount, 1, 128);
+			
 			if (ImGui::Button("Render to file"))
 			{
-				UIViewport::renderToFile(_resolution);
+				UIViewport::renderToFile(_resolution, _sampleCount);
 			}
 		}
 

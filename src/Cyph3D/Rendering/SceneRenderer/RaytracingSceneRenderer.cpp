@@ -56,11 +56,17 @@ Entity* RaytracingSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
 	return nullptr;
 }
 
+void RaytracingSceneRenderer::setSampleCountPerRender(uint32_t count)
+{
+	_sampleCount = count;
+}
+
 const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera)
 {
 	RaytracePassInput raytracePassInput{
 		.registry = _registry,
-		.camera = camera
+		.camera = camera,
+		.sampleCount = _sampleCount
 	};
 	
 	RaytracePassOutput raytracePassOutput = _raytracePass.render(commandBuffer, raytracePassInput, _renderPerf);

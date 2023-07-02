@@ -144,7 +144,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	uint32_t accumulatedSamples = 0;
 	
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < input.sampleCount; i++)
 	{
 		PushConstants pushConstants{
 			.sampleIndex = _sampleIndex,

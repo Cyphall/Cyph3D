@@ -15,6 +15,8 @@ public:
 	explicit RaytracingSceneRenderer(glm::uvec2 size);
 
 	Entity* getClickedEntity(glm::uvec2 clickPos) override;
+	
+	void setSampleCountPerRender(uint32_t count);
 
 private:
 	RaytracePass _raytracePass;
@@ -25,6 +27,8 @@ private:
 	
 	VKPtr<VKBuffer<int32_t>> _objectIndexBuffer;
 	VKPtr<VKImageView> _objectIndexImageView;
+	
+	uint32_t _sampleCount = 8;
 	
 	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) override;
 	void onResize() override;

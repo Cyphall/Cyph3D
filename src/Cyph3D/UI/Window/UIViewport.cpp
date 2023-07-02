@@ -283,7 +283,7 @@ bool UIViewport::isFullscreen()
 	return _fullscreen;
 }
 
-void UIViewport::renderToFile(glm::uvec2 resolution)
+void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 {
 	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 		FileDialogFilter{
@@ -302,6 +302,8 @@ void UIViewport::renderToFile(glm::uvec2 resolution)
 	}
 
 	RaytracingSceneRenderer renderer(resolution);
+	
+	renderer.setSampleCountPerRender(sampleCount);
 
 	Camera camera(_camera);
 	camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));

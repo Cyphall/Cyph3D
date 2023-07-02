@@ -11,6 +11,7 @@ public:
 
 private:
 	static glm::ivec2 _resolution;
+	static int _sampleCount;
 	
 	static void displayPerfStep(const PerfStep& perfStep);
 };

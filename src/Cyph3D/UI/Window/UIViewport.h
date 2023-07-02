@@ -22,7 +22,7 @@ public:
 	
 	static bool isFullscreen();
 	
-	static void renderToFile(glm::uvec2 resolution);
+	static void renderToFile(glm::uvec2 resolution, uint32_t sampleCount);
 	
 	static const PerfStep* getPreviousFramePerfStep();
 	

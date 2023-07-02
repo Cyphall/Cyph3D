@@ -21,6 +21,7 @@ struct RaytracePassInput
 {
 	RenderRegistry& registry;
 	Camera& camera;
+	uint32_t sampleCount;
 };
 
 struct RaytracePassOutput
