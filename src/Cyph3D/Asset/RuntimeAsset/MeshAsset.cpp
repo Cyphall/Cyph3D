@@ -11,6 +11,9 @@
 
 #include <format>
 
+MeshAsset* MeshAsset::_defaultMesh = nullptr;
+MeshAsset* MeshAsset::_missingMesh = nullptr;
+
 MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
@@ -36,6 +39,22 @@ const VKPtr<VKAccelerationStructure>& MeshAsset::getAccelerationStructure() cons
 {
 	checkLoaded();
 	return _accelerationStructure;
+}
+
+void MeshAsset::initDefaultAndMissing()
+{
+	_defaultMesh = Engine::getAssetManager().loadMesh("meshes/internal/Default Mesh/Default Mesh.obj");
+	_missingMesh = Engine::getAssetManager().loadMesh("meshes/internal/Missing Mesh/Missing Mesh.obj");
+}
+
+MeshAsset* MeshAsset::getDefaultMesh()
+{
+	return _defaultMesh;
+}
+
+MeshAsset* MeshAsset::getMissingMesh()
+{
+	return _missingMesh;
 }
 
 void MeshAsset::load_async(AssetManagerWorkerData& workerData)

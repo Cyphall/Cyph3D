@@ -40,6 +40,10 @@ public:
 	const VKPtr<VKBuffer<VertexData>>& getVertexBuffer() const;
 	const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const;
 	const VKPtr<VKAccelerationStructure>& getAccelerationStructure() const;
+	
+	static void initDefaultAndMissing();
+	static MeshAsset* getDefaultMesh();
+	static MeshAsset* getMissingMesh();
 
 private:
 	friend class AssetManager;
@@ -51,4 +55,7 @@ private:
 	VKPtr<VKBuffer<VertexData>> _vertexBuffer;
 	VKPtr<VKBuffer<uint32_t>> _indexBuffer;
 	VKPtr<VKAccelerationStructure> _accelerationStructure;
+	
+	static MeshAsset* _defaultMesh;
+	static MeshAsset* _missingMesh;
 };

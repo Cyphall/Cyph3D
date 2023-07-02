@@ -54,6 +54,7 @@ void Engine::init()
 	_assetManager = std::make_unique<AssetManager>(std::max(ThreadHelper::getPhysicalCoreCount() - 1, 1));
 	
 	MaterialAsset::initDefaultAndMissing();
+	MeshAsset::initDefaultAndMissing();
 	Entity::initComponentFactories();
 	
 	_scene = std::make_unique<Scene>();
