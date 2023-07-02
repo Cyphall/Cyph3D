@@ -27,6 +27,7 @@ struct RaytracePassOutput
 {
 	const VKPtr<VKImageView>& rawRenderImageView;
 	const VKPtr<VKImageView>& objectIndexImageView;
+	uint32_t accumulatedSamples;
 };
 
 class RaytracePass : public RenderPass<RaytracePassInput, RaytracePassOutput>
@@ -42,7 +43,6 @@ private:
 		GLSL_vec3 cameraRayTR;
 		GLSL_vec3 cameraRayBL;
 		GLSL_vec3 cameraRayBR;
-		GLSL_uint frameIndex;
 		GLSL_bool hasSkybox;
 		GLSL_uint skyboxIndex;
 		GLSL_mat4 skyboxRotation;
@@ -61,6 +61,12 @@ private:
 		GLSL_uint displacementIndex;
 		GLSL_uint emissiveIndex;
 		GLSL_float emissiveScale;
+	};
+	
+	struct PushConstants
+	{
+		GLSL_uint sampleIndex;
+		GLSL_bool resetAccumulation;
 	};
 	
 	VKDynamic<VKBuffer<GlobalUniforms>> _globalUniforms;
@@ -84,7 +90,7 @@ private:
 	VKDynamic<VKImage> _objectIndexImage;
 	VKDynamic<VKImageView> _objectIndexImageView;
 	
-	uint32_t _frameIndex = 0;
+	uint32_t _sampleIndex = 0;
 	
 	RaytracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input) override;
 	void onResize() override;

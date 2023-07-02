@@ -137,7 +137,6 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	globalUniforms.cameraRayTR = input.camera.getCornerRays()[1];
 	globalUniforms.cameraRayBL = input.camera.getCornerRays()[2];
 	globalUniforms.cameraRayBR = input.camera.getCornerRays()[3];
-	globalUniforms.frameIndex = _frameIndex;
 
 	SkyboxAsset* skybox = Engine::getScene().getSkybox();
 	if (skybox && skybox->isLoaded())
@@ -166,15 +165,37 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getCurrent());
 	VKHelper::buildHitShaderBindingTable(Engine::getVKContext(), _pipeline, _hitSBT.getCurrent());
 	
-	commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
+	uint32_t accumulatedSamples = 0;
+	
+	for (int i = 0; i < 8; i++)
+	{
+		PushConstants pushConstants{
+			.sampleIndex = _sampleIndex,
+			.resetAccumulation = i == 0
+		};
+		
+		commandBuffer->pushConstants(pushConstants);
+		
+		commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
+		accumulatedSamples++;
+		_sampleIndex++;
+		
+		commandBuffer->imageMemoryBarrier(
+			_rawRenderImage.getCurrent(),
+			0,
+			0,
+			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+			vk::AccessFlagBits2::eShaderStorageWrite,
+			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+			vk::AccessFlagBits2::eShaderStorageRead);
+	}
 	
 	commandBuffer->unbindPipeline();
 	
-	_frameIndex++;
-	
 	return {
 		.rawRenderImageView = _rawRenderImageView.getCurrent(),
-		.objectIndexImageView = _objectIndexImageView.getCurrent()
+		.objectIndexImageView = _objectIndexImageView.getCurrent(),
+		.accumulatedSamples = accumulatedSamples
 	};
 }
 
@@ -284,6 +305,7 @@ void RaytracePass::createPipelineLayout()
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_descriptorSetLayout);
+	info.setPushConstantLayout<PushConstants>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
@@ -304,7 +326,7 @@ void RaytracePass::createImages()
 {
 	{
 		VKImageInfo imageInfo(
-			SceneRenderer::HDR_COLOR_FORMAT,
+			SceneRenderer::ACCUMULATION_FORMAT,
 			_size,
 			1,
 			1,

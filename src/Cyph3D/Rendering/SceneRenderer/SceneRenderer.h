@@ -36,6 +36,7 @@ public:
 	
 	static const vk::Format DEPTH_FORMAT;
 	static const vk::Format HDR_COLOR_FORMAT;
+	static const vk::Format ACCUMULATION_FORMAT;
 	static const vk::Format OBJECT_INDEX_FORMAT;
 	
 protected:

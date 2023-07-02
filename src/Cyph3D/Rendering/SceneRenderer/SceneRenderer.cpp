@@ -5,6 +5,7 @@
 
 const vk::Format SceneRenderer::DEPTH_FORMAT = vk::Format::eD32Sfloat;
 const vk::Format SceneRenderer::HDR_COLOR_FORMAT = vk::Format::eR16G16B16A16Sfloat;
+const vk::Format SceneRenderer::ACCUMULATION_FORMAT = vk::Format::eR32G32B32A32Sfloat;
 const vk::Format SceneRenderer::OBJECT_INDEX_FORMAT = vk::Format::eR32Sint;
 
 SceneRenderer::SceneRenderer(std::string_view name, glm::uvec2 size):

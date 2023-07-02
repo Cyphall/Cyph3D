@@ -10,6 +10,7 @@
 RaytracingSceneRenderer::RaytracingSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Raytracing SceneRenderer", size),
 	_raytracePass(size),
+	_normalizationPass(size),
 	_exposurePass(size),
 	_bloomPass(size),
 	_toneMappingPass(size)
@@ -75,8 +76,25 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 		vk::AccessFlagBits2::eShaderSampledRead,
 		vk::ImageLayout::eReadOnlyOptimal);
 	
-	ExposurePassInput exposurePassInput{
+	NormalizationPassInput normalizationPassInput{
 		.inputImageView = raytracePassOutput.rawRenderImageView,
+		.accumulatedSamples = raytracePassOutput.accumulatedSamples
+	};
+	
+	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput, _renderPerf);
+	
+	commandBuffer->imageMemoryBarrier(
+		normalizationPassOutput.outputImageView->getInfo().getImage(),
+		0,
+		0,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal);
+	
+	ExposurePassInput exposurePassInput{
+		.inputImageView = normalizationPassOutput.outputImageView,
 		.camera = camera
 	};
 	
@@ -130,6 +148,7 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 void RaytracingSceneRenderer::onResize()
 {
 	_raytracePass.resize(_size);
+	_normalizationPass.resize(_size);
 	_exposurePass.resize(_size);
 	_bloomPass.resize(_size);
 	_toneMappingPass.resize(_size);
