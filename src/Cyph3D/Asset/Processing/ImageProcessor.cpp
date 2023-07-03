@@ -470,6 +470,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, nullptr, nullptr);
 	
 	workerData.transferCommandBuffer->waitExecution();
+	workerData.transferCommandBuffer->reset();
 	
 	// generate mipmaps
 	workerData.computeCommandBuffer->begin();
@@ -518,6 +519,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);
 	
 	workerData.computeCommandBuffer->waitExecution();
+	workerData.computeCommandBuffer->reset();
 	
 	// download texture to staging buffer
 	workerData.transferCommandBuffer->begin();
@@ -542,6 +544,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, nullptr, nullptr);
 	
 	workerData.transferCommandBuffer->waitExecution();
+	workerData.transferCommandBuffer->reset();
 	
 	ImageData imageData;
 	imageData.format = format;

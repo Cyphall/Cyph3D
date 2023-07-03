@@ -103,6 +103,7 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, nullptr, nullptr);
 	
 	workerData.transferCommandBuffer->waitExecution();
+	workerData.transferCommandBuffer->reset();
 	
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getTextureSampler());
