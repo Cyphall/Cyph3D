@@ -19,6 +19,7 @@ class VKSemaphore;
 class VKTimestampQuery;
 class VKAccelerationStructure;
 class VKRenderingInfo;
+class VKAccelerationStructureCompactedSizeQuery;
 struct VKPipelineViewport;
 struct VKPipelineScissor;
 struct VKBottomLevelAccelerationStructureBuildInfo;
@@ -39,6 +40,7 @@ public:
 	void end();
 	void reset();
 	
+	void memoryBarrier(vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask);
 	void bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask);
 	void imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask);
 	void imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout);
@@ -94,10 +96,14 @@ public:
 	void insertTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
 	void resetTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
 	
+	void queryAccelerationStructureCompactedSize(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKAccelerationStructureCompactedSizeQuery>& accelerationStructureCompactedSizeQuery);
+	
 	void clearColorImage(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, const vk::ClearColorValue& clearColor);
 	
 	void buildBottomLevelAccelerationStructure(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKBufferBase>& scratchBuffer, const VKBottomLevelAccelerationStructureBuildInfo& buildInfo);
 	void buildTopLevelAccelerationStructure(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKBufferBase>& scratchBuffer, const VKTopLevelAccelerationStructureBuildInfo& buildInfo, const VKPtr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>& instancesBuffer);
+	
+	void compactAccelerationStructure(const VKPtr<VKAccelerationStructure>& src, const VKPtr<VKAccelerationStructure>& dst);
 	
 	void traceRays(const VKPtr<VKBufferBase>& raygenSBT, const VKPtr<VKBufferBase>& missSBT, const VKPtr<VKBufferBase>& hitSBT, glm::uvec2 size);
 	

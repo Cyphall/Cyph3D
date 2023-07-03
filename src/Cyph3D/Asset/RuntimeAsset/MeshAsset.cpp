@@ -4,6 +4,7 @@
 #include "Cyph3D/VKObject/AccelerationStructure/VKBottomLevelAccelerationStructureBuildInfo.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
+#include "Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Asset/AssetManager.h"
@@ -109,16 +110,16 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		
 		vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
 		
-		VKBufferInfo backingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
-		backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		VKBufferInfo temporaryBackingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
+		temporaryBackingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
-		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
+		VKPtr<VKBuffer<std::byte>> temporaryBackingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), temporaryBackingBufferInfo);
 		
-		_accelerationStructure = VKAccelerationStructure::create(
+		VKPtr<VKAccelerationStructure> temporaryAccelerationStructure = VKAccelerationStructure::create(
 			Engine::getVKContext(),
 			vk::AccelerationStructureTypeKHR::eBottomLevel,
 			buildSizesInfo.accelerationStructureSize,
-			backingBuffer);
+			temporaryBackingBuffer);
 		
 		VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize,vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
 		scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -126,8 +127,37 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		
 		VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
 		
+		VKPtr<VKAccelerationStructureCompactedSizeQuery> compactedSizeQuery = VKAccelerationStructureCompactedSizeQuery::create(Engine::getVKContext());
+		
 		workerData.computeCommandBuffer->begin();
-		workerData.computeCommandBuffer->buildBottomLevelAccelerationStructure(_accelerationStructure, scratchBuffer, buildInfo);
+		workerData.computeCommandBuffer->buildBottomLevelAccelerationStructure(temporaryAccelerationStructure, scratchBuffer, buildInfo);
+		workerData.computeCommandBuffer->memoryBarrier(
+			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+			vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
+			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+			vk::AccessFlagBits2::eAccelerationStructureReadKHR);
+		workerData.computeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
+		workerData.computeCommandBuffer->end();
+		
+		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);
+		
+		workerData.computeCommandBuffer->waitExecution();
+		
+		vk::DeviceSize compactedSize = compactedSizeQuery->getCompactedSize();
+		
+		VKBufferInfo backingBufferInfo(compactedSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
+		backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
+		
+		_accelerationStructure = VKAccelerationStructure::create(
+			Engine::getVKContext(),
+			vk::AccelerationStructureTypeKHR::eBottomLevel,
+			compactedSize,
+			backingBuffer);
+		
+		workerData.computeCommandBuffer->begin();
+		workerData.computeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);
 		workerData.computeCommandBuffer->end();
 		
 		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);

@@ -21,6 +21,7 @@
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/Fence/VKFence.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
+#include "Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.h"
 #include "Cyph3D/VKObject/Query/VKTimestampQuery.h"
 
 VKPtr<VKCommandBuffer> VKCommandBuffer::create(VKContext& context, const VKQueue& queue)
@@ -91,6 +92,21 @@ void VKCommandBuffer::reset()
 	_context.getDevice().resetCommandPool(_commandPool);
 	_usedObjects.clear();
 	_boundPipeline = nullptr;
+}
+
+void VKCommandBuffer::memoryBarrier(vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
+{
+	vk::MemoryBarrier2 memoryBarrier;
+	memoryBarrier.srcStageMask = srcStageMask;
+	memoryBarrier.srcAccessMask = srcAccessMask;
+	memoryBarrier.dstStageMask = dstStageMask;
+	memoryBarrier.dstAccessMask = dstAccessMask;
+	
+	vk::DependencyInfo dependencyInfo;
+	dependencyInfo.memoryBarrierCount = 1;
+	dependencyInfo.pMemoryBarriers = &memoryBarrier;
+	
+	_commandBuffer.pipelineBarrier2(dependencyInfo);
 }
 
 void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
@@ -805,6 +821,18 @@ void VKCommandBuffer::resetTimestamp(const VKPtr<VKTimestampQuery>& timestampQue
 	_usedObjects.emplace_back(timestampQuery);
 }
 
+void VKCommandBuffer::queryAccelerationStructureCompactedSize(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKAccelerationStructureCompactedSizeQuery>& accelerationStructureCompactedSizeQuery)
+{
+	_commandBuffer.writeAccelerationStructuresPropertiesKHR(
+		accelerationStructure->getHandle(),
+		vk::QueryType::eAccelerationStructureCompactedSizeKHR,
+		accelerationStructureCompactedSizeQuery->getHandle(),
+		0);
+	
+	_usedObjects.emplace_back(accelerationStructure);
+	_usedObjects.emplace_back(accelerationStructureCompactedSizeQuery);
+}
+
 void VKCommandBuffer::clearColorImage(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, const vk::ClearColorValue& clearColor)
 {
 	vk::ImageSubresourceRange range;
@@ -842,7 +870,7 @@ void VKCommandBuffer::buildBottomLevelAccelerationStructure(const VKPtr<VKAccele
 	
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
-	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace | vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction;
 	buildGeometryInfo.mode = vk::BuildAccelerationStructureModeKHR::eBuild;
 	buildGeometryInfo.srcAccelerationStructure = VK_NULL_HANDLE;
 	buildGeometryInfo.dstAccelerationStructure = accelerationStructure->getHandle();
@@ -932,6 +960,19 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 	
 	_usedObjects.emplace_back(accelerationStructure);
 	_usedObjects.emplace_back(scratchBuffer);
+}
+
+void VKCommandBuffer::compactAccelerationStructure(const VKPtr<VKAccelerationStructure>& src, const VKPtr<VKAccelerationStructure>& dst)
+{
+	vk::CopyAccelerationStructureInfoKHR copyAccelerationStructureInfo;
+	copyAccelerationStructureInfo.src = src->getHandle();
+	copyAccelerationStructureInfo.dst = dst->getHandle();
+	copyAccelerationStructureInfo.mode = vk::CopyAccelerationStructureModeKHR::eCompact;
+	
+	_commandBuffer.copyAccelerationStructureKHR(copyAccelerationStructureInfo);
+	
+	_usedObjects.emplace_back(src);
+	_usedObjects.emplace_back(dst);
 }
 
 void VKCommandBuffer::traceRays(const VKPtr<VKBufferBase>& raygenSBT, const VKPtr<VKBufferBase>& missSBT, const VKPtr<VKBufferBase>& hitSBT, glm::uvec2 size)

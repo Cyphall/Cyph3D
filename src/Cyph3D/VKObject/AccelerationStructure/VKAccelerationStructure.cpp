@@ -79,7 +79,7 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getBottomLev
 	
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
-	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace | vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction;
 	buildGeometryInfo.mode = vk::BuildAccelerationStructureModeKHR::eBuild;
 	buildGeometryInfo.srcAccelerationStructure = VK_NULL_HANDLE;
 	buildGeometryInfo.dstAccelerationStructure = VK_NULL_HANDLE;
