@@ -142,6 +142,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);
 		
 		workerData.computeCommandBuffer->waitExecution();
+		workerData.computeCommandBuffer->reset();
 		
 		vk::DeviceSize compactedSize = compactedSizeQuery->getCompactedSize();
 		

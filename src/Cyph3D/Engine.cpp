@@ -88,6 +88,7 @@ void Engine::run()
 		}
 		
 		_vkContext->getDefaultCommandBuffer()->waitExecution();
+		_vkContext->getDefaultCommandBuffer()->reset();
 		
 		VKSwapchain::NextImageInfo nextImageInfo = _window->getSwapchain().retrieveNextImage();
 		
