@@ -134,7 +134,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		workerData.computeCommandBuffer->memoryBarrier(
 			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 			vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
-			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR);
 		workerData.computeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
 		workerData.computeCommandBuffer->end();
