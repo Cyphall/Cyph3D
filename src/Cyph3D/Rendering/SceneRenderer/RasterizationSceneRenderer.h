@@ -15,8 +15,6 @@ class RasterizationSceneRenderer : public SceneRenderer
 {
 public:
 	explicit RasterizationSceneRenderer(glm::uvec2 size);
-	
-	Entity* getClickedEntity(glm::uvec2 clickPos) override;
 
 private:
 	ZPrepass _zPrepass;
@@ -27,9 +25,6 @@ private:
 	BloomPass _bloomPass;
 	ToneMappingPass _toneMappingPass;
 	
-	VKPtr<VKBuffer<int32_t>> _objectIndexBuffer;
-	VKPtr<VKImageView> _objectIndexImageView;
-	
-	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera) override;
+	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry) override;
 	void onResize() override;
 };

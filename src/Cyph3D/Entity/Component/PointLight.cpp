@@ -116,7 +116,7 @@ void PointLight::deserialize(const ObjectSerialization& serialization)
 	}
 }
 
-void PointLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
+void PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	RenderData data{};
 	data.pos = getTransform().getWorldPosition();
@@ -144,7 +144,7 @@ void PointLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 		data.far = FAR_DISTANCE;
 	}
 	
-	sceneRenderer.requestLightRendering(data);
+	renderRegistry.addRenderRequest(data);
 }
 
 void PointLight::onDrawUi()

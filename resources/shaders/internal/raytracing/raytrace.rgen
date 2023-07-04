@@ -12,14 +12,12 @@ struct HitPayload
 	float roughness;
 	float metalness;
 	float emissive;
-	int objectIndex;
 };
 
 layout(set = 1, binding = 0) uniform accelerationStructureEXT u_topLevelAS;
 layout(set = 1, binding = 1, rgba32f) uniform image2D u_color;
-layout(set = 1, binding = 2, r32i) uniform writeonly iimage2D u_objectIndex;
 
-layout(std430, set = 1, binding = 3) uniform uniforms
+layout(std430, set = 1, binding = 2) uniform uniforms
 {
 	vec3 u_position;
 	vec3 u_rayTL;
@@ -124,8 +122,6 @@ void main()
 	float tMin = 0.0;
 	float tMax = 10000.0;
 	
-	int objectIndex = -1;
-	
 	vec2 PS_rayPos = PS_pixelPos + getRandom().xy;
 	vec2 UVS_rayPos = PS_rayPos / resolution;
 	
@@ -202,11 +198,6 @@ void main()
 				
 				contribution *= hitPayload.albedo * diffuseWeight * (1.0 - hitPayload.metalness) * 2;
 			}
-			
-			if (d == 0)
-			{
-				objectIndex = hitPayload.objectIndex;
-			}
 		}
 		else
 		{
@@ -217,5 +208,4 @@ void main()
 	}
 	
 	imageStore(u_color, ivec2(gl_LaunchIDEXT.xy), vec4(light, 1.0));
-	imageStore(u_objectIndex, ivec2(gl_LaunchIDEXT.xy), ivec4(objectIndex, 0, 0, 0));
 }

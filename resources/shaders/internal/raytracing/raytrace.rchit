@@ -14,7 +14,6 @@ struct HitPayload
 	float roughness;
 	float metalness;
 	float emissive;
-	int objectIndex;
 };
 
 struct Vertex
@@ -52,7 +51,7 @@ struct ObjectUniforms
 
 layout(set = 0, binding = 0) uniform sampler2D u_textures[];
 
-layout(std430, set = 1, binding = 4) buffer UselessNameBecauseItIsNeverUsedAnywhere1
+layout(std430, set = 1, binding = 3) buffer UselessNameBecauseItIsNeverUsedAnywhere1
 {
 	ObjectUniforms u_objectUniforms[];
 };
@@ -104,5 +103,4 @@ void main()
 	hitPayload.roughness = texture(u_textures[u_objectUniforms[gl_InstanceID].roughnessIndex], uv).r;
 	hitPayload.metalness = texture(u_textures[u_objectUniforms[gl_InstanceID].metalnessIndex], uv).r;
 	hitPayload.emissive = texture(u_textures[u_objectUniforms[gl_InstanceID].emissiveIndex], uv).r * u_objectUniforms[gl_InstanceID].emissiveScale;
-	hitPayload.objectIndex = gl_InstanceCustomIndexEXT;
 }

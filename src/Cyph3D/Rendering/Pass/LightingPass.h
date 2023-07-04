@@ -18,14 +18,13 @@ class VKResizableBuffer;
 struct LightingPassInput
 {
 	const VKPtr<VKImageView>& multisampledDepthImageView;
-	RenderRegistry& registry;
+	const RenderRegistry& registry;
 	Camera& camera;
 };
 
 struct LightingPassOutput
 {
 	const VKPtr<VKImageView>& multisampledRawRenderImageView;
-	const VKPtr<VKImageView>& objectIndexImageView;
 };
 
 class LightingPass : public RenderPass<LightingPassInput, LightingPassOutput>
@@ -61,7 +60,6 @@ private:
 		GLSL_mat4 normalMatrix;
 		GLSL_mat4 model;
 		GLSL_mat4 mvp;
-		GLSL_int  objectIndex;
 		GLSL_uint albedoIndex;
 		GLSL_uint normalIndex;
 		GLSL_uint roughnessIndex;
@@ -98,10 +96,6 @@ private:
 	
 	VKDynamic<VKImage> _multisampledRawRenderImage;
 	VKDynamic<VKImageView> _multisampledRawRenderImageView;
-	VKDynamic<VKImage> _multisampledObjectIndexImage;
-	VKDynamic<VKImageView> _multisampledObjectIndexImageView;
-	VKDynamic<VKImage> _resolvedObjectIndexImage;
-	VKDynamic<VKImageView> _resolvedObjectIndexImageView;
 	
 	uint32_t _frameIndex = 0;
 	
@@ -113,7 +107,7 @@ private:
 	void createDescriptorSetLayouts();
 	void createPipelineLayout();
 	void createPipeline();
-	void createImages();
+	void createImage();
 	
 	void descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount);
 };

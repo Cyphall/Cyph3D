@@ -16,25 +16,20 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	_bloomPass(size),
 	_toneMappingPass(size)
 {
-	VKBufferInfo bufferInfo(1, vk::BufferUsageFlagBits::eTransferDst);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
-	
-	_objectIndexBuffer = VKBuffer<int32_t>::create(Engine::getVKContext(), bufferInfo);
+
 }
 
-const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera)
+const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry)
 {
 	ZPrepassInput zPrepassInput{
-		.registry = _registry,
+		.registry = registry,
 		.camera = camera
 	};
 	
 	ZPrepassOutput zPrepassOutput = _zPrepass.render(commandBuffer, zPrepassInput, _renderPerf);
 	
 	ShadowMapPassInput shadowMapPassInput{
-		.registry = _registry,
+		.registry = registry,
 		.camera = camera
 	};
 	
@@ -50,7 +45,7 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
 		vk::ImageLayout::eDepthAttachmentOptimal);
 	
-	for (DirectionalLight::RenderData& renderData : _registry.directionalLights)
+	for (const DirectionalLight::RenderData& renderData : registry.getDirectionalLightRenderRequests())
 	{
 		if (renderData.castShadows)
 		{
@@ -66,7 +61,7 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		}
 	}
 	
-	for (PointLight::RenderData& renderData : _registry.pointLights)
+	for (const PointLight::RenderData& renderData : registry.getPointLightRenderRequests())
 	{
 		if (renderData.castShadows)
 		{
@@ -87,12 +82,11 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	
 	LightingPassInput lightingPassInput{
 		.multisampledDepthImageView = zPrepassOutput.multisampledDepthImageView,
-		.registry = _registry,
+		.registry = registry,
 		.camera = camera
 	};
 	
 	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput, _renderPerf);
-	_objectIndexImageView = lightingPassOutput.objectIndexImageView;
 	
 	commandBuffer->imageMemoryBarrier(
 		lightingPassOutput.multisampledRawRenderImageView->getInfo().getImage(),
@@ -172,39 +166,6 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		vk::ImageLayout::eReadOnlyOptimal);
 	
 	return toneMappingPassOutput.outputImageView;
-}
-
-Entity* RasterizationSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
-{
-	if (!_objectIndexImageView)
-	{
-		return nullptr;
-	}
-	
-	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-		{
-			commandBuffer->imageMemoryBarrier(
-				_objectIndexImageView->getInfo().getImage(),
-				0,
-				0,
-				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-				vk::AccessFlagBits2::eColorAttachmentWrite,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferRead,
-				vk::ImageLayout::eTransferSrcOptimal);
-			
-			commandBuffer->copyPixelToBuffer(_objectIndexImageView->getInfo().getImage(), 0, 0, clickPos, _objectIndexBuffer, 0);
-		});
-	
-	int32_t objectIndex = *_objectIndexBuffer->getHostPointer();
-	
-	if (objectIndex != -1)
-	{
-		return _registry.models[objectIndex].owner;
-	}
-	
-	return nullptr;
 }
 
 void RasterizationSceneRenderer::onResize()

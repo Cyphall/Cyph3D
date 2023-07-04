@@ -4,7 +4,7 @@
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Helper/FileHelper.h"
@@ -198,7 +198,7 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 	setContributeShadows(modelRendererSerialization.data["contribute_shadows"].get<bool>());
 }
 
-void ModelRenderer::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
+void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	MaterialAsset* material;
 	if (!_material)
@@ -237,7 +237,7 @@ void ModelRenderer::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 		data.contributeShadows = getContributeShadows();
 		data.matrix = getTransform().getLocalToWorldMatrix();
 		
-		sceneRenderer.requestModelRendering(data);
+		renderRegistry.addRenderRequest(data);
 	}
 }
 

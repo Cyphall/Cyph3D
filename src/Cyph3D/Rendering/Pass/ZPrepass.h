@@ -14,7 +14,7 @@ class VKImageView;
 
 struct ZPrepassInput
 {
-	RenderRegistry& registry;
+	const RenderRegistry& registry;
 	Camera& camera;
 };
 

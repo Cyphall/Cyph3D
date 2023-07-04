@@ -9,7 +9,7 @@ class Transform;
 class Entity;
 class EntityIterator;
 class EntityConstIterator;
-class SceneRenderer;
+class RenderRegistry;
 class Camera;
 
 class Scene
@@ -19,7 +19,7 @@ public:
 	~Scene();
 	
 	void onUpdate();
-	void onPreRender(SceneRenderer& sceneRenderer, Camera& camera);
+	void onPreRender(RenderRegistry& renderRegistry, Camera& camera);
 	
 	Entity& createEntity(Transform& parent);
 	EntityIterator findEntity(Entity& entity);

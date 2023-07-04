@@ -32,7 +32,7 @@ RaytracePass::RaytracePass(const glm::uvec2& size):
 	createDescriptorSetLayout();
 	createPipelineLayout();
 	createPipeline();
-	createImages();
+	createImage();
 }
 
 RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input)
@@ -47,22 +47,12 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::ImageLayout::eGeneral);
 	
-	commandBuffer->imageMemoryBarrier(
-		_objectIndexImage.getCurrent(),
-		0,
-		0,
-		vk::PipelineStageFlagBits2::eNone,
-		vk::AccessFlagBits2::eNone,
-		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::ImageLayout::eGeneral);
-	
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
-	buildInfo.instancesInfos.reserve(input.registry.models.size());
-	_objectUniforms->resizeSmart(input.registry.models.size());
+	buildInfo.instancesInfos.reserve(input.registry.getModelRenderRequests().size());
+	_objectUniforms->resizeSmart(input.registry.getModelRenderRequests().size());
 	ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer();
 	int drawCount = 0;
-	for (const ModelRenderer::RenderData& renderData : input.registry.models)
+	for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
 	{
 		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
 		instanceInfo.localToWorld = renderData.matrix;
@@ -134,9 +124,8 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
 	commandBuffer->pushDescriptor(1, 0, tlas);
 	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView.getCurrent());
-	commandBuffer->pushDescriptor(1, 2, _objectIndexImageView.getCurrent());
-	commandBuffer->pushDescriptor(1, 3, _globalUniforms.getCurrent(), 0, 1);
-	commandBuffer->pushDescriptor(1, 4, _objectUniforms->getBuffer(), 0, drawCount);
+	commandBuffer->pushDescriptor(1, 2, _globalUniforms.getCurrent(), 0, 1);
+	commandBuffer->pushDescriptor(1, 3, _objectUniforms->getBuffer(), 0, drawCount);
 	
 	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getCurrent());
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getCurrent());
@@ -171,14 +160,13 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	return {
 		.rawRenderImageView = _rawRenderImageView.getCurrent(),
-		.objectIndexImageView = _objectIndexImageView.getCurrent(),
 		.accumulatedSamples = accumulatedSamples
 	};
 }
 
 void RaytracePass::onResize()
 {
-	createImages();
+	createImage();
 }
 
 void RaytracePass::createBuffers()
@@ -270,7 +258,6 @@ void RaytracePass::createDescriptorSetLayout()
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1);
 	info.addBinding(vk::DescriptorType::eStorageImage, 1);
-	info.addBinding(vk::DescriptorType::eStorageImage, 1);
 	info.addBinding(vk::DescriptorType::eUniformBuffer, 1);
 	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
 	
@@ -299,55 +286,28 @@ void RaytracePass::createPipeline()
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }
 
-void RaytracePass::createImages()
+void RaytracePass::createImage()
 {
-	{
-		VKImageInfo imageInfo(
-			SceneRenderer::ACCUMULATION_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		
-		_rawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKImage::create(context, imageInfo);
-		});
-		
-		_rawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			VKImageViewInfo imageViewInfo(
-				_rawRenderImage[index],
-				vk::ImageViewType::e2D);
-			
-			return VKImageView::create(context, imageViewInfo);
-		});
-	}
+	VKImageInfo imageInfo(
+		SceneRenderer::ACCUMULATION_FORMAT,
+		_size,
+		1,
+		1,
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled);
+	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
+	_rawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
-		VKImageInfo imageInfo(
-			SceneRenderer::OBJECT_INDEX_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		return VKImage::create(context, imageInfo);
+	});
+	
+	_rawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		VKImageViewInfo imageViewInfo(
+			_rawRenderImage[index],
+			vk::ImageViewType::e2D);
 		
-		_objectIndexImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKImage::create(context, imageInfo);
-		});
-		
-		_objectIndexImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			VKImageViewInfo imageViewInfo(
-				_objectIndexImage[index],
-				vk::ImageViewType::e2D);
-			
-			return VKImageView::create(context, imageViewInfo);
-		});
-	}
+		return VKImageView::create(context, imageViewInfo);
+	});
 }

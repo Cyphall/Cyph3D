@@ -15,45 +15,7 @@ RaytracingSceneRenderer::RaytracingSceneRenderer(glm::uvec2 size):
 	_bloomPass(size),
 	_toneMappingPass(size)
 {
-	VKBufferInfo bufferInfo(1, vk::BufferUsageFlagBits::eTransferDst);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
-	
-	_objectIndexBuffer = VKBuffer<int32_t>::create(Engine::getVKContext(), bufferInfo);
-}
 
-Entity* RaytracingSceneRenderer::getClickedEntity(glm::uvec2 clickPos)
-{
-	if (!_objectIndexImageView)
-	{
-		return nullptr;
-	}
-	
-	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-		{
-			commandBuffer->imageMemoryBarrier(
-				_objectIndexImageView->getInfo().getImage(),
-				0,
-				0,
-				vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-				vk::AccessFlagBits2::eShaderStorageWrite,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferRead,
-				vk::ImageLayout::eTransferSrcOptimal);
-			
-			commandBuffer->copyPixelToBuffer(_objectIndexImageView->getInfo().getImage(), 0, 0, clickPos, _objectIndexBuffer, 0);
-		});
-	
-	int32_t objectIndex = *_objectIndexBuffer->getHostPointer();
-	
-	if (objectIndex != -1)
-	{
-		return _registry.models[objectIndex].owner;
-	}
-	
-	return nullptr;
 }
 
 void RaytracingSceneRenderer::setSampleCountPerRender(uint32_t count)
@@ -61,16 +23,15 @@ void RaytracingSceneRenderer::setSampleCountPerRender(uint32_t count)
 	_sampleCount = count;
 }
 
-const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera)
+const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry)
 {
 	RaytracePassInput raytracePassInput{
-		.registry = _registry,
+		.registry = registry,
 		.camera = camera,
 		.sampleCount = _sampleCount
 	};
 	
 	RaytracePassOutput raytracePassOutput = _raytracePass.render(commandBuffer, raytracePassInput, _renderPerf);
-	_objectIndexImageView = raytracePassOutput.objectIndexImageView;
 	
 	commandBuffer->imageMemoryBarrier(
 		raytracePassOutput.rawRenderImageView->getInfo().getImage(),

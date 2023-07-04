@@ -14,7 +14,7 @@ Entity& Component::getEntity() const
 void Component::onUpdate()
 {}
 
-void Component::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
+void Component::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {}
 
 void Component::onDrawUi()

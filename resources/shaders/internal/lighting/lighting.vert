@@ -5,7 +5,6 @@ struct ObjectUniforms
 	mat4 normalMatrix;
 	mat4 model;
 	mat4 mvp;
-	int  objectIndex;
 	uint albedoIndex;
 	uint normalIndex;
 	uint roughnessIndex;

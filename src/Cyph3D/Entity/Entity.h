@@ -12,7 +12,7 @@ class Scene;
 class Component;
 class ComponentIterator;
 class ComponentConstIterator;
-class SceneRenderer;
+class RenderRegistry;
 class Camera;
 struct ObjectSerialization;
 
@@ -44,7 +44,7 @@ public:
 	
 	void onDrawUi() override;
 	void onUpdate();
-	void onPreRender(SceneRenderer& sceneRenderer, Camera& camera);
+	void onPreRender(RenderRegistry& renderRegistry, Camera& camera);
 	
 	Scene& getScene() const;
 	

@@ -50,6 +50,8 @@ void UIHelper::init()
 	_assetBrowser = std::make_unique<UIAssetBrowser>(_bigFont);
 	
 	_vulkanBackend = std::make_unique<ImGuiVulkanBackend>();
+	
+	UIViewport::init();
 }
 
 const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageView, const VKPtr<VKSemaphore>& imageAvailableSemaphore)

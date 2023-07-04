@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/UI/ObjectPicker.h"
 
 #include <imgui.h>
 #include <ImGuizmo.h>
@@ -26,6 +28,7 @@ public:
 	
 	static const PerfStep* getPreviousFramePerfStep();
 	
+	static void init();
 	static void shutdown();
 
 private:
@@ -51,6 +54,10 @@ private:
 	
 	static ImGuizmo::OPERATION _gizmoMode;
 	static ImGuizmo::MODE _gizmoSpace;
+	
+	static RenderRegistry _renderRegistry;
+	
+	static std::unique_ptr<ObjectPicker> _objectPicker;
 	
 	static void drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize);
 	static void drawHeader();

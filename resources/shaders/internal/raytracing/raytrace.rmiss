@@ -13,12 +13,11 @@ struct HitPayload
 	float roughness;
 	float metalness;
 	float emissive;
-	int objectIndex;
 };
 
 layout(set = 0, binding = 0) uniform samplerCube u_textures[];
 
-layout(std430, set = 1, binding = 3) uniform uniforms
+layout(std430, set = 1, binding = 2) uniform uniforms
 {
 	vec3 u_position;
 	vec3 u_rayTL;

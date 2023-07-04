@@ -19,7 +19,7 @@ class VKImageView;
 
 struct RaytracePassInput
 {
-	RenderRegistry& registry;
+	const RenderRegistry& registry;
 	Camera& camera;
 	uint32_t sampleCount;
 };
@@ -27,7 +27,6 @@ struct RaytracePassInput
 struct RaytracePassOutput
 {
 	const VKPtr<VKImageView>& rawRenderImageView;
-	const VKPtr<VKImageView>& objectIndexImageView;
 	uint32_t accumulatedSamples;
 };
 
@@ -88,8 +87,6 @@ private:
 	
 	VKDynamic<VKImage> _rawRenderImage;
 	VKDynamic<VKImageView> _rawRenderImageView;
-	VKDynamic<VKImage> _objectIndexImage;
-	VKDynamic<VKImageView> _objectIndexImageView;
 	
 	uint32_t _sampleIndex = 0;
 	
@@ -100,5 +97,5 @@ private:
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();
-	void createImages();
+	void createImage();
 };

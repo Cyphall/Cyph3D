@@ -25,7 +25,7 @@ ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 
 ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
 {
-	for (DirectionalLight::RenderData& directionalLightRenderData : input.registry.directionalLights)
+	for (const DirectionalLight::RenderData& directionalLightRenderData : input.registry.getDirectionalLightRenderRequests())
 	{
 		if (!directionalLightRenderData.castShadows)
 		{
@@ -65,7 +65,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		scissor.size = shadowMapSize;
 		commandBuffer->setScissor(scissor);
 		
-		for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.models)
+		for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.getModelRenderRequests())
 		{
 			if (!modelRendererRenderData.contributeShadows)
 			{
@@ -91,7 +91,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 	}
 	
 	int shadowCastingPointLights = 0;
-	for (PointLight::RenderData& renderData : input.registry.pointLights)
+	for (const PointLight::RenderData& renderData : input.registry.getPointLightRenderRequests())
 	{
 		if (renderData.castShadows)
 		{
@@ -102,7 +102,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 	int shadowCastingPointLightIndex = 0;
 	_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights);
 	PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer();
-	for (PointLight::RenderData& pointLightRenderData : input.registry.pointLights)
+	for (const PointLight::RenderData& pointLightRenderData : input.registry.getPointLightRenderRequests())
 	{
 		if (!pointLightRenderData.castShadows)
 		{
@@ -155,7 +155,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), shadowCastingPointLightIndex, 1);
 		
-		for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.models)
+		for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.getModelRenderRequests())
 		{
 			if (!modelRendererRenderData.contributeShadows)
 			{

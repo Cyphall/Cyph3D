@@ -34,7 +34,6 @@ struct ObjectUniforms
 	mat4 normalMatrix;
 	mat4 model;
 	mat4 mvp;
-	int  objectIndex;
 	uint albedoIndex;
 	uint normalIndex;
 	uint roughnessIndex;
@@ -82,7 +81,6 @@ layout(push_constant) uniform constants
 
 /* ------ outputs ------ */
 layout(location = 0) out vec4 o_color;
-layout(location = 1) out int o_objectIndex;
 
 /* ------ function declarations ------ */
 float getDepth(vec2 texCoords);
@@ -138,10 +136,6 @@ void main()
 	// ----------------- emissive -----------------
 	
 	float emissive = texture(u_textures[u_objectUniforms.emissiveIndex], texCoords).r * u_objectUniforms.emissiveScale;
-	
-	// ----------------- object index -----------------
-	
-	o_objectIndex = u_objectUniforms.objectIndex;
 	
 	// ----------------- geometry normal -----------------
 	

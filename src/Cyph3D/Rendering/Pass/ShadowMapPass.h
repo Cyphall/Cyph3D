@@ -15,7 +15,7 @@ class VKResizableBuffer;
 
 struct ShadowMapPassInput
 {
-	RenderRegistry& registry;
+	const RenderRegistry& registry;
 	Camera& camera;
 };
 

@@ -59,7 +59,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
-	for (const ModelRenderer::RenderData& renderData : input.registry.models)
+	for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
 	{
 		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = renderData.mesh->getVertexBuffer();
 		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = renderData.mesh->getIndexBuffer();

@@ -121,7 +121,7 @@ void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 	}
 }
 
-void DirectionalLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
+void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	RenderData data{};
 	data.fragToLightDirection = -getLightDirection();
@@ -152,7 +152,7 @@ void DirectionalLight::onPreRender(SceneRenderer& sceneRenderer, Camera& camera)
 		data.shadowMapTexelWorldSize = texelWorldSize;
 	}
 	
-	sceneRenderer.requestLightRendering(data);
+	renderRegistry.addRenderRequest(data);
 }
 
 void DirectionalLight::onDrawUi()

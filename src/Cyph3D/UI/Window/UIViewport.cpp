@@ -34,6 +34,10 @@ glm::vec2 UIViewport::_leftClickPressPos;
 ImGuizmo::OPERATION UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
 ImGuizmo::MODE UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
 
+RenderRegistry UIViewport::_renderRegistry;
+
+std::unique_ptr<ObjectPicker> UIViewport::_objectPicker;
+
 void UIViewport::show()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -95,9 +99,18 @@ void UIViewport::show()
 				window.setCursorPos(_lockedCursorPos);
 			}
 			
-			// we need to handle click logic before rendering viewport as the viewport rendering commands are not submitted yet
-			glm::vec2 drawCursorPos = ImGui::GetCursorPos();
-			ImGui::Dummy(glm::vec2(viewportSize));
+			_renderRegistry.clear();
+			Engine::getScene().onPreRender(_renderRegistry, _camera);
+			
+			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry);
+			
+			ImGui::Image(
+				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
+				glm::vec2(textureView->getInfo().getImage()->getSize(0)),
+				ImVec2(0, 0),
+				ImVec2(1, 1));
+			
+			drawGizmo(viewportStartGlobal, viewportSize);
 			
 			if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
 			{
@@ -121,24 +134,13 @@ void UIViewport::show()
 				_leftClickPressedOnViewport = false;
 				if (ImGui::IsItemHovered() && glm::distance(_leftClickPressPos, viewportCursorPos) < 5.0f)
 				{
-					Entity* clickedEntity = _sceneRenderer->getClickedEntity(glm::uvec2(viewportCursorPos));
+					RenderRegistry renderRegistry;
+					Engine::getScene().onPreRender(renderRegistry, _camera);
+					
+					Entity* clickedEntity = _objectPicker->getPickedEntity(_camera, renderRegistry, viewportSize, glm::uvec2(viewportCursorPos));
 					UIInspector::setSelected(clickedEntity);
 				}
 			}
-			
-			ImGui::SetCursorPos(drawCursorPos);
-			
-			_sceneRenderer->onNewFrame();
-			Engine::getScene().onPreRender(*_sceneRenderer, _camera);
-			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera);
-			
-			ImGui::Image(
-				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
-				glm::vec2(textureView->getInfo().getImage()->getSize(0)),
-				ImVec2(0, 0),
-				ImVec2(1, 1));
-			
-			drawGizmo(viewportStartGlobal, viewportSize);
 		}
 		
 		_previousViewportSize = viewportSize;
@@ -308,16 +310,15 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	Camera camera(_camera);
 	camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));
 
-	renderer.onNewFrame();
-
-	Engine::getScene().onPreRender(renderer, camera);
+	RenderRegistry renderRegistry;
+	Engine::getScene().onPreRender(renderRegistry, camera);
 	
 	glm::ivec2 textureSize;
 	VKPtr<VKBuffer<std::byte>> stagingBuffer;
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
-			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera);
+			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera, renderRegistry);
 			textureSize = textureView->getInfo().getImage()->getSize(0);
 			
 			commandBuffer->imageMemoryBarrier(
@@ -355,7 +356,13 @@ const PerfStep* UIViewport::getPreviousFramePerfStep()
 	return _sceneRenderer ? &_sceneRenderer->getRenderPerf() : nullptr;
 }
 
+void UIViewport::init()
+{
+	_objectPicker = std::make_unique<ObjectPicker>();
+}
+
 void UIViewport::shutdown()
 {
 	_sceneRenderer = {};
+	_objectPicker = {};
 }
