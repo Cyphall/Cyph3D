@@ -106,14 +106,12 @@ bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, const VKPtr
 	
 	try
 	{
-		_queue.presentKHR(presentInfo);
+		return _queue.presentKHR(presentInfo) == vk::Result::eSuccess;
 	}
 	catch (const vk::OutOfDateKHRError&)
 	{
 		return false;
 	}
-	
-	return true;
 }
 
 void VKQueue::handleCompletedSubmits()
