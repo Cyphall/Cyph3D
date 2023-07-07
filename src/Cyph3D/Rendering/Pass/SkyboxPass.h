@@ -12,7 +12,6 @@ class VKImage;
 class VKImageView;
 template<typename T>
 class VKBuffer;
-class VKSampler;
 
 struct SkyboxPassInput
 {
@@ -51,8 +50,6 @@ private:
 	
 	VKPtr<VKBuffer<SkyboxPass::VertexData>> _vertexBuffer;
 	
-	VKPtr<VKSampler> _sampler;
-	
 	SkyboxPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input) override;
 	void onResize() override;
 	
@@ -60,5 +57,4 @@ private:
 	void createPipeline();
 	void createImages();
 	void createBuffer();
-	void createSampler();
 };

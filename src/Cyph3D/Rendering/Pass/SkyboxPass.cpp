@@ -12,7 +12,6 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
-#include "Cyph3D/VKObject/Sampler/VKSampler.h"
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
@@ -30,7 +29,6 @@ SkyboxPass::SkyboxPass(glm::uvec2 size):
 	createPipeline();
 	createImages();
 	createBuffer();
-	createSampler();
 }
 
 SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
@@ -214,27 +212,4 @@ void SkyboxPass::createBuffer()
 	_vertexBuffer = VKBuffer<VertexData>::create(Engine::getVKContext(), vertexBufferInfo);
 	
 	std::copy(vertices.begin(), vertices.end(), _vertexBuffer->getHostPointer());
-}
-
-void SkyboxPass::createSampler()
-{
-	vk::SamplerCreateInfo createInfo;
-	createInfo.flags = {};
-	createInfo.magFilter = vk::Filter::eLinear;
-	createInfo.minFilter = vk::Filter::eLinear;
-	createInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-	createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
-	createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
-	createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
-	createInfo.mipLodBias = 0.0f;
-	createInfo.anisotropyEnable = true;
-	createInfo.maxAnisotropy = 16;
-	createInfo.compareEnable = false;
-	createInfo.compareOp = vk::CompareOp::eNever;
-	createInfo.minLod = -1000.0f;
-	createInfo.maxLod = 1000.0f;
-	createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-	createInfo.unnormalizedCoordinates = false;
-	
-	_sampler = VKSampler::create(Engine::getVKContext(), createInfo);
 }
