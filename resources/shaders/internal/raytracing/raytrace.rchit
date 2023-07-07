@@ -71,17 +71,19 @@ vec3 interpolateBarycentrics(vec3 a, vec3 b, vec3 c, vec3 barycentrics)
 
 void main()
 {
-	uvec3 indices = u_objectUniforms[gl_InstanceID].indexBuffer.indices[gl_PrimitiveID];
+	ObjectUniforms uniforms = u_objectUniforms[nonuniformEXT(gl_InstanceID)];
 	
-	Vertex v1 = u_objectUniforms[gl_InstanceID].vertexBuffer.vertices[indices.x];
-	Vertex v2 = u_objectUniforms[gl_InstanceID].vertexBuffer.vertices[indices.y];
-	Vertex v3 = u_objectUniforms[gl_InstanceID].vertexBuffer.vertices[indices.z];
+	uvec3 indices = uniforms.indexBuffer.indices[nonuniformEXT(gl_PrimitiveID)];
+	
+	Vertex v1 = uniforms.vertexBuffer.vertices[nonuniformEXT(indices.x)];
+	Vertex v2 = uniforms.vertexBuffer.vertices[nonuniformEXT(indices.y)];
+	Vertex v3 = uniforms.vertexBuffer.vertices[nonuniformEXT(indices.z)];
 	
 	vec3 position1 = gl_ObjectToWorldEXT * vec4(v1.position, 1);
 	vec3 position2 = gl_ObjectToWorldEXT * vec4(v2.position, 1);
 	vec3 position3 = gl_ObjectToWorldEXT * vec4(v3.position, 1);
 	
-	mat3 normalMatrix = mat3(u_objectUniforms[gl_InstanceID].normalMatrix);
+	mat3 normalMatrix = mat3(uniforms.normalMatrix);
 	
 	vec3 normal1 = normalize(normalMatrix * v1.normal);
 	vec3 normal2 = normalize(normalMatrix * v2.normal);
@@ -99,8 +101,8 @@ void main()
 	hitPayload.position = interpolateBarycentrics(position1, position2, position3, barycentrics);
 	hitPayload.normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics));
 	hitPayload.tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics));
-	hitPayload.albedo = texture(u_textures[u_objectUniforms[gl_InstanceID].albedoIndex], uv).rgb;
-	hitPayload.roughness = texture(u_textures[u_objectUniforms[gl_InstanceID].roughnessIndex], uv).r;
-	hitPayload.metalness = texture(u_textures[u_objectUniforms[gl_InstanceID].metalnessIndex], uv).r;
-	hitPayload.emissive = texture(u_textures[u_objectUniforms[gl_InstanceID].emissiveIndex], uv).r * u_objectUniforms[gl_InstanceID].emissiveScale;
+	hitPayload.albedo = texture(u_textures[nonuniformEXT(uniforms.albedoIndex)], uv).rgb;
+	hitPayload.roughness = texture(u_textures[nonuniformEXT(uniforms.roughnessIndex)], uv).r;
+	hitPayload.metalness = texture(u_textures[nonuniformEXT(uniforms.metalnessIndex)], uv).r;
+	hitPayload.emissive = texture(u_textures[nonuniformEXT(uniforms.emissiveIndex)], uv).r * uniforms.emissiveScale;
 }

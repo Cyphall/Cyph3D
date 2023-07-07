@@ -702,10 +702,14 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	maintenance4Features.pNext = &robustness2Features;
 	
 	vk::PhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatures;
-	descriptorIndexingFeatures.descriptorBindingPartiallyBound = true;
-	descriptorIndexingFeatures.runtimeDescriptorArray = true;
-	descriptorIndexingFeatures.descriptorBindingVariableDescriptorCount = true;
+	descriptorIndexingFeatures.shaderUniformBufferArrayNonUniformIndexing = true;
+	descriptorIndexingFeatures.shaderSampledImageArrayNonUniformIndexing = true;
+	descriptorIndexingFeatures.shaderStorageBufferArrayNonUniformIndexing = true;
+	descriptorIndexingFeatures.shaderStorageImageArrayNonUniformIndexing = true;
 	descriptorIndexingFeatures.descriptorBindingSampledImageUpdateAfterBind = true;
+	descriptorIndexingFeatures.descriptorBindingPartiallyBound = true;
+	descriptorIndexingFeatures.descriptorBindingVariableDescriptorCount = true;
+	descriptorIndexingFeatures.runtimeDescriptorArray = true;
 	descriptorIndexingFeatures.pNext = &maintenance4Features;
 	
 	vk::PhysicalDeviceSynchronization2Features synchronization2Features;
