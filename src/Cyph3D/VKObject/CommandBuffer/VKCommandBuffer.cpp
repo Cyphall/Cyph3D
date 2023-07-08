@@ -931,7 +931,7 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 	
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eTopLevel;
-	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastBuild;
+	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
 	buildGeometryInfo.mode = vk::BuildAccelerationStructureModeKHR::eBuild;
 	buildGeometryInfo.srcAccelerationStructure = VK_NULL_HANDLE;
 	buildGeometryInfo.dstAccelerationStructure = accelerationStructure->getHandle();
