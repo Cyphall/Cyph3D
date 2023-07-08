@@ -32,6 +32,8 @@ private:
 	
 	static std::unique_ptr<ImGuiVulkanBackend> _vulkanBackend;
 	
+	static VKDynamic<VKSemaphore> _submitSemaphore;
+	
 	static void initDockingLayout(ImGuiID dockspaceId);
 	static void initStyles();
 	static void initFonts();

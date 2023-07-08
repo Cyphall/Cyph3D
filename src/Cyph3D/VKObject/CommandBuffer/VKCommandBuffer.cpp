@@ -48,10 +48,6 @@ VKCommandBuffer::VKCommandBuffer(VKContext& context, const VKQueue& queue):
 	fenceCreateInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 	
 	_statusFence = VKFence::create(_context, fenceCreateInfo);
-	
-	vk::SemaphoreCreateInfo semaphoreCreateInfo;
-	
-	_statusSemaphore = VKSemaphore::create(_context, semaphoreCreateInfo);
 }
 
 VKCommandBuffer::~VKCommandBuffer()
@@ -1021,9 +1017,4 @@ void VKCommandBuffer::pushConstants(const void* data, uint32_t dataSize)
 const VKPtr<VKFence>& VKCommandBuffer::getStatusFence() const
 {
 	return _statusFence;
-}
-
-const VKPtr<VKSemaphore>& VKCommandBuffer::getStatusSemaphore() const
-{
-	return _statusSemaphore;
 }

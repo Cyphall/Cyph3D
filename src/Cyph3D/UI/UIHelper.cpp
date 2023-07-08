@@ -31,6 +31,8 @@ bool UIHelper::_dockingLayoutInitialized = false;
 
 std::unique_ptr<ImGuiVulkanBackend> UIHelper::_vulkanBackend;
 
+VKDynamic<VKSemaphore> UIHelper::_submitSemaphore;
+
 void UIHelper::init()
 {
 	_context = ImGui::CreateContext();
@@ -52,6 +54,13 @@ void UIHelper::init()
 	_vulkanBackend = std::make_unique<ImGuiVulkanBackend>();
 	
 	UIViewport::init();
+	
+	vk::SemaphoreCreateInfo semaphoreCreateInfo;
+	
+	_submitSemaphore = VKDynamic<VKSemaphore>(Engine::getVKContext(), [&](VKContext& context, int index)
+	{
+		return VKSemaphore::create(context, semaphoreCreateInfo);
+	});
 }
 
 const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageView, const VKPtr<VKSemaphore>& imageAvailableSemaphore)
@@ -104,15 +113,15 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageVi
 	
 	commandBuffer->end();
 	
-	const VKPtr<VKSemaphore>& renderFinishedSemaphore = commandBuffer->getStatusSemaphore();
+	Engine::getVKContext().getMainQueue().submit(commandBuffer, &imageAvailableSemaphore, &_submitSemaphore.getCurrent());
 	
-	Engine::getVKContext().getMainQueue().submit(commandBuffer, &imageAvailableSemaphore, &renderFinishedSemaphore);
-	
-	return renderFinishedSemaphore;
+	return _submitSemaphore.getCurrent();
 }
 
 void UIHelper::shutdown()
 {
+	_submitSemaphore = {};
+	
 	UIViewport::shutdown();
 	_vulkanBackend.reset();
 	ImGui_ImplGlfw_Shutdown();

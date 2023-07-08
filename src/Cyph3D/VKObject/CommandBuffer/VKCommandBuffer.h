@@ -15,7 +15,6 @@ class VKSampler;
 class VKDescriptorSet;
 class VKPipeline;
 class VKFence;
-class VKSemaphore;
 class VKTimestampQuery;
 class VKAccelerationStructure;
 class VKRenderingInfo;
@@ -108,7 +107,6 @@ public:
 	void traceRays(const VKPtr<VKBufferBase>& raygenSBT, const VKPtr<VKBufferBase>& missSBT, const VKPtr<VKBufferBase>& hitSBT, glm::uvec2 size);
 	
 	const VKPtr<VKFence>& getStatusFence() const;
-	const VKPtr<VKSemaphore>& getStatusSemaphore() const;
 	
 private:
 	explicit VKCommandBuffer(VKContext& context, const VKQueue& queue);
@@ -119,7 +117,6 @@ private:
 	vk::CommandBuffer _commandBuffer;
 	
 	VKPtr<VKFence> _statusFence;
-	VKPtr<VKSemaphore> _statusSemaphore;
 	
 	VKPipeline* _boundPipeline = nullptr;
 	
