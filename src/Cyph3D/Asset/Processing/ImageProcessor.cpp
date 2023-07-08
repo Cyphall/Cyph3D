@@ -467,7 +467,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	
 	workerData.transferCommandBuffer->end();
 	
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, nullptr, nullptr);
+	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
 	
 	workerData.transferCommandBuffer->waitExecution();
 	workerData.transferCommandBuffer->reset();
@@ -516,7 +516,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	}
 	workerData.computeCommandBuffer->end();
 	
-	Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);
+	Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
 	
 	workerData.computeCommandBuffer->waitExecution();
 	workerData.computeCommandBuffer->reset();
@@ -541,7 +541,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	
 	workerData.transferCommandBuffer->end();
 	
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, nullptr, nullptr);
+	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
 	
 	workerData.transferCommandBuffer->waitExecution();
 	workerData.transferCommandBuffer->reset();

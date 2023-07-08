@@ -16,15 +16,15 @@ public:
 	
 	uint32_t getFamily() const;
 	
-	void submit(const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKSemaphore>* waitSemaphore, const VKPtr<VKSemaphore>* signalSemaphore);
-	bool present(const VKPtr<VKSwapchainImage>& swapchainImage, const VKPtr<VKSemaphore>* waitSemaphore);
+	void submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores, vk::ArrayProxy<VKPtr<VKSemaphore>> signalSemaphores);
+	bool present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores);
 
 private:
-	struct SubmitInfo
+	struct SubmitRecord
 	{
 		VKPtr<VKCommandBuffer> commandBuffer;
-		VKPtr<VKSemaphore> waitSemaphore;
-		VKPtr<VKSemaphore> signalSemaphore;
+		std::vector<VKPtr<VKSemaphore>> waitSemaphores;
+		std::vector<VKPtr<VKSemaphore>> signalSemaphores;
 	};
 	
 	friend class VKContext;
@@ -37,5 +37,5 @@ private:
 	vk::Queue _queue;
 	std::mutex _mutex;
 	
-	std::vector<SubmitInfo> _submits;
+	std::vector<SubmitRecord> _submitRecords;
 };

@@ -139,7 +139,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		workerData.computeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
 		workerData.computeCommandBuffer->end();
 		
-		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);
+		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
 		
 		workerData.computeCommandBuffer->waitExecution();
 		workerData.computeCommandBuffer->reset();
@@ -161,7 +161,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		workerData.computeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);
 		workerData.computeCommandBuffer->end();
 		
-		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, nullptr, nullptr);
+		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
 		
 		workerData.computeCommandBuffer->waitExecution();
 		workerData.computeCommandBuffer->reset();

@@ -100,7 +100,7 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	
 	workerData.transferCommandBuffer->end();
 	
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, nullptr, nullptr);
+	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
 	
 	workerData.transferCommandBuffer->waitExecution();
 	workerData.transferCommandBuffer->reset();

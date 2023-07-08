@@ -103,7 +103,7 @@ void Engine::run()
 		_scene->onUpdate();
 		
 		const VKPtr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.imageView, nextImageInfo.imageAvailableSemaphore);
-		if (!_vkContext->getMainQueue().present(nextImageInfo.image, &renderFinishedSemaphore))
+		if (!_vkContext->getMainQueue().present(nextImageInfo.image, renderFinishedSemaphore))
 		{
 			swapchainOutOfData = true;
 		}

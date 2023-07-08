@@ -472,10 +472,7 @@ void VKContext::executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>
 	
 	_helperData->immediateCommandBuffer->end();
 	
-	_mainQueue->submit(
-		_helperData->immediateCommandBuffer,
-		nullptr,
-		nullptr);
+	_mainQueue->submit(_helperData->immediateCommandBuffer, {}, {});
 	
 	_helperData->immediateCommandBuffer->waitExecution();
 	_helperData->immediateCommandBuffer->reset();

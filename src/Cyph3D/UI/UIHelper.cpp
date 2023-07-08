@@ -113,7 +113,7 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageVi
 	
 	commandBuffer->end();
 	
-	Engine::getVKContext().getMainQueue().submit(commandBuffer, &imageAvailableSemaphore, &_submitSemaphore.getCurrent());
+	Engine::getVKContext().getMainQueue().submit(commandBuffer, imageAvailableSemaphore, _submitSemaphore.getCurrent());
 	
 	return _submitSemaphore.getCurrent();
 }

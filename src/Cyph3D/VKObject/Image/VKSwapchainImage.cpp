@@ -34,7 +34,7 @@ const VKPtr<VKImage>& VKSwapchainImage::getImage()
 	return _image;
 }
 
-uint32_t VKSwapchainImage::getIndex() const
+const uint32_t& VKSwapchainImage::getIndex() const
 {
 	return _index;
 }

@@ -17,7 +17,7 @@ public:
 	
 	VKSwapchain& getSwapchain() const;
 	const VKPtr<VKImage>& getImage();
-	uint32_t getIndex() const;
+	const uint32_t& getIndex() const;
 	
 private:
 	VKSwapchainImage(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index);
