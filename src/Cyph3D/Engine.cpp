@@ -65,27 +65,10 @@ void Engine::init()
 
 void Engine::run()
 {
-	bool swapchainOutOfData = false;
-	
 	while (!_window->shouldClose())
 	{
 		_vkContext->onNewFrame();
 		_assetManager->onNewFrame();
-		
-		if (swapchainOutOfData)
-		{
-			glm::uvec2 surfaceSize = _window->getSurfaceSize();
-			
-			while (surfaceSize.x * surfaceSize.y == 0)
-			{
-				glfwWaitEvents();
-				surfaceSize = _window->getSurfaceSize();
-			}
-			
-			_window->recreateSwapchain();
-			
-			swapchainOutOfData = false;
-		}
 		
 		_vkContext->getDefaultCommandBuffer()->waitExecution();
 		_vkContext->getDefaultCommandBuffer()->reset();
@@ -105,7 +88,15 @@ void Engine::run()
 		const VKPtr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.imageView, nextImageInfo.imageAvailableSemaphore);
 		if (!_vkContext->getMainQueue().present(nextImageInfo.image, renderFinishedSemaphore))
 		{
-			swapchainOutOfData = true;
+			glm::uvec2 surfaceSize = _window->getSurfaceSize();
+			
+			while (surfaceSize.x * surfaceSize.y == 0)
+			{
+				glfwWaitEvents();
+				surfaceSize = _window->getSurfaceSize();
+			}
+			
+			_window->recreateSwapchain();
 		}
 	}
 }
