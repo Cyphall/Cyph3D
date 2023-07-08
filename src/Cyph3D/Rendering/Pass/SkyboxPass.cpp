@@ -34,7 +34,7 @@ SkyboxPass::SkyboxPass(glm::uvec2 size):
 SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_resolvedRawRenderImage.getCurrent(),
+		_resolvedRawRenderImage,
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -46,7 +46,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	VKRenderingInfo renderingInfo(_size);
 	
 	renderingInfo.addColorAttachment(input.multisampledRawRenderImageView)
-		.enableResolve(vk::ResolveModeFlagBits::eAverage, _resolvedRawRenderImageView.getCurrent())
+		.enableResolve(vk::ResolveModeFlagBits::eAverage, _resolvedRawRenderImageView)
 		.setLoadOpLoad()
 		.setStoreOpStore();
 	
@@ -90,7 +90,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	commandBuffer->endRendering();
 	
 	return {
-		.rawRenderImageView = _resolvedRawRenderImageView.getCurrent()
+		.rawRenderImageView = _resolvedRawRenderImageView
 	};
 }
 
@@ -142,19 +142,13 @@ void SkyboxPass::createImages()
 			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
-		_resolvedRawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKImage::create(context, imageInfo);
-		});
+		_resolvedRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
 		
-		_resolvedRawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			VKImageViewInfo imageViewInfo(
-				_resolvedRawRenderImage[index],
-				vk::ImageViewType::e2D);
-			
-			return VKImageView::create(context, imageViewInfo);
-		});
+		VKImageViewInfo imageViewInfo(
+			_resolvedRawRenderImage,
+			vk::ImageViewType::e2D);
+		
+		_resolvedRawRenderImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	}
 }
 

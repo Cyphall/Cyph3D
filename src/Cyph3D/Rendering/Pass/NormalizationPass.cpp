@@ -26,7 +26,7 @@ NormalizationPass::NormalizationPass(glm::uvec2 size):
 NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_outputImage.getCurrent(),
+		_outputImage,
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -37,7 +37,7 @@ NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(_outputImageView.getCurrent())
+	renderingInfo.addColorAttachment(_outputImageView)
 		.setLoadOpDontCare()
 		.setStoreOpStore();
 	
@@ -69,7 +69,7 @@ NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>
 	commandBuffer->endRendering();
 	
 	return {
-		_outputImageView.getCurrent()
+		_outputImageView
 	};
 }
 
@@ -145,17 +145,11 @@ void NormalizationPass::createImage()
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
-	_outputImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKImage::create(context, imageInfo);
-	});
+	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	
-	_outputImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		VKImageViewInfo imageViewInfo(
-			_outputImage[index],
-			vk::ImageViewType::e2D);
-		
-		return VKImageView::create(context, imageViewInfo);
-	});
+	VKImageViewInfo imageViewInfo(
+		_outputImage,
+		vk::ImageViewType::e2D);
+	
+	_outputImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }

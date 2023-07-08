@@ -27,7 +27,7 @@ ExposurePass::ExposurePass(glm::uvec2 size):
 ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_outputImage.getCurrent(),
+		_outputImage,
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -38,7 +38,7 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(_outputImageView.getCurrent())
+	renderingInfo.addColorAttachment(_outputImageView)
 		.setLoadOpDontCare()
 		.setStoreOpStore();
 	
@@ -70,7 +70,7 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->endRendering();
 	
 	return {
-		_outputImageView.getCurrent()
+		_outputImageView
 	};
 }
 
@@ -146,17 +146,11 @@ void ExposurePass::createImage()
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
-	_outputImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKImage::create(context, imageInfo);
-	});
+	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	
-	_outputImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		VKImageViewInfo imageViewInfo(
-			_outputImage[index],
-			vk::ImageViewType::e2D);
-		
-		return VKImageView::create(context, imageViewInfo);
-	});
+	VKImageViewInfo imageViewInfo(
+		_outputImage,
+		vk::ImageViewType::e2D);
+	
+	_outputImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }

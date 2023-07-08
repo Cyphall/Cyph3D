@@ -94,8 +94,8 @@ private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
-	VKDynamic<VKImage> _multisampledRawRenderImage;
-	VKDynamic<VKImageView> _multisampledRawRenderImageView;
+	VKPtr<VKImage> _multisampledRawRenderImage;
+	VKPtr<VKImageView> _multisampledRawRenderImageView;
 	
 	uint32_t _frameIndex = 0;
 	

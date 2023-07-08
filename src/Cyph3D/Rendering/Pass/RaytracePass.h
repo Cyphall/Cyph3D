@@ -85,8 +85,8 @@ private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKRayTracingPipeline> _pipeline;
 	
-	VKDynamic<VKImage> _rawRenderImage;
-	VKDynamic<VKImageView> _rawRenderImageView;
+	VKPtr<VKImage> _rawRenderImage;
+	VKPtr<VKImageView> _rawRenderImageView;
 	
 	uint32_t _sampleIndex = 0;
 	

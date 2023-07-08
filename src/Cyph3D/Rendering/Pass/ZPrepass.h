@@ -37,8 +37,8 @@ private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
-	VKDynamic<VKImage> _depthImage;
-	VKDynamic<VKImageView> _depthImageView;
+	VKPtr<VKImage> _depthImage;
+	VKPtr<VKImageView> _depthImageView;
 	
 	ZPrepassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
 	void onResize() override;

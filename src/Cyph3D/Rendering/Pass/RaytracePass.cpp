@@ -38,7 +38,7 @@ RaytracePass::RaytracePass(const glm::uvec2& size):
 RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_rawRenderImage.getCurrent(),
+		_rawRenderImage,
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -123,7 +123,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
 	commandBuffer->pushDescriptor(1, 0, tlas);
-	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView.getCurrent());
+	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView);
 	commandBuffer->pushDescriptor(1, 2, _globalUniforms.getCurrent(), 0, 1);
 	commandBuffer->pushDescriptor(1, 3, _objectUniforms->getBuffer(), 0, drawCount);
 	
@@ -147,7 +147,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		_sampleIndex++;
 		
 		commandBuffer->imageMemoryBarrier(
-			_rawRenderImage.getCurrent(),
+			_rawRenderImage,
 			0,
 			0,
 			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
@@ -159,7 +159,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->unbindPipeline();
 	
 	return {
-		.rawRenderImageView = _rawRenderImageView.getCurrent(),
+		.rawRenderImageView = _rawRenderImageView,
 		.accumulatedSamples = accumulatedSamples
 	};
 }
@@ -297,17 +297,11 @@ void RaytracePass::createImage()
 		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
-	_rawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKImage::create(context, imageInfo);
-	});
+	_rawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	
-	_rawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		VKImageViewInfo imageViewInfo(
-			_rawRenderImage[index],
-			vk::ImageViewType::e2D);
-		
-		return VKImageView::create(context, imageViewInfo);
-	});
+	VKImageViewInfo imageViewInfo(
+		_rawRenderImage,
+		vk::ImageViewType::e2D);
+	
+	_rawRenderImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }

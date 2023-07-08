@@ -33,9 +33,9 @@ private:
 	
 	VKPtr<VKSampler> _inputSampler;
 	
-	VKDynamic<VKImage> _outputImage;
-	VKDynamic<VKImageView> _outputLinearImageView;
-	VKDynamic<VKImageView> _outputSrgbImageView;
+	VKPtr<VKImage> _outputImage;
+	VKPtr<VKImageView> _outputLinearImageView;
+	VKPtr<VKImageView> _outputSrgbImageView;
 	
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

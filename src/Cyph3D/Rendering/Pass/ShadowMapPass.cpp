@@ -46,7 +46,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		VKRenderingInfo renderingInfo(shadowMapSize);
 		
-		renderingInfo.setDepthAttachment(directionalLightRenderData.shadowMapTextureView->getCurrent())
+		renderingInfo.setDepthAttachment(*directionalLightRenderData.shadowMapTextureView)
 			.setLoadOpClear(1.0f)
 			.setStoreOpStore();
 		
@@ -112,7 +112,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		for (int i = 0; i < 6; i++)
 		{
 			commandBuffer->imageMemoryBarrier(
-				pointLightRenderData.shadowMapTexture->getCurrent(),
+				(*pointLightRenderData.shadowMapTextureView)->getInfo().getImage(),
 				i,
 				0,
 				vk::PipelineStageFlagBits2::eNone,
@@ -122,12 +122,12 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 				vk::ImageLayout::eDepthAttachmentOptimal);
 		}
 		
-		glm::uvec2 shadowMapSize = (*pointLightRenderData.shadowMapTexture)->getSize(0);
+		glm::uvec2 shadowMapSize = (*pointLightRenderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
 		
 		VKRenderingInfo renderingInfo(shadowMapSize);
 		renderingInfo.setLayers(6);
 		
-		renderingInfo.setDepthAttachment(pointLightRenderData.shadowMapTextureView->getCurrent())
+		renderingInfo.setDepthAttachment(*pointLightRenderData.shadowMapTextureView)
 			.setLoadOpClear(1.0f)
 			.setStoreOpStore();
 		

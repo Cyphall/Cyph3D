@@ -27,7 +27,7 @@ ZPrepass::ZPrepass(glm::uvec2 size):
 ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_depthImage.getCurrent(),
+		_depthImage,
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -38,7 +38,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.setDepthAttachment(_depthImageView.getCurrent())
+	renderingInfo.setDepthAttachment(_depthImageView)
 		.setLoadOpClear(1.0f)
 		.setStoreOpStore();
 	
@@ -79,7 +79,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	commandBuffer->endRendering();
 	
 	return {
-		.multisampledDepthImageView = _depthImageView.getCurrent()
+		.multisampledDepthImageView = _depthImageView
 	};
 }
 
@@ -127,17 +127,11 @@ void ZPrepass::createImage()
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
 	
-	_depthImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKImage::create(context, imageInfo);
-	});
+	_depthImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	
-	_depthImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		VKImageViewInfo imageViewInfo(
-			_depthImage[index],
-			vk::ImageViewType::e2D);
-		
-		return VKImageView::create(context, imageViewInfo);
-	});
+	VKImageViewInfo imageViewInfo(
+		_depthImage,
+		vk::ImageViewType::e2D);
+	
+	_depthImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }

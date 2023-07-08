@@ -45,8 +45,8 @@ private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
-	VKDynamic<VKImage> _resolvedRawRenderImage;
-	VKDynamic<VKImageView> _resolvedRawRenderImageView;
+	VKPtr<VKImage> _resolvedRawRenderImage;
+	VKPtr<VKImageView> _resolvedRawRenderImageView;
 	
 	VKPtr<VKBuffer<SkyboxPass::VertexData>> _vertexBuffer;
 	

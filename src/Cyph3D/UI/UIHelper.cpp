@@ -31,7 +31,10 @@ bool UIHelper::_dockingLayoutInitialized = false;
 
 std::unique_ptr<ImGuiVulkanBackend> UIHelper::_vulkanBackend;
 
-VKDynamic<VKSemaphore> UIHelper::_submitSemaphore;
+VKPtr<VKSemaphore> UIHelper::_presentSemaphore;
+VKPtr<VKSemaphore> UIHelper::_nextSubmitSemaphore;
+
+bool UIHelper::_firstFrame = true;
 
 void UIHelper::init()
 {
@@ -56,11 +59,8 @@ void UIHelper::init()
 	UIViewport::init();
 	
 	vk::SemaphoreCreateInfo semaphoreCreateInfo;
-	
-	_submitSemaphore = VKDynamic<VKSemaphore>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKSemaphore::create(context, semaphoreCreateInfo);
-	});
+	_presentSemaphore = VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo);
+	_nextSubmitSemaphore = VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo);
 }
 
 const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageView, const VKPtr<VKSemaphore>& imageAvailableSemaphore)
@@ -113,14 +113,30 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageVi
 	
 	commandBuffer->end();
 	
-	Engine::getVKContext().getMainQueue().submit(commandBuffer, imageAvailableSemaphore, _submitSemaphore.getCurrent());
+	if (_firstFrame)
+	{
+		Engine::getVKContext().getMainQueue().submit(
+			commandBuffer,
+			{imageAvailableSemaphore},
+			{_presentSemaphore, _nextSubmitSemaphore});
+		
+		_firstFrame = false;
+	}
+	else
+	{
+		Engine::getVKContext().getMainQueue().submit(
+			commandBuffer,
+			{imageAvailableSemaphore, _nextSubmitSemaphore},
+			{_presentSemaphore, _nextSubmitSemaphore});
+	}
 	
-	return _submitSemaphore.getCurrent();
+	return _presentSemaphore;
 }
 
 void UIHelper::shutdown()
 {
-	_submitSemaphore = {};
+	_presentSemaphore = {};
+	_nextSubmitSemaphore = {};
 	
 	UIViewport::shutdown();
 	_vulkanBackend.reset();

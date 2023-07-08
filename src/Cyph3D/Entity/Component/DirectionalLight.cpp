@@ -43,19 +43,13 @@ void DirectionalLight::setCastShadows(bool value)
 			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
-		_shadowMap = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKImage::create(context, imageInfo);
-		});
+		_shadowMap = VKImage::create(Engine::getVKContext(), imageInfo);
 		
-		_shadowMapView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			VKImageViewInfo imageViewInfo(
-				_shadowMap[index],
-				vk::ImageViewType::e2D);
-			
-			return VKImageView::create(context, imageViewInfo);
-		});
+		VKImageViewInfo imageViewInfo(
+			_shadowMap,
+			vk::ImageViewType::e2D);
+		
+		_shadowMapView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	}
 	else
 	{

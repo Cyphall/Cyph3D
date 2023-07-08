@@ -73,7 +73,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.textureIndex = directionalLightShadowIndex;
 			uniforms.shadowMapTexelWorldSize = renderData.shadowMapTexelWorldSize;
 			
-			_directionalLightDescriptorSet->bindCombinedImageSampler(1, renderData.shadowMapTextureView->getCurrent(), _directionalLightSampler, directionalLightShadowIndex);
+			_directionalLightDescriptorSet->bindCombinedImageSampler(1, *renderData.shadowMapTextureView, _directionalLightSampler, directionalLightShadowIndex);
 			
 			directionalLightShadowIndex++;
 		}
@@ -99,7 +99,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.far = renderData.far;
 			uniforms.maxTexelSizeAtUnitDistance = 2.0f / renderData.shadowMapResolution;
 			
-			_pointLightDescriptorSet->bindCombinedImageSampler(1, renderData.shadowMapTextureView->getCurrent(), _pointLightSampler, pointLightShadowIndex);
+			_pointLightDescriptorSet->bindCombinedImageSampler(1, *renderData.shadowMapTextureView, _pointLightSampler, pointLightShadowIndex);
 			
 			pointLightShadowIndex++;
 		}
@@ -110,7 +110,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_pointLightDescriptorSet->bindBuffer(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
 	
 	commandBuffer->imageMemoryBarrier(
-		_multisampledRawRenderImage.getCurrent(),
+		_multisampledRawRenderImage,
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -121,7 +121,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(_multisampledRawRenderImageView.getCurrent())
+	renderingInfo.addColorAttachment(_multisampledRawRenderImageView)
 		.setLoadOpClear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
 		.setStoreOpStore();
 	
@@ -195,7 +195,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_frameIndex++;
 	
 	return {
-		.multisampledRawRenderImageView = _multisampledRawRenderImageView.getCurrent()
+		.multisampledRawRenderImageView = _multisampledRawRenderImageView
 	};
 }
 
@@ -359,19 +359,13 @@ void LightingPass::createImage()
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
 	
-	_multisampledRawRenderImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKImage::create(context, imageInfo);
-	});
+	_multisampledRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	
-	_multisampledRawRenderImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		VKImageViewInfo imageViewInfo(
-			_multisampledRawRenderImage[index],
-			vk::ImageViewType::e2D);
-		
-		return VKImageView::create(context, imageViewInfo);
-	});
+	VKImageViewInfo imageViewInfo(
+		_multisampledRawRenderImage,
+		vk::ImageViewType::e2D);
+	
+	_multisampledRawRenderImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }
 
 void LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount)

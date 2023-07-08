@@ -30,11 +30,11 @@ private:
 	
 	// common
 	
-	VKDynamic<VKImage> _workImage;
-	std::vector<VKDynamic<VKImageView>> _workImageViews;
+	VKPtr<VKImage> _workImage;
+	std::vector<VKPtr<VKImageView>> _workImageViews;
 	
-	VKDynamic<VKImage> _outputImage;
-	VKDynamic<VKImageView> _outputImageView;
+	VKPtr<VKImage> _outputImage;
+	VKPtr<VKImageView> _outputImageView;
 	
 	VKPtr<VKSampler> _workImageSampler;
 	

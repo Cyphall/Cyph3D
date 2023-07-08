@@ -43,19 +43,13 @@ void PointLight::setCastShadows(bool value)
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.enableCubeCompatibility();
 		
-		_shadowMap = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKImage::create(context, imageInfo);
-		});
+		_shadowMap = VKImage::create(Engine::getVKContext(), imageInfo);
 		
-		_shadowMapView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			VKImageViewInfo imageViewInfo(
-				_shadowMap[index],
-				vk::ImageViewType::eCube);
-			
-			return VKImageView::create(context, imageViewInfo);
-		});
+		VKImageViewInfo imageViewInfo(
+			_shadowMap,
+			vk::ImageViewType::eCube);
+		
+		_shadowMapView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	}
 	else
 	{
@@ -138,7 +132,6 @@ void PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 		data.viewProjections[5] = _projection *
 							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
-		data.shadowMapTexture = &_shadowMap;
 		data.shadowMapTextureView = &_shadowMapView;
 		data.shadowMapResolution = getResolution();
 		data.far = FAR_DISTANCE;

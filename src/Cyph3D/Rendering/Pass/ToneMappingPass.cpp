@@ -28,7 +28,7 @@ ToneMappingPass::ToneMappingPass(glm::uvec2 size):
 ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
-		_outputImage.getCurrent(),
+		_outputImage,
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -39,7 +39,7 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(_outputSrgbImageView.getCurrent())
+	renderingInfo.addColorAttachment(_outputSrgbImageView)
 		.setLoadOpDontCare()
 		.setStoreOpStore();
 	
@@ -67,7 +67,7 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 	commandBuffer->endRendering();
 	
 	return {
-		_outputLinearImageView.getCurrent()
+		_outputLinearImageView
 	};
 }
 
@@ -143,28 +143,19 @@ void ToneMappingPass::createImage()
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.addAdditionalCompatibleViewFormat(LINEAR_OUTPUT_FORMAT);
 	
-	_outputImage = VKDynamic<VKImage>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKImage::create(context, imageInfo);
-	});
+	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	
-	_outputLinearImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		VKImageViewInfo imageViewInfo(
-			_outputImage[index],
-			vk::ImageViewType::e2D);
-		imageViewInfo.setCustomViewFormat(LINEAR_OUTPUT_FORMAT);
-		
-		return VKImageView::create(context, imageViewInfo);
-	});
+	VKImageViewInfo linearImageViewInfo(
+		_outputImage,
+		vk::ImageViewType::e2D);
+	linearImageViewInfo.setCustomViewFormat(LINEAR_OUTPUT_FORMAT);
 	
-	_outputSrgbImageView = VKDynamic<VKImageView>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		VKImageViewInfo imageViewInfo(
-			_outputImage[index],
-			vk::ImageViewType::e2D);
-		imageViewInfo.setCustomViewFormat(SRGB_OUTPUT_FORMAT);
-		
-		return VKImageView::create(context, imageViewInfo);
-	});
+	_outputLinearImageView = VKImageView::create(Engine::getVKContext(), linearImageViewInfo);
+	
+	VKImageViewInfo srgbImageViewInfo(
+		_outputImage,
+		vk::ImageViewType::e2D);
+	srgbImageViewInfo.setCustomViewFormat(SRGB_OUTPUT_FORMAT);
+	
+	_outputSrgbImageView = VKImageView::create(Engine::getVKContext(), srgbImageViewInfo);
 }
