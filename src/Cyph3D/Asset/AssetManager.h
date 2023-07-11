@@ -13,10 +13,6 @@
 
 #include <BS_thread_pool.hpp>
 #include <unordered_map>
-#include <list>
-#include <functional>
-#include <mutex>
-#include <array>
 
 class VKSampler;
 
@@ -40,20 +36,11 @@ public:
 	SkyboxAsset* loadSkybox(std::string_view path);
 
 	void onNewFrame();
-	void onUpdate();
 
 	template <typename TTask, typename... TArgs>
 	void addThreadPoolTask(TTask&& task, TArgs&&... args)
 	{
 		_threadPool.push_task(std::forward<TTask>(task), std::forward<TArgs>(args)...);
-	}
-
-	template <typename TTask, typename... TArgs>
-	void addMainThreadTask(TTask&& task, TArgs&&... args)
-	{
-		_mainThreadTasksMutex.lock();
-		_mainThreadTasks.push_back(std::bind(std::forward<TTask>(task), std::forward<TArgs>(args)...));
-		_mainThreadTasksMutex.unlock();
 	}
 
 private:
@@ -71,8 +58,4 @@ private:
 	std::unordered_map<SkyboxAssetSignature, std::unique_ptr<SkyboxAsset>> _skyboxes;
 
 	BS::thread_pool<AssetManagerWorkerData> _threadPool;
-
-	std::list<std::function<bool()>> _mainThreadTasks;
-
-	std::mutex _mainThreadTasksMutex;
 };

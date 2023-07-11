@@ -82,7 +82,6 @@ void Engine::run()
 
 		UIHelper::onNewFrame();
 
-		_assetManager->onUpdate();
 		_scene->onUpdate();
 		
 		const VKPtr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.imageView, nextImageInfo.imageAvailableSemaphore);

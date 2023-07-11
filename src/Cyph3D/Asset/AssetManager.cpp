@@ -167,29 +167,3 @@ void AssetManager::onNewFrame()
 {
 	_bindlessTextureManager.onNewFrame();
 }
-
-void AssetManager::onUpdate()
-{
-	_mainThreadTasksMutex.lock();
-
-	auto it = _mainThreadTasks.begin();
-	while (it != _mainThreadTasks.end())
-	{
-		std::function<bool()>& task = *it;
-
-		_mainThreadTasksMutex.unlock();
-		bool completed = task();
-		_mainThreadTasksMutex.lock();
-
-		if (completed)
-		{
-			it = _mainThreadTasks.erase(it);
-		}
-		else
-		{
-			it++;
-		}
-	}
-
-	_mainThreadTasksMutex.unlock();
-}
