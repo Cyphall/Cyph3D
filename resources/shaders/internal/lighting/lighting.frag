@@ -74,7 +74,6 @@ layout(std430, set = 3, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywh
 
 layout(push_constant) uniform constants
 {
-	mat4 u_viewProjectionInv;
 	vec3 u_viewPos;
 	uint u_frameIndex;
 };

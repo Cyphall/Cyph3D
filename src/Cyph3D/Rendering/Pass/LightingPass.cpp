@@ -149,7 +149,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->bindDescriptorSet(2, _pointLightDescriptorSet.getCurrent());
 	
 	PushConstantData pushConstantData{};
-	pushConstantData.viewProjectionInv = glm::inverse(input.camera.getProjection() * input.camera.getView());
 	pushConstantData.viewPos = input.camera.getPosition();
 	pushConstantData.frameIndex = _frameIndex;
 	commandBuffer->pushConstants(pushConstantData);

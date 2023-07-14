@@ -71,7 +71,6 @@ private:
 	
 	struct PushConstantData
 	{
-		GLSL_mat4 viewProjectionInv;
 		GLSL_vec3 viewPos;
 		GLSL_uint frameIndex;
 	};
