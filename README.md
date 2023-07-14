@@ -1,20 +1,13 @@
 # Cyph3D
 
 This is a simple 3D engine which aims to implement standard rendering features.<br/>
-This project is a full C++ rewrite of my [original C# rendering engine](https://github.com/Cyphall/Cyph3D-legacy)
-
-## Viewport Controls
-
-Hold right click to control the camera and use ZQSD to move
+This project is a full C++ rewrite of my [original C# 3D engine](https://github.com/Cyphall/Cyph3D-legacy)
 
 ## Features
 
-### Core
+### Rendering
 
-- [x] Scene Architecture
-- [x] Entity-Component architecture
-
-### Shaders & Rendering
+#### Rasterization renderer
 
 - [x] PBR Lighting
 - [x] Parallax Occlusion Mapping
@@ -23,28 +16,31 @@ Hold right click to control the camera and use ZQSD to move
 - [x] Directional Light
 - [x] Point Light Shadows
 - [x] Directional Light Shadows
-- [ ] Cascade Shadow Mapping
-- [x] Anisotropic Filtering
-- [x] Post-processing pipeline
+
+#### Path-tracing renderer
+
+- [ ] Denoising
+- [ ] Viewport accumulation
+- [ ] Parallax Occlusion Mapping or equivalent
+- [ ] Normal Maps or equivalent
 
 #### Post-processing
 - [x] Exposure
-- [x] ACES Tone mapping
 - [x] Bloom
+- [x] ACES Tone-mapping
 
 ### UI
-
-- [x] Docking-based UI
-- [x] Gizmos
   
 #### Windows
 - [x] Viewport
 - [x] Scene Hirarchy
-- [x] Entity Inspector
-- [x] Resources Viewer
+- [x] Inspector
+- [x] Asset Browser
 
 #### Viewport gizmos
 - [x] Transform
+- [ ] Directional Light
+- [ ] Point Light
 
 ## Screenshots
 
