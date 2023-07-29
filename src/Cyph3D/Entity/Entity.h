@@ -27,10 +27,10 @@ public:
 	Entity(Entity&& other) = delete;
 	Entity& operator=(Entity&& other) = delete;
 	
-	ComponentIterator components_begin();
-	ComponentIterator components_end();
-	ComponentConstIterator components_cbegin() const;
-	ComponentConstIterator components_cend() const;
+	ComponentIterator begin();
+	ComponentIterator end();
+	ComponentConstIterator begin() const;
+	ComponentConstIterator end() const;
 	
 	template<typename T>
 	T& addComponent()

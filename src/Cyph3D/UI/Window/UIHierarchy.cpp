@@ -47,7 +47,7 @@ void UIHierarchy::show()
 					Scene& scene = Engine::getScene();
 					
 					auto it = scene.findEntity(*selectedEntity);
-					if (it == scene.entities_end())
+					if (it == scene.end())
 					{
 						throw;
 					}

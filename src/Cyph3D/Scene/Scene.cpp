@@ -21,8 +21,8 @@
 #include <format>
 #include <stdexcept>
 
-Scene::Scene(std::string name):
-_root(Transform::createSceneRoot()), _name(std::move(name))
+Scene::Scene():
+_root(Transform::createSceneRoot())
 {
 
 }
@@ -36,17 +36,17 @@ Scene::~Scene()
 
 void Scene::onUpdate()
 {
-	for (auto it = entities_begin(); it != entities_end(); it++)
+	for (Entity& entity : *this)
 	{
-		(*it).onUpdate();
+		entity.onUpdate();
 	}
 }
 
 void Scene::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
-	for (auto it = entities_begin(); it != entities_end(); it++)
+	for (Entity& entity : *this)
 	{
-		(*it).onPreRender(renderRegistry, camera);
+		entity.onPreRender(renderRegistry, camera);
 	}
 }
 
@@ -57,15 +57,9 @@ Entity& Scene::createEntity(Transform& parent)
 
 EntityIterator Scene::findEntity(Entity& entity)
 {
-	for (auto it = entities_begin(); it != entities_end(); it++)
-	{
-		if (&(*it) == &entity)
-		{
-			return it;
-		}
-	}
-	
-	return entities_end();
+	return std::find_if(begin(), end(), [&](const Entity& e){
+		return &e == &entity;
+	});
 }
 
 EntityIterator Scene::removeEntity(EntityIterator where)
@@ -74,7 +68,7 @@ EntityIterator Scene::removeEntity(EntityIterator where)
 	for (Transform* child : children)
 	{
 		auto it = findEntity(*child->getOwner());
-		if (it == entities_end())
+		if (it == end())
 		{
 			throw;
 		}
@@ -84,22 +78,22 @@ EntityIterator Scene::removeEntity(EntityIterator where)
 	return EntityIterator(_entities.erase(where.getUnderlyingIterator()));
 }
 
-EntityIterator Scene::entities_begin()
+EntityIterator Scene::begin()
 {
 	return EntityIterator(_entities.begin());
 }
 
-EntityIterator Scene::entities_end()
+EntityIterator Scene::end()
 {
 	return EntityIterator(_entities.end());
 }
 
-EntityConstIterator Scene::entities_cbegin() const
+EntityConstIterator Scene::begin() const
 {
 	return EntityConstIterator(_entities.cbegin());
 }
 
-EntityConstIterator Scene::entities_cend() const
+EntityConstIterator Scene::end() const
 {
 	return EntityConstIterator(_entities.cend());
 }
@@ -149,8 +143,10 @@ void Scene::load(const std::filesystem::path& path)
 
 	int version = jsonRoot["version"].get<int>();
 	
-	Engine::setScene(std::make_unique<Scene>(path.filename().replace_extension().generic_string()));
+	Engine::setScene(std::make_unique<Scene>());
 	Scene& scene = Engine::getScene();
+	
+	scene.setName(path.filename().replace_extension().generic_string());
 
 	Camera camera;
 	const nlohmann::ordered_json& jsonCamera = jsonRoot["camera"];
@@ -299,4 +295,9 @@ nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const
 const std::string& Scene::getName() const
 {
 	return _name;
+}
+
+void Scene::setName(const std::string& name)
+{
+	_name = name;
 }

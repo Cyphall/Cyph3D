@@ -15,7 +15,7 @@ class Camera;
 class Scene
 {
 public:
-	explicit Scene(std::string name = "Untitled Scene");
+	Scene();
 	~Scene();
 	
 	void onUpdate();
@@ -25,10 +25,10 @@ public:
 	EntityIterator findEntity(Entity& entity);
 	EntityIterator removeEntity(EntityIterator where);
 	
-	EntityIterator entities_begin();
-	EntityIterator entities_end();
-	EntityConstIterator entities_cbegin() const;
-	EntityConstIterator entities_cend() const;
+	EntityIterator begin();
+	EntityIterator end();
+	EntityConstIterator begin() const;
+	EntityConstIterator end() const;
 	
 	Transform& getRoot();
 
@@ -43,11 +43,12 @@ public:
 	void save(const std::filesystem::path& path);
 	
 	const std::string& getName() const;
+	void setName(const std::string& name);
 
 private:
 	std::unique_ptr<Transform> _root;
 	std::vector<std::unique_ptr<Entity>> _entities;
-	std::string _name;
+	std::string _name = "Untitled Scene";
 	
 	std::optional<std::string> _skyboxPath;
 	SkyboxAsset* _skybox = nullptr;

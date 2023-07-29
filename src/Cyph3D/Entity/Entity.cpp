@@ -21,22 +21,22 @@ _transform(this, &parent), _scene(scene)
 
 }
 
-ComponentIterator Entity::components_begin()
+ComponentIterator Entity::begin()
 {
 	return ComponentIterator(_components.begin());
 }
 
-ComponentIterator Entity::components_end()
+ComponentIterator Entity::end()
 {
 	return ComponentIterator(_components.end());
 }
 
-ComponentConstIterator Entity::components_cbegin() const
+ComponentConstIterator Entity::begin() const
 {
 	return ComponentConstIterator(_components.cbegin());
 }
 
-ComponentConstIterator Entity::components_cend() const
+ComponentConstIterator Entity::end() const
 {
 	return ComponentConstIterator(_components.cend());
 }
@@ -63,17 +63,17 @@ Scene& Entity::getScene() const
 
 void Entity::onUpdate()
 {
-	for (auto it = components_begin(); it != components_end(); it++)
+	for (Component& component : *this)
 	{
-		it->onUpdate();
+		component.onUpdate();
 	}
 }
 
 void Entity::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
-	for (auto it = components_begin(); it != components_end(); it++)
+	for (Component& component : *this)
 	{
-		it->onPreRender(renderRegistry, camera);
+		component.onPreRender(renderRegistry, camera);
 	}
 }
 
@@ -98,15 +98,14 @@ ObjectSerialization Entity::serialize() const
 	
 	entitySerialization.data["transform"] = transformData;
 	
-	std::vector<nlohmann::ordered_json> components(_components.size());
-	
-	auto it = components_cbegin();
-	for (int i = 0; it != components_cend(); i++, it++)
+	std::vector<nlohmann::ordered_json> jsonComponents;
+	jsonComponents.reserve(_components.size());
+	for (const Component& component : *this)
 	{
-		components[i] = it->serialize().toJson();
+		jsonComponents.emplace_back(component.serialize().toJson());
 	}
 	
-	entitySerialization.data["components"] = components;
+	entitySerialization.data["components"] = jsonComponents;
 	
 	return entitySerialization;
 }
@@ -170,7 +169,7 @@ void Entity::onDrawUi()
 		}
 	}
 	
-	for (auto it = components_begin(); it != components_end();)
+	for (auto it = begin(); it != end();)
 	{
 		ImGui::Spacing();
 		ImGui::Separator();
@@ -257,9 +256,9 @@ void Entity::duplicate(Transform& parent) const
 	newTransform.setLocalRotation(thisTransform.getLocalRotation());
 	newTransform.setLocalScale(thisTransform.getLocalScale());
 	
-	for (auto it = components_cbegin(); it != components_cend(); it++)
+	for (const Component& component : *this)
 	{
-		it->duplicate(newEntity);
+		component.duplicate(newEntity);
 	}
 	
 	for (Transform* child : getTransform().getChildren())
