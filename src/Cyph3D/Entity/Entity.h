@@ -33,7 +33,12 @@ public:
 	ComponentConstIterator components_cend() const;
 	
 	template<typename T>
-	T& addComponent();
+	T& addComponent()
+	{
+		std::unique_ptr<Component>& component = _components.emplace_back(std::make_unique<T>(*this));
+		return *static_cast<T*>(component.get());
+	}
+	
 	ComponentIterator removeComponent(ComponentIterator where);
 	
 	Transform& getTransform();
@@ -69,11 +74,3 @@ private:
 	
 	friend class Engine;
 };
-
-template<typename T>
-T& Entity::addComponent()
-{
-	T* component = new T(*this);
-	_components.emplace_back(component);
-	return *component;
-}

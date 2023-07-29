@@ -52,7 +52,7 @@ void Scene::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 
 Entity& Scene::createEntity(Transform& parent)
 {
-	return *_entities.emplace_back(new Entity(parent, *this)).get();
+	return *_entities.emplace_back(std::make_unique<Entity>(parent, *this));
 }
 
 EntityIterator Scene::findEntity(Entity& entity)
