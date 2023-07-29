@@ -1,6 +1,6 @@
 #pragma once
 
-#include <list>
+#include <vector>
 #include <memory>
 
 class Entity;
@@ -16,7 +16,7 @@ public:
 	
 	EntityIterator() = default;
 	
-	explicit EntityIterator(std::list<std::unique_ptr<Entity>>::iterator it);
+	explicit EntityIterator(std::vector<std::unique_ptr<Entity>>::iterator it);
 	
 	EntityIterator& operator++();
 	EntityIterator operator++(int);
@@ -27,8 +27,8 @@ public:
 	Entity& operator*();
 	Entity* operator->();
 	
-	std::list<std::unique_ptr<Entity>>::iterator getUnderlyingIterator();
+	std::vector<std::unique_ptr<Entity>>::iterator getUnderlyingIterator();
 
 private:
-	std::list<std::unique_ptr<Entity>>::iterator _it;
+	std::vector<std::unique_ptr<Entity>>::iterator _it;
 };

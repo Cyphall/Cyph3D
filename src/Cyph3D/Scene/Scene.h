@@ -46,7 +46,7 @@ public:
 
 private:
 	std::unique_ptr<Transform> _root;
-	std::list<std::unique_ptr<Entity>> _entities;
+	std::vector<std::unique_ptr<Entity>> _entities;
 	std::string _name;
 	
 	std::optional<std::string> _skyboxPath;

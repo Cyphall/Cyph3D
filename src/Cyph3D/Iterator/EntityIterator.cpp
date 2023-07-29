@@ -1,6 +1,6 @@
 #include "EntityIterator.h"
 
-EntityIterator::EntityIterator(std::list<std::unique_ptr<Entity>>::iterator it):
+EntityIterator::EntityIterator(std::vector<std::unique_ptr<Entity>>::iterator it):
 _it(it)
 {}
 
@@ -37,7 +37,7 @@ Entity* EntityIterator::operator->()
 	return _it->get();
 }
 
-std::list<std::unique_ptr<Entity>>::iterator EntityIterator::getUnderlyingIterator()
+std::vector<std::unique_ptr<Entity>>::iterator EntityIterator::getUnderlyingIterator()
 {
 	return _it;
 }
