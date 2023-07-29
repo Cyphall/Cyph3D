@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Cyph3D/Scene/Scene.h"
+
 #include <vector>
 #include <memory>
 
@@ -16,7 +18,7 @@ public:
 	
 	EntityIterator() = default;
 	
-	explicit EntityIterator(std::vector<std::unique_ptr<Entity>>::iterator it);
+	explicit EntityIterator(std::vector<Scene::EntityContainer>::iterator it);
 	
 	EntityIterator& operator++();
 	EntityIterator operator++(int);
@@ -27,8 +29,8 @@ public:
 	Entity& operator*();
 	Entity* operator->();
 	
-	std::vector<std::unique_ptr<Entity>>::iterator getUnderlyingIterator();
+	std::vector<Scene::EntityContainer>::iterator getUnderlyingIterator();
 
 private:
-	std::vector<std::unique_ptr<Entity>>::iterator _it;
+	std::vector<Scene::EntityContainer>::iterator _it;
 };

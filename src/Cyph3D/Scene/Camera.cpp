@@ -100,9 +100,11 @@ Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
 	setAspectRatio(16.0f/9.0f);
 }
 
-void Camera::update(glm::vec2 mousePosDelta)
+bool Camera::update(glm::vec2 mousePosDelta)
 {
 	float ratio = (float)Engine::getTimer().deltaTime() * _speed;
+	
+	bool changed = false;
 	
 	if (Engine::getWindow().getKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 	{
@@ -116,24 +118,35 @@ void Camera::update(glm::vec2 mousePosDelta)
 	if (Engine::getWindow().getKey(GLFW_KEY_W) == GLFW_PRESS)
 	{
 		setPosition(getPosition() + getOrientation() * ratio);
+		changed = true;
 	}
 	if (Engine::getWindow().getKey(GLFW_KEY_S) == GLFW_PRESS)
 	{
 		setPosition(getPosition() - getOrientation() * ratio);
+		changed = true;
 	}
 	if (Engine::getWindow().getKey(GLFW_KEY_A) == GLFW_PRESS)
 	{
 		setPosition(getPosition() - getSideOrientation() * ratio);
+		changed = true;
 	}
 	if (Engine::getWindow().getKey(GLFW_KEY_D) == GLFW_PRESS)
 	{
 		setPosition(getPosition() + getSideOrientation() * ratio);
+		changed = true;
 	}
 	
 	glm::vec2 sphericalCoords = getSphericalCoords();
 	sphericalCoords.x += mousePosDelta.x / 12.0f;
 	sphericalCoords.y -= mousePosDelta.y / 12.0f;
 	setSphericalCoords(sphericalCoords);
+	
+	if (mousePosDelta.x != 0.0f || mousePosDelta.y != 0.0f)
+	{
+		changed = true;
+	}
+	
+	return changed;
 }
 
 void Camera::recalculateOrientation() const

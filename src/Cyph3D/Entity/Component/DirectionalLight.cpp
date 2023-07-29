@@ -56,6 +56,8 @@ void DirectionalLight::setCastShadows(bool value)
 		_shadowMap = {};
 		_shadowMapView = {};
 	}
+	
+	_changed();
 }
 
 bool DirectionalLight::getCastShadows() const
@@ -79,6 +81,8 @@ void DirectionalLight::setResolution(int value)
 	
 	if (castShadows)
 		setCastShadows(true);
+	
+	_changed();
 }
 
 int DirectionalLight::getResolution() const
@@ -221,4 +225,6 @@ float DirectionalLight::getAngularDiameter() const
 void DirectionalLight::setAngularDiameter(float value)
 {
 	_angularDiameter = value;
+	
+	_changed();
 }

@@ -1,6 +1,6 @@
 #include "ComponentIterator.h"
 
-ComponentIterator::ComponentIterator(std::vector<std::unique_ptr<Component>>::iterator it):
+ComponentIterator::ComponentIterator(std::vector<Entity::ComponentContainer>::iterator it):
 _it(it)
 {}
 
@@ -34,10 +34,10 @@ Component& ComponentIterator::operator*()
 
 Component* ComponentIterator::operator->()
 {
-	return _it->get();
+	return _it->component.get();
 }
 
-std::vector<std::unique_ptr<Component>>::iterator ComponentIterator::getUnderlyingIterator()
+std::vector<Entity::ComponentContainer>::iterator ComponentIterator::getUnderlyingIterator()
 {
 	return _it;
 }

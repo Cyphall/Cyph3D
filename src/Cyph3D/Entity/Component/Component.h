@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sigslot/signal.hpp>
+
 class Entity;
 class Transform;
 class RenderRegistry;
@@ -21,6 +23,8 @@ public:
 	Entity& getEntity() const;
 	Transform& getTransform() const;
 	
+	sigslot::signal<>& getChangedSignal();
+	
 	virtual void onUpdate();
 	virtual void onPreRender(RenderRegistry& renderRegistry, Camera& camera);
 	virtual void onDrawUi();
@@ -31,6 +35,9 @@ public:
 	
 	virtual ObjectSerialization serialize() const = 0;
 	virtual void deserialize(const ObjectSerialization& data) = 0;
+	
+protected:
+	sigslot::signal<> _changed;
 
 private:
 	Entity& _entity;

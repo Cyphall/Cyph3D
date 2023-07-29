@@ -247,11 +247,15 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 		
 		_albedoMapPath = *path;
 		_albedoMap = _manager.loadTexture(path.value(), ImageType::ColorSrgb);
+		_albedoMapChangedConnection = _albedoMap->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_albedoMapPath = std::nullopt;
 		_albedoMap = nullptr;
+		_albedoMapChangedConnection = {};
 		
 		if (!_albedoValueTextureBindlessIndex)
 		{
@@ -262,6 +266,8 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 			_manager.getBindlessTextureManager().setTexture(*_albedoValueTextureBindlessIndex, _albedoValueTextureView, _manager.getTextureSampler());
 		}
 	}
+	
+	_changed();
 }
 
 const uint32_t& MaterialAsset::getAlbedoTextureBindlessIndex() const
@@ -289,11 +295,15 @@ void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
 		
 		_normalMapPath = *path;
 		_normalMap = _manager.loadTexture(*path, ImageType::NormalMap);
+		_normalMapChangedConnection = _normalMap->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_normalMapPath = std::nullopt;
 		_normalMap = nullptr;
+		_normalMapChangedConnection = {};
 		
 		if (!_normalValueTextureBindlessIndex)
 		{
@@ -304,6 +314,8 @@ void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
 			_manager.getBindlessTextureManager().setTexture(*_normalValueTextureBindlessIndex, _normalValueTextureView, _manager.getTextureSampler());
 		}
 	}
+	
+	_changed();
 }
 
 const uint32_t& MaterialAsset::getNormalTextureBindlessIndex() const
@@ -331,11 +343,15 @@ void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
 		
 		_roughnessMapPath = *path;
 		_roughnessMap = _manager.loadTexture(*path, ImageType::Grayscale);
+		_roughnessMapChangedConnection = _roughnessMap->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_roughnessMapPath = std::nullopt;
 		_roughnessMap = nullptr;
+		_roughnessMapChangedConnection = {};
 		
 		if (!_roughnessValueTextureBindlessIndex)
 		{
@@ -346,6 +362,8 @@ void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
 			_manager.getBindlessTextureManager().setTexture(*_roughnessValueTextureBindlessIndex, _roughnessValueTextureView, _manager.getTextureSampler());
 		}
 	}
+	
+	_changed();
 }
 
 const uint32_t& MaterialAsset::getRoughnessTextureBindlessIndex() const
@@ -373,11 +391,15 @@ void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
 		
 		_metalnessMapPath = *path;
 		_metalnessMap = _manager.loadTexture(*path, ImageType::Grayscale);
+		_metalnessMapChangedConnection = _metalnessMap->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_metalnessMapPath = std::nullopt;
 		_metalnessMap = nullptr;
+		_metalnessMapChangedConnection = {};
 		
 		if (!_metalnessValueTextureBindlessIndex)
 		{
@@ -388,6 +410,8 @@ void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
 			_manager.getBindlessTextureManager().setTexture(*_metalnessValueTextureBindlessIndex, _metalnessValueTextureView, _manager.getTextureSampler());
 		}
 	}
+	
+	_changed();
 }
 
 const uint32_t& MaterialAsset::getMetalnessTextureBindlessIndex() const
@@ -415,11 +439,15 @@ void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
 		
 		_displacementMapPath = *path;
 		_displacementMap = _manager.loadTexture(*path, ImageType::Grayscale);
+		_displacementMapChangedConnection = _displacementMap->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_displacementMapPath = std::nullopt;
 		_displacementMap = nullptr;
+		_displacementMapChangedConnection = {};
 		
 		if (!_displacementValueTextureBindlessIndex)
 		{
@@ -430,6 +458,8 @@ void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
 			_manager.getBindlessTextureManager().setTexture(*_displacementValueTextureBindlessIndex, _displacementValueTextureView, _manager.getTextureSampler());
 		}
 	}
+	
+	_changed();
 }
 
 const uint32_t& MaterialAsset::getDisplacementTextureBindlessIndex() const
@@ -457,11 +487,15 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 		
 		_emissiveMapPath = *path;
 		_emissiveMap = _manager.loadTexture(*path, ImageType::Grayscale);
+		_emissiveMapChangedConnection = _emissiveMap->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_emissiveMapPath = std::nullopt;
 		_emissiveMap = nullptr;
+		_emissiveMapChangedConnection = {};
 		
 		if (!_emissiveValueTextureBindlessIndex)
 		{
@@ -472,6 +506,8 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 			_manager.getBindlessTextureManager().setTexture(*_emissiveValueTextureBindlessIndex, _emissiveValueTextureView, _manager.getTextureSampler());
 		}
 	}
+	
+	_changed();
 }
 
 const uint32_t& MaterialAsset::getEmissiveTextureBindlessIndex() const
@@ -492,6 +528,8 @@ void MaterialAsset::setAlbedoValue(const glm::vec3& value)
 	{
 		uploadAlbedoValue(_albedoValue);
 	}
+	
+	_changed();
 }
 
 const float& MaterialAsset::getRoughnessValue() const
@@ -507,6 +545,8 @@ void MaterialAsset::setRoughnessValue(const float& value)
 	{
 		uploadRoughnessValue(_roughnessValue);
 	}
+	
+	_changed();
 }
 
 const float& MaterialAsset::getMetalnessValue() const
@@ -522,6 +562,8 @@ void MaterialAsset::setMetalnessValue(const float& value)
 	{
 		uploadMetalnessValue(_metalnessValue);
 	}
+	
+	_changed();
 }
 
 const float& MaterialAsset::getEmissiveScale() const
@@ -532,6 +574,8 @@ const float& MaterialAsset::getEmissiveScale() const
 void MaterialAsset::setEmissiveScale(const float& scale)
 {
 	_emissiveScale = glm::max(scale, 0.0f);
+	
+	_changed();
 }
 
 void MaterialAsset::initDefaultAndMissing()

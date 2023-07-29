@@ -4,6 +4,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
 #include <vector>
+#include <sigslot/signal.hpp>
 
 class Entity;
 
@@ -56,6 +57,8 @@ public:
 	
 	Entity* getOwner();
 	
+	sigslot::signal<>& getChangedSignal();
+	
 	static std::unique_ptr<Transform> createSceneRoot();
 	
 private:
@@ -84,6 +87,8 @@ private:
 	std::vector<Transform*> _children;
 	
 	Entity* _owner;
+	
+	sigslot::signal<> _changed;
 	
 	// Scene root constructor
 	Transform();

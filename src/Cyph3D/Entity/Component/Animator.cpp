@@ -21,6 +21,8 @@ glm::vec3 Animator::getVelocity() const
 void Animator::setVelocity(glm::vec3 velocity)
 {
 	_velocity = velocity;
+	
+	_changed();
 }
 
 glm::vec3 Animator::getAngularVelocity() const
@@ -31,6 +33,8 @@ glm::vec3 Animator::getAngularVelocity() const
 void Animator::setAngularVelocity(glm::vec3 angularVelicoty)
 {
 	_angularVelicoty = angularVelicoty;
+	
+	_changed();
 }
 
 void Animator::onUpdate()

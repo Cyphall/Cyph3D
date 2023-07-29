@@ -24,3 +24,8 @@ Transform& Component::getTransform() const
 {
 	return getEntity().getTransform();
 }
+
+sigslot::signal<>& Component::getChangedSignal()
+{
+	return _changed;
+}

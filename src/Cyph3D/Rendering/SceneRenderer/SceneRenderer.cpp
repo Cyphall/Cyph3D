@@ -23,14 +23,14 @@ const PerfStep& SceneRenderer::getRenderPerf()
 	return _renderPerf;
 }
 
-const VKPtr<VKImageView>& SceneRenderer::render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry)
+const VKPtr<VKImageView>& SceneRenderer::render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	_renderPerf.clear();
 	_renderPerf.setDuration(_perfCounter.retrieve(commandBuffer));
 	
 	_perfCounter.start(commandBuffer);
 	
-	const VKPtr<VKImageView>& result = onRender(commandBuffer, camera, registry);
+	const VKPtr<VKImageView>& result = onRender(commandBuffer, camera, registry, sceneChanged, cameraChanged);
 	
 	_perfCounter.stop(commandBuffer);
 	

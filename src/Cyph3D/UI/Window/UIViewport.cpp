@@ -19,6 +19,7 @@
 
 std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
 UIViewport::RendererType UIViewport::_sceneRendererType = UIViewport::RendererType::Rasterization;
+uint64_t UIViewport::_sceneChangeVersion = -1;
 
 glm::uvec2 UIViewport::_previousViewportSize = {0, 0};
 
@@ -93,16 +94,19 @@ void UIViewport::show()
 				_camera.setAspectRatio(static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y));
 			}
 			
+			bool cameraChanged = false;
+			
 			if (_cameraFocused)
 			{
-				_camera.update(window.getCursorPos() - _lockedCursorPos);
+				cameraChanged = _camera.update(window.getCursorPos() - _lockedCursorPos);
 				window.setCursorPos(_lockedCursorPos);
 			}
 			
 			_renderRegistry.clear();
 			Engine::getScene().onPreRender(_renderRegistry, _camera);
 			
-			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry);
+			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, _sceneChangeVersion != Scene::getChangeVersion(), cameraChanged);
+			_sceneChangeVersion = Scene::getChangeVersion();
 			
 			ImGui::Image(
 				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
@@ -318,7 +322,7 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
-			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera, renderRegistry);
+			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera, renderRegistry, false, false);
 			textureSize = textureView->getInfo().getImage()->getSize(0);
 			
 			commandBuffer->imageMemoryBarrier(

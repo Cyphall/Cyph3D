@@ -37,14 +37,19 @@ RaytracePass::RaytracePass(const glm::uvec2& size):
 
 RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input)
 {
+	if (input.resetAccumulation)
+	{
+		_accumulatedSamples = 0;
+	}
+	
 	commandBuffer->imageMemoryBarrier(
 		_rawRenderImage,
 		0,
 		0,
-		vk::PipelineStageFlagBits2::eNone,
-		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eShaderStorageWrite,
+		vk::AccessFlagBits2::eShaderStorageRead | vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::ImageLayout::eGeneral);
 	
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
@@ -131,19 +136,17 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getCurrent());
 	VKHelper::buildHitShaderBindingTable(Engine::getVKContext(), _pipeline, _hitSBT.getCurrent());
 	
-	uint32_t accumulatedSamples = 0;
-	
 	for (int i = 0; i < input.sampleCount; i++)
 	{
 		PushConstants pushConstants{
 			.sampleIndex = _sampleIndex,
-			.resetAccumulation = i == 0
+			.resetAccumulation = _accumulatedSamples == 0
 		};
 		
 		commandBuffer->pushConstants(pushConstants);
 		
 		commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
-		accumulatedSamples++;
+		_accumulatedSamples++;
 		_sampleIndex++;
 		
 		commandBuffer->imageMemoryBarrier(
@@ -160,7 +163,7 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	return {
 		.rawRenderImageView = _rawRenderImageView,
-		.accumulatedSamples = accumulatedSamples
+		.accumulatedSamples = _accumulatedSamples
 	};
 }
 
@@ -304,4 +307,6 @@ void RaytracePass::createImage()
 		vk::ImageViewType::e2D);
 	
 	_rawRenderImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
+	
+	_accumulatedSamples = 0;
 }

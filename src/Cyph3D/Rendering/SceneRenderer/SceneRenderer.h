@@ -19,7 +19,7 @@ public:
 	SceneRenderer(std::string_view name, glm::uvec2 size);
 	virtual ~SceneRenderer() = default;
 	
-	const VKPtr<VKImageView>& render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry);
+	const VKPtr<VKImageView>& render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged);
 	void resize(glm::uvec2 size);
 
 	glm::uvec2 getSize() const;
@@ -36,6 +36,6 @@ protected:
 	PerfStep _renderPerf;
 	GpuPerfCounter _perfCounter;
 	
-	virtual const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry) = 0;
+	virtual const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) = 0;
 	virtual void onResize() = 0;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <sigslot/signal.hpp>
 
 class AssetManager;
 
@@ -22,6 +23,11 @@ public:
 	{
 		return _signature;
 	}
+	
+	sigslot::signal<>& getChangedSignal()
+	{
+		return _changed;
+	}
 
 protected:
 	explicit RuntimeAsset(AssetManager& manager, const TSignature& signature):
@@ -42,4 +48,6 @@ protected:
 	
 	AssetManager& _manager;
 	TSignature _signature;
+	
+	sigslot::signal<> _changed;
 };

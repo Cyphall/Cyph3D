@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Cyph3D/Entity/Entity.h"
+
 #include <memory>
 #include <vector>
 
@@ -16,7 +18,7 @@ public:
 	
 	ComponentIterator() = default;
 	
-	explicit ComponentIterator(std::vector<std::unique_ptr<Component>>::iterator it);
+	explicit ComponentIterator(std::vector<Entity::ComponentContainer>::iterator it);
 	
 	ComponentIterator& operator++();
 	ComponentIterator operator++(int);
@@ -27,8 +29,8 @@ public:
 	Component& operator*();
 	Component* operator->();
 	
-	std::vector<std::unique_ptr<Component>>::iterator getUnderlyingIterator();
+	std::vector<Entity::ComponentContainer>::iterator getUnderlyingIterator();
 	
 private:
-	std::vector<std::unique_ptr<Component>>::iterator _it;
+	std::vector<Entity::ComponentContainer>::iterator _it;
 };

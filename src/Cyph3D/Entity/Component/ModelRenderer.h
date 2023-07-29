@@ -51,9 +51,11 @@ public:
 private:
 	std::optional<std::string> _materialPath;
 	MaterialAsset* _material = nullptr;
+	sigslot::connection _materialChangedConnection;
 	
 	std::optional<std::string> _meshPath;
 	MeshAsset* _mesh = nullptr;
+	sigslot::connection _meshChangedConnection;
 	
 	bool _contributeShadows = true;
 };

@@ -21,10 +21,12 @@
 #include <format>
 #include <stdexcept>
 
+std::atomic_uint64_t Scene::_changeVersion = 0;
+
 Scene::Scene():
 _root(Transform::createSceneRoot())
 {
-
+	_changeVersion++;
 }
 
 Scene::~Scene()
@@ -52,7 +54,15 @@ void Scene::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 
 Entity& Scene::createEntity(Transform& parent)
 {
-	return *_entities.emplace_back(std::make_unique<Entity>(parent, *this));
+	EntityContainer& container = _entities.emplace_back();
+	container.entity = std::make_unique<Entity>(parent, *this);
+	container.entityChangedConnection = container.entity->getChangedSignal().connect([](){
+		_changeVersion++;
+	});
+	
+	_changeVersion++;
+	
+	return *container.entity;
 }
 
 EntityIterator Scene::findEntity(Entity& entity)
@@ -114,12 +124,18 @@ void Scene::setSkyboxPath(std::optional<std::string_view> path)
 	{
 		_skyboxPath = *path;
 		_skybox = Engine::getAssetManager().loadSkybox(*path);
+		_skyboxChangedConnection = _skybox->getChangedSignal().connect([](){
+			_changeVersion++;
+		});
 	}
 	else
 	{
 		_skyboxPath = std::nullopt;
 		_skybox = nullptr;
+		_skyboxChangedConnection = {};
 	}
+	
+	_changeVersion++;
 }
 
 SkyboxAsset* Scene::getSkybox()
@@ -135,6 +151,8 @@ float Scene::getSkyboxRotation() const
 void Scene::setSkyboxRotation(float rotation)
 {
 	_skyboxRotation = rotation;
+	
+	_changeVersion++;
 }
 
 void Scene::load(const std::filesystem::path& path)
@@ -300,4 +318,11 @@ const std::string& Scene::getName() const
 void Scene::setName(const std::string& name)
 {
 	_name = name;
+	
+	_changeVersion++;
+}
+
+uint64_t Scene::getChangeVersion()
+{
+	return _changeVersion;
 }
