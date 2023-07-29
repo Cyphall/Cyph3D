@@ -3,6 +3,7 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/ObjectSerialization.h"
+#include "Cyph3D/UI/Window/UIMisc.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
@@ -39,6 +40,11 @@ void Animator::setAngularVelocity(glm::vec3 angularVelicoty)
 
 void Animator::onUpdate()
 {
+	if (!UIMisc::isSimulationEnabled())
+	{
+		return;
+	}
+	
 	double deltaTime = Engine::getTimer().deltaTime();
 	
 	Transform& transform = getTransform();

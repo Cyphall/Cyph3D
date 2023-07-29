@@ -14,6 +14,7 @@
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
 int UIMisc::_sampleCount = 1024;
+bool UIMisc::_simulationEnabled = true;
 
 void UIMisc::show()
 {
@@ -51,6 +52,8 @@ void UIMisc::show()
 			}
 		}
 		
+		ImGui::Checkbox("Simulate", &_simulationEnabled);
+		
 		if (Engine::getVKContext().isRayTracingSupported())
 		{
 			ImGui::Separator();
@@ -75,6 +78,11 @@ void UIMisc::show()
 	}
 	
 	ImGui::End();
+}
+
+bool UIMisc::isSimulationEnabled()
+{
+	return _simulationEnabled;
 }
 
 void UIMisc::displayPerfStep(const PerfStep& perfStep)
