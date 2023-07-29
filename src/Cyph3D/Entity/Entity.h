@@ -45,7 +45,7 @@ public:
 	const Transform& getTransform() const;
 	
 	const std::string& getName() const;
-	void setName(std::string name);
+	void setName(const std::string& name);
 	
 	void onDrawUi() override;
 	void onUpdate();

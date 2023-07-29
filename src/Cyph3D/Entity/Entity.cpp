@@ -135,7 +135,7 @@ const std::string& Entity::getName() const
 	return _name;
 }
 
-void Entity::setName(std::string name)
+void Entity::setName(const std::string& name)
 {
 	_name = name;
 }
