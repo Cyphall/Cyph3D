@@ -112,8 +112,9 @@ void UIViewport::show()
 				raytracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
 			}
 			
-			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, _sceneChangeVersion != Scene::getChangeVersion(), cameraChanged);
-			_sceneChangeVersion = Scene::getChangeVersion();
+			uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
+			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, currentSceneChangeVersion != _sceneChangeVersion, cameraChanged);
+			_sceneChangeVersion = currentSceneChangeVersion;
 			
 			ImGui::Image(
 				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
