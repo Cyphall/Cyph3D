@@ -7,6 +7,7 @@
 #include "Cyph3D/Rendering/SceneRenderer/RaytracingSceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
+#include "Cyph3D/UI/Window/UIMisc.h"
 #include "Cyph3D/Window.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
@@ -104,6 +105,12 @@ void UIViewport::show()
 			
 			_renderRegistry.clear();
 			Engine::getScene().onPreRender(_renderRegistry, _camera);
+			
+			RaytracingSceneRenderer* raytracingSceneRenderer = dynamic_cast<RaytracingSceneRenderer*>(_sceneRenderer.get());
+			if (raytracingSceneRenderer)
+			{
+				raytracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
+			}
 			
 			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, _sceneChangeVersion != Scene::getChangeVersion(), cameraChanged);
 			_sceneChangeVersion = Scene::getChangeVersion();
