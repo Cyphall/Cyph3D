@@ -87,5 +87,5 @@ private:
 	std::optional<std::string> _znegPath;
 	
 	CubemapAsset* _cubemap = nullptr;
-	sigslot::connection _cubemapChangedConnection;
+	sigslot::scoped_connection _cubemapChangedConnection;
 };

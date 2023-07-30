@@ -76,14 +76,14 @@ private:
 	struct ComponentContainer
 	{
 		std::unique_ptr<Component> component;
-		sigslot::connection componentChangedConnection;
+		sigslot::scoped_connection componentChangedConnection;
 	};
 	
 	std::string _name = "New Entity";
 	std::vector<ComponentContainer> _components;
 	Scene& _scene;
 	Transform _transform;
-	sigslot::connection _transformChangedConnection;
+	sigslot::scoped_connection _transformChangedConnection;
 	
 	sigslot::signal<> _changed;
 	

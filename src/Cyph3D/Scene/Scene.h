@@ -52,7 +52,7 @@ private:
 	struct EntityContainer
 	{
 		std::unique_ptr<Entity> entity;
-		sigslot::connection entityChangedConnection;
+		sigslot::scoped_connection entityChangedConnection;
 	};
 	
 	std::unique_ptr<Transform> _root;
@@ -61,7 +61,7 @@ private:
 	
 	std::optional<std::string> _skyboxPath;
 	SkyboxAsset* _skybox = nullptr;
-	sigslot::connection _skyboxChangedConnection;
+	sigslot::scoped_connection _skyboxChangedConnection;
 	float _skyboxRotation = 0;
 	
 	static std::atomic_uint64_t _changeVersion;
