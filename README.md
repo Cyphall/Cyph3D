@@ -17,14 +17,14 @@ This project is a full C++ rewrite of my [original C# 3D engine](https://github.
 - [x] Point Light Shadows
 - [x] Directional Light Shadows
 
-#### Path-tracing renderer
+#### Path tracing renderer
 
 - [ ] Denoising
-- [ ] Viewport accumulation
+- [x] Viewport accumulation
 - [ ] Parallax Occlusion Mapping or equivalent
 - [ ] Normal Maps or equivalent
 
-#### Post-processing
+#### Post-processing effects
 - [x] Exposure
 - [x] Bloom
 - [x] ACES Tone-mapping

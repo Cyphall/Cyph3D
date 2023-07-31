@@ -1,4 +1,4 @@
-#include "RaytracePass.h"
+#include "PathTracePass.h"
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Scene/Scene.h"
@@ -25,8 +25,8 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
-RaytracePass::RaytracePass(const glm::uvec2& size):
-	RenderPass(size, "Raytrace pass")
+PathTracePass::PathTracePass(const glm::uvec2& size):
+	RenderPass(size, "Path trace pass")
 {
 	createBuffers();
 	createDescriptorSetLayout();
@@ -35,7 +35,7 @@ RaytracePass::RaytracePass(const glm::uvec2& size):
 	createImage();
 }
 
-RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input)
+PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input)
 {
 	if (input.resetAccumulation)
 	{
@@ -167,12 +167,12 @@ RaytracePassOutput RaytracePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	};
 }
 
-void RaytracePass::onResize()
+void PathTracePass::onResize()
 {
 	createImage();
 }
 
-void RaytracePass::createBuffers()
+void PathTracePass::createBuffers()
 {
 	VKBufferInfo globalUniformsBufferInfo(1, vk::BufferUsageFlagBits::eUniformBuffer);
 	globalUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -256,7 +256,7 @@ void RaytracePass::createBuffers()
 	});
 }
 
-void RaytracePass::createDescriptorSetLayout()
+void PathTracePass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1);
@@ -267,7 +267,7 @@ void RaytracePass::createDescriptorSetLayout()
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void RaytracePass::createPipelineLayout()
+void PathTracePass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
@@ -277,19 +277,19 @@ void RaytracePass::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void RaytracePass::createPipeline()
+void PathTracePass::createPipeline()
 {
 	VKRayTracingPipelineInfo info(
 		_pipelineLayout,
-		"resources/shaders/internal/raytracing/raytrace.rgen");
+		"resources/shaders/internal/path tracing/path trace.rgen");
 	
-	info.addRayType("resources/shaders/internal/raytracing/raytrace.rmiss");
-	info.addObjectTypeForRayType(0, "resources/shaders/internal/raytracing/raytrace.rchit", std::nullopt, std::nullopt);
+	info.addRayType("resources/shaders/internal/path tracing/path trace.rmiss");
+	info.addObjectTypeForRayType(0, "resources/shaders/internal/path tracing/path trace.rchit", std::nullopt, std::nullopt);
 	
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }
 
-void RaytracePass::createImage()
+void PathTracePass::createImage()
 {
 	VKImageInfo imageInfo(
 		SceneRenderer::ACCUMULATION_FORMAT,

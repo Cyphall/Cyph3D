@@ -35,7 +35,7 @@ private:
 	enum class RendererType
 	{
 		Rasterization,
-		Raytracing
+		PathTracing
 	};
 	
 	static std::unique_ptr<SceneRenderer> _sceneRenderer;

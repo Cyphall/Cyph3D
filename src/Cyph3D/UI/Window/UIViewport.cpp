@@ -4,7 +4,7 @@
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Rendering/SceneRenderer/RasterizationSceneRenderer.h"
-#include "Cyph3D/Rendering/SceneRenderer/RaytracingSceneRenderer.h"
+#include "Cyph3D/Rendering/SceneRenderer/PathTracingSceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIMisc.h"
@@ -79,8 +79,8 @@ void UIViewport::show()
 					case RendererType::Rasterization:
 						_sceneRenderer = std::make_unique<RasterizationSceneRenderer>(viewportSize);
 						break;
-					case RendererType::Raytracing:
-						_sceneRenderer = std::make_unique<RaytracingSceneRenderer>(viewportSize);
+					case RendererType::PathTracing:
+						_sceneRenderer = std::make_unique<PathTracingSceneRenderer>(viewportSize);
 						break;
 				}
 			}
@@ -106,10 +106,10 @@ void UIViewport::show()
 			_renderRegistry.clear();
 			Engine::getScene().onPreRender(_renderRegistry, _camera);
 			
-			RaytracingSceneRenderer* raytracingSceneRenderer = dynamic_cast<RaytracingSceneRenderer*>(_sceneRenderer.get());
-			if (raytracingSceneRenderer)
+			PathTracingSceneRenderer* pathTracingSceneRenderer = dynamic_cast<PathTracingSceneRenderer*>(_sceneRenderer.get());
+			if (pathTracingSceneRenderer)
 			{
-				raytracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
+				pathTracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
 			}
 			
 			uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
@@ -269,7 +269,7 @@ void UIViewport::drawHeader()
 	{
 		for (UIViewport::RendererType sceneRendererType : magic_enum::enum_values<UIViewport::RendererType>())
 		{
-			if (sceneRendererType == RendererType::Raytracing && !Engine::getVKContext().isRayTracingSupported())
+			if (sceneRendererType == RendererType::PathTracing && !Engine::getVKContext().isRayTracingSupported())
 			{
 				continue;
 			}
@@ -315,7 +315,7 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 		return;
 	}
 
-	RaytracingSceneRenderer renderer(resolution);
+	PathTracingSceneRenderer renderer(resolution);
 	
 	renderer.setSampleCountPerRender(sampleCount);
 

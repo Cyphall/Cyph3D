@@ -1,4 +1,4 @@
-#include "RaytracingSceneRenderer.h"
+#include "PathTracingSceneRenderer.h"
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
@@ -7,9 +7,9 @@
 #include "Cyph3D/Rendering/Pass/ExposurePass.h"
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 
-RaytracingSceneRenderer::RaytracingSceneRenderer(glm::uvec2 size):
-	SceneRenderer("Raytracing SceneRenderer", size),
-	_raytracePass(size),
+PathTracingSceneRenderer::PathTracingSceneRenderer(glm::uvec2 size):
+	SceneRenderer("Path tracing SceneRenderer", size),
+	_pathTracePass(size),
 	_normalizationPass(size),
 	_exposurePass(size),
 	_bloomPass(size),
@@ -18,24 +18,24 @@ RaytracingSceneRenderer::RaytracingSceneRenderer(glm::uvec2 size):
 
 }
 
-void RaytracingSceneRenderer::setSampleCountPerRender(uint32_t count)
+void PathTracingSceneRenderer::setSampleCountPerRender(uint32_t count)
 {
 	_sampleCount = count;
 }
 
-const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
-	RaytracePassInput raytracePassInput{
+	PathTracePassInput pathTracePassInput{
 		.registry = registry,
 		.camera = camera,
 		.sampleCount = _sampleCount,
 		.resetAccumulation = sceneChanged || cameraChanged
 	};
 	
-	RaytracePassOutput raytracePassOutput = _raytracePass.render(commandBuffer, raytracePassInput, _renderPerf);
+	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		raytracePassOutput.rawRenderImageView->getInfo().getImage(),
+		pathTracePassOutput.rawRenderImageView->getInfo().getImage(),
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
@@ -45,8 +45,8 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 		vk::ImageLayout::eReadOnlyOptimal);
 	
 	NormalizationPassInput normalizationPassInput{
-		.inputImageView = raytracePassOutput.rawRenderImageView,
-		.accumulatedSamples = raytracePassOutput.accumulatedSamples
+		.inputImageView = pathTracePassOutput.rawRenderImageView,
+		.accumulatedSamples = pathTracePassOutput.accumulatedSamples
 	};
 	
 	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput, _renderPerf);
@@ -113,9 +113,9 @@ const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKComman
 	return toneMappingPassOutput.outputImageView;
 }
 
-void RaytracingSceneRenderer::onResize()
+void PathTracingSceneRenderer::onResize()
 {
-	_raytracePass.resize(_size);
+	_pathTracePass.resize(_size);
 	_normalizationPass.resize(_size);
 	_exposurePass.resize(_size);
 	_bloomPass.resize(_size);

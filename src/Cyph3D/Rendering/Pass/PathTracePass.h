@@ -17,7 +17,7 @@ class VKRayTracingPipeline;
 class VKImage;
 class VKImageView;
 
-struct RaytracePassInput
+struct PathTracePassInput
 {
 	const RenderRegistry& registry;
 	Camera& camera;
@@ -25,16 +25,16 @@ struct RaytracePassInput
 	bool resetAccumulation;
 };
 
-struct RaytracePassOutput
+struct PathTracePassOutput
 {
 	const VKPtr<VKImageView>& rawRenderImageView;
 	uint32_t accumulatedSamples;
 };
 
-class RaytracePass : public RenderPass<RaytracePassInput, RaytracePassOutput>
+class PathTracePass : public RenderPass<PathTracePassInput, PathTracePassOutput>
 {
 public:
-	explicit RaytracePass(const glm::uvec2& size);
+	explicit PathTracePass(const glm::uvec2& size);
 
 private:
 	struct GlobalUniforms
@@ -92,7 +92,7 @@ private:
 	uint32_t _sampleIndex = 0;
 	uint32_t _accumulatedSamples = 0;
 	
-	RaytracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input) override;
+	PathTracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input) override;
 	void onResize() override;
 	
 	void createBuffers();
