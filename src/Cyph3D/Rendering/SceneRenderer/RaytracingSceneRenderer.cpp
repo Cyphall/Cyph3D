@@ -23,12 +23,13 @@ void RaytracingSceneRenderer::setSampleCountPerRender(uint32_t count)
 	_sampleCount = count;
 }
 
-const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry)
+const VKPtr<VKImageView>& RaytracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	RaytracePassInput raytracePassInput{
 		.registry = registry,
 		.camera = camera,
-		.sampleCount = _sampleCount
+		.sampleCount = _sampleCount,
+		.resetAccumulation = sceneChanged || cameraChanged
 	};
 	
 	RaytracePassOutput raytracePassOutput = _raytracePass.render(commandBuffer, raytracePassInput, _renderPerf);

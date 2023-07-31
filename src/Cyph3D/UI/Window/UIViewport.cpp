@@ -7,6 +7,7 @@
 #include "Cyph3D/Rendering/SceneRenderer/RaytracingSceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
+#include "Cyph3D/UI/Window/UIMisc.h"
 #include "Cyph3D/Window.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
@@ -19,6 +20,7 @@
 
 std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
 UIViewport::RendererType UIViewport::_sceneRendererType = UIViewport::RendererType::Rasterization;
+uint64_t UIViewport::_sceneChangeVersion = -1;
 
 glm::uvec2 UIViewport::_previousViewportSize = {0, 0};
 
@@ -93,16 +95,26 @@ void UIViewport::show()
 				_camera.setAspectRatio(static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y));
 			}
 			
+			bool cameraChanged = false;
+			
 			if (_cameraFocused)
 			{
-				_camera.update(window.getCursorPos() - _lockedCursorPos);
+				cameraChanged = _camera.update(window.getCursorPos() - _lockedCursorPos);
 				window.setCursorPos(_lockedCursorPos);
 			}
 			
 			_renderRegistry.clear();
 			Engine::getScene().onPreRender(_renderRegistry, _camera);
 			
-			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry);
+			RaytracingSceneRenderer* raytracingSceneRenderer = dynamic_cast<RaytracingSceneRenderer*>(_sceneRenderer.get());
+			if (raytracingSceneRenderer)
+			{
+				raytracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
+			}
+			
+			uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
+			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, currentSceneChangeVersion != _sceneChangeVersion, cameraChanged);
+			_sceneChangeVersion = currentSceneChangeVersion;
 			
 			ImGui::Image(
 				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
@@ -318,7 +330,7 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
-			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera, renderRegistry);
+			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera, renderRegistry, false, false);
 			textureSize = textureView->getInfo().getImage()->getSize(0);
 			
 			commandBuffer->imageMemoryBarrier(

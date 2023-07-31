@@ -18,7 +18,9 @@ std::map<std::string, std::function<Component&(Entity&)>> Entity::_componentFact
 Entity::Entity(Transform& parent, Scene& scene):
 _transform(this, &parent), _scene(scene)
 {
-
+	_transformChangedConnection = _transform.getChangedSignal().connect([this](){
+		_changed();
+	});
 }
 
 ComponentIterator Entity::begin()
@@ -129,6 +131,11 @@ void Entity::deserialize(const ObjectSerialization& entitySerialization)
 	}
 }
 
+sigslot::signal<>& Entity::getChangedSignal()
+{
+	return _changed;
+}
+
 const std::string& Entity::getName() const
 {
 	return _name;
@@ -137,6 +144,8 @@ const std::string& Entity::getName() const
 void Entity::setName(const std::string& name)
 {
 	_name = name;
+	
+	_changed();
 }
 
 void Entity::onDrawUi()

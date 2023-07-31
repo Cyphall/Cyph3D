@@ -22,6 +22,7 @@ struct RaytracePassInput
 	const RenderRegistry& registry;
 	Camera& camera;
 	uint32_t sampleCount;
+	bool resetAccumulation;
 };
 
 struct RaytracePassOutput
@@ -89,6 +90,7 @@ private:
 	VKPtr<VKImageView> _rawRenderImageView;
 	
 	uint32_t _sampleIndex = 0;
+	uint32_t _accumulatedSamples = 0;
 	
 	RaytracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, RaytracePassInput& input) override;
 	void onResize() override;

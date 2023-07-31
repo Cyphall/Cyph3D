@@ -56,6 +56,8 @@ void PointLight::setCastShadows(bool value)
 		_shadowMap = {};
 		_shadowMapView = {};
 	}
+	
+	_changed();
 }
 
 bool PointLight::getCastShadows() const
@@ -74,6 +76,8 @@ void PointLight::setResolution(int value)
 	
 	if (castShadows)
 		setCastShadows(true);
+	
+	_changed();
 }
 
 int PointLight::getResolution() const
@@ -212,4 +216,6 @@ float PointLight::getRadius() const
 void PointLight::setRadius(float value)
 {
 	_radius = value;
+	
+	_changed();
 }

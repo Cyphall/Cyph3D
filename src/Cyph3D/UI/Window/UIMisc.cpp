@@ -13,7 +13,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
-int UIMisc::_sampleCount = 1024;
+int UIMisc::_renderSampleCount = 1024;
+bool UIMisc::_simulationEnabled = true;
+int UIMisc::_viewportSampleCount = 8;
 
 void UIMisc::show()
 {
@@ -51,17 +53,23 @@ void UIMisc::show()
 			}
 		}
 		
+		ImGui::Checkbox("Simulate", &_simulationEnabled);
+		
 		if (Engine::getVKContext().isRayTracingSupported())
 		{
 			ImGui::Separator();
 			
+			ImGui::SliderInt("Viewport Sample Count", &_viewportSampleCount, 1, 256);
+			
+			ImGui::Separator();
+			
 			ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
 			
-			ImGui::InputInt("Sample count", &_sampleCount, 1, 128);
+			ImGui::InputInt("Render Sample Count", &_renderSampleCount, 1, 128);
 			
 			if (ImGui::Button("Render to file"))
 			{
-				UIViewport::renderToFile(_resolution, _sampleCount);
+				UIViewport::renderToFile(_resolution, _renderSampleCount);
 			}
 		}
 
@@ -75,6 +83,16 @@ void UIMisc::show()
 	}
 	
 	ImGui::End();
+}
+
+bool UIMisc::isSimulationEnabled()
+{
+	return _simulationEnabled;
+}
+
+int UIMisc::viewportSampleCount()
+{
+	return _viewportSampleCount;
 }
 
 void UIMisc::displayPerfStep(const PerfStep& perfStep)

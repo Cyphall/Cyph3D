@@ -168,7 +168,7 @@ void UIHelper::initDockingLayout(ImGuiID dockspaceId)
 	remainingWidth -= panelWidth;
 	
 	ImGuiID miscId;
-	ImGui::DockBuilderSplitNode(inspectorId, ImGuiDir_Up, 0.2f, &miscId, &inspectorId);
+	ImGui::DockBuilderSplitNode(inspectorId, ImGuiDir_Up, 0.3f, &miscId, &inspectorId);
 	ImGui::DockBuilderDockWindow("Inspector", inspectorId);
 	ImGui::DockBuilderDockWindow("Misc", miscId);
 	

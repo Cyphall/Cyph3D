@@ -128,6 +128,8 @@ void SkyboxAsset::setXposPath(std::optional<std::string_view> path)
 {
 	_xposPath = path;
 	onPathChange();
+	
+	_changed();
 }
 
 const std::string* SkyboxAsset::getXnegPath() const
@@ -139,6 +141,8 @@ void SkyboxAsset::setXnegPath(std::optional<std::string_view> path)
 {
 	_xnegPath = path;
 	onPathChange();
+	
+	_changed();
 }
 
 const std::string* SkyboxAsset::getYposPath() const
@@ -150,6 +154,8 @@ void SkyboxAsset::setYposPath(std::optional<std::string_view> path)
 {
 	_yposPath = path;
 	onPathChange();
+	
+	_changed();
 }
 
 const std::string* SkyboxAsset::getYnegPath() const
@@ -161,6 +167,8 @@ void SkyboxAsset::setYnegPath(std::optional<std::string_view> path)
 {
 	_ynegPath = path;
 	onPathChange();
+	
+	_changed();
 }
 
 const std::string* SkyboxAsset::getZposPath() const
@@ -172,6 +180,8 @@ void SkyboxAsset::setZposPath(std::optional<std::string_view> path)
 {
 	_zposPath = path;
 	onPathChange();
+	
+	_changed();
 }
 
 const std::string* SkyboxAsset::getZnegPath() const
@@ -183,6 +193,8 @@ void SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
 {
 	_znegPath = path;
 	onPathChange();
+	
+	_changed();
 }
 
 const uint32_t& SkyboxAsset::getBindlessIndex() const
@@ -411,9 +423,13 @@ void SkyboxAsset::onPathChange()
 			_zposPath.value(),
 			ImageType::Skybox
 		);
+		_cubemapChangedConnection = _cubemap->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_cubemap = nullptr;
+		_cubemapChangedConnection = {};
 	}
 }

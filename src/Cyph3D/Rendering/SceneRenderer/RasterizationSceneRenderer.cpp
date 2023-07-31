@@ -19,7 +19,7 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 
 }
 
-const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry)
+const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	ZPrepassInput zPrepassInput{
 		.registry = registry,

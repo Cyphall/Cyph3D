@@ -40,6 +40,7 @@ private:
 	
 	static std::unique_ptr<SceneRenderer> _sceneRenderer;
 	static RendererType _sceneRendererType;
+	static uint64_t _sceneChangeVersion;
 	
 	static glm::uvec2 _previousViewportSize;
 	

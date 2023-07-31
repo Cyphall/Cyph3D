@@ -34,12 +34,18 @@ void ModelRenderer::setMaterialPath(std::optional<std::string_view> path)
 	{
 		_materialPath = *path;
 		_material = Engine::getAssetManager().loadMaterial(path.value());
+		_materialChangedConnection = _material->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_materialPath = std::nullopt;
 		_material = nullptr;
+		_materialChangedConnection = {};
 	}
+	
+	_changed();
 }
 
 MaterialAsset* ModelRenderer::getMaterial() const
@@ -58,12 +64,18 @@ void ModelRenderer::setMeshPath(std::optional<std::string_view> path)
 	{
 		_meshPath = *path;
 		_mesh = Engine::getAssetManager().loadMesh(*path);
+		_meshChangedConnection = _mesh->getChangedSignal().connect([this](){
+			_changed();
+		});
 	}
 	else
 	{
 		_meshPath = std::nullopt;
 		_mesh = nullptr;
+		_meshChangedConnection = {};
 	}
+	
+	_changed();
 }
 
 MeshAsset* ModelRenderer::getMesh() const
@@ -79,6 +91,8 @@ bool ModelRenderer::getContributeShadows() const
 void ModelRenderer::setContributeShadows(bool contributeShadows)
 {
 	_contributeShadows = contributeShadows;
+	
+	_changed();
 }
 
 ObjectSerialization ModelRenderer::serialize() const

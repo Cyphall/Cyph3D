@@ -150,6 +150,8 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getCubemapSampler());
+	
+	_changed();
 
 	_loaded = true;
 	Logger::info(std::format("Cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})] uploaded succesfully",

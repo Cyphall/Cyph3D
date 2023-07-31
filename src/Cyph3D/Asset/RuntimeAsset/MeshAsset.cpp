@@ -166,6 +166,8 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		workerData.computeCommandBuffer->waitExecution();
 		workerData.computeCommandBuffer->reset();
 	}
+	
+	_changed();
 
 	_loaded = true;
 	Logger::info(std::format("Mesh [{}] uploaded succesfully", _signature.path));

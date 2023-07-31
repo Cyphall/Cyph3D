@@ -46,6 +46,8 @@ void Transform::setParent(Transform* parent)
 	_parent->_children.push_back(this);
 	
 	invalidateWorldCache();
+	
+	_changed();
 }
 
 std::vector<Transform*>& Transform::getChildren()
@@ -96,6 +98,8 @@ void Transform::setLocalPosition(glm::vec3 position)
 	
 	_localPosition = position;
 	invalidateLocalCache();
+	
+	_changed();
 }
 
 glm::quat Transform::getLocalRotation() const
@@ -118,6 +122,8 @@ void Transform::setLocalRotation(glm::quat rotation)
 	
 	_localRotation = rotation;
 	invalidateLocalCache();
+	
+	_changed();
 }
 
 glm::vec3 Transform::getLocalScale() const
@@ -140,6 +146,8 @@ void Transform::setLocalScale(glm::vec3 scale)
 	
 	_localScale = scale;
 	invalidateLocalCache();
+	
+	_changed();
 }
 
 glm::vec3 Transform::getEulerLocalRotation() const
@@ -314,4 +322,9 @@ glm::vec3 Transform::localToParentDirection(glm::vec3 localDir) const
 glm::vec3 Transform::parentToLocalDirection(glm::vec3 worldDir) const
 {
 	return getParentToLocalMatrix() * glm::vec4(worldDir, 0);
+}
+
+sigslot::signal<>& Transform::getChangedSignal()
+{
+	return _changed;
 }
