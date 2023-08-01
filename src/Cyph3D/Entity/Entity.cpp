@@ -45,7 +45,11 @@ ComponentConstIterator Entity::end() const
 
 ComponentIterator Entity::removeComponent(ComponentIterator where)
 {
-	return ComponentIterator(_components.erase(where.getUnderlyingIterator()));
+	ComponentIterator newIt = ComponentIterator(_components.erase(where.getUnderlyingIterator()));
+	
+	_changed();
+	
+	return newIt;
 }
 
 Transform& Entity::getTransform()

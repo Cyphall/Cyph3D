@@ -85,7 +85,11 @@ EntityIterator Scene::removeEntity(EntityIterator where)
 		removeEntity(it);
 	}
 	
-	return EntityIterator(_entities.erase(where.getUnderlyingIterator()));
+	EntityIterator newIt = EntityIterator(_entities.erase(where.getUnderlyingIterator()));
+	
+	_changeVersion++;
+	
+	return newIt;
 }
 
 EntityIterator Scene::begin()
