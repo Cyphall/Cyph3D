@@ -44,12 +44,13 @@ This project is a full C++ rewrite of my [original C# 3D engine](https://github.
 
 ## Screenshots
 
-![](screenshots/01.jpg?raw=true "Dungeon Scene")
-![](screenshots/02.jpg?raw=true "Spaceship Scene")
-![](screenshots/03.jpg?raw=true "Cyph3D Interface")
-![](screenshots/04.jpg?raw=true "Alien Alter Scene #1")
-![](screenshots/05.jpg?raw=true "Alien Alter Scene #2")
-![](screenshots/06.jpg?raw=true "Egyptian Temple Scene")
+![](screenshots/01.jpg?raw=true "Cyph3D Interface")
+![](screenshots/02.jpg?raw=true "Dungeon Scene")
+![](screenshots/03.jpg?raw=true "Spaceship Scene")
+![](screenshots/04.jpg?raw=true "Alien Alter Scene")
+![](screenshots/05.jpg?raw=true "Egyptian Temple Scene")
+![](screenshots/06.jpg?raw=true "Path tracing demo Scene 1")
+![](screenshots/07.jpg?raw=true "Path tracing demo Scene 2")
 
 ## License
 
