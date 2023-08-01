@@ -109,6 +109,9 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	globalUniforms.cameraRayTR = input.camera.getCornerRays()[1];
 	globalUniforms.cameraRayBL = input.camera.getCornerRays()[2];
 	globalUniforms.cameraRayBR = input.camera.getCornerRays()[3];
+	globalUniforms.sampleIndex = _sampleIndex;
+	globalUniforms.sampleCount = input.sampleCount;
+	globalUniforms.resetAccumulation = _accumulatedSamples == 0;
 
 	SkyboxAsset* skybox = Engine::getScene().getSkybox();
 	if (skybox && skybox->isLoaded())
@@ -136,28 +139,10 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getCurrent());
 	VKHelper::buildHitShaderBindingTable(Engine::getVKContext(), _pipeline, _hitSBT.getCurrent());
 	
-	for (int i = 0; i < input.sampleCount; i++)
-	{
-		PushConstants pushConstants{
-			.sampleIndex = _sampleIndex,
-			.resetAccumulation = _accumulatedSamples == 0
-		};
-		
-		commandBuffer->pushConstants(pushConstants);
-		
-		commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
-		_accumulatedSamples++;
-		_sampleIndex++;
-		
-		commandBuffer->imageMemoryBarrier(
-			_rawRenderImage,
-			0,
-			0,
-			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eShaderStorageRead);
-	}
+	commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
+	
+	_accumulatedSamples += input.sampleCount;
+	_sampleIndex += input.sampleCount;
 	
 	commandBuffer->unbindPipeline();
 	
@@ -272,7 +257,6 @@ void PathTracePass::createPipelineLayout()
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<PushConstants>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }

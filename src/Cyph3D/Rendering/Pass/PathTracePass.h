@@ -44,6 +44,9 @@ private:
 		GLSL_vec3 cameraRayTR;
 		GLSL_vec3 cameraRayBL;
 		GLSL_vec3 cameraRayBR;
+		GLSL_uint sampleIndex;
+		GLSL_uint sampleCount;
+		GLSL_bool resetAccumulation;
 		GLSL_bool hasSkybox;
 		GLSL_uint skyboxIndex;
 		GLSL_mat4 skyboxRotation;
@@ -62,12 +65,6 @@ private:
 		GLSL_uint displacementIndex;
 		GLSL_uint emissiveIndex;
 		GLSL_float emissiveScale;
-	};
-	
-	struct PushConstants
-	{
-		GLSL_uint sampleIndex;
-		GLSL_bool resetAccumulation;
 	};
 	
 	VKDynamic<VKBuffer<GlobalUniforms>> _globalUniforms;

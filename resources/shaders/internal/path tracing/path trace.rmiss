@@ -24,6 +24,9 @@ layout(std430, set = 1, binding = 2) uniform uniforms
 	vec3 u_rayTR;
 	vec3 u_rayBL;
 	vec3 u_rayBR;
+	uint u_sampleIndex;
+	uint u_sampleCount;
+	bool u_resetAccumulation;
 	bool u_hasSkybox;
 	uint u_skyboxIndex;
 	mat4 u_skyboxRotation;
