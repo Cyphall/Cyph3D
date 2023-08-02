@@ -57,9 +57,9 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	
 	// create staging buffer
 	VKBufferInfo bufferInfo(_image->getLayerByteSize(),vk::BufferUsageFlagBits::eTransferSrc);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
 	
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
 	

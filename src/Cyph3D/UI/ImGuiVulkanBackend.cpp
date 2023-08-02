@@ -247,9 +247,9 @@ void ImGuiVulkanBackend::createFontsTexture()
 	uint64_t dataSize = width * height;
 	
 	VKBufferInfo bufferInfo(dataSize, vk::BufferUsageFlagBits::eTransferSrc);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	bufferInfo.addPreferredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
 	
 	VKPtr<VKBuffer<uint8_t>> stagingBuffer = VKBuffer<uint8_t>::create(Engine::getVKContext(), bufferInfo);
 	

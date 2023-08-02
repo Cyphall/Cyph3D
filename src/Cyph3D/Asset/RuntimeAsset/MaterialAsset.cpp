@@ -42,9 +42,9 @@ template<typename T>
 static void uploadImageData(const VKPtr<VKImage>& image, const T& value)
 {
 	VKBufferInfo bufferInfo(1, vk::BufferUsageFlagBits::eTransferSrc);
+	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
 	
 	VKPtr<VKBuffer<T>> stagingBuffer = VKBuffer<T>::create(Engine::getVKContext(), bufferInfo);
 	
