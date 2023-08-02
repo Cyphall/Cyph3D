@@ -3,7 +3,7 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 18) out;
 
-layout(std430, set = 0, binding = 0) buffer uniforms
+layout(std430, set = 0, binding = 0) readonly buffer uniforms
 {
 	mat4 u_viewProjections[6];
 	vec3 u_lightPos;

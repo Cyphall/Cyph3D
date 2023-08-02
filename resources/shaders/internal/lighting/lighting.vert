@@ -18,7 +18,7 @@ layout(location = 1) in vec2 a_uv;
 layout(location = 2) in vec3 a_normal;
 layout(location = 3) in vec3 a_tangent;
 
-layout(std430, set = 3, binding = 0) buffer UselessNameBecauseItIsNeverUsedAnywhere4
+layout(std430, set = 3, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere4
 {
 	ObjectUniforms u_objectUniforms;
 };
