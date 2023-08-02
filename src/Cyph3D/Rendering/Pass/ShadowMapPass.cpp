@@ -50,6 +50,8 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			.setLoadOpClear(1.0f)
 			.setStoreOpStore();
 		
+		commandBuffer->pushDebugGroup("Directional light");
+		
 		commandBuffer->beginRendering(renderingInfo);
 		
 		commandBuffer->bindPipeline(_directionalLightPipeline);
@@ -88,6 +90,8 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		commandBuffer->unbindPipeline();
 		
 		commandBuffer->endRendering();
+		
+		commandBuffer->popDebugGroup();
 	}
 	
 	int shadowCastingPointLights = 0;
@@ -130,6 +134,8 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		renderingInfo.setDepthAttachment(*pointLightRenderData.shadowMapTextureView)
 			.setLoadOpClear(1.0f)
 			.setStoreOpStore();
+		
+		commandBuffer->pushDebugGroup("Point light");
 		
 		commandBuffer->beginRendering(renderingInfo);
 		
@@ -178,6 +184,8 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		commandBuffer->unbindPipeline();
 		
 		commandBuffer->endRendering();
+		
+		commandBuffer->popDebugGroup();
 		
 		shadowCastingPointLightIndex++;
 	}
