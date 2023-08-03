@@ -19,7 +19,12 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 	}
 	else
 	{
-		vk::ImageCreateFlags flags = vk::ImageCreateFlagBits::eMutableFormat;
+		vk::ImageCreateFlags flags = {};
+		
+		if (_info.getCompatibleViewFormats().size() > 1)
+		{
+			flags |= vk::ImageCreateFlagBits::eMutableFormat;
+		}
 		
 		if (_info.isCubeCompatible())
 		{
