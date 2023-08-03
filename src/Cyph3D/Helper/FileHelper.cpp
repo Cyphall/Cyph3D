@@ -2,10 +2,12 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Window.h"
+#include "Cyph3D/Logging/Logger.h"
 
 #include <GLFW/glfw3.h>
 #undef APIENTRY
 #include <ShObjIdl_core.h>
+#include <ShlObj_core.h>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
@@ -189,6 +191,42 @@ std::optional<std::filesystem::path> FileHelper::fileDialogSave(const std::vecto
 	}
 	
 	return res;
+}
+
+void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folder, const std::vector<std::filesystem::path>& entries)
+{
+	PIDLIST_ABSOLUTE folderID;
+	HRESULT result = SHParseDisplayName(folder.wstring().c_str(), nullptr, &folderID, 0, nullptr);
+	
+	if (FAILED(result))
+	{
+		Logger::error(std::format("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result)));
+		return;
+	}
+	
+	std::vector<LPCITEMIDLIST> entriesID;
+	entriesID.reserve(entries.size());
+	
+	for (const std::filesystem::path& entry : entries)
+	{
+		LPITEMIDLIST entryID;
+		result = SHParseDisplayName(entry.wstring().c_str(), nullptr, &entryID, 0, nullptr);
+		
+		if (FAILED(result))
+		{
+			Logger::error(std::format("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result)));
+			return;
+		}
+		
+		entriesID.emplace_back(entryID);
+	}
+	
+	result = SHOpenFolderAndSelectItems(folderID, entriesID.size(), entriesID.data(), 0);
+	
+	if (FAILED(result))
+	{
+		Logger::error(std::format("Could not open folder in explorer and select entries: {}", std::system_category().message(result)));
+	}
 }
 
 const std::filesystem::path& FileHelper::getRootDirectoryPath()

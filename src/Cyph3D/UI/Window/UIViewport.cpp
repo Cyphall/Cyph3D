@@ -18,6 +18,16 @@
 #include <magic_enum.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+struct UIViewport::RenderToFileData
+{
+	uint64_t renderedSamples = 0;
+	uint64_t totalSamples = 0;
+	std::unique_ptr<PathTracingSceneRenderer> renderer;
+	Camera camera;
+	RenderRegistry registry;
+	std::filesystem::path outputFile;
+};
+
 std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
 UIViewport::RendererType UIViewport::_sceneRendererType = UIViewport::RendererType::Rasterization;
 uint64_t UIViewport::_sceneChangeVersion = -1;
@@ -40,6 +50,10 @@ RenderRegistry UIViewport::_renderRegistry;
 
 std::unique_ptr<ObjectPicker> UIViewport::_objectPicker;
 
+std::unique_ptr<UIViewport::RenderToFileData> UIViewport::_renderToFileData;
+bool UIViewport::_showRenderToFilePopup = false;
+VKPtr<VKImageView> UIViewport::_lastViewportImageView;
+
 void UIViewport::show()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -51,6 +65,17 @@ void UIViewport::show()
 	if (open)
 	{
 		drawHeader();
+		
+		if (_showRenderToFilePopup)
+		{
+			ImGui::OpenPopup("Rendering status");
+			_showRenderToFilePopup = false;
+		}
+		
+		if (_renderToFileData)
+		{
+			drawRenderToFilePopup();
+		}
 		
 		Window& window = Engine::getWindow();
 		
@@ -112,17 +137,83 @@ void UIViewport::show()
 				pathTracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
 			}
 			
-			uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
-			const VKPtr<VKImageView>& textureView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, currentSceneChangeVersion != _sceneChangeVersion, cameraChanged);
-			_sceneChangeVersion = currentSceneChangeVersion;
+			if (_renderToFileData)
+			{
+				uint64_t remainingSamples = _renderToFileData->totalSamples - _renderToFileData->renderedSamples;
+				uint64_t thisBatchSamples = std::min(remainingSamples, 16ull);
+				
+				_renderToFileData->renderer->setSampleCountPerRender(thisBatchSamples);
+				
+				VKPtr<VKImageView> textureView;
+				Engine::getVKContext().executeImmediate(
+					[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+					{
+						textureView = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
+					});
+				
+				_renderToFileData->renderedSamples += thisBatchSamples;
+				
+				if (_renderToFileData->renderedSamples == _renderToFileData->totalSamples)
+				{
+					VKPtr<VKBuffer<std::byte>> stagingBuffer;
+					Engine::getVKContext().executeImmediate(
+						[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+						{
+							commandBuffer->imageMemoryBarrier(
+								textureView->getInfo().getImage(),
+								0,
+								0,
+								vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+								vk::AccessFlagBits2::eColorAttachmentWrite,
+								vk::PipelineStageFlagBits2::eCopy,
+								vk::AccessFlagBits2::eTransferRead,
+								vk::ImageLayout::eTransferSrcOptimal);
+							
+							VKBufferInfo bufferInfo(textureView->getInfo().getImage()->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
+							bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+							bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+							bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+							
+							stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
+							
+							commandBuffer->copyImageToBuffer(textureView->getInfo().getImage(), 0, 0, stagingBuffer, 0);
+						});
+					
+					glm::ivec2 textureSize = textureView->getInfo().getImage()->getSize(0);
+					
+					if (_renderToFileData->outputFile.extension() == ".png")
+					{
+						stbi_write_png(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), textureSize.x * 4);
+					}
+					else if (_renderToFileData->outputFile.extension() == ".jpg")
+					{
+						stbi_write_jpg(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), 95);
+					}
+					
+					ImGui::CloseCurrentPopup();
+					
+					FileHelper::openExplorerAndSelectEntries(_renderToFileData->outputFile.parent_path(), {_renderToFileData->outputFile});
+					
+					_renderToFileData = {};
+				}
+			}
+			else
+			{
+				uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
+				_lastViewportImageView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, currentSceneChangeVersion != _sceneChangeVersion, cameraChanged);
+				_sceneChangeVersion = currentSceneChangeVersion;
+			}
 			
 			ImGui::Image(
-				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&textureView)),
-				glm::vec2(textureView->getInfo().getImage()->getSize(0)),
+				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&_lastViewportImageView)),
+				glm::vec2(_lastViewportImageView->getInfo().getImage()->getSize(0)),
 				ImVec2(0, 0),
 				ImVec2(1, 1));
 			
-			drawGizmo(viewportStartGlobal, viewportSize);
+			if (!_renderToFileData)
+			{
+				drawGizmo(viewportStartGlobal, viewportSize);
+			}
 			
 			if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
 			{
@@ -292,6 +383,18 @@ void UIViewport::drawHeader()
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() - style.ItemSpacing.y);
 }
 
+void UIViewport::drawRenderToFilePopup()
+{
+	if (ImGui::BeginPopupModal("Rendering status", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		int percent = (static_cast<float>(_renderToFileData->renderedSamples) / static_cast<float>(_renderToFileData->totalSamples)) * 100;
+		ImGui::Text("Rendering... %d%%", percent);
+		ImGui::Text("Rendered samples: %llu/%d", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
+		
+		ImGui::EndPopup();
+	}
+}
+
 bool UIViewport::isFullscreen()
 {
 	return _fullscreen;
@@ -314,53 +417,18 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	{
 		return;
 	}
-
-	PathTracingSceneRenderer renderer(resolution);
 	
-	renderer.setSampleCountPerRender(sampleCount);
-
-	Camera camera(_camera);
-	camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));
-
-	RenderRegistry renderRegistry;
-	Engine::getScene().onPreRender(renderRegistry, camera);
+	_showRenderToFilePopup = true;
 	
-	glm::ivec2 textureSize;
-	VKPtr<VKBuffer<std::byte>> stagingBuffer;
-	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-		{
-			const VKPtr<VKImageView>& textureView = renderer.render(commandBuffer, camera, renderRegistry, false, false);
-			textureSize = textureView->getInfo().getImage()->getSize(0);
-			
-			commandBuffer->imageMemoryBarrier(
-				textureView->getInfo().getImage(),
-				0,
-				0,
-				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-				vk::AccessFlagBits2::eColorAttachmentWrite,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferRead,
-				vk::ImageLayout::eTransferSrcOptimal);
-			
-			VKBufferInfo bufferInfo(textureView->getInfo().getImage()->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
-			bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-			bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-			bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
-			
-			stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
+	_renderToFileData = std::make_unique<UIViewport::RenderToFileData>();
+	_renderToFileData->renderedSamples = 0;
+	_renderToFileData->totalSamples = sampleCount;
+	_renderToFileData->renderer = std::make_unique<PathTracingSceneRenderer>(resolution);
+	_renderToFileData->camera = _camera;
+	_renderToFileData->camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));
+	_renderToFileData->outputFile = filePath.value();
 
-			commandBuffer->copyImageToBuffer(textureView->getInfo().getImage(), 0, 0, stagingBuffer, 0);
-		});
-
-	if (filePath->extension() == ".png")
-	{
-		stbi_write_png(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), textureSize.x * 4);
-	}
-	else if (filePath->extension() == ".jpg")
-	{
-		stbi_write_jpg(filePath->generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), 95);
-	}
+	Engine::getScene().onPreRender(_renderToFileData->registry, _renderToFileData->camera);
 }
 
 const PerfStep* UIViewport::getPreviousFramePerfStep()
@@ -377,4 +445,6 @@ void UIViewport::shutdown()
 {
 	_sceneRenderer = {};
 	_objectPicker = {};
+	_renderToFileData = {};
+	_lastViewportImageView = {};
 }
