@@ -678,13 +678,17 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	accelerationStructureFeatures.accelerationStructure = true;
 	accelerationStructureFeatures.pNext = &rayTracingPipelineFeatures;
 	
-	vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures;
-	bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+	vk::PhysicalDeviceMultiviewFeatures multiviewFeatures;
+	multiviewFeatures.multiview = true;
 	
 	if (_rayTracingSupported)
 	{
-		bufferDeviceAddressFeatures.pNext = &accelerationStructureFeatures;
+		multiviewFeatures.pNext = &accelerationStructureFeatures;
 	}
+	
+	vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures;
+	bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+	bufferDeviceAddressFeatures.pNext = &multiviewFeatures;
 	
 	vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures;
 	hostQueryResetFeatures.hostQueryReset = true;

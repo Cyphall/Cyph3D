@@ -223,7 +223,7 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 	vkRenderingInfo.renderArea.offset = vk::Offset2D(0, 0);
 	vkRenderingInfo.renderArea.extent = vk::Extent2D(renderingInfo.getSize().x, renderingInfo.getSize().y);
 	vkRenderingInfo.layerCount = renderingInfo.getLayers();
-	vkRenderingInfo.viewMask = 0;
+	vkRenderingInfo.viewMask = renderingInfo.getViewMask();
 	vkRenderingInfo.colorAttachmentCount = colorAttachments.size();
 	vkRenderingInfo.pColorAttachments = colorAttachments.data();
 	vkRenderingInfo.pDepthAttachment = nullptr;

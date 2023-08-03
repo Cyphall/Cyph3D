@@ -57,6 +57,9 @@ public:
 	void setRasterizationSampleCount(vk::SampleCountFlagBits sampleCount);
 	const vk::SampleCountFlagBits& getRasterizationSampleCount() const;
 	
+	void setViewMask(uint32_t viewMask);
+	const uint32_t& getViewMask() const;
+	
 private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	std::filesystem::path _vertexShader;
@@ -70,4 +73,5 @@ private:
 	std::optional<VKPipelineViewport> _staticViewport;
 	std::optional<VKPipelineScissor> _staticScissor;
 	vk::SampleCountFlagBits _rasterizationSampleCount = vk::SampleCountFlagBits::e1;
+	uint32_t _viewMask = 0;
 };

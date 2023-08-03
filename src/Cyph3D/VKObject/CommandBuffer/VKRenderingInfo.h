@@ -21,10 +21,14 @@ public:
 	VKRenderingDepthAttachmentInfo& setDepthAttachment(const VKPtr<VKImageView>& imageView);
 	bool hasDepthAttachment() const;
 	const VKRenderingDepthAttachmentInfo& getDepthAttachmentInfo() const;
+	
+	void setViewMask(uint32_t viewMask);
+	const uint32_t& getViewMask() const;
 
 private:
 	glm::uvec2 _size;
 	uint32_t _layers = 1;
 	std::vector<VKRenderingColorAttachmentInfo> _colorAttachmentsInfos;
 	std::optional<VKRenderingDepthAttachmentInfo> _depthAttachmentInfo;
+	uint32_t _viewMask = 0;
 };
