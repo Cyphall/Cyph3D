@@ -1,5 +1,5 @@
-.idea
-.vs
+/.idea
+/.vs
 
-bin
-vcpkg
+/bin
+/vcpkg
