@@ -30,7 +30,7 @@ This project is a full C++ rewrite of my [original C# 3D engine](https://github.
 - [x] ACES Tone-mapping
 
 ### UI
-  
+
 #### Windows
 - [x] Viewport
 - [x] Scene Hirarchy
@@ -54,8 +54,24 @@ This project is a full C++ rewrite of my [original C# 3D engine](https://github.
 
 ## License
 
-This work by [Cyphall](https://github.com/Cyphall) is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0).
+This work by [Cyphall](https://github.com/Cyphall) is licensed under the [Creative Commons Attribution Non Commercial Share Alike 4.0 International](https://spdx.org/licenses/CC-BY-NC-SA-4.0.html).
 
-## Dependencies Licenses
+## Third party licenses
 
-Font Awesome Free is licensed under [SIL OFL license](https://scripts.sil.org/OFL), see more on their [official website](https://fontawesome.com/license/free).
+[Font Awesome Free](https://fontawesome.com/license/free) is licensed under the [SIL Open Font License 1.1](https://spdx.org/licenses/OFL-1.1.html).<br/>
+[richgel999/bc7enc_rdo](https://github.com/richgel999/bc7enc_rdo) is licensed under the [Apache License 2.0](https://spdx.org/licenses/Apache-2.0.html).<br/>
+[bshoshany/thread-pool](https://github.com/bshoshany/thread-pool) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[ocornut/imgui](https://github.com/ocornut/imgui) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[CedricGuillemet/ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[palacaze/sigslot](https://github.com/palacaze/sigslot) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[YaaZ/VulkanMemoryAllocator-Hpp](https://github.com/YaaZ/VulkanMemoryAllocator-Hpp) is licensed under the [Creative Commons Zero v1.0 Universal](https://spdx.org/licenses/CC0-1.0.html).<br/>
+[GLFW](https://www.glfw.org/) is licensed under the [zlib License](https://spdx.org/licenses/Zlib.html).<br/>
+[g-truc/glm](https://github.com/g-truc/glm) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[nlohmann/json](https://github.com/nlohmann/json) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[assimp/assimp](https://github.com/assimp/assimp) is licensed under [their own license](https://github.com/assimp/assimp/blob/master/LICENSE).<br/>
+[nothings/stb](https://github.com/nothings/stb) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[Neargye/magic_enum](https://github.com/Neargye/magic_enum) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[FreeType](https://freetype.org) is licensed under the [Freetype Project License](https://spdx.org/licenses/FTL.html).<br/>
+[SRombauts/SQLiteCpp](https://github.com/SRombauts/SQLiteCpp) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[graeme-hill/crossguid](https://github.com/graeme-hill/crossguid) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
