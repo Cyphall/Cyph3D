@@ -77,8 +77,6 @@ private:
 	
 	void onPathChange();
 
-	std::string _path;
-
 	std::optional<std::string> _xposPath;
 	std::optional<std::string> _xnegPath;
 	std::optional<std::string> _yposPath;
