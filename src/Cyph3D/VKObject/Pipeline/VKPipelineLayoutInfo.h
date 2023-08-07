@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <optional>
+#include <vulkan/vulkan.hpp>
 
 class VKDescriptorSetLayout;
 
@@ -13,15 +14,17 @@ public:
 	struct PushConstantInfo
 	{
 		uint32_t size;
+		vk::ShaderStageFlags shaderStages;
 	};
 	
 	void addDescriptorSetLayout(const VKPtr<VKDescriptorSetLayout>& descriptorSetLayout);
 	
 	template<typename T>
-	void setPushConstantLayout()
+	void setPushConstantLayout(vk::ShaderStageFlags shaderStages = vk::ShaderStageFlagBits::eAll)
 	{
 		_pushConstantInfo = PushConstantInfo{
-			.size = sizeof(T)
+			.size = sizeof(T),
+			.shaderStages = shaderStages
 		};
 	}
 	

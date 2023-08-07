@@ -1009,7 +1009,9 @@ void VKCommandBuffer::pushConstants(const void* data, uint32_t dataSize)
 	if (_boundPipeline == nullptr)
 		throw;
 	
-	_commandBuffer.pushConstants(_boundPipeline->getPipelineLayout()->getHandle(), vk::ShaderStageFlagBits::eAll, 0, dataSize, data);
+	vk::ShaderStageFlags shaderStages = _boundPipeline->getPipelineLayout()->getInfo().getPushConstantInfo()->shaderStages;
+	
+	_commandBuffer.pushConstants(_boundPipeline->getPipelineLayout()->getHandle(), shaderStages, 0, dataSize, data);
 }
 
 const VKPtr<VKFence>& VKCommandBuffer::getStatusFence() const

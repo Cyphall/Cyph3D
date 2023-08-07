@@ -21,18 +21,20 @@ const std::vector<VKDescriptorSetLayoutInfo::BindingInfo>& VKDescriptorSetLayout
 	return _bindingInfos;
 }
 
-void VKDescriptorSetLayoutInfo::addBinding(vk::DescriptorType type, uint32_t count)
+void VKDescriptorSetLayoutInfo::addBinding(vk::DescriptorType type, uint32_t count, vk::ShaderStageFlags shaderStages)
 {
 	VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _bindingInfos.emplace_back();
 	bindingInfo.type = type;
 	bindingInfo.count = count;
 	bindingInfo.flags = {};
+	bindingInfo.shaderStages = shaderStages;
 }
 
-void VKDescriptorSetLayoutInfo::addIndexedBinding(vk::DescriptorType type, uint32_t upperBound)
+void VKDescriptorSetLayoutInfo::addIndexedBinding(vk::DescriptorType type, uint32_t upperBound, vk::ShaderStageFlags shaderStages)
 {
 	VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _bindingInfos.emplace_back();
 	bindingInfo.type = type;
 	bindingInfo.count = upperBound;
 	bindingInfo.flags = vk::DescriptorBindingFlagBits::eVariableDescriptorCount | vk::DescriptorBindingFlagBits::ePartiallyBound | vk::DescriptorBindingFlagBits::eUpdateAfterBind;
+	bindingInfo.shaderStages = shaderStages;
 }

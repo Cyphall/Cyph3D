@@ -32,7 +32,7 @@ VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInf
 			throw;
 		}
 		
-		pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eAll;
+		pushConstantRange.stageFlags = _info.getPushConstantInfo()->shaderStages;
 		pushConstantRange.size = _info.getPushConstantInfo()->size;
 		pushConstantRange.offset = 0;
 		

@@ -25,7 +25,7 @@ VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescrip
 		vkBinding.binding = i;
 		vkBinding.descriptorType = bindingInfo.type;
 		vkBinding.descriptorCount = bindingInfo.count;
-		vkBinding.stageFlags = vk::ShaderStageFlagBits::eAll;
+		vkBinding.stageFlags = bindingInfo.shaderStages;
 		vkBinding.pImmutableSamplers = nullptr;
 		
 		vkBindingsFlags.emplace_back(bindingInfo.flags);
