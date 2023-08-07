@@ -36,6 +36,8 @@ protected:
 	PerfStep _renderPerf;
 	GpuPerfCounter _perfCounter;
 	
+	bool _firstRender = true;
+	
 	virtual const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) = 0;
 	virtual void onResize() = 0;
 };

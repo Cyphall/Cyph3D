@@ -30,7 +30,8 @@ const VKPtr<VKImageView>& SceneRenderer::render(const VKPtr<VKCommandBuffer>& co
 	
 	_perfCounter.start(commandBuffer);
 	
-	const VKPtr<VKImageView>& result = onRender(commandBuffer, camera, registry, sceneChanged, cameraChanged);
+	const VKPtr<VKImageView>& result = onRender(commandBuffer, camera, registry, _firstRender || sceneChanged, _firstRender || cameraChanged);
+	_firstRender = false;
 	
 	_perfCounter.stop(commandBuffer);
 	
