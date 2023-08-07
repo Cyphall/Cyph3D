@@ -372,8 +372,6 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorWrite);
-	
-	_usedObjects.emplace_back(buffer);
 }
 
 void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
