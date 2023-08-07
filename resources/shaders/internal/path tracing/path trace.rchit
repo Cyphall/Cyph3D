@@ -38,7 +38,6 @@ layout(buffer_reference, std430, scalar) readonly buffer IndexBuffer
 struct ObjectUniforms
 {
 	mat4 normalMatrix;
-	mat4 model;
 	VertexBuffer vertexBuffer;
 	IndexBuffer indexBuffer;
 	uint albedoIndex;

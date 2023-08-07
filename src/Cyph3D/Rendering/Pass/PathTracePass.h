@@ -58,7 +58,6 @@ private:
 	struct ObjectUniforms
 	{
 		GLSL_mat4 normalMatrix;
-		GLSL_mat4 model;
 		GLSL_DeviceAddress vertexBuffer;
 		GLSL_DeviceAddress indexBuffer;
 		GLSL_uint albedoIndex;
