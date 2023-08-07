@@ -35,10 +35,9 @@ void VKRayTracingPipelineInfo::addRayType(const std::filesystem::path& missShade
 	rayTypeInfo.missShader = missShader;
 }
 
-void VKRayTracingPipelineInfo::addObjectTypeForRayType(uint32_t rayTypeIndex, std::optional<std::filesystem::path> closestHitShader, std::optional<std::filesystem::path> anyHitShader, std::optional<std::filesystem::path> intersectionShader)
+void VKRayTracingPipelineInfo::addObjectTypeForRayType(uint32_t rayTypeIndex, std::optional<std::filesystem::path> closestHitShader, std::optional<std::filesystem::path> anyHitShader)
 {
 	VKRayTracingPipelineInfo::ObjectTypeInfo& objectTypeInfo = _rayTypesInfos[rayTypeIndex].objectTypesInfos.emplace_back();
 	objectTypeInfo.closestHitShader = std::move(closestHitShader);
 	objectTypeInfo.anyHitShader = std::move(anyHitShader);
-	objectTypeInfo.intersectionShader = std::move(intersectionShader);
 }

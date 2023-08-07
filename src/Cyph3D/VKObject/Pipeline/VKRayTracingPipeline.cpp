@@ -37,6 +37,9 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipel
 		shaderGroupCreateInfo.intersectionShader = VK_SHADER_UNUSED_KHR;
 	}
 	
+	bool noNullClosestHit = true;
+	bool noNullAnyHit = true;
+	
 	for (const VKRayTracingPipelineInfo::RayTypeInfo& rayTypeInfo : _info.getRayTypesInfos())
 	{
 		{
@@ -59,7 +62,6 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipel
 		{
 			int64_t closestHitIndex = -1;
 			int64_t anyHitIndex = -1;
-			int64_t intersectionIndex = -1;
 			
 			if (objectTypeInfo.closestHitShader)
 			{
@@ -71,6 +73,10 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipel
 				shaderStageCreateInfo.pName = "main";
 				
 				closestHitIndex = shadersStagesCreateInfos.size() - 1;
+			}
+			else
+			{
+				noNullClosestHit = false;
 			}
 			
 			if (objectTypeInfo.anyHitShader)
@@ -84,17 +90,9 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipel
 				
 				anyHitIndex = shadersStagesCreateInfos.size() - 1;
 			}
-			
-			if (objectTypeInfo.intersectionShader)
+			else
 			{
-				VKPtr<VKShader>& intersectionShader = shaders.emplace_back(VKShader::create(_context, *objectTypeInfo.intersectionShader));
-				
-				vk::PipelineShaderStageCreateInfo& shaderStageCreateInfo = shadersStagesCreateInfos.emplace_back();
-				shaderStageCreateInfo.stage = vk::ShaderStageFlagBits::eIntersectionKHR;
-				shaderStageCreateInfo.module = intersectionShader->getHandle();
-				shaderStageCreateInfo.pName = "main";
-				
-				intersectionIndex = shadersStagesCreateInfos.size() - 1;
+				noNullAnyHit = false;
 			}
 			
 			vk::RayTracingShaderGroupCreateInfoKHR& shaderGroupCreateInfo = shadersGroupsCreateInfos.emplace_back();
@@ -102,11 +100,23 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipel
 			shaderGroupCreateInfo.generalShader = VK_SHADER_UNUSED_KHR;
 			shaderGroupCreateInfo.closestHitShader = closestHitIndex != -1 ? closestHitIndex : VK_SHADER_UNUSED_KHR;
 			shaderGroupCreateInfo.anyHitShader = anyHitIndex != -1 ? anyHitIndex : VK_SHADER_UNUSED_KHR;
-			shaderGroupCreateInfo.intersectionShader = intersectionIndex != -1 ? intersectionIndex : VK_SHADER_UNUSED_KHR;
+			shaderGroupCreateInfo.intersectionShader = VK_SHADER_UNUSED_KHR;
 		}
 	}
 	
+	vk::PipelineCreateFlags flags = vk::PipelineCreateFlagBits::eRayTracingNoNullMissShadersKHR | vk::PipelineCreateFlagBits::eRayTracingNoNullIntersectionShadersKHR;
+	
+	if (noNullClosestHit)
+	{
+		flags |= vk::PipelineCreateFlagBits::eRayTracingNoNullClosestHitShadersKHR;
+	}
+	if (noNullAnyHit)
+	{
+		flags |= vk::PipelineCreateFlagBits::eRayTracingNoNullAnyHitShadersKHR;
+	}
+	
 	vk::RayTracingPipelineCreateInfoKHR pipelineCreateInfo;
+	pipelineCreateInfo.flags = flags;
 	pipelineCreateInfo.stageCount = shadersStagesCreateInfos.size();
 	pipelineCreateInfo.pStages = shadersStagesCreateInfos.data();
 	pipelineCreateInfo.groupCount = shadersGroupsCreateInfos.size();

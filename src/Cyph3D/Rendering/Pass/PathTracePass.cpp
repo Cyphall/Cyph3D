@@ -314,7 +314,7 @@ void PathTracePass::createPipeline()
 		"resources/shaders/internal/path tracing/path trace.rgen");
 	
 	info.addRayType("resources/shaders/internal/path tracing/path trace.rmiss");
-	info.addObjectTypeForRayType(0, "resources/shaders/internal/path tracing/path trace.rchit", std::nullopt, std::nullopt);
+	info.addObjectTypeForRayType(0, "resources/shaders/internal/path tracing/path trace.rchit", std::nullopt);
 	
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }
