@@ -12,6 +12,7 @@ class VKBuffer;
 template<typename T>
 class VKResizableBuffer;
 class VKDescriptorSetLayout;
+class VKDescriptorSet;
 class VKPipelineLayout;
 class VKRayTracingPipeline;
 class VKImage;
@@ -22,7 +23,8 @@ struct PathTracePassInput
 	const RenderRegistry& registry;
 	Camera& camera;
 	uint32_t sampleCount;
-	bool resetAccumulation;
+	bool sceneChanged;
+	bool cameraChanged;
 };
 
 struct PathTracePassOutput
@@ -37,16 +39,17 @@ public:
 	explicit PathTracePass(const glm::uvec2& size);
 
 private:
-	struct GlobalUniforms
+	struct CameraUniforms
 	{
 		GLSL_vec3 cameraPosition;
 		GLSL_vec3 cameraRayTL;
 		GLSL_vec3 cameraRayTR;
 		GLSL_vec3 cameraRayBL;
 		GLSL_vec3 cameraRayBR;
-		GLSL_uint sampleIndex;
-		GLSL_uint sampleCount;
-		GLSL_bool resetAccumulation;
+	};
+	
+	struct SkyboxUniforms
+	{
 		GLSL_bool hasSkybox;
 		GLSL_uint skyboxIndex;
 		GLSL_mat4 skyboxRotation;
@@ -67,18 +70,26 @@ private:
 		GLSL_float emissiveScale;
 	};
 	
-	VKDynamic<VKBuffer<GlobalUniforms>> _globalUniforms;
-	VKDynamic<VKResizableBuffer<ObjectUniforms>> _objectUniforms;
+	struct FramePushConstants
+	{
+		GLSL_uint sampleIndex;
+		GLSL_uint sampleCount;
+		GLSL_bool resetAccumulation;
+	};
 	
-	VKDynamic<VKResizableBuffer<std::byte>> _tlasBackingBuffer;
-	VKDynamic<VKResizableBuffer<std::byte>> _tlasScratchBuffer;
-	VKDynamic<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>> _tlasInstancesBuffer;
+	VKPtr<VKAccelerationStructure> _tlas;
+	
+	VKPtr<VKBuffer<CameraUniforms>> _cameraUniformsBuffer;
+	VKPtr<VKBuffer<SkyboxUniforms>> _skyboxUniformsBuffer;
+	VKPtr<VKBuffer<ObjectUniforms>> _objectUniformsBuffer;
 	
 	VKDynamic<VKResizableBuffer<std::byte>> _raygenSBT;
 	VKDynamic<VKResizableBuffer<std::byte>> _missSBT;
 	VKDynamic<VKResizableBuffer<std::byte>> _hitSBT;
 	
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
+	
+	VKPtr<VKDescriptorSet> _descriptorSet;
 	
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKRayTracingPipeline> _pipeline;
@@ -91,6 +102,11 @@ private:
 	
 	PathTracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input) override;
 	void onResize() override;
+	
+	void setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
+	void setupCameraUniformsBuffer(const PathTracePassInput& input);
+	void setupSkyboxUniformsBuffer();
+	void setupObjectUniformsBuffer(const PathTracePassInput& input);
 	
 	void createBuffers();
 	void createDescriptorSetLayout();

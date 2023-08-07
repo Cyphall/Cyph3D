@@ -29,7 +29,8 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 		.registry = registry,
 		.camera = camera,
 		.sampleCount = _sampleCount,
-		.resetAccumulation = sceneChanged || cameraChanged
+		.sceneChanged = sceneChanged,
+		.cameraChanged = cameraChanged
 	};
 	
 	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput, _renderPerf);

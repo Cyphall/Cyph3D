@@ -17,6 +17,7 @@
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
+#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
@@ -37,7 +38,7 @@ PathTracePass::PathTracePass(const glm::uvec2& size):
 
 PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input)
 {
-	if (input.resetAccumulation)
+	if (input.sceneChanged || input.cameraChanged)
 	{
 		_accumulatedSamples = 0;
 	}
@@ -52,88 +53,49 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 		vk::AccessFlagBits2::eShaderStorageRead | vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::ImageLayout::eGeneral);
 	
-	VKTopLevelAccelerationStructureBuildInfo buildInfo;
-	buildInfo.instancesInfos.reserve(input.registry.getModelRenderRequests().size());
-	_objectUniforms->resizeSmart(input.registry.getModelRenderRequests().size());
-	ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer();
-	int drawCount = 0;
-	for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
+	bool recreateDescriptorSet = false;
+	
+	if (input.sceneChanged)
 	{
-		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
-		instanceInfo.localToWorld = renderData.matrix;
-		instanceInfo.customIndex = drawCount;
-		instanceInfo.accelerationStructure = renderData.mesh->getAccelerationStructure();
+		setupTLAS(commandBuffer, input);
+		setupSkyboxUniformsBuffer();
+		setupObjectUniformsBuffer(input);
 		
-		ObjectUniforms uniforms{};
-		uniforms.normalMatrix = glm::inverseTranspose(glm::mat3(renderData.matrix));
-		uniforms.model = renderData.matrix;
-		uniforms.vertexBuffer = renderData.mesh->getVertexBuffer()->getDeviceAddress();
-		uniforms.indexBuffer = renderData.mesh->getIndexBuffer()->getDeviceAddress();
-		uniforms.albedoIndex = renderData.material->getAlbedoTextureBindlessIndex();
-		uniforms.normalIndex = renderData.material->getNormalTextureBindlessIndex();
-		uniforms.roughnessIndex = renderData.material->getRoughnessTextureBindlessIndex();
-		uniforms.metalnessIndex = renderData.material->getMetalnessTextureBindlessIndex();
-		uniforms.displacementIndex = renderData.material->getDisplacementTextureBindlessIndex();
-		uniforms.emissiveIndex = renderData.material->getEmissiveTextureBindlessIndex();
-		uniforms.emissiveScale = renderData.material->getEmissiveScale();
-		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
-		objectUniformsPtr++;
+		recreateDescriptorSet = true;
+	}
+	
+	if (input.cameraChanged)
+	{
+		setupCameraUniformsBuffer(input);
 		
-		drawCount++;
+		recreateDescriptorSet = true;
 	}
 	
-	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
-	
-	_tlasBackingBuffer->resizeSmart(buildSizesInfo.accelerationStructureSize);
-	
-	VKPtr<VKAccelerationStructure> tlas = VKAccelerationStructure::create(
-		Engine::getVKContext(),
-		vk::AccelerationStructureTypeKHR::eTopLevel,
-		buildSizesInfo.accelerationStructureSize,
-		_tlasBackingBuffer->getBuffer());
-	
-	_tlasScratchBuffer->resizeSmart(buildSizesInfo.buildScratchSize);
-	
-	commandBuffer->buildTopLevelAccelerationStructure(tlas, _tlasScratchBuffer->getBuffer(), buildInfo, _tlasInstancesBuffer.getCurrent());
-	
-	commandBuffer->bufferMemoryBarrier(
-		_tlasBackingBuffer->getBuffer(),
-		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
-		vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
-		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eAccelerationStructureReadKHR);
-	
-	GlobalUniforms globalUniforms;
-	globalUniforms.cameraPosition = input.camera.getPosition();
-	globalUniforms.cameraRayTL = input.camera.getCornerRays()[0];
-	globalUniforms.cameraRayTR = input.camera.getCornerRays()[1];
-	globalUniforms.cameraRayBL = input.camera.getCornerRays()[2];
-	globalUniforms.cameraRayBR = input.camera.getCornerRays()[3];
-	globalUniforms.sampleIndex = _sampleIndex;
-	globalUniforms.sampleCount = input.sampleCount;
-	globalUniforms.resetAccumulation = _accumulatedSamples == 0;
-
-	SkyboxAsset* skybox = Engine::getScene().getSkybox();
-	if (skybox && skybox->isLoaded())
+	if (recreateDescriptorSet)
 	{
-		globalUniforms.hasSkybox = true;
-		globalUniforms.skyboxIndex = skybox->getBindlessIndex();
-		globalUniforms.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
+		VKDescriptorSetInfo info(_descriptorSetLayout);
+		
+		_descriptorSet = VKDescriptorSet::create(Engine::getVKContext(), info);
+		
+		_descriptorSet->bindAccelerationStructure(0, _tlas);
+		_descriptorSet->bindImage(1, _rawRenderImageView);
+		_descriptorSet->bindBuffer(2, _cameraUniformsBuffer, 0, 1);
+		_descriptorSet->bindBuffer(3, _skyboxUniformsBuffer, 0, 1);
+		_descriptorSet->bindBuffer(4, _objectUniformsBuffer, 0, input.registry.getModelRenderRequests().size());
 	}
-	else
-	{
-		globalUniforms.hasSkybox = false;
-	}
-	
-	std::memcpy(_globalUniforms->getHostPointer(), &globalUniforms, sizeof(GlobalUniforms));
 	
 	commandBuffer->bindPipeline(_pipeline);
 	
 	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
-	commandBuffer->pushDescriptor(1, 0, tlas);
-	commandBuffer->pushDescriptor(1, 1, _rawRenderImageView);
-	commandBuffer->pushDescriptor(1, 2, _globalUniforms.getCurrent(), 0, 1);
-	commandBuffer->pushDescriptor(1, 3, _objectUniforms->getBuffer(), 0, drawCount);
+	commandBuffer->bindDescriptorSet(1, _descriptorSet);
+	
+	FramePushConstants framePushConstants{
+		.sampleIndex = _sampleIndex,
+		.sampleCount = input.sampleCount,
+		.resetAccumulation = _accumulatedSamples == 0
+	};
+	
+	commandBuffer->pushConstants(framePushConstants);
 	
 	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getCurrent());
 	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getCurrent());
@@ -157,56 +119,138 @@ void PathTracePass::onResize()
 	createImage();
 }
 
+void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
+{
+	VKTopLevelAccelerationStructureBuildInfo buildInfo;
+	buildInfo.instancesInfos.reserve(input.registry.getModelRenderRequests().size());
+	for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
+	{
+		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
+		instanceInfo.localToWorld = renderData.matrix;
+		instanceInfo.customIndex = 0;
+		instanceInfo.accelerationStructure = renderData.mesh->getAccelerationStructure();
+	}
+	
+	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
+	
+	VKBufferInfo backingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
+	backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
+	
+	_tlas = VKAccelerationStructure::create(
+		Engine::getVKContext(),
+		vk::AccelerationStructureTypeKHR::eTopLevel,
+		buildSizesInfo.accelerationStructureSize,
+		backingBuffer);
+	
+	VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
+	scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
+	VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
+	
+	VKResizableBufferInfo instancesBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR);
+	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	instancesBufferInfo.setRequiredAlignment(16);
+	VKPtr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>> instancesBuffer = VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(Engine::getVKContext(), instancesBufferInfo);
+	
+	commandBuffer->buildTopLevelAccelerationStructure(_tlas, scratchBuffer, buildInfo, instancesBuffer);
+	
+	commandBuffer->bufferMemoryBarrier(
+		backingBuffer,
+		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+		vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
+		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+		vk::AccessFlagBits2::eAccelerationStructureReadKHR);
+}
+
+void PathTracePass::setupCameraUniformsBuffer(const PathTracePassInput& input)
+{
+	VKBufferInfo cameraUniformsBufferInfo(1, vk::BufferUsageFlagBits::eUniformBuffer);
+	cameraUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	cameraUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	cameraUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_cameraUniformsBuffer = VKBuffer<CameraUniforms>::create(Engine::getVKContext(), cameraUniformsBufferInfo);
+	
+	CameraUniforms cameraUniforms{
+		.cameraPosition = input.camera.getPosition(),
+		.cameraRayTL = input.camera.getCornerRays()[0],
+		.cameraRayTR = input.camera.getCornerRays()[1],
+		.cameraRayBL = input.camera.getCornerRays()[2],
+		.cameraRayBR = input.camera.getCornerRays()[3]
+	};
+	
+	std::memcpy(_cameraUniformsBuffer->getHostPointer(), &cameraUniforms, sizeof(CameraUniforms));
+}
+
+void PathTracePass::setupSkyboxUniformsBuffer()
+{
+	VKBufferInfo skyboxUniformsBufferInfo(1, vk::BufferUsageFlagBits::eUniformBuffer);
+	skyboxUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	skyboxUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+	skyboxUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	
+	_skyboxUniformsBuffer = VKBuffer<SkyboxUniforms>::create(Engine::getVKContext(), skyboxUniformsBufferInfo);
+	
+	SkyboxAsset* skybox = Engine::getScene().getSkybox();
+	
+	SkyboxUniforms skyboxUniforms{};
+	if (skybox && skybox->isLoaded())
+	{
+		skyboxUniforms.hasSkybox = true;
+		skyboxUniforms.skyboxIndex = skybox->getBindlessIndex();
+		skyboxUniforms.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
+	}
+	else
+	{
+		skyboxUniforms.hasSkybox = false;
+	}
+	
+	std::memcpy(_skyboxUniformsBuffer->getHostPointer(), &skyboxUniforms, sizeof(SkyboxUniforms));
+}
+
+void PathTracePass::setupObjectUniformsBuffer(const PathTracePassInput& input)
+{
+	if (input.registry.getModelRenderRequests().empty())
+	{
+		_objectUniformsBuffer = {};
+	}
+	else
+	{
+		VKBufferInfo objectUniformsBufferInfo(input.registry.getModelRenderRequests().size(), vk::BufferUsageFlagBits::eStorageBuffer);
+		objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+		objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+		
+		_objectUniformsBuffer = VKBuffer<ObjectUniforms>::create(Engine::getVKContext(), objectUniformsBufferInfo);
+		
+		ObjectUniforms* objectUniformsPtr = _objectUniformsBuffer->getHostPointer();
+		for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
+		{
+			ObjectUniforms uniforms{
+				.normalMatrix = glm::inverseTranspose(glm::mat3(renderData.matrix)),
+				.model = renderData.matrix,
+				.vertexBuffer = renderData.mesh->getVertexBuffer()->getDeviceAddress(),
+				.indexBuffer = renderData.mesh->getIndexBuffer()->getDeviceAddress(),
+				.albedoIndex = renderData.material->getAlbedoTextureBindlessIndex(),
+				.normalIndex = renderData.material->getNormalTextureBindlessIndex(),
+				.roughnessIndex = renderData.material->getRoughnessTextureBindlessIndex(),
+				.metalnessIndex = renderData.material->getMetalnessTextureBindlessIndex(),
+				.displacementIndex = renderData.material->getDisplacementTextureBindlessIndex(),
+				.emissiveIndex = renderData.material->getEmissiveTextureBindlessIndex(),
+				.emissiveScale = renderData.material->getEmissiveScale()
+			};
+			
+			std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
+			objectUniformsPtr++;
+		}
+	}
+}
+
 void PathTracePass::createBuffers()
 {
-	VKBufferInfo globalUniformsBufferInfo(1, vk::BufferUsageFlagBits::eUniformBuffer);
-	globalUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	globalUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	globalUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	
-	_globalUniforms = VKDynamic<VKBuffer<GlobalUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKBuffer<GlobalUniforms>::create(context, globalUniformsBufferInfo);
-	});
-	
-	VKResizableBufferInfo objectUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	
-	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<ObjectUniforms>::create(context, objectUniformsBufferInfo);
-	});
-	
-	VKResizableBufferInfo tlasBackingBufferInfo(vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
-	tlasBackingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	
-	_tlasBackingBuffer = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<std::byte>::create(context, tlasBackingBufferInfo);
-	});
-	
-	VKResizableBufferInfo tlasScratchBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
-	tlasScratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	tlasScratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
-	
-	_tlasScratchBuffer = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<std::byte>::create(context, tlasScratchBufferInfo);
-	});
-	
-	VKResizableBufferInfo tlasInstancesBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR);
-	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	tlasInstancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	tlasInstancesBufferInfo.setRequiredAlignment(16);
-	
-	_tlasInstancesBuffer = VKDynamic<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(context, tlasInstancesBufferInfo);
-	});
-	
 	VKResizableBufferInfo raygenSBTInfo(vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
 	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
@@ -243,9 +287,10 @@ void PathTracePass::createBuffers()
 
 void PathTracePass::createDescriptorSetLayout()
 {
-	VKDescriptorSetLayoutInfo info(true);
+	VKDescriptorSetLayoutInfo info(false);
 	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1);
 	info.addBinding(vk::DescriptorType::eStorageImage, 1);
+	info.addBinding(vk::DescriptorType::eUniformBuffer, 1);
 	info.addBinding(vk::DescriptorType::eUniformBuffer, 1);
 	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
 	
@@ -257,6 +302,7 @@ void PathTracePass::createPipelineLayout()
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_descriptorSetLayout);
+	info.setPushConstantLayout<FramePushConstants>();
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
