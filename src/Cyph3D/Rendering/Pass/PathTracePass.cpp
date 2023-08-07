@@ -288,11 +288,11 @@ void PathTracePass::createBuffers()
 void PathTracePass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(false);
-	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1);
-	info.addBinding(vk::DescriptorType::eStorageImage, 1);
-	info.addBinding(vk::DescriptorType::eUniformBuffer, 1);
-	info.addBinding(vk::DescriptorType::eUniformBuffer, 1);
-	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
+	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR);
+	info.addBinding(vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR);
+	info.addBinding(vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR);
+	info.addBinding(vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eMissKHR);
+	info.addBinding(vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -302,7 +302,7 @@ void PathTracePass::createPipelineLayout()
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<FramePushConstants>();
+	info.setPushConstantLayout<FramePushConstants>(vk::ShaderStageFlagBits::eRaygenKHR);
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
