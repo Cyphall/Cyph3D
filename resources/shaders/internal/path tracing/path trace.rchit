@@ -4,16 +4,17 @@
 #extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_nonuniform_qualifier : require
 
+const float PI = 3.14159265359;
+const float TWO_PI = PI * 2.0;
+
 struct HitPayload
 {
+	uint randomOffset;
+	vec3 light;
+	vec3 contribution;
 	bool hit;
-	vec3 position;
-	vec3 normal;
-	vec3 tangent;
-	vec3 albedo;
-	float roughness;
-	float metalness;
-	float emissive;
+	vec3 rayPosition;
+	vec3 rayDirection;
 };
 
 struct Vertex
@@ -56,8 +57,69 @@ layout(std430, set = 1, binding = 4) readonly buffer UselessNameBecauseItIsNever
 	ObjectUniforms u_objectUniforms[];
 };
 
+layout(push_constant) uniform constants
+{
+	uint u_batchIndex;
+	uint u_sampleCount;
+	bool u_resetAccumulation;
+};
+
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 hitAttributeEXT vec2 attribs;
+
+vec3 calcRandomHemisphereDirectionCosWeighted(vec2 rand)
+{
+	float a = sqrt(rand.x);
+	float b = TWO_PI * rand.y;
+	
+	return vec3(
+	a * cos(b),
+	a * sin(b),
+	sqrt(1.0 - rand.x)
+	);
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 rand)
+{
+	// Section 3.2: transforming the view direction to the hemisphere configuration
+	vec3 Vh = normalize(vec3(alpha2D.x * Ve.x, alpha2D.y * Ve.y, Ve.z));
+	
+	// Section 4.1: orthonormal basis (with special case if cross product is zero)
+	float lensq = Vh.x * Vh.x + Vh.y * Vh.y;
+	vec3 T1 = lensq > 0.0 ? vec3(-Vh.y, Vh.x, 0.0) * inversesqrt(lensq) : vec3(1.0, 0.0, 0.0);
+	vec3 T2 = cross(Vh, T1);
+	
+	// Section 4.2: parameterization of the projected area
+	float r = sqrt(rand.x);
+	float phi = TWO_PI * rand.y;
+	float t1 = r * cos(phi);
+	float t2 = r * sin(phi);
+	float s = 0.5 * (1.0 + Vh.z);
+	t2 = mix(sqrt(1.0 - t1 * t1), t2, s);
+	
+	// Section 4.3: reprojection onto hemisphere
+	vec3 Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * Vh;
+	
+	// Section 3.4: transforming the normal back to the ellipsoid configuration
+	return normalize(vec3(alpha2D.x * Nh.x, alpha2D.y * Nh.y, max(0.0, Nh.z)));
+}
+
+vec4 getRandom()
+{
+	uvec4 v = uvec4(uvec2(gl_LaunchIDEXT.xy), u_batchIndex, hitPayload.randomOffset++);
+	
+	v = v * 1664525u + 1013904223u;
+	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
+	v ^= v >> 16u;
+	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
+	
+	return clamp(v * (1.0 / float(0xffffffffu)), 0.0, 1.0);
+}
 
 vec2 interpolateBarycentrics(vec2 a, vec2 b, vec2 c, vec3 barycentrics)
 {
@@ -95,14 +157,53 @@ void main()
 	
 	vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 	
+	vec3 position = interpolateBarycentrics(position1, position2, position3, barycentrics);
+	vec3 normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics));
+	vec3 tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics));
+	
 	vec2 uv = interpolateBarycentrics(v1.uv, v2.uv, v3.uv, barycentrics);
 	
+	vec3 albedo = texture(u_textures[nonuniformEXT(uniforms.albedoIndex)], uv).rgb;
+	float roughness = texture(u_textures[nonuniformEXT(uniforms.roughnessIndex)], uv).r;
+	float metalness = texture(u_textures[nonuniformEXT(uniforms.metalnessIndex)], uv).r;
+	float emissive = texture(u_textures[nonuniformEXT(uniforms.emissiveIndex)], uv).r * uniforms.emissiveScale;
+	
+	
+	hitPayload.light += hitPayload.contribution * albedo * emissive;
+	
+	
 	hitPayload.hit = true;
-	hitPayload.position = interpolateBarycentrics(position1, position2, position3, barycentrics);
-	hitPayload.normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics));
-	hitPayload.tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics));
-	hitPayload.albedo = texture(u_textures[nonuniformEXT(uniforms.albedoIndex)], uv).rgb;
-	hitPayload.roughness = texture(u_textures[nonuniformEXT(uniforms.roughnessIndex)], uv).r;
-	hitPayload.metalness = texture(u_textures[nonuniformEXT(uniforms.metalnessIndex)], uv).r;
-	hitPayload.emissive = texture(u_textures[nonuniformEXT(uniforms.emissiveIndex)], uv).r * uniforms.emissiveScale;
+	
+	vec3 bitangent = cross(normal, tangent);
+	mat3 tangentToWorld = mat3(tangent, bitangent, normal);
+	mat3 worldToTangent = transpose(tangentToWorld);
+	
+	hitPayload.rayPosition = position + normal * 0.001;
+	
+	vec3 localRayDir = worldToTangent * hitPayload.rayDirection;
+	float alpha = roughness * roughness;
+	vec2 alpha2D = vec2(alpha, alpha);
+	vec4 rand = getRandom();
+	vec3 microfacetNormal = normalize(tangentToWorld * sampleGGXVNDF(-localRayDir, alpha2D, rand.xy));
+	
+	vec3 F0 = mix(vec3(0.04), albedo, metalness);
+	vec3 specularWeight = fresnelSchlick(max(dot(microfacetNormal, -hitPayload.rayDirection), 0.0), F0);
+	vec3 diffuseWeight = 1.0 - specularWeight;
+	
+	if (rand.z > 0.5)
+	{
+		// next bounce is specular
+		
+		hitPayload.rayDirection = reflect(hitPayload.rayDirection, microfacetNormal);
+		
+		hitPayload.contribution *= specularWeight * 2;
+	}
+	else
+	{
+		// next bounce is diffuse
+		
+		hitPayload.rayDirection = tangentToWorld * calcRandomHemisphereDirectionCosWeighted(getRandom().xy);
+		
+		hitPayload.contribution *= albedo * diffuseWeight * (1.0 - metalness) * 2;
+	}
 }

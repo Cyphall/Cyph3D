@@ -302,7 +302,7 @@ void PathTracePass::createPipelineLayout()
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<FramePushConstants>(vk::ShaderStageFlagBits::eRaygenKHR);
+	info.setPushConstantLayout<FramePushConstants>(vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eClosestHitKHR);
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }

@@ -5,14 +5,12 @@
 
 struct HitPayload
 {
+	uint randomOffset;
+	vec3 light;
+	vec3 contribution;
 	bool hit;
-	vec3 position;
-	vec3 normal;
-	vec3 tangent;
-	vec3 albedo;
-	float roughness;
-	float metalness;
-	float emissive;
+	vec3 rayPosition;
+	vec3 rayDirection;
 };
 
 layout(set = 0, binding = 0) uniform samplerCube u_textures[];
@@ -41,6 +39,8 @@ void main()
 		skyboxColor = vec3(0);
 	}
 	
+	hitPayload.light += hitPayload.contribution * skyboxColor;
 	hitPayload.hit = false;
-	hitPayload.albedo = skyboxColor;
+	hitPayload.rayPosition = vec3(0);
+	hitPayload.rayDirection = vec3(0);
 }
