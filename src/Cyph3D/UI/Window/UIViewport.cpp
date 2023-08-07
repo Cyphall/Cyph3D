@@ -36,6 +36,7 @@ glm::uvec2 UIViewport::_previousViewportSize = {0, 0};
 
 Camera UIViewport::_camera;
 bool UIViewport::_cameraFocused = false;
+bool UIViewport::_cameraChanged = true;
 glm::vec2 UIViewport::_lockedCursorPos;
 
 bool UIViewport::_fullscreen = false;
@@ -110,6 +111,9 @@ void UIViewport::show()
 				}
 			}
 			
+			bool cameraChanged = _cameraChanged;
+			_cameraChanged = false;
+			
 			if (_previousViewportSize != viewportSize)
 			{
 				if (_sceneRenderer->getSize() != viewportSize)
@@ -118,13 +122,12 @@ void UIViewport::show()
 				}
 				
 				_camera.setAspectRatio(static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y));
+				cameraChanged = true;
 			}
-			
-			bool cameraChanged = false;
 			
 			if (_cameraFocused)
 			{
-				cameraChanged = _camera.update(window.getCursorPos() - _lockedCursorPos);
+				cameraChanged |= _camera.update(window.getCursorPos() - _lockedCursorPos);
 				window.setCursorPos(_lockedCursorPos);
 			}
 			
@@ -261,6 +264,7 @@ void UIViewport::setCamera(Camera camera)
 {
 	_camera = camera;
 	_camera.setAspectRatio(static_cast<float>(_previousViewportSize.x) / static_cast<float>(_previousViewportSize.y));
+	_cameraChanged = true;
 }
 
 void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)

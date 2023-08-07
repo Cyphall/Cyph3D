@@ -48,6 +48,7 @@ private:
 	
 	static Camera _camera;
 	static bool _cameraFocused;
+	static bool _cameraChanged;
 	static glm::vec2 _lockedCursorPos;
 	
 	static bool _fullscreen;
