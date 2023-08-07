@@ -28,7 +28,7 @@ layout(std430, set = 1, binding = 2) uniform uniforms
 
 layout(push_constant) uniform constants
 {
-	uint u_sampleIndex;
+	uint u_batchIndex;
 	uint u_sampleCount;
 	bool u_resetAccumulation;
 };
@@ -81,9 +81,9 @@ vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 rand)
 	return normalize(vec3(alpha2D.x * Nh.x, alpha2D.y * Nh.y, max(0.0, Nh.z)));
 }
 
-vec4 getRandom(uint currentSample, uint offset)
+vec4 getRandom(uint offset)
 {
-	uvec4 v = uvec4(uvec2(gl_LaunchIDEXT.xy), u_sampleIndex + currentSample, offset);
+	uvec4 v = uvec4(uvec2(gl_LaunchIDEXT.xy), u_batchIndex, offset);
 	
 	v = v * 1664525u + 1013904223u;
 	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
@@ -105,13 +105,13 @@ void main()
 		light = imageLoad(u_color, ivec2(gl_LaunchIDEXT.xy)).rgb;
 	}
 	
+	uint randomOffset = 0;
+	
 	for (int s = 0; s < u_sampleCount; s++)
 	{
-		uint randomOffset = 0;
-		
 		vec3 rayPos = u_position;
 		
-		vec2 PS_rayPos = vec2(gl_LaunchIDEXT.xy) + getRandom(s, randomOffset++).xy;
+		vec2 PS_rayPos = vec2(gl_LaunchIDEXT.xy) + getRandom(randomOffset++).xy;
 		vec2 UVS_rayPos = PS_rayPos / vec2(gl_LaunchSizeEXT.xy);
 		
 		vec3 topRayDir = mix(u_rayTL, u_rayTR, UVS_rayPos.x);
@@ -149,7 +149,7 @@ void main()
 				vec3 localRayDir = worldToTangent * rayDir;
 				float alpha = hitPayload.roughness * hitPayload.roughness;
 				vec2 alpha2D = vec2(alpha, alpha);
-				vec4 rand = getRandom(s, randomOffset++);
+				vec4 rand = getRandom(randomOffset++);
 				vec3 microfacetNormal = normalize(tangentToWorld * sampleGGXVNDF(-localRayDir, alpha2D, rand.xy));
 				
 				vec3 F0 = mix(vec3(0.04), hitPayload.albedo, hitPayload.metalness);
@@ -173,7 +173,7 @@ void main()
 				{
 					// next bounce is diffuse
 					
-					rayDir = tangentToWorld * calcRandomHemisphereDirectionCosWeighted(getRandom(s, randomOffset++).xy);
+					rayDir = tangentToWorld * calcRandomHemisphereDirectionCosWeighted(getRandom(randomOffset++).xy);
 					
 					contribution *= hitPayload.albedo * diffuseWeight * (1.0 - hitPayload.metalness) * 2;
 				}

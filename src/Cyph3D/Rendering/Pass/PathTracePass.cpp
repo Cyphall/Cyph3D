@@ -90,7 +90,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	commandBuffer->bindDescriptorSet(1, _descriptorSet);
 	
 	FramePushConstants framePushConstants{
-		.sampleIndex = _sampleIndex,
+		.batchIndex = _batchIndex,
 		.sampleCount = input.sampleCount,
 		.resetAccumulation = _accumulatedSamples == 0
 	};
@@ -104,7 +104,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
 	
 	_accumulatedSamples += input.sampleCount;
-	_sampleIndex += input.sampleCount;
+	_batchIndex++;
 	
 	commandBuffer->unbindPipeline();
 	

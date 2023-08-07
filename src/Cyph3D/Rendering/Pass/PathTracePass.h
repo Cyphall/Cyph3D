@@ -72,7 +72,7 @@ private:
 	
 	struct FramePushConstants
 	{
-		GLSL_uint sampleIndex;
+		GLSL_uint batchIndex;
 		GLSL_uint sampleCount;
 		GLSL_bool resetAccumulation;
 	};
@@ -97,7 +97,7 @@ private:
 	VKPtr<VKImage> _rawRenderImage;
 	VKPtr<VKImageView> _rawRenderImageView;
 	
-	uint32_t _sampleIndex = 0;
+	uint32_t _batchIndex = 0;
 	uint32_t _accumulatedSamples = 0;
 	
 	PathTracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input) override;
