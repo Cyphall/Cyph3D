@@ -13,7 +13,7 @@ class VKImageView;
 struct NormalizationPassInput
 {
 	const VKPtr<VKImageView>& inputImageView;
-	uint32_t accumulatedSamples;
+	uint32_t accumulatedBatches;
 };
 
 struct NormalizationPassOutput
@@ -29,7 +29,7 @@ public:
 private:
 	struct PushConstantData
 	{
-		GLSL_uint accumulatedSamples;
+		GLSL_uint accumulatedBatches;
 	};
 	
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;

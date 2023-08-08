@@ -40,7 +40,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 {
 	if (input.sceneChanged || input.cameraChanged)
 	{
-		_accumulatedSamples = 0;
+		_accumulatedBatches = 0;
 	}
 	
 	commandBuffer->imageMemoryBarrier(
@@ -92,7 +92,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	FramePushConstants framePushConstants{
 		.batchIndex = _batchIndex,
 		.sampleCount = input.sampleCount,
-		.resetAccumulation = _accumulatedSamples == 0
+		.resetAccumulation = _accumulatedBatches == 0
 	};
 	
 	commandBuffer->pushConstants(framePushConstants);
@@ -103,14 +103,14 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	
 	commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
 	
-	_accumulatedSamples += input.sampleCount;
+	_accumulatedBatches++;
 	_batchIndex++;
 	
 	commandBuffer->unbindPipeline();
 	
 	return {
 		.rawRenderImageView = _rawRenderImageView,
-		.accumulatedSamples = _accumulatedSamples
+		.accumulatedBatches = _accumulatedBatches
 	};
 }
 
@@ -337,5 +337,5 @@ void PathTracePass::createImage()
 	
 	_rawRenderImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	
-	_accumulatedSamples = 0;
+	_accumulatedBatches = 0;
 }

@@ -50,7 +50,7 @@ vec4 getRandom()
 void main()
 {
 	hitPayload.randomOffset = 0;
-	hitPayload.light = u_resetAccumulation ? vec3(0) : imageLoad(u_color, ivec2(gl_LaunchIDEXT.xy)).rgb;
+	hitPayload.light = vec3(0);
 	
 	for (int s = 0; s < u_sampleCount; s++)
 	{
@@ -87,5 +87,9 @@ void main()
 		}
 	}
 	
-	imageStore(u_color, ivec2(gl_LaunchIDEXT.xy), vec4(hitPayload.light, 1.0));
+	vec3 totalLight = u_resetAccumulation ? vec3(0) : imageLoad(u_color, ivec2(gl_LaunchIDEXT.xy)).rgb;
+	
+	totalLight += hitPayload.light / u_sampleCount; // we do one division here to reduce precision error causing color banding with very high numbers of samples
+	
+	imageStore(u_color, ivec2(gl_LaunchIDEXT.xy), vec4(totalLight, 1.0));
 }

@@ -47,7 +47,7 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 	
 	NormalizationPassInput normalizationPassInput{
 		.inputImageView = pathTracePassOutput.rawRenderImageView,
-		.accumulatedSamples = pathTracePassOutput.accumulatedSamples
+		.accumulatedBatches = pathTracePassOutput.accumulatedBatches
 	};
 	
 	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput, _renderPerf);

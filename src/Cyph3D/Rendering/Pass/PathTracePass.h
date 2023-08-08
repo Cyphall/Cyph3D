@@ -30,7 +30,7 @@ struct PathTracePassInput
 struct PathTracePassOutput
 {
 	const VKPtr<VKImageView>& rawRenderImageView;
-	uint32_t accumulatedSamples;
+	uint32_t accumulatedBatches;
 };
 
 class PathTracePass : public RenderPass<PathTracePassInput, PathTracePassOutput>
@@ -97,7 +97,7 @@ private:
 	VKPtr<VKImageView> _rawRenderImageView;
 	
 	uint32_t _batchIndex = 0;
-	uint32_t _accumulatedSamples = 0;
+	uint32_t _accumulatedBatches = 0;
 	
 	PathTracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input) override;
 	void onResize() override;
