@@ -133,6 +133,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		VKRenderingInfo renderingInfo(shadowMapSize);
 		renderingInfo.setLayers(6);
+		renderingInfo.setViewMask(0b111111);
 		
 		renderingInfo.setDepthAttachment(*pointLightRenderData.shadowMapTextureView)
 			.setLoadOpClear(1.0f)
@@ -267,8 +268,9 @@ void ShadowMapPass::createPipelines()
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise);
 		
-		info.setGeometryShader("resources/shaders/internal/shadow mapping/point light.geom");
 		info.setFragmentShader("resources/shaders/internal/shadow mapping/point light.frag");
+		
+		info.setViewMask(0b111111);
 		
 		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
 		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));

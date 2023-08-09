@@ -1,6 +1,6 @@
 #version 460 core
 
-layout(location = 0) in G2F
+layout(location = 0) in V2F
 {
 	vec3 i_fragPos;
 };
