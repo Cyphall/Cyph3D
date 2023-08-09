@@ -12,10 +12,12 @@ static void writeProcessedMesh(const std::filesystem::path& path, const MeshData
 	std::filesystem::create_directories(path.parent_path());
 	std::ofstream file = FileHelper::openFileForWriting(path);
 
-	uint8_t version = 1;
+	uint8_t version = 2;
 	FileHelper::write(file, &version);
 
-	FileHelper::write(file, meshData.vertices);
+	FileHelper::write(file, meshData.positionVertices);
+	
+	FileHelper::write(file, meshData.fullVertices);
 
 	FileHelper::write(file, meshData.indices);
 }
@@ -27,12 +29,14 @@ static bool readProcessedMesh(const std::filesystem::path& path, MeshData& meshD
 	uint8_t version;
 	FileHelper::read(file, &version);
 
-	if (version > 1)
+	if (version != 2)
 	{
 		return false;
 	}
 
-	FileHelper::read(file, meshData.vertices);
+	FileHelper::read(file, meshData.positionVertices);
+	
+	FileHelper::read(file, meshData.fullVertices);
 
 	FileHelper::read(file, meshData.indices);
 
@@ -48,14 +52,17 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 	const aiScene* scene = importer.ReadFile(input.generic_string(), aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_FlipUVs);
 	aiMesh* mesh = scene->mMeshes[0];
 
-	meshData.vertices.resize(mesh->mNumVertices);
+	meshData.positionVertices.resize(mesh->mNumVertices);
+	meshData.fullVertices.resize(mesh->mNumVertices);
 
 	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
 	{
-		std::memcpy(&meshData.vertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
-		std::memcpy(&meshData.vertices[i].uv, &mesh->mTextureCoords[0][i], 2 * sizeof(float));
-		std::memcpy(&meshData.vertices[i].normal, &mesh->mNormals[i], 3 * sizeof(float));
-		std::memcpy(&meshData.vertices[i].tangent, &mesh->mTangents[i], 3 * sizeof(float));
+		std::memcpy(&meshData.positionVertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
+		
+		std::memcpy(&meshData.fullVertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
+		std::memcpy(&meshData.fullVertices[i].uv, &mesh->mTextureCoords[0][i], 2 * sizeof(float));
+		std::memcpy(&meshData.fullVertices[i].normal, &mesh->mNormals[i], 3 * sizeof(float));
+		std::memcpy(&meshData.fullVertices[i].tangent, &mesh->mTangents[i], 3 * sizeof(float));
 	}
 
 	meshData.indices.resize(mesh->mNumFaces * 3);

@@ -96,7 +96,7 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 			{
 				const ModelRenderer::RenderData& renderData = renderRegistry.getModelRenderRequests()[i];
 				
-				const VKPtr<VKBuffer<VertexData>>& vertexBuffer = renderData.mesh->getVertexBuffer();
+				const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = renderData.mesh->getPositionVertexBuffer();
 				const VKPtr<VKBuffer<uint32_t>>& indexBuffer = renderData.mesh->getIndexBuffer();
 				
 				commandBuffer->bindVertexBuffer(0, vertexBuffer);
@@ -160,8 +160,8 @@ void ObjectPicker::createPipeline()
 	
 	info.setFragmentShader("resources/shaders/internal/object picker/object picker.frag");
 	
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
+	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
 	
 	info.getPipelineAttachmentInfo().addColorAttachment(vk::Format::eR32Sint);
 	info.getPipelineAttachmentInfo().setDepthAttachment(vk::Format::eD32Sfloat, vk::CompareOp::eLess, true);

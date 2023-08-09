@@ -74,7 +74,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 				continue;
 			}
 			
-			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = modelRendererRenderData.mesh->getVertexBuffer();
+			const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = modelRendererRenderData.mesh->getPositionVertexBuffer();
 			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelRendererRenderData.mesh->getIndexBuffer();
 			
 			commandBuffer->bindVertexBuffer(0, vertexBuffer);
@@ -168,7 +168,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 				continue;
 			}
 			
-			const VKPtr<VKBuffer<VertexData>>& vertexBuffer = modelRendererRenderData.mesh->getVertexBuffer();
+			const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = modelRendererRenderData.mesh->getPositionVertexBuffer();
 			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelRendererRenderData.mesh->getIndexBuffer();
 			
 			commandBuffer->bindVertexBuffer(0, vertexBuffer);
@@ -247,8 +247,8 @@ void ShadowMapPass::createPipelines()
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise);
 		
-		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
-		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
+		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
+		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
 		
 		info.getPipelineAttachmentInfo().setDepthAttachment(DirectionalLight::depthFormat, vk::CompareOp::eLess, true);
 		
@@ -266,8 +266,8 @@ void ShadowMapPass::createPipelines()
 		info.setGeometryShader("resources/shaders/internal/shadow mapping/point light.geom");
 		info.setFragmentShader("resources/shaders/internal/shadow mapping/point light.frag");
 		
-		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
-		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
+		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
+		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
 		
 		info.getPipelineAttachmentInfo().setDepthAttachment(PointLight::depthFormat, vk::CompareOp::eLess, true);
 		

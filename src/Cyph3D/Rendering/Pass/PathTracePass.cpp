@@ -231,7 +231,7 @@ void PathTracePass::setupObjectUniformsBuffer(const PathTracePassInput& input)
 		{
 			ObjectUniforms uniforms{
 				.normalMatrix = glm::inverseTranspose(glm::mat3(renderData.matrix)),
-				.vertexBuffer = renderData.mesh->getVertexBuffer()->getDeviceAddress(),
+				.vertexBuffer = renderData.mesh->getFullVertexBuffer()->getDeviceAddress(),
 				.indexBuffer = renderData.mesh->getIndexBuffer()->getDeviceAddress(),
 				.albedoIndex = renderData.material->getAlbedoTextureBindlessIndex(),
 				.normalIndex = renderData.material->getNormalTextureBindlessIndex(),

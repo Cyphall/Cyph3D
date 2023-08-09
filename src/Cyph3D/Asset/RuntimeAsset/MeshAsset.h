@@ -37,7 +37,8 @@ class MeshAsset : public GPUAsset<MeshAssetSignature>
 public:
 	~MeshAsset() override;
 
-	const VKPtr<VKBuffer<VertexData>>& getVertexBuffer() const;
+	const VKPtr<VKBuffer<PositionVertexData>>& getPositionVertexBuffer() const;
+	const VKPtr<VKBuffer<FullVertexData>>& getFullVertexBuffer() const;
 	const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const;
 	const VKPtr<VKAccelerationStructure>& getAccelerationStructure() const;
 	
@@ -52,7 +53,8 @@ private:
 
 	void load_async(AssetManagerWorkerData& workerData);
 	
-	VKPtr<VKBuffer<VertexData>> _vertexBuffer;
+	VKPtr<VKBuffer<PositionVertexData>> _positionVertexBuffer;
+	VKPtr<VKBuffer<FullVertexData>> _fullVertexBuffer;
 	VKPtr<VKBuffer<uint32_t>> _indexBuffer;
 	VKPtr<VKAccelerationStructure> _accelerationStructure;
 	

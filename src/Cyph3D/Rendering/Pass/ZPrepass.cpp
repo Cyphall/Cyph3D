@@ -61,7 +61,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	
 	for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
 	{
-		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = renderData.mesh->getVertexBuffer();
+		const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = renderData.mesh->getPositionVertexBuffer();
 		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = renderData.mesh->getIndexBuffer();
 		
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
@@ -105,8 +105,8 @@ void ZPrepass::createPipeline()
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise);
 	
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
+	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
 	
 	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
 	

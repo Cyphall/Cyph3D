@@ -6,6 +6,7 @@
 
 struct MeshData
 {
-	std::vector<VertexData> vertices;
+	std::vector<PositionVertexData> positionVertices;
+	std::vector<FullVertexData> fullVertices;
 	std::vector<uint32_t> indices;
 };

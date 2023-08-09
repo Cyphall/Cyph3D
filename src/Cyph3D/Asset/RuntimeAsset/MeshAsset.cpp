@@ -24,10 +24,16 @@ MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature)
 MeshAsset::~MeshAsset()
 {}
 
-const VKPtr<VKBuffer<VertexData>>& MeshAsset::getVertexBuffer() const
+const VKPtr<VKBuffer<PositionVertexData>>& MeshAsset::getPositionVertexBuffer() const
 {
 	checkLoaded();
-	return _vertexBuffer;
+	return _positionVertexBuffer;
+}
+
+const VKPtr<VKBuffer<FullVertexData>>& MeshAsset::getFullVertexBuffer() const
+{
+	checkLoaded();
+	return _fullVertexBuffer;
 }
 
 const VKPtr<VKBuffer<uint32_t>>& MeshAsset::getIndexBuffer() const
@@ -64,46 +70,69 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	
 	Logger::info(std::format("Uploading mesh [{}]...", _signature.path));
 	
-	vk::BufferUsageFlags vertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
-	vk::DeviceAddress vertexBufferAlignment = 1;
-	if (Engine::getVKContext().isRayTracingSupported())
 	{
-		vertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
-		vertexBufferAlignment = sizeof(float);
+		vk::BufferUsageFlags positionVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
+		vk::DeviceAddress positionVertexBufferAlignment = 1;
+		if (Engine::getVKContext().isRayTracingSupported())
+		{
+			positionVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+			positionVertexBufferAlignment = sizeof(float);
+		}
+		VKBufferInfo positionVertexBufferInfo(meshData.positionVertices.size(), positionVertexBufferUsage);
+		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+		positionVertexBufferInfo.setRequiredAlignment(positionVertexBufferAlignment);
+		
+		_positionVertexBuffer = VKBuffer<PositionVertexData>::create(Engine::getVKContext(), positionVertexBufferInfo);
+		
+		std::copy(meshData.positionVertices.begin(), meshData.positionVertices.end(), _positionVertexBuffer->getHostPointer());
 	}
-	VKBufferInfo vertexBufferInfo(meshData.vertices.size(), vertexBufferUsage);
-	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	vertexBufferInfo.setRequiredAlignment(vertexBufferAlignment);
 	
-	_vertexBuffer = VKBuffer<VertexData>::create(Engine::getVKContext(), vertexBufferInfo);
-	
-	std::copy(meshData.vertices.begin(), meshData.vertices.end(), _vertexBuffer->getHostPointer());
-	
-	vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer;
-	vk::DeviceAddress indexBufferAlignment = 1;
-	if (Engine::getVKContext().isRayTracingSupported())
 	{
-		indexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
-		indexBufferAlignment = sizeof(uint32_t);
+		vk::BufferUsageFlags fullVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
+		vk::DeviceAddress fullVertexBufferAlignment = 1;
+		if (Engine::getVKContext().isRayTracingSupported())
+		{
+			fullVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+			fullVertexBufferAlignment = sizeof(float);
+		}
+		VKBufferInfo fullVertexBufferInfo(meshData.fullVertices.size(), fullVertexBufferUsage);
+		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+		fullVertexBufferInfo.setRequiredAlignment(fullVertexBufferAlignment);
+		
+		_fullVertexBuffer = VKBuffer<FullVertexData>::create(Engine::getVKContext(), fullVertexBufferInfo);
+		
+		std::copy(meshData.fullVertices.begin(), meshData.fullVertices.end(), _fullVertexBuffer->getHostPointer());
 	}
-	VKBufferInfo indexBufferInfo(meshData.indices.size(), indexBufferUsage);
-	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	indexBufferInfo.setRequiredAlignment(indexBufferAlignment);
 	
-	_indexBuffer = VKBuffer<uint32_t>::create(Engine::getVKContext(), indexBufferInfo);
-	
-	std::copy(meshData.indices.begin(), meshData.indices.end(), _indexBuffer->getHostPointer());
+	{
+		vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer;
+		vk::DeviceAddress indexBufferAlignment = 1;
+		if (Engine::getVKContext().isRayTracingSupported())
+		{
+			indexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+			indexBufferAlignment = sizeof(uint32_t);
+		}
+		VKBufferInfo indexBufferInfo(meshData.indices.size(), indexBufferUsage);
+		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+		indexBufferInfo.setRequiredAlignment(indexBufferAlignment);
+		
+		_indexBuffer = VKBuffer<uint32_t>::create(Engine::getVKContext(), indexBufferInfo);
+		
+		std::copy(meshData.indices.begin(), meshData.indices.end(), _indexBuffer->getHostPointer());
+	}
 	
 	if (Engine::getVKContext().isRayTracingSupported())
 	{
 		VKBottomLevelAccelerationStructureBuildInfo buildInfo{
-			.vertexBuffer = _vertexBuffer,
+			.vertexBuffer = _positionVertexBuffer,
 			.vertexFormat = vk::Format::eR32G32B32Sfloat,
-			.vertexStride = sizeof(VertexData),
+			.vertexStride = sizeof(PositionVertexData),
 			.indexBuffer = _indexBuffer,
 			.indexType = vk::IndexType::eUint32
 		};

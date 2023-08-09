@@ -2,7 +2,12 @@
 
 #include <glm/glm.hpp>
 
-struct VertexData
+struct PositionVertexData
+{
+	glm::vec3 position;
+};
+
+struct FullVertexData
 {
 	glm::vec3 position;
 	glm::vec2 uv;

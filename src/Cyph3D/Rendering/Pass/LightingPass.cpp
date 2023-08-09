@@ -161,7 +161,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	{
 		ModelRenderer::RenderData modelData = input.registry.getModelRenderRequests()[i];
 		
-		const VKPtr<VKBuffer<VertexData>>& vertexBuffer = modelData.mesh->getVertexBuffer();
+		const VKPtr<VKBuffer<FullVertexData>>& vertexBuffer = modelData.mesh->getFullVertexBuffer();
 		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelData.mesh->getIndexBuffer();
 		
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
@@ -332,11 +332,11 @@ void LightingPass::createPipeline()
 	
 	info.setFragmentShader("resources/shaders/internal/lighting/lighting.frag");
 	
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(VertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, position));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(VertexData, uv));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 2, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, normal));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 3, vk::Format::eR32G32B32Sfloat, offsetof(VertexData, tangent));
+	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(FullVertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, position));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(FullVertexData, uv));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 2, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, normal));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 3, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, tangent));
 	
 	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
 	
