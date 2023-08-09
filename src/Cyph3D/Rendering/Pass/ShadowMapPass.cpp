@@ -25,6 +25,7 @@ ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 
 ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
 {
+	int shadowCastingDirectionalLightIndex = 0;
 	for (const DirectionalLight::RenderData& directionalLightRenderData : input.registry.getDirectionalLightRenderRequests())
 	{
 		if (!directionalLightRenderData.castShadows)
@@ -50,7 +51,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			.setLoadOpClear(1.0f)
 			.setStoreOpStore();
 		
-		commandBuffer->pushDebugGroup("Directional light");
+		commandBuffer->pushDebugGroup(std::format("Directional light ({})", shadowCastingDirectionalLightIndex));
 		
 		commandBuffer->beginRendering(renderingInfo);
 		
@@ -92,6 +93,8 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		commandBuffer->endRendering();
 		
 		commandBuffer->popDebugGroup();
+		
+		shadowCastingDirectionalLightIndex++;
 	}
 	
 	int shadowCastingPointLights = 0;
@@ -135,7 +138,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			.setLoadOpClear(1.0f)
 			.setStoreOpStore();
 		
-		commandBuffer->pushDebugGroup("Point light");
+		commandBuffer->pushDebugGroup(std::format("Point light ({})", shadowCastingPointLightIndex));
 		
 		commandBuffer->beginRendering(renderingInfo);
 		
@@ -157,7 +160,8 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		uniforms.lightPos = pointLightRenderData.pos;
 		uniforms.far = pointLightRenderData.far;
 		
-		std::memcpy(pointLightUniformBufferPtr + shadowCastingPointLightIndex, &uniforms, sizeof(PointLightUniforms));
+		std::memcpy(pointLightUniformBufferPtr, &uniforms, sizeof(PointLightUniforms));
+		pointLightUniformBufferPtr++;
 		
 		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), shadowCastingPointLightIndex, 1);
 		
