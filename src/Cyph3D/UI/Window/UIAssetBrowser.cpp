@@ -291,10 +291,6 @@ void UIAssetBrowser::draw()
 		{
 			_selectedEntry = nullptr;
 		}
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-		{
-			int i = 0;
-		}
 		if (ImGui::BeginPopupContextWindow("create_asset_popup", ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
 		{
 			if (ImGui::MenuItem("Create Material"))
