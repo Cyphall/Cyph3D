@@ -8,6 +8,8 @@
 #include "Cyph3D/Iterator/ComponentIterator.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/Window.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
@@ -212,11 +214,14 @@ void Entity::onDrawUi()
 	ImGui::Separator();
 	ImGui::Spacing();
 
+	const char* addComponentText = "Add Component";
+	
 	float availableWidth = ImGui::GetContentRegionAvail().x;
-	float buttonWidth = std::min(180.0f, availableWidth);
-	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ((availableWidth - buttonWidth) / 2));
+	float wantedButtonWidth = ImGui::CalcTextSize(addComponentText).x + ImGui::GetStyle().FramePadding.x * 2 + 50.0f * Engine::getWindow().getPixelScale();
+	float actualButtonWidth = std::min(wantedButtonWidth, availableWidth);
+	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ((availableWidth - actualButtonWidth) / 2));
 
-	if (ImGui::Button("Add Component", ImVec2(buttonWidth, 0)))
+	if (ImGui::Button(addComponentText, ImVec2(actualButtonWidth, 0)))
 		ImGui::OpenPopup("add_component");
 
 	if (ImGui::BeginPopup("add_component"))
