@@ -165,10 +165,9 @@ void Scene::load(const std::filesystem::path& path)
 
 	int version = jsonRoot["version"].get<int>();
 	
-	Engine::setScene(std::make_unique<Scene>());
-	Scene& scene = Engine::getScene();
+	std::unique_ptr<Scene> scene = std::make_unique<Scene>();
 	
-	scene.setName(path.filename().replace_extension().generic_string());
+	scene->setName(path.filename().replace_extension().generic_string());
 
 	Camera camera;
 	const nlohmann::ordered_json& jsonCamera = jsonRoot["camera"];
@@ -207,14 +206,14 @@ void Scene::load(const std::filesystem::path& path)
 			std::string convertedPath = std::format("skyboxes/{}/{}.c3dskybox", oldName, newFileName);
 			if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
 			{
-				scene.setSkyboxPath(convertedPath);
+				scene->setSkyboxPath(convertedPath);
 			}
 			else
 			{
 				Logger::warning("Scene deseralization: unable to convert skybox identifier from version 1.");
 			}
 
-			scene.setSkyboxRotation(jsonSkybox["rotation"].get<float>());
+			scene->setSkyboxRotation(jsonSkybox["rotation"].get<float>());
 		}
 	}
 	else if (version <= 3)
@@ -222,9 +221,9 @@ void Scene::load(const std::filesystem::path& path)
 		nlohmann::ordered_json& jsonSkybox = jsonRoot["skybox"];
 		if (!jsonSkybox.is_null())
 		{
-			scene.setSkyboxPath(jsonSkybox["name"].get<std::string>());
+			scene->setSkyboxPath(jsonSkybox["name"].get<std::string>());
 			
-			scene.setSkyboxRotation(jsonSkybox["rotation"].get<float>());
+			scene->setSkyboxRotation(jsonSkybox["rotation"].get<float>());
 		}
 	}
 	else
@@ -232,16 +231,18 @@ void Scene::load(const std::filesystem::path& path)
 		nlohmann::ordered_json& jsonSkyboxPath = jsonRoot["skybox"];
 		if (!jsonSkyboxPath.is_null())
 		{
-			scene.setSkyboxPath(jsonSkyboxPath.get<std::string>());
+			scene->setSkyboxPath(jsonSkyboxPath.get<std::string>());
 		}
 		
-		scene.setSkyboxRotation(jsonRoot["skybox_rotation"].get<float>());
+		scene->setSkyboxRotation(jsonRoot["skybox_rotation"].get<float>());
 	}
 
 	for (nlohmann::ordered_json& value : jsonRoot["entities"])
 	{
-		deserializeEntity(value, scene.getRoot(), version, scene);
+		deserializeEntity(value, scene->getRoot(), version, *scene);
 	}
+	
+	Engine::setScene(std::move(scene));
 }
 
 void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene)
