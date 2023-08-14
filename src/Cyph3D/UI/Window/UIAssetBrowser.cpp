@@ -43,14 +43,19 @@ public:
 		}
 	};
 	
-	Entry(const std::filesystem::path& assetPath, EntryType type, Entry* parent):
-		_assetPath(assetPath.generic_string()),
-		_name(assetPath.filename().generic_string()),
+	Entry(const std::filesystem::path& path, EntryType type, Entry* parent):
+		_path(path),
+		_assetPath(std::filesystem::relative(path, FileHelper::getAssetDirectoryPath()).generic_string()),
+		_name(path.filename().generic_string()),
 		_truncatedName(truncate(_name, 90 * Engine::getWindow().getPixelScale())),
 		_type(type),
 		_parent(parent)
 	{
-		if (type == EntryType::Directory && parent != nullptr)
+		if (type == EntryType::Directory && parent == nullptr)
+		{
+			_displayAssetPath = "/";
+		}
+		else if (type == EntryType::Directory)
 		{
 			_displayAssetPath = std::format("/{}/", _assetPath);
 		}
@@ -61,7 +66,7 @@ public:
 
 		if (type == EntryType::Directory)
 		{
-			for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(FileHelper::getAssetDirectoryPath() / assetPath))
+			for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(_path))
 			{
 				EntryType entryType;
 				
@@ -104,7 +109,7 @@ public:
 				}
 
 				_entries.emplace(std::make_unique<Entry>(
-					std::filesystem::relative(entry.path(), FileHelper::getAssetDirectoryPath()),
+					entry.path(),
 					entryType,
 					this));
 			}
@@ -114,11 +119,16 @@ public:
 	Entry(const Entry& other) = delete;
 	Entry& operator=(const Entry& other) = delete;
 
+	const std::filesystem::path& path() const
+	{
+		return _path;
+	}
+
 	const std::string& assetPath() const
 	{
 		return _assetPath;
 	}
-
+	
 	const std::string& displayAssetPath() const
 	{
 		return _displayAssetPath;
@@ -186,6 +196,7 @@ public:
 	}
 
 private:
+	std::filesystem::path _path;
 	std::string _assetPath;
 	std::string _displayAssetPath;
 	std::string _name;
@@ -327,10 +338,30 @@ void UIAssetBrowser::draw()
 
 void UIAssetBrowser::rescan()
 {
-	_root.reset();
-	_root = std::make_unique<UIAssetBrowser::Entry>("", EntryType::Directory, nullptr);
-	_currentDirectory = _root.get();
 	_selectedEntry = nullptr;
+	
+	std::filesystem::path currentDirectory = _currentDirectory ? _currentDirectory->path() : FileHelper::getAssetDirectoryPath();
+	
+	_root.reset();
+	_root = std::make_unique<UIAssetBrowser::Entry>(FileHelper::getAssetDirectoryPath(), EntryType::Directory, nullptr);
+	
+	_currentDirectory = _root.get();
+	bool search = true;
+	while (search)
+	{
+		search = false;
+		for (const std::unique_ptr<Entry>& entry : _currentDirectory->entries())
+		{
+			// check if entry->path() is a base path of currentDirectory
+			auto relative = std::filesystem::relative(currentDirectory, entry->path());
+			if (!relative.empty() && !relative.native().starts_with(L".."))
+			{
+				_currentDirectory = entry.get();
+				search = true;
+				break;
+			}
+		}
+	}
 }
 
 void UIAssetBrowser::drawLeftPanel()
