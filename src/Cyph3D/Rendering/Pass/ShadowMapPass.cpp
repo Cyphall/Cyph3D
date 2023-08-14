@@ -25,174 +25,180 @@ ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 
 ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
 {
-	int shadowCastingDirectionalLightIndex = 0;
-	for (const DirectionalLight::RenderData& directionalLightRenderData : input.registry.getDirectionalLightRenderRequests())
+	if (input.sceneChanged || input.cameraChanged)
 	{
-		if (!directionalLightRenderData.castShadows)
+		int shadowCastingDirectionalLightIndex = 0;
+		for (const DirectionalLight::RenderData& directionalLightRenderData : input.registry.getDirectionalLightRenderRequests())
 		{
-			continue;
-		}
-		
-		commandBuffer->imageMemoryBarrier(
-			(*directionalLightRenderData.shadowMapTextureView)->getInfo().getImage(),
-			0,
-			0,
-			vk::PipelineStageFlagBits2::eNone,
-			vk::AccessFlagBits2::eNone,
-			vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-			vk::ImageLayout::eDepthAttachmentOptimal);
-		
-		glm::uvec2 shadowMapSize = (*directionalLightRenderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
-		
-		VKRenderingInfo renderingInfo(shadowMapSize);
-		
-		renderingInfo.setDepthAttachment(*directionalLightRenderData.shadowMapTextureView)
-			.setLoadOpClear(1.0f)
-			.setStoreOpStore();
-		
-		commandBuffer->pushDebugGroup(std::format("Directional light ({})", shadowCastingDirectionalLightIndex));
-		
-		commandBuffer->beginRendering(renderingInfo);
-		
-		commandBuffer->bindPipeline(_directionalLightPipeline);
-		
-		VKPipelineViewport viewport;
-		viewport.offset = {0, 0};
-		viewport.size = shadowMapSize;
-		viewport.depthRange = {0.0f, 1.0f};
-		commandBuffer->setViewport(viewport);
-		
-		VKPipelineScissor scissor;
-		scissor.offset = {0, 0};
-		scissor.size = shadowMapSize;
-		commandBuffer->setScissor(scissor);
-		
-		for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.getModelRenderRequests())
-		{
-			if (!modelRendererRenderData.contributeShadows)
+			if (!directionalLightRenderData.castShadows)
 			{
 				continue;
 			}
 			
-			const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = modelRendererRenderData.mesh->getPositionVertexBuffer();
-			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelRendererRenderData.mesh->getIndexBuffer();
-			
-			commandBuffer->bindVertexBuffer(0, vertexBuffer);
-			commandBuffer->bindIndexBuffer(indexBuffer);
-			
-			DirectionalLightPushConstantData pushConstantData{};
-			pushConstantData.mvp = directionalLightRenderData.lightViewProjection * modelRendererRenderData.matrix;
-			commandBuffer->pushConstants(pushConstantData);
-			
-			commandBuffer->draw(indexBuffer->getSize(), 0);
-		}
-		
-		commandBuffer->unbindPipeline();
-		
-		commandBuffer->endRendering();
-		
-		commandBuffer->popDebugGroup();
-		
-		shadowCastingDirectionalLightIndex++;
-	}
-	
-	int shadowCastingPointLights = 0;
-	for (const PointLight::RenderData& renderData : input.registry.getPointLightRenderRequests())
-	{
-		if (renderData.castShadows)
-		{
-			shadowCastingPointLights++;
-		}
-	}
-	
-	int shadowCastingPointLightIndex = 0;
-	_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights);
-	PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer();
-	for (const PointLight::RenderData& pointLightRenderData : input.registry.getPointLightRenderRequests())
-	{
-		if (!pointLightRenderData.castShadows)
-		{
-			continue;
-		}
-		
-		for (int i = 0; i < 6; i++)
-		{
 			commandBuffer->imageMemoryBarrier(
-				(*pointLightRenderData.shadowMapTextureView)->getInfo().getImage(),
-				i,
+				(*directionalLightRenderData.shadowMapTextureView)->getInfo().getImage(),
+				0,
 				0,
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-				vk::AccessFlagBits2::eDepthStencilAttachmentRead,
+				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 				vk::ImageLayout::eDepthAttachmentOptimal);
+			
+			glm::uvec2 shadowMapSize = (*directionalLightRenderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
+			
+			VKRenderingInfo renderingInfo(shadowMapSize);
+			
+			renderingInfo.setDepthAttachment(*directionalLightRenderData.shadowMapTextureView)
+				.setLoadOpClear(1.0f)
+				.setStoreOpStore();
+			
+			commandBuffer->pushDebugGroup(std::format("Directional light ({})", shadowCastingDirectionalLightIndex));
+			
+			commandBuffer->beginRendering(renderingInfo);
+			
+			commandBuffer->bindPipeline(_directionalLightPipeline);
+			
+			VKPipelineViewport viewport;
+			viewport.offset = {0, 0};
+			viewport.size = shadowMapSize;
+			viewport.depthRange = {0.0f, 1.0f};
+			commandBuffer->setViewport(viewport);
+			
+			VKPipelineScissor scissor;
+			scissor.offset = {0, 0};
+			scissor.size = shadowMapSize;
+			commandBuffer->setScissor(scissor);
+			
+			for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.getModelRenderRequests())
+			{
+				if (!modelRendererRenderData.contributeShadows)
+				{
+					continue;
+				}
+				
+				const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = modelRendererRenderData.mesh->getPositionVertexBuffer();
+				const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelRendererRenderData.mesh->getIndexBuffer();
+				
+				commandBuffer->bindVertexBuffer(0, vertexBuffer);
+				commandBuffer->bindIndexBuffer(indexBuffer);
+				
+				DirectionalLightPushConstantData pushConstantData{};
+				pushConstantData.mvp = directionalLightRenderData.lightViewProjection * modelRendererRenderData.matrix;
+				commandBuffer->pushConstants(pushConstantData);
+				
+				commandBuffer->draw(indexBuffer->getSize(), 0);
+			}
+			
+			commandBuffer->unbindPipeline();
+			
+			commandBuffer->endRendering();
+			
+			commandBuffer->popDebugGroup();
+			
+			shadowCastingDirectionalLightIndex++;
+		}
+	}
+	
+	if (input.sceneChanged)
+	{
+		int shadowCastingPointLights = 0;
+		for (const PointLight::RenderData& renderData : input.registry.getPointLightRenderRequests())
+		{
+			if (renderData.castShadows)
+			{
+				shadowCastingPointLights++;
+			}
 		}
 		
-		glm::uvec2 shadowMapSize = (*pointLightRenderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
-		
-		VKRenderingInfo renderingInfo(shadowMapSize);
-		renderingInfo.setLayers(6);
-		renderingInfo.setViewMask(0b111111);
-		
-		renderingInfo.setDepthAttachment(*pointLightRenderData.shadowMapTextureView)
-			.setLoadOpClear(1.0f)
-			.setStoreOpStore();
-		
-		commandBuffer->pushDebugGroup(std::format("Point light ({})", shadowCastingPointLightIndex));
-		
-		commandBuffer->beginRendering(renderingInfo);
-		
-		commandBuffer->bindPipeline(_pointLightPipeline);
-		
-		VKPipelineViewport viewport;
-		viewport.offset = {0, 0};
-		viewport.size = shadowMapSize;
-		viewport.depthRange = {0.0f, 1.0f};
-		commandBuffer->setViewport(viewport);
-		
-		VKPipelineScissor scissor;
-		scissor.offset = {0, 0};
-		scissor.size = shadowMapSize;
-		commandBuffer->setScissor(scissor);
-		
-		PointLightUniforms uniforms{};
-		std::copy(std::begin(pointLightRenderData.viewProjections), std::end(pointLightRenderData.viewProjections), std::begin(uniforms.viewProjections));
-		uniforms.lightPos = pointLightRenderData.pos;
-		uniforms.far = pointLightRenderData.far;
-		
-		std::memcpy(pointLightUniformBufferPtr, &uniforms, sizeof(PointLightUniforms));
-		pointLightUniformBufferPtr++;
-		
-		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), shadowCastingPointLightIndex, 1);
-		
-		for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.getModelRenderRequests())
+		int shadowCastingPointLightIndex = 0;
+		_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights);
+		PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer();
+		for (const PointLight::RenderData& pointLightRenderData : input.registry.getPointLightRenderRequests())
 		{
-			if (!modelRendererRenderData.contributeShadows)
+			if (!pointLightRenderData.castShadows)
 			{
 				continue;
 			}
 			
-			const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = modelRendererRenderData.mesh->getPositionVertexBuffer();
-			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelRendererRenderData.mesh->getIndexBuffer();
+			for (int i = 0; i < 6; i++)
+			{
+				commandBuffer->imageMemoryBarrier(
+					(*pointLightRenderData.shadowMapTextureView)->getInfo().getImage(),
+					i,
+					0,
+					vk::PipelineStageFlagBits2::eNone,
+					vk::AccessFlagBits2::eNone,
+					vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+					vk::AccessFlagBits2::eDepthStencilAttachmentRead,
+					vk::ImageLayout::eDepthAttachmentOptimal);
+			}
 			
-			commandBuffer->bindVertexBuffer(0, vertexBuffer);
-			commandBuffer->bindIndexBuffer(indexBuffer);
+			glm::uvec2 shadowMapSize = (*pointLightRenderData.shadowMapTextureView)->getInfo().getImage()->getSize(0);
 			
-			PointLightPushConstantData pushConstantData{};
-			pushConstantData.model = modelRendererRenderData.matrix;
-			commandBuffer->pushConstants(pushConstantData);
+			VKRenderingInfo renderingInfo(shadowMapSize);
+			renderingInfo.setLayers(6);
+			renderingInfo.setViewMask(0b111111);
 			
-			commandBuffer->draw(indexBuffer->getSize(), 0);
+			renderingInfo.setDepthAttachment(*pointLightRenderData.shadowMapTextureView)
+				.setLoadOpClear(1.0f)
+				.setStoreOpStore();
+			
+			commandBuffer->pushDebugGroup(std::format("Point light ({})", shadowCastingPointLightIndex));
+			
+			commandBuffer->beginRendering(renderingInfo);
+			
+			commandBuffer->bindPipeline(_pointLightPipeline);
+			
+			VKPipelineViewport viewport;
+			viewport.offset = {0, 0};
+			viewport.size = shadowMapSize;
+			viewport.depthRange = {0.0f, 1.0f};
+			commandBuffer->setViewport(viewport);
+			
+			VKPipelineScissor scissor;
+			scissor.offset = {0, 0};
+			scissor.size = shadowMapSize;
+			commandBuffer->setScissor(scissor);
+			
+			PointLightUniforms uniforms{};
+			std::copy(std::begin(pointLightRenderData.viewProjections), std::end(pointLightRenderData.viewProjections), std::begin(uniforms.viewProjections));
+			uniforms.lightPos = pointLightRenderData.pos;
+			uniforms.far = pointLightRenderData.far;
+			
+			std::memcpy(pointLightUniformBufferPtr, &uniforms, sizeof(PointLightUniforms));
+			pointLightUniformBufferPtr++;
+			
+			commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), shadowCastingPointLightIndex, 1);
+			
+			for (const ModelRenderer::RenderData& modelRendererRenderData : input.registry.getModelRenderRequests())
+			{
+				if (!modelRendererRenderData.contributeShadows)
+				{
+					continue;
+				}
+				
+				const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = modelRendererRenderData.mesh->getPositionVertexBuffer();
+				const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelRendererRenderData.mesh->getIndexBuffer();
+				
+				commandBuffer->bindVertexBuffer(0, vertexBuffer);
+				commandBuffer->bindIndexBuffer(indexBuffer);
+				
+				PointLightPushConstantData pushConstantData{};
+				pushConstantData.model = modelRendererRenderData.matrix;
+				commandBuffer->pushConstants(pushConstantData);
+				
+				commandBuffer->draw(indexBuffer->getSize(), 0);
+			}
+			
+			commandBuffer->unbindPipeline();
+			
+			commandBuffer->endRendering();
+			
+			commandBuffer->popDebugGroup();
+			
+			shadowCastingPointLightIndex++;
 		}
-		
-		commandBuffer->unbindPipeline();
-		
-		commandBuffer->endRendering();
-		
-		commandBuffer->popDebugGroup();
-		
-		shadowCastingPointLightIndex++;
 	}
 	
 	return {};

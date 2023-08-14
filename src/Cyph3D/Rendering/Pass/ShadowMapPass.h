@@ -17,6 +17,8 @@ struct ShadowMapPassInput
 {
 	const RenderRegistry& registry;
 	Camera& camera;
+	bool sceneChanged;
+	bool cameraChanged;
 };
 
 struct ShadowMapPassOutput

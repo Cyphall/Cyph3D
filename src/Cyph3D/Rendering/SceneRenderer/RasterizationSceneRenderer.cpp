@@ -30,7 +30,9 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 	
 	ShadowMapPassInput shadowMapPassInput{
 		.registry = registry,
-		.camera = camera
+		.camera = camera,
+		.sceneChanged = sceneChanged,
+		.cameraChanged = cameraChanged
 	};
 	
 	_shadowMapPass.render(commandBuffer, shadowMapPassInput, _renderPerf);
