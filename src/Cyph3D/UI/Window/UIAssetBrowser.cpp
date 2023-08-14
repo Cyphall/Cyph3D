@@ -507,7 +507,7 @@ bool UIAssetBrowser::drawRightPanelEntries()
 		{
 			if (ImGui::BeginDragDropSource())
 			{
-				ImGui::TextUnformatted(entry->displayAssetPath().c_str());
+				ImGui::TextUnformatted(entry->assetPath().c_str());
 
 				const std::string* pathPtr = &entry->assetPath();
 
