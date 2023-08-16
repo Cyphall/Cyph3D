@@ -22,6 +22,7 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
+#include "Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
@@ -29,7 +30,6 @@
 PathTracePass::PathTracePass(const glm::uvec2& size):
 	RenderPass(size, "Path trace pass")
 {
-	createBuffers();
 	createDescriptorSetLayout();
 	createPipelineLayout();
 	createPipeline();
@@ -58,15 +58,13 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	if (input.sceneChanged)
 	{
 		setupTLAS(commandBuffer, input);
-		setupSkyboxUniformsBuffer();
-		setupObjectUniformsBuffer(input);
 		
 		recreateDescriptorSet = true;
 	}
 	
-	if (input.cameraChanged)
+	if (input.sceneChanged || input.cameraChanged)
 	{
-		setupCameraUniformsBuffer(input);
+		setupSBT(input);
 		
 		recreateDescriptorSet = true;
 	}
@@ -79,9 +77,6 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		_descriptorSet->bindAccelerationStructure(0, _tlas);
 		_descriptorSet->bindImage(1, _rawRenderImageView);
-		_descriptorSet->bindBuffer(2, _cameraUniformsBuffer, 0, 1);
-		_descriptorSet->bindBuffer(3, _skyboxUniformsBuffer, 0, 1);
-		_descriptorSet->bindBuffer(4, _objectUniformsBuffer, 0, input.registry.getModelRenderRequests().size());
 	}
 	
 	commandBuffer->bindPipeline(_pipeline);
@@ -97,11 +92,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	
 	commandBuffer->pushConstants(framePushConstants);
 	
-	VKHelper::buildRaygenShaderBindingTable(Engine::getVKContext(), _pipeline, _raygenSBT.getCurrent());
-	VKHelper::buildMissShaderBindingTable(Engine::getVKContext(), _pipeline, _missSBT.getCurrent());
-	VKHelper::buildHitShaderBindingTable(Engine::getVKContext(), _pipeline, _hitSBT.getCurrent());
-	
-	commandBuffer->traceRays(_raygenSBT->getBuffer(), _missSBT->getBuffer(), _hitSBT->getBuffer(), _size);
+	commandBuffer->traceRays(_sbt, _size);
 	
 	_accumulatedBatches++;
 	_batchIndex++;
@@ -123,11 +114,14 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 {
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
 	buildInfo.instancesInfos.reserve(input.registry.getModelRenderRequests().size());
-	for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
+	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 	{
+		const ModelRenderer::RenderData& renderData = input.registry.getModelRenderRequests()[i];
+		
 		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
 		instanceInfo.localToWorld = renderData.matrix;
 		instanceInfo.customIndex = 0;
+		instanceInfo.recordIndex = i;
 		instanceInfo.accelerationStructure = renderData.mesh->getAccelerationStructure();
 	}
 	
@@ -165,15 +159,8 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 		vk::AccessFlagBits2::eAccelerationStructureReadKHR);
 }
 
-void PathTracePass::setupCameraUniformsBuffer(const PathTracePassInput& input)
+void PathTracePass::setupSBT(const PathTracePassInput& input)
 {
-	VKBufferInfo cameraUniformsBufferInfo(1, vk::BufferUsageFlagBits::eUniformBuffer);
-	cameraUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	cameraUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	cameraUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	
-	_cameraUniformsBuffer = VKBuffer<CameraUniforms>::create(Engine::getVKContext(), cameraUniformsBufferInfo);
-	
 	CameraUniforms cameraUniforms{
 		.cameraPosition = input.camera.getPosition(),
 		.cameraRayTL = input.camera.getCornerRays()[0],
@@ -182,106 +169,45 @@ void PathTracePass::setupCameraUniformsBuffer(const PathTracePassInput& input)
 		.cameraRayBR = input.camera.getCornerRays()[3]
 	};
 	
-	std::memcpy(_cameraUniformsBuffer->getHostPointer(), &cameraUniforms, sizeof(CameraUniforms));
-}
-
-void PathTracePass::setupSkyboxUniformsBuffer()
-{
-	VKBufferInfo skyboxUniformsBufferInfo(1, vk::BufferUsageFlagBits::eUniformBuffer);
-	skyboxUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	skyboxUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	skyboxUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	VKShaderBindingTableInfo info(_pipeline->getRaygenGroupHandle(0), cameraUniforms);
 	
-	_skyboxUniformsBuffer = VKBuffer<SkyboxUniforms>::create(Engine::getVKContext(), skyboxUniformsBufferInfo);
+	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
+	{
+		const ModelRenderer::RenderData& renderData = input.registry.getModelRenderRequests()[i];
+		
+		ObjectUniforms objectUniforms{
+			.normalMatrix = glm::inverseTranspose(glm::mat3(renderData.matrix)),
+			.vertexBuffer = renderData.mesh->getFullVertexBuffer()->getDeviceAddress(),
+			.indexBuffer = renderData.mesh->getIndexBuffer()->getDeviceAddress(),
+			.albedoIndex = renderData.material->getAlbedoTextureBindlessIndex(),
+			.normalIndex = renderData.material->getNormalTextureBindlessIndex(),
+			.roughnessIndex = renderData.material->getRoughnessTextureBindlessIndex(),
+			.metalnessIndex = renderData.material->getMetalnessTextureBindlessIndex(),
+			.displacementIndex = renderData.material->getDisplacementTextureBindlessIndex(),
+			.emissiveIndex = renderData.material->getEmissiveTextureBindlessIndex(),
+			.emissiveScale = renderData.material->getEmissiveScale()
+		};
+		
+		info.addTriangleHitRecord(i, 0, _pipeline->getTriangleHitGroupHandle(0), objectUniforms);
+	}
 	
 	SkyboxAsset* skybox = Engine::getScene().getSkybox();
 	
-	SkyboxUniforms skyboxUniforms{};
 	if (skybox && skybox->isLoaded())
 	{
-		skyboxUniforms.hasSkybox = true;
-		skyboxUniforms.skyboxIndex = skybox->getBindlessIndex();
-		skyboxUniforms.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
+		CubemapSkyboxUniforms cubemapSkyboxUniforms{
+			.skyboxIndex = skybox->getBindlessIndex(),
+			.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0))
+		};
+		
+		info.addMissRecord(_pipeline->getMissGroupHandle(1), cubemapSkyboxUniforms);
 	}
 	else
 	{
-		skyboxUniforms.hasSkybox = false;
+		info.addMissRecord(_pipeline->getMissGroupHandle(0));
 	}
 	
-	std::memcpy(_skyboxUniformsBuffer->getHostPointer(), &skyboxUniforms, sizeof(SkyboxUniforms));
-}
-
-void PathTracePass::setupObjectUniformsBuffer(const PathTracePassInput& input)
-{
-	if (input.registry.getModelRenderRequests().empty())
-	{
-		_objectUniformsBuffer = {};
-	}
-	else
-	{
-		VKBufferInfo objectUniformsBufferInfo(input.registry.getModelRenderRequests().size(), vk::BufferUsageFlagBits::eStorageBuffer);
-		objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-		objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-		
-		_objectUniformsBuffer = VKBuffer<ObjectUniforms>::create(Engine::getVKContext(), objectUniformsBufferInfo);
-		
-		ObjectUniforms* objectUniformsPtr = _objectUniformsBuffer->getHostPointer();
-		for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
-		{
-			ObjectUniforms uniforms{
-				.normalMatrix = glm::inverseTranspose(glm::mat3(renderData.matrix)),
-				.vertexBuffer = renderData.mesh->getFullVertexBuffer()->getDeviceAddress(),
-				.indexBuffer = renderData.mesh->getIndexBuffer()->getDeviceAddress(),
-				.albedoIndex = renderData.material->getAlbedoTextureBindlessIndex(),
-				.normalIndex = renderData.material->getNormalTextureBindlessIndex(),
-				.roughnessIndex = renderData.material->getRoughnessTextureBindlessIndex(),
-				.metalnessIndex = renderData.material->getMetalnessTextureBindlessIndex(),
-				.displacementIndex = renderData.material->getDisplacementTextureBindlessIndex(),
-				.emissiveIndex = renderData.material->getEmissiveTextureBindlessIndex(),
-				.emissiveScale = renderData.material->getEmissiveScale()
-			};
-			
-			std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
-			objectUniformsPtr++;
-		}
-	}
-}
-
-void PathTracePass::createBuffers()
-{
-	VKResizableBufferInfo raygenSBTInfo(vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
-	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	raygenSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	raygenSBTInfo.setRequiredAlignment(Engine::getVKContext().getRayTracingPipelineProperties().shaderGroupBaseAlignment);
-	
-	_raygenSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<std::byte>::create(context, raygenSBTInfo);
-	});
-	
-	VKResizableBufferInfo missSBTInfo(vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
-	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	missSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	missSBTInfo.setRequiredAlignment(Engine::getVKContext().getRayTracingPipelineProperties().shaderGroupBaseAlignment);
-	
-	_missSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<std::byte>::create(context, missSBTInfo);
-	});
-	
-	VKResizableBufferInfo hitSBTInfo(vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
-	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	hitSBTInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	hitSBTInfo.setRequiredAlignment(Engine::getVKContext().getRayTracingPipelineProperties().shaderGroupBaseAlignment);
-	
-	_hitSBT = VKDynamic<VKResizableBuffer<std::byte>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<std::byte>::create(context, hitSBTInfo);
-	});
+	_sbt = VKShaderBindingTable::create(Engine::getVKContext(), info);
 }
 
 void PathTracePass::createDescriptorSetLayout()
@@ -289,9 +215,6 @@ void PathTracePass::createDescriptorSetLayout()
 	VKDescriptorSetLayoutInfo info(false);
 	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR);
 	info.addBinding(vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR);
-	info.addBinding(vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR);
-	info.addBinding(vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eMissKHR);
-	info.addBinding(vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -308,12 +231,12 @@ void PathTracePass::createPipelineLayout()
 
 void PathTracePass::createPipeline()
 {
-	VKRayTracingPipelineInfo info(
-		_pipelineLayout,
-		"resources/shaders/internal/path tracing/path trace.rgen");
+	VKRayTracingPipelineInfo info(_pipelineLayout);
 	
-	info.addRayType("resources/shaders/internal/path tracing/path trace.rmiss");
-	info.addObjectTypeForRayType(0, "resources/shaders/internal/path tracing/path trace.rchit", std::nullopt);
+	info.addRaygenGroupsInfos("resources/shaders/internal/path tracing/path trace.rgen");
+	info.addTriangleHitGroupsInfos("resources/shaders/internal/path tracing/path trace.rchit", std::nullopt);
+	info.addMissGroupsInfos("resources/shaders/internal/path tracing/black skybox.rmiss");
+	info.addMissGroupsInfos("resources/shaders/internal/path tracing/cubemap skybox.rmiss");
 	
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }

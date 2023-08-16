@@ -19,6 +19,7 @@ class VKTimestampQuery;
 class VKAccelerationStructure;
 class VKRenderingInfo;
 class VKAccelerationStructureCompactedSizeQuery;
+class VKShaderBindingTable;
 struct VKPipelineViewport;
 struct VKPipelineScissor;
 struct VKBottomLevelAccelerationStructureBuildInfo;
@@ -104,7 +105,7 @@ public:
 	
 	void compactAccelerationStructure(const VKPtr<VKAccelerationStructure>& src, const VKPtr<VKAccelerationStructure>& dst);
 	
-	void traceRays(const VKPtr<VKBufferBase>& raygenSBT, const VKPtr<VKBufferBase>& missSBT, const VKPtr<VKBufferBase>& hitSBT, glm::uvec2 size);
+	void traceRays(const VKPtr<VKShaderBindingTable>& sbt, glm::uvec2 size);
 	
 	const VKPtr<VKFence>& getStatusFence() const;
 	

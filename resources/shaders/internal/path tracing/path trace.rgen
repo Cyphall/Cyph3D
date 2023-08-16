@@ -15,7 +15,7 @@ struct HitPayload
 layout(set = 1, binding = 0) uniform accelerationStructureEXT u_topLevelAS;
 layout(set = 1, binding = 1, rgba32f) uniform image2D u_color;
 
-layout(std430, set = 1, binding = 2) uniform uniforms
+layout(shaderRecordEXT) buffer uniforms
 {
 	vec3 u_position;
 	vec3 u_rayTL;
@@ -70,8 +70,8 @@ void main()
 				u_topLevelAS,            // acceleration structure
 				gl_RayFlagsOpaqueEXT,    // rayFlags
 				0xFF,                    // cullMask
-				0,                       // sbtRecordOffset
-				0,                       // sbtRecordStride
+				0,                       // sbtRecordOffset (ray type)
+				1,                       // sbtRecordStride (number of ray types
 				0,                       // missIndex
 				hitPayload.rayPosition,  // ray origin
 				0.0,                     // ray min range

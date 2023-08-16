@@ -1,10 +1,7 @@
 #include "VKRayTracingPipelineInfo.h"
 
-VKRayTracingPipelineInfo::VKRayTracingPipelineInfo(
-	const VKPtr<VKPipelineLayout>& pipelineLayout,
-	const std::filesystem::path& raygenShader):
-	_pipelineLayout(pipelineLayout),
-	_raygenShader(raygenShader)
+VKRayTracingPipelineInfo::VKRayTracingPipelineInfo(const VKPtr<VKPipelineLayout>& pipelineLayout):
+	_pipelineLayout(pipelineLayout)
 {
 
 }
@@ -14,30 +11,51 @@ const VKPtr<VKPipelineLayout>& VKRayTracingPipelineInfo::getPipelineLayout() con
 	return _pipelineLayout;
 }
 
-const std::filesystem::path& VKRayTracingPipelineInfo::getRaygenShader() const
+const VKRayTracingPipelineInfo::RaygenGroupInfo& VKRayTracingPipelineInfo::getRaygenGroupInfo(uint32_t index) const
 {
-	return _raygenShader;
+	return _raygenGroupsInfos[index];
 }
 
-const VKRayTracingPipelineInfo::RayTypeInfo& VKRayTracingPipelineInfo::getRayTypeInfo(uint32_t index) const
+const std::vector<VKRayTracingPipelineInfo::RaygenGroupInfo>& VKRayTracingPipelineInfo::getRaygenGroupsInfos() const
 {
-	return _rayTypesInfos[index];
+	return _raygenGroupsInfos;
 }
 
-const std::vector<VKRayTracingPipelineInfo::RayTypeInfo>& VKRayTracingPipelineInfo::getRayTypesInfos() const
+void VKRayTracingPipelineInfo::addRaygenGroupsInfos(const std::filesystem::path& raygenShader)
 {
-	return _rayTypesInfos;
+	RaygenGroupInfo& info = _raygenGroupsInfos.emplace_back();
+	info.raygenShader = raygenShader;
 }
 
-void VKRayTracingPipelineInfo::addRayType(const std::filesystem::path& missShader)
+const VKRayTracingPipelineInfo::TriangleHitGroupInfo& VKRayTracingPipelineInfo::getTriangleHitGroupInfo(uint32_t index) const
 {
-	VKRayTracingPipelineInfo::RayTypeInfo& rayTypeInfo = _rayTypesInfos.emplace_back();
-	rayTypeInfo.missShader = missShader;
+	return _triangleHitGroupsInfos[index];
 }
 
-void VKRayTracingPipelineInfo::addObjectTypeForRayType(uint32_t rayTypeIndex, std::optional<std::filesystem::path> closestHitShader, std::optional<std::filesystem::path> anyHitShader)
+const std::vector<VKRayTracingPipelineInfo::TriangleHitGroupInfo>& VKRayTracingPipelineInfo::getTriangleHitGroupsInfos() const
 {
-	VKRayTracingPipelineInfo::ObjectTypeInfo& objectTypeInfo = _rayTypesInfos[rayTypeIndex].objectTypesInfos.emplace_back();
-	objectTypeInfo.closestHitShader = std::move(closestHitShader);
-	objectTypeInfo.anyHitShader = std::move(anyHitShader);
+	return _triangleHitGroupsInfos;
+}
+
+void VKRayTracingPipelineInfo::addTriangleHitGroupsInfos(std::optional<std::filesystem::path> closestHitShader, std::optional<std::filesystem::path> anyHitShader)
+{
+	TriangleHitGroupInfo& info = _triangleHitGroupsInfos.emplace_back();
+	info.closestHitShader = std::move(closestHitShader);
+	info.anyHitShader = std::move(anyHitShader);
+}
+
+const VKRayTracingPipelineInfo::MissGroupInfo& VKRayTracingPipelineInfo::getMissGroupInfo(uint32_t index) const
+{
+	return _missGroupsInfos[index];
+}
+
+const std::vector<VKRayTracingPipelineInfo::MissGroupInfo>& VKRayTracingPipelineInfo::getMissGroupsInfos() const
+{
+	return _missGroupsInfos;
+}
+
+void VKRayTracingPipelineInfo::addMissGroupsInfos(const std::filesystem::path& missShader)
+{
+	MissGroupInfo& info = _missGroupsInfos.emplace_back();
+	info.missShader = missShader;
 }

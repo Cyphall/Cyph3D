@@ -35,25 +35,20 @@ layout(buffer_reference, std430, scalar) readonly buffer IndexBuffer
 	uvec3 indices[];
 };
 
-struct ObjectUniforms
-{
-	mat4 normalMatrix;
-	VertexBuffer vertexBuffer;
-	IndexBuffer indexBuffer;
-	uint albedoIndex;
-	uint normalIndex;
-	uint roughnessIndex;
-	uint metalnessIndex;
-	uint displacementIndex;
-	uint emissiveIndex;
-	float emissiveScale;
-};
-
 layout(set = 0, binding = 0) uniform sampler2D u_textures[];
 
-layout(std430, set = 1, binding = 4) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere1
+layout(shaderRecordEXT) buffer uniforms
 {
-	ObjectUniforms u_objectUniforms[];
+	mat4 u_normalMatrix;
+	VertexBuffer u_vertexBuffer;
+	IndexBuffer u_indexBuffer;
+	uint u_albedoIndex;
+	uint u_normalIndex;
+	uint u_roughnessIndex;
+	uint u_metalnessIndex;
+	uint u_displacementIndex;
+	uint u_emissiveIndex;
+	float u_emissiveScale;
 };
 
 layout(push_constant) uniform constants
@@ -132,19 +127,17 @@ vec3 interpolateBarycentrics(vec3 a, vec3 b, vec3 c, vec3 barycentrics)
 
 void main()
 {
-	ObjectUniforms uniforms = u_objectUniforms[nonuniformEXT(gl_InstanceID)];
+	uvec3 indices = u_indexBuffer.indices[nonuniformEXT(gl_PrimitiveID)];
 	
-	uvec3 indices = uniforms.indexBuffer.indices[nonuniformEXT(gl_PrimitiveID)];
-	
-	Vertex v1 = uniforms.vertexBuffer.vertices[nonuniformEXT(indices.x)];
-	Vertex v2 = uniforms.vertexBuffer.vertices[nonuniformEXT(indices.y)];
-	Vertex v3 = uniforms.vertexBuffer.vertices[nonuniformEXT(indices.z)];
+	Vertex v1 = u_vertexBuffer.vertices[nonuniformEXT(indices.x)];
+	Vertex v2 = u_vertexBuffer.vertices[nonuniformEXT(indices.y)];
+	Vertex v3 = u_vertexBuffer.vertices[nonuniformEXT(indices.z)];
 	
 	vec3 position1 = gl_ObjectToWorldEXT * vec4(v1.position, 1);
 	vec3 position2 = gl_ObjectToWorldEXT * vec4(v2.position, 1);
 	vec3 position3 = gl_ObjectToWorldEXT * vec4(v3.position, 1);
 	
-	mat3 normalMatrix = mat3(uniforms.normalMatrix);
+	mat3 normalMatrix = mat3(u_normalMatrix);
 	
 	vec3 normal1 = normalize(normalMatrix * v1.normal);
 	vec3 normal2 = normalize(normalMatrix * v2.normal);
@@ -162,10 +155,10 @@ void main()
 	
 	vec2 uv = interpolateBarycentrics(v1.uv, v2.uv, v3.uv, barycentrics);
 	
-	vec3 albedo = texture(u_textures[nonuniformEXT(uniforms.albedoIndex)], uv).rgb;
-	float roughness = texture(u_textures[nonuniformEXT(uniforms.roughnessIndex)], uv).r;
-	float metalness = texture(u_textures[nonuniformEXT(uniforms.metalnessIndex)], uv).r;
-	float emissive = texture(u_textures[nonuniformEXT(uniforms.emissiveIndex)], uv).r * uniforms.emissiveScale;
+	vec3 albedo = texture(u_textures[nonuniformEXT(u_albedoIndex)], uv).rgb;
+	float roughness = texture(u_textures[nonuniformEXT(u_roughnessIndex)], uv).r;
+	float metalness = texture(u_textures[nonuniformEXT(u_metalnessIndex)], uv).r;
+	float emissive = texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r * u_emissiveScale;
 	
 	
 	hitPayload.light += hitPayload.contribution * albedo * emissive;

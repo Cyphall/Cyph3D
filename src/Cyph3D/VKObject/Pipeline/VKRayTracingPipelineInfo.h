@@ -10,38 +10,41 @@ class VKPipelineLayout;
 class VKRayTracingPipelineInfo
 {
 public:
-	struct ObjectTypeInfo
-	{
-		std::optional<std::filesystem::path> closestHitShader;
-		std::optional<std::filesystem::path> anyHitShader;
-	};
-	
-	struct RayTypeInfo
-	{
-		std::filesystem::path missShader;
-		std::vector<ObjectTypeInfo> objectTypesInfos;
-	};
-	
 	struct RaygenGroupInfo
 	{
 		std::filesystem::path raygenShader;
 	};
 	
-	explicit VKRayTracingPipelineInfo(
-		const VKPtr<VKPipelineLayout>& pipelineLayout,
-		const std::filesystem::path& raygenShader);
+	struct TriangleHitGroupInfo
+	{
+		std::optional<std::filesystem::path> closestHitShader;
+		std::optional<std::filesystem::path> anyHitShader;
+	};
+	
+	struct MissGroupInfo
+	{
+		std::filesystem::path missShader;
+	};
+	
+	explicit VKRayTracingPipelineInfo(const VKPtr<VKPipelineLayout>& pipelineLayout);
 	
 	const VKPtr<VKPipelineLayout>& getPipelineLayout() const;
 	
-	const std::filesystem::path& getRaygenShader() const;
+	const RaygenGroupInfo& getRaygenGroupInfo(uint32_t index) const;
+	const std::vector<RaygenGroupInfo>& getRaygenGroupsInfos() const;
+	void addRaygenGroupsInfos(const std::filesystem::path& raygenShader);
 	
-	const RayTypeInfo& getRayTypeInfo(uint32_t index) const;
-	const std::vector<RayTypeInfo>& getRayTypesInfos() const;
-	void addRayType(const std::filesystem::path& missShader);
-	void addObjectTypeForRayType(uint32_t rayTypeIndex, std::optional<std::filesystem::path> closestHitShader, std::optional<std::filesystem::path> anyHitShader);
+	const TriangleHitGroupInfo& getTriangleHitGroupInfo(uint32_t index) const;
+	const std::vector<TriangleHitGroupInfo>& getTriangleHitGroupsInfos() const;
+	void addTriangleHitGroupsInfos(std::optional<std::filesystem::path> closestHitShader, std::optional<std::filesystem::path> anyHitShader);
+	
+	const MissGroupInfo& getMissGroupInfo(uint32_t index) const;
+	const std::vector<MissGroupInfo>& getMissGroupsInfos() const;
+	void addMissGroupsInfos(const std::filesystem::path& missShader);
 
 private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
-	std::filesystem::path _raygenShader;
-	std::vector<RayTypeInfo> _rayTypesInfos;
+	std::vector<RaygenGroupInfo> _raygenGroupsInfos;
+	std::vector<TriangleHitGroupInfo> _triangleHitGroupsInfos;
+	std::vector<MissGroupInfo> _missGroupsInfos;
 };

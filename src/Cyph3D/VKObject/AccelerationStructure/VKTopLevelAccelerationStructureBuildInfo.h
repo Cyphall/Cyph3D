@@ -13,6 +13,7 @@ struct VKTopLevelAccelerationStructureBuildInfo
 	{
 		glm::mat4 localToWorld;
 		uint32_t customIndex;
+		uint32_t recordIndex;
 		VKPtr<VKAccelerationStructure> accelerationStructure;
 	};
 	

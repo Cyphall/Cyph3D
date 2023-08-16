@@ -7,16 +7,13 @@
 
 struct RenderRegistry;
 class Camera;
-template<typename T>
-class VKBuffer;
-template<typename T>
-class VKResizableBuffer;
 class VKDescriptorSetLayout;
 class VKDescriptorSet;
 class VKPipelineLayout;
 class VKRayTracingPipeline;
 class VKImage;
 class VKImageView;
+class VKShaderBindingTable;
 
 struct PathTracePassInput
 {
@@ -48,9 +45,8 @@ private:
 		GLSL_vec3 cameraRayBR;
 	};
 	
-	struct SkyboxUniforms
+	struct CubemapSkyboxUniforms
 	{
-		GLSL_bool hasSkybox;
 		GLSL_uint skyboxIndex;
 		GLSL_mat4 skyboxRotation;
 	};
@@ -78,13 +74,7 @@ private:
 	
 	VKPtr<VKAccelerationStructure> _tlas;
 	
-	VKPtr<VKBuffer<CameraUniforms>> _cameraUniformsBuffer;
-	VKPtr<VKBuffer<SkyboxUniforms>> _skyboxUniformsBuffer;
-	VKPtr<VKBuffer<ObjectUniforms>> _objectUniformsBuffer;
-	
-	VKDynamic<VKResizableBuffer<std::byte>> _raygenSBT;
-	VKDynamic<VKResizableBuffer<std::byte>> _missSBT;
-	VKDynamic<VKResizableBuffer<std::byte>> _hitSBT;
+	VKPtr<VKShaderBindingTable> _sbt;
 	
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
 	
@@ -103,11 +93,8 @@ private:
 	void onResize() override;
 	
 	void setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
-	void setupCameraUniformsBuffer(const PathTracePassInput& input);
-	void setupSkyboxUniformsBuffer();
-	void setupObjectUniformsBuffer(const PathTracePassInput& input);
+	void setupSBT(const PathTracePassInput& input);
 	
-	void createBuffers();
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();

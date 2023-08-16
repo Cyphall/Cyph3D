@@ -18,6 +18,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineViewport.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineScissor.h"
+#include "Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/Fence/VKFence.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
@@ -910,7 +911,7 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 		}
 		instance.instanceCustomIndex = instanceInfo.customIndex;
 		instance.mask = 0xFF;
-		instance.instanceShaderBindingTableRecordOffset = 0;
+		instance.instanceShaderBindingTableRecordOffset = instanceInfo.recordIndex;
 		instance.flags = {};
 		instance.accelerationStructureReference = instanceInfo.accelerationStructure->getDeviceAddress();
 		
@@ -969,26 +970,27 @@ void VKCommandBuffer::compactAccelerationStructure(const VKPtr<VKAccelerationStr
 	_usedObjects.emplace_back(dst);
 }
 
-void VKCommandBuffer::traceRays(const VKPtr<VKBufferBase>& raygenSBT, const VKPtr<VKBufferBase>& missSBT, const VKPtr<VKBufferBase>& hitSBT, glm::uvec2 size)
+void VKCommandBuffer::traceRays(const VKPtr<VKShaderBindingTable>& sbt, glm::uvec2 size)
 {
-	uint32_t handleSizeAligned = VKHelper::alignUp(32, _context.getRayTracingPipelineProperties().shaderGroupHandleAlignment);
-	
 	vk::StridedDeviceAddressRegionKHR raygenRegion;
-	raygenRegion.deviceAddress = raygenSBT->getDeviceAddress();
-	raygenRegion.stride = VKHelper::alignUp(handleSizeAligned, _context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
-	raygenRegion.size = raygenSBT->getByteSize();
+	raygenRegion.deviceAddress = sbt->getRaygenSBTAddress();
+	raygenRegion.stride = sbt->getRaygenSBTStride();
+	raygenRegion.size = sbt->getRaygenSBTAlignedSize();
 	
 	vk::StridedDeviceAddressRegionKHR missRegion;
-	missRegion.deviceAddress = missSBT->getDeviceAddress();
-	missRegion.stride = VKHelper::alignUp(handleSizeAligned, _context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
-	missRegion.size = missSBT->getByteSize();
+	missRegion.deviceAddress = sbt->getMissSBTAddress();
+	missRegion.stride = sbt->getMissSBTStride();
+	missRegion.size = sbt->getMissSBTAlignedSize();
 	
 	vk::StridedDeviceAddressRegionKHR hitRegion;
-	hitRegion.deviceAddress = hitSBT->getDeviceAddress();
-	hitRegion.stride = VKHelper::alignUp(handleSizeAligned, _context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
-	hitRegion.size = hitSBT->getByteSize();
+	hitRegion.deviceAddress = sbt->getTriangleHitSBTAddress();
+	hitRegion.stride = sbt->getTriangleHitSBTStride();
+	hitRegion.size = sbt->getTriangleHitSBTAlignedSize();
 	
 	vk::StridedDeviceAddressRegionKHR callRegion;
+	callRegion.deviceAddress = 0;
+	callRegion.stride = 0;
+	callRegion.size = 0;
 	
 	_commandBuffer.traceRaysKHR(
 		raygenRegion,
@@ -999,9 +1001,7 @@ void VKCommandBuffer::traceRays(const VKPtr<VKBufferBase>& raygenSBT, const VKPt
 		size.y,
 		1);
 	
-	_usedObjects.emplace_back(raygenSBT);
-	_usedObjects.emplace_back(missSBT);
-	_usedObjects.emplace_back(hitSBT);
+	_usedObjects.emplace_back(sbt);
 }
 
 void VKCommandBuffer::pushConstants(const void* data, uint32_t dataSize)
