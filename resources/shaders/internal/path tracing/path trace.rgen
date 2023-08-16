@@ -57,7 +57,7 @@ void main()
 		hitPayload.contribution = vec3(1);
 		hitPayload.rayPosition = u_position;
 		
-		vec2 PS_rayPos = vec2(gl_LaunchIDEXT.xy) + getRandom().xy;
+		vec2 PS_rayPos = vec2(gl_LaunchIDEXT.xy) + 0.5 + (getRandom().xy - 0.5);
 		vec2 UVS_rayPos = PS_rayPos / vec2(gl_LaunchSizeEXT.xy);
 		
 		vec3 topRayDir = mix(u_rayTL, u_rayTR, UVS_rayPos.x);
