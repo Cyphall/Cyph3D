@@ -127,11 +127,11 @@ vec3 interpolateBarycentrics(vec3 a, vec3 b, vec3 c, vec3 barycentrics)
 
 void main()
 {
-	uvec3 indices = u_indexBuffer.indices[nonuniformEXT(gl_PrimitiveID)];
+	uvec3 indices = u_indexBuffer.indices[gl_PrimitiveID];
 	
-	Vertex v1 = u_vertexBuffer.vertices[nonuniformEXT(indices.x)];
-	Vertex v2 = u_vertexBuffer.vertices[nonuniformEXT(indices.y)];
-	Vertex v3 = u_vertexBuffer.vertices[nonuniformEXT(indices.z)];
+	Vertex v1 = u_vertexBuffer.vertices[indices.x];
+	Vertex v2 = u_vertexBuffer.vertices[indices.y];
+	Vertex v3 = u_vertexBuffer.vertices[indices.z];
 	
 	vec3 position1 = gl_ObjectToWorldEXT * vec4(v1.position, 1);
 	vec3 position2 = gl_ObjectToWorldEXT * vec4(v2.position, 1);
