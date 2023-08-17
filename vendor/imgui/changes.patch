@@ -1,0 +1,112 @@
+Subject: [PATCH] a
+---
+Index: vendor/imgui/v1.89.4-docking/src/imgui.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/vendor/imgui/v1.89.4-docking/src/imgui.cpp b/vendor/imgui/v1.89.4-docking/src/imgui.cpp
+--- a/vendor/imgui/v1.89.4-docking/src/imgui.cpp	(revision 5fc8254d3d1554e5f494457c90d975fba6dbdb24)
++++ b/vendor/imgui/v1.89.4-docking/src/imgui.cpp	(date 1692294696935)
+@@ -16511,11 +16511,12 @@
+     if (node->IsRootNode() && host_window)
+     {
+         DockNodeTreeUpdatePosSize(node, host_window->Pos, host_window->Size);
+-		PushStyleColor(ImGuiCol_Separator, g.Style.Colors[ImGuiCol_Border]);
+-		PushStyleColor(ImGuiCol_SeparatorActive, g.Style.Colors[ImGuiCol_ResizeGripActive]);
+-		PushStyleColor(ImGuiCol_SeparatorHovered, g.Style.Colors[ImGuiCol_ResizeGripHovered]);
++		// custom change: disabled this
++        // PushStyleColor(ImGuiCol_Separator, g.Style.Colors[ImGuiCol_Border]);
++        // PushStyleColor(ImGuiCol_SeparatorActive, g.Style.Colors[ImGuiCol_ResizeGripActive]);
++        // PushStyleColor(ImGuiCol_SeparatorHovered, g.Style.Colors[ImGuiCol_ResizeGripHovered]);
+         DockNodeTreeUpdateSplitter(node);
+-		PopStyleColor(3);
++        // PopStyleColor(3);
+     }
+ 
+     // Draw empty node background (currently can only be the Central Node)
+Index: vendor/imgui/v1.89.4-docking/src/imgui_draw.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/vendor/imgui/v1.89.4-docking/src/imgui_draw.cpp b/vendor/imgui/v1.89.4-docking/src/imgui_draw.cpp
+--- a/vendor/imgui/v1.89.4-docking/src/imgui_draw.cpp	(revision 5fc8254d3d1554e5f494457c90d975fba6dbdb24)
++++ b/vendor/imgui/v1.89.4-docking/src/imgui_draw.cpp	(date 1692294696951)
+@@ -34,7 +34,7 @@
+ #ifndef IMGUI_DISABLE
+ #include "imgui_internal.h"
+ #ifdef IMGUI_ENABLE_FREETYPE
+-#include "misc/freetype/imgui_freetype.h"
++#include "imgui_freetype.h"
+ #endif
+ 
+ #include <stdio.h>      // vsnprintf, sscanf, printf
+Index: vendor/imgui/v1.89.4-docking/include/imconfig.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/vendor/imgui/v1.89.4-docking/include/imconfig.h b/vendor/imgui/v1.89.4-docking/include/imconfig.h
+--- a/vendor/imgui/v1.89.4-docking/include/imconfig.h	(revision 5fc8254d3d1554e5f494457c90d975fba6dbdb24)
++++ b/vendor/imgui/v1.89.4-docking/include/imconfig.h	(date 1692294692242)
+@@ -14,6 +14,8 @@
+ 
+ #pragma once
+ 
++#include <glm/glm.hpp>
++
+ //---- Define assertion handler. Defaults to calling assert().
+ // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
+ //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
+@@ -27,8 +29,8 @@
+ //#define IMGUI_API __declspec( dllimport )
+ 
+ //---- Don't define obsolete functions/enums/behaviors. Consider enabling from time to time after updating to clean your code of obsolete function/names.
+-//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+-//#define IMGUI_DISABLE_OBSOLETE_KEYIO                      // 1.87: disable legacy io.KeyMap[]+io.KeysDown[] in favor io.AddKeyEvent(). This will be folded into IMGUI_DISABLE_OBSOLETE_FUNCTIONS in a few versions.
++#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
++#define IMGUI_DISABLE_OBSOLETE_KEYIO                      // 1.87: disable legacy io.KeyMap[]+io.KeysDown[] in favor io.AddKeyEvent(). This will be folded into IMGUI_DISABLE_OBSOLETE_FUNCTIONS in a few versions.
+ 
+ //---- Disable all of Dear ImGui or don't implement standard windows/tools.
+ // It is very strongly recommended to NOT disable the demo windows and debug tool during development. They are extremely useful in day to day work. Please read comments in imgui_demo.cpp.
+@@ -74,7 +76,7 @@
+ //---- Use FreeType to build and rasterize the font atlas (instead of stb_truetype which is embedded by default in Dear ImGui)
+ // Requires FreeType headers to be available in the include path. Requires program to be compiled with 'misc/freetype/imgui_freetype.cpp' (in this repository) + the FreeType library (not provided).
+ // On Windows you may use vcpkg with 'vcpkg install freetype --triplet=x64-windows' + 'vcpkg integrate install'.
+-//#define IMGUI_ENABLE_FREETYPE
++#define IMGUI_ENABLE_FREETYPE
+ 
+ //---- Use FreeType+lunasvg library to render OpenType SVG fonts (SVGinOT)
+ // Requires lunasvg headers to be available in the include path + program to be linked with the lunasvg library (not provided).
+@@ -88,15 +90,15 @@
+ 
+ //---- Define constructor and implicit cast operators to convert back<>forth between your math types and ImVec2/ImVec4.
+ // This will be inlined as part of ImVec2 and ImVec4 class declarations.
+-/*
++
+ #define IM_VEC2_CLASS_EXTRA                                                     \
+-        constexpr ImVec2(const MyVec2& f) : x(f.x), y(f.y) {}                   \
+-        operator MyVec2() const { return MyVec2(x,y); }
++        constexpr ImVec2(const glm::vec2& f) : x(f.x), y(f.y) {}                   \
++        operator glm::vec2() const { return glm::vec2(x,y); }
+ 
+ #define IM_VEC4_CLASS_EXTRA                                                     \
+-        constexpr ImVec4(const MyVec4& f) : x(f.x), y(f.y), z(f.z), w(f.w) {}   \
+-        operator MyVec4() const { return MyVec4(x,y,z,w); }
+-*/
++        constexpr ImVec4(const glm::vec4& f) : x(f.x), y(f.y), z(f.z), w(f.w) {}   \
++        operator glm::vec4() const { return glm::vec4(x,y,z,w); }
++
+ //---- ...Or use Dear ImGui's own very basic math operators.
+ //#define IMGUI_DEFINE_MATH_OPERATORS
+ 
+@@ -115,7 +117,7 @@
+ //---- Debug Tools: Macro to break in Debugger (we provide a default implementation of this in the codebase)
+ // (use 'Metrics->Tools->Item Picker' to pick widgets with the mouse and break into them for easy debugging.)
+ //#define IM_DEBUG_BREAK  IM_ASSERT(0)
+-//#define IM_DEBUG_BREAK  __debugbreak()
++#define IM_DEBUG_BREAK  __debugbreak
+ 
+ //---- Debug Tools: Enable slower asserts
+ //#define IMGUI_DEBUG_PARANOID

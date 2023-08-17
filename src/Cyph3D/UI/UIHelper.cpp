@@ -45,7 +45,6 @@ void UIHelper::init()
 	ImGuiIO& io = ImGui::GetIO();
 
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.HoverDelayNormal = 0.6f;
 	
 	ImGui_ImplGlfw_InitForVulkan(Engine::getWindow().getHandle(), true);
 	
@@ -206,6 +205,8 @@ void UIHelper::initStyles()
 	style.GrabRounding = 3;
 	
 	style.WindowMenuButtonPosition = ImGuiDir_None;
+	
+	style.HoverDelayNormal = 0.6f;
 	
 	style.Colors[ImGuiCol_WindowBg] = normalizeColor(56, 56, 56, 255);
 	

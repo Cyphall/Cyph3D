@@ -64,7 +64,7 @@ target_link_libraries(Cyph3D PRIVATE Vulkan::Headers)
 add_subdirectory("vendor/bs-thread-pool/v3.3.0")
 target_link_libraries(Cyph3D PRIVATE bs-thread-pool)
 
-add_subdirectory("vendor/imgui/v1.89.4-docking")
+add_subdirectory("vendor/imgui/v1.89.8-docking")
 target_link_libraries(Cyph3D PRIVATE imgui)
 
 add_subdirectory("vendor/imguizmo/fbc3614abcc642de7f3868cc0d68a35503ca9a4e")
