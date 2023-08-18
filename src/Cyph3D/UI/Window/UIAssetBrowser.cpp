@@ -233,10 +233,7 @@ void UIAssetBrowser::draw()
 			rescan();
 		}
 		
-		if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
-		{
-			ImGui::SetTooltip("%s", "Refresh");
-		}
+		ImGui::SetItemTooltip("Refresh");
 
 		float currentWidth = ImGui::GetContentRegionAvail().x;
 		if (_previousWidth != currentWidth)
@@ -280,11 +277,8 @@ void UIAssetBrowser::draw()
 		{
 			ImGui::EndDisabled();
 		}
-
-		if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
-		{
-			ImGui::SetTooltip("%s", "Parent directory");
-		}
+		
+		ImGui::SetItemTooltip("Parent directory");
 		
 		ImGui::SameLine();
 

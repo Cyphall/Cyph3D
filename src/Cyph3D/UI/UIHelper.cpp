@@ -206,7 +206,8 @@ void UIHelper::initStyles()
 	
 	style.WindowMenuButtonPosition = ImGuiDir_None;
 	
-	style.HoverDelayNormal = 0.6f;
+	style.HoverStationaryDelay = 1.0f;
+	style.HoverFlagsForTooltipMouse = ImGuiHoveredFlags_Stationary;
 	
 	style.Colors[ImGuiCol_WindowBg] = normalizeColor(56, 56, 56, 255);
 	
