@@ -23,8 +23,8 @@ private:
 	void drawLeftPanel();
 	void drawDirectoryNode(const Entry& directory);
 
-	bool drawRightPanelEntries();
-	void drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth, bool& clicked, bool& doubleClicked);
+	void drawRightPanelEntries();
+	void drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth);
 
 	ImFont* _bigFont;
 

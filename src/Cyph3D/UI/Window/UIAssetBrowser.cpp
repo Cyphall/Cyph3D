@@ -297,11 +297,14 @@ void UIAssetBrowser::draw()
 		
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
 		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
-		bool anyWidgetClicked = drawRightPanelEntries();
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !anyWidgetClicked)
+		
+		drawRightPanelEntries();
+		
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
 		{
 			_selectedEntry = nullptr;
 		}
+		
 		if (ImGui::BeginPopupContextWindow("create_asset_popup", ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
 		{
 			if (ImGui::MenuItem("Create Material"))
@@ -422,11 +425,8 @@ void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 	}
 }
 
-void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth, bool& clicked, bool& doubleClicked)
+void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth)
 {
-	clicked = false;
-	doubleClicked = false;
-	
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (window->SkipItems)
 		return;
@@ -446,11 +446,40 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 	glm::vec2 nameOffset(0, _bigFont->FontSize + style.ItemInnerSpacing.y);
 	glm::vec2 nameAvailableSize(contentSize.x, ImGui::GetFontSize());
 
-	clicked = ImGui::InvisibleButton(entry.assetPath().c_str(), entrySize);
-
-	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+	if (ImGui::InvisibleButton(entry.assetPath().c_str(), entrySize, ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnDoubleClick))
 	{
-		doubleClicked = true;
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+		{
+			switch (entry.type())
+			{
+				case EntryType::Scene:
+					Scene::load(entry.assetPath());
+					break;
+				case EntryType::Directory:
+					_task = [this, &entry]()
+					{
+						this->_currentDirectory = &entry;
+					};
+					break;
+				default:
+					break;
+			}
+		}
+		else // simple click
+		{
+			_selectedEntry = &entry;
+			switch (entry.type())
+			{
+				case EntryType::Material:
+					UIInspector::setSelected(Engine::getAssetManager().loadMaterial(entry.assetPath()));
+					break;
+				case EntryType::Skybox:
+					UIInspector::setSelected(Engine::getAssetManager().loadSkybox(entry.assetPath()));
+					break;
+				default:
+					break;
+			}
+		}
 	}
 	
 	if (&entry == _selectedEntry)
@@ -488,10 +517,9 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 	}
 }
 
-bool UIAssetBrowser::drawRightPanelEntries()
+void UIAssetBrowser::drawRightPanelEntries()
 {
 	float usedWidth = 0;
-	bool anyWidgetClicked = false;
 	for (const std::unique_ptr<Entry>& entry : _currentDirectory->entries())
 	{
 		const char* icon;
@@ -530,9 +558,7 @@ bool UIAssetBrowser::drawRightPanelEntries()
 				throw;
 		}
 		
-		bool clicked;
-		bool doubleClicked;
-		drawRightPanelEntry(*entry, icon, usedWidth, clicked, doubleClicked);
+		drawRightPanelEntry(*entry, icon, usedWidth);
 
 		if (dragDropId != nullptr)
 		{
@@ -546,41 +572,5 @@ bool UIAssetBrowser::drawRightPanelEntries()
 				ImGui::EndDragDropSource();
 			}
 		}
-		
-		if (clicked)
-		{
-			_selectedEntry = entry.get();
-			anyWidgetClicked = true;
-			switch (entry->type())
-			{
-				case EntryType::Material:
-					UIInspector::setSelected(Engine::getAssetManager().loadMaterial(entry->assetPath()));
-					break;
-				case EntryType::Skybox:
-					UIInspector::setSelected(Engine::getAssetManager().loadSkybox(entry->assetPath()));
-					break;
-				default:
-					break;
-			}
-		}
-		else if (doubleClicked)
-		{
-			switch (entry->type())
-			{
-				case EntryType::Scene:
-					Scene::load(entry->assetPath());
-					break;
-				case EntryType::Directory:
-					_task = [this, &entry]()
-					{
-						this->_currentDirectory = entry.get();
-					};
-					break;
-				default:
-					break;
-			}
-		}
 	}
-	
-	return anyWidgetClicked;
 }
