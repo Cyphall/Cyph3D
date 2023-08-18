@@ -476,6 +476,8 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 		}
 	}
 	
+	ImGui::SetItemTooltip("%s", entry.name().c_str());
+	
 	if (&entry == _selectedEntry)
 	{
 		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, IM_COL32(100, 100, 100, 255));
