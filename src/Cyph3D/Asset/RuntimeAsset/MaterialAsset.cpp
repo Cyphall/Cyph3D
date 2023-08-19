@@ -224,7 +224,7 @@ void MaterialAsset::onDrawUi()
 
 const std::string* MaterialAsset::getAlbedoMapPath() const
 {
-	return _albedoMapPath.has_value() ? &_albedoMapPath.value() : nullptr;
+	return _albedoMap ? &_albedoMap->getSignature().path : nullptr;
 }
 
 void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
@@ -240,7 +240,6 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 			_albedoValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_albedoMapPath = *path;
 		_albedoMap = _manager.loadTexture(path.value(), ImageType::ColorSrgb);
 		_albedoMapChangedConnection = _albedoMap->getChangedSignal().connect([this](){
 			_changed();
@@ -248,7 +247,6 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_albedoMapPath = std::nullopt;
 		_albedoMap = nullptr;
 		_albedoMapChangedConnection = {};
 		
@@ -272,7 +270,7 @@ const uint32_t& MaterialAsset::getAlbedoTextureBindlessIndex() const
 
 const std::string* MaterialAsset::getNormalMapPath() const
 {
-	return _normalMapPath.has_value() ? &_normalMapPath.value() : nullptr;
+	return _normalMap ? &_normalMap->getSignature().path : nullptr;
 }
 
 void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
@@ -288,7 +286,6 @@ void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
 			_normalValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_normalMapPath = *path;
 		_normalMap = _manager.loadTexture(*path, ImageType::NormalMap);
 		_normalMapChangedConnection = _normalMap->getChangedSignal().connect([this](){
 			_changed();
@@ -296,7 +293,6 @@ void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_normalMapPath = std::nullopt;
 		_normalMap = nullptr;
 		_normalMapChangedConnection = {};
 		
@@ -320,7 +316,7 @@ const uint32_t& MaterialAsset::getNormalTextureBindlessIndex() const
 
 const std::string* MaterialAsset::getRoughnessMapPath() const
 {
-	return _roughnessMapPath.has_value() ? &_roughnessMapPath.value() : nullptr;
+	return _roughnessMap ? &_roughnessMap->getSignature().path : nullptr;
 }
 
 void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
@@ -336,7 +332,6 @@ void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
 			_roughnessValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_roughnessMapPath = *path;
 		_roughnessMap = _manager.loadTexture(*path, ImageType::Grayscale);
 		_roughnessMapChangedConnection = _roughnessMap->getChangedSignal().connect([this](){
 			_changed();
@@ -344,7 +339,6 @@ void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_roughnessMapPath = std::nullopt;
 		_roughnessMap = nullptr;
 		_roughnessMapChangedConnection = {};
 		
@@ -368,7 +362,7 @@ const uint32_t& MaterialAsset::getRoughnessTextureBindlessIndex() const
 
 const std::string* MaterialAsset::getMetalnessMapPath() const
 {
-	return _metalnessMapPath.has_value() ? &_metalnessMapPath.value() : nullptr;
+	return _metalnessMap ? &_metalnessMap->getSignature().path : nullptr;
 }
 
 void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
@@ -384,7 +378,6 @@ void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
 			_metalnessValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_metalnessMapPath = *path;
 		_metalnessMap = _manager.loadTexture(*path, ImageType::Grayscale);
 		_metalnessMapChangedConnection = _metalnessMap->getChangedSignal().connect([this](){
 			_changed();
@@ -392,7 +385,6 @@ void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_metalnessMapPath = std::nullopt;
 		_metalnessMap = nullptr;
 		_metalnessMapChangedConnection = {};
 		
@@ -416,7 +408,7 @@ const uint32_t& MaterialAsset::getMetalnessTextureBindlessIndex() const
 
 const std::string* MaterialAsset::getDisplacementMapPath() const
 {
-	return _displacementMapPath.has_value() ? &_displacementMapPath.value() : nullptr;
+	return _displacementMap ? &_displacementMap->getSignature().path : nullptr;
 }
 
 void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
@@ -432,7 +424,6 @@ void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
 			_displacementValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_displacementMapPath = *path;
 		_displacementMap = _manager.loadTexture(*path, ImageType::Grayscale);
 		_displacementMapChangedConnection = _displacementMap->getChangedSignal().connect([this](){
 			_changed();
@@ -440,7 +431,6 @@ void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_displacementMapPath = std::nullopt;
 		_displacementMap = nullptr;
 		_displacementMapChangedConnection = {};
 		
@@ -464,7 +454,7 @@ const uint32_t& MaterialAsset::getDisplacementTextureBindlessIndex() const
 
 const std::string* MaterialAsset::getEmissiveMapPath() const
 {
-	return _emissiveMapPath.has_value() ? &_emissiveMapPath.value() : nullptr;
+	return _emissiveMap ? &_emissiveMap->getSignature().path : nullptr;
 }
 
 void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
@@ -480,7 +470,6 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 			_emissiveValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_emissiveMapPath = *path;
 		_emissiveMap = _manager.loadTexture(*path, ImageType::Grayscale);
 		_emissiveMapChangedConnection = _emissiveMap->getChangedSignal().connect([this](){
 			_changed();
@@ -488,7 +477,6 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_emissiveMapPath = std::nullopt;
 		_emissiveMap = nullptr;
 		_emissiveMapChangedConnection = {};
 		

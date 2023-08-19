@@ -59,7 +59,6 @@ private:
 	std::vector<EntityContainer> _entities;
 	std::string _name = "Untitled Scene";
 	
-	std::optional<std::string> _skyboxPath;
 	SkyboxAsset* _skybox = nullptr;
 	sigslot::scoped_connection _skyboxChangedConnection;
 	float _skyboxRotation = 0;

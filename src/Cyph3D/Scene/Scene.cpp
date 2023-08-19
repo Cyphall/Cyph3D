@@ -119,14 +119,13 @@ Transform& Scene::getRoot()
 
 const std::string* Scene::getSkyboxPath() const
 {
-	return _skyboxPath ? &_skyboxPath.value() : nullptr;
+	return _skybox ? &_skybox->getSignature().path : nullptr;
 }
 
 void Scene::setSkyboxPath(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_skyboxPath = *path;
 		_skybox = Engine::getAssetManager().loadSkybox(*path);
 		_skyboxChangedConnection = _skybox->getChangedSignal().connect([](){
 			_changeVersion++;
@@ -134,7 +133,6 @@ void Scene::setSkyboxPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_skyboxPath = std::nullopt;
 		_skybox = nullptr;
 		_skyboxChangedConnection = {};
 	}
@@ -276,9 +274,10 @@ void Scene::save(const std::filesystem::path& path)
 	
 	jsonRoot["camera"] = jsonCamera;
 	
-	if (_skyboxPath)
+	const std::string* skyboxPath = getSkyboxPath();
+	if (skyboxPath)
 	{
-		jsonRoot["skybox"] = _skyboxPath.value();
+		jsonRoot["skybox"] = *skyboxPath;
 	}
 	else
 	{

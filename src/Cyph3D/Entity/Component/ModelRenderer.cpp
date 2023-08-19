@@ -25,14 +25,13 @@ Component(entity)
 
 const std::string* ModelRenderer::getMaterialPath() const
 {
-	return _materialPath.has_value() ? &_materialPath.value() : nullptr;
+	return _material ? &_material->getSignature().path : nullptr;
 }
 
 void ModelRenderer::setMaterialPath(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_materialPath = *path;
 		_material = Engine::getAssetManager().loadMaterial(path.value());
 		_materialChangedConnection = _material->getChangedSignal().connect([this](){
 			_changed();
@@ -40,7 +39,6 @@ void ModelRenderer::setMaterialPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_materialPath = std::nullopt;
 		_material = nullptr;
 		_materialChangedConnection = {};
 	}
@@ -55,14 +53,13 @@ MaterialAsset* ModelRenderer::getMaterial() const
 
 const std::string* ModelRenderer::getMeshPath() const
 {
-	return _meshPath.has_value() ? &_meshPath.value() : nullptr;
+	return _mesh ? &_mesh->getSignature().path : nullptr;
 }
 
 void ModelRenderer::setMeshPath(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_meshPath = *path;
 		_mesh = Engine::getAssetManager().loadMesh(*path);
 		_meshChangedConnection = _mesh->getChangedSignal().connect([this](){
 			_changed();
@@ -70,7 +67,6 @@ void ModelRenderer::setMeshPath(std::optional<std::string_view> path)
 	}
 	else
 	{
-		_meshPath = std::nullopt;
 		_mesh = nullptr;
 		_meshChangedConnection = {};
 	}
@@ -284,13 +280,13 @@ const char* ModelRenderer::getIdentifier() const
 void ModelRenderer::duplicate(Entity& targetEntity) const
 {
 	ModelRenderer& newComponent = targetEntity.addComponent<ModelRenderer>();
-	if (_materialPath)
+	if (_material)
 	{
-		newComponent.setMaterialPath(_materialPath.value());
+		newComponent.setMaterialPath(_material->getSignature().path);
 	}
-	if (_meshPath)
+	if (_mesh)
 	{
-		newComponent.setMeshPath(_meshPath.value());
+		newComponent.setMeshPath(_mesh->getSignature().path);
 	}
 	newComponent.setContributeShadows(getContributeShadows());
 }
