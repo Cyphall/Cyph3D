@@ -114,11 +114,6 @@ void SkyboxAsset::onDrawUi()
 	}
 }
 
-const std::string& SkyboxAsset::getPath() const
-{
-	return _signature.path;
-}
-
 const std::string* SkyboxAsset::getXposPath() const
 {
 	return _xposPath.has_value() ? &_xposPath.value() : nullptr;

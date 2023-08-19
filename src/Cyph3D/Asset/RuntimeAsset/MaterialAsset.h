@@ -42,8 +42,6 @@ public:
 
 	void onDrawUi() override;
 
-	const std::string& getPath() const;
-
 	const std::string* getAlbedoMapPath() const;
 	void setAlbedoMapPath(std::optional<std::string_view> path);
 	const uint32_t& getAlbedoTextureBindlessIndex() const;

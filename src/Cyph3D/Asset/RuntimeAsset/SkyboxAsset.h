@@ -39,8 +39,6 @@ public:
 	bool isLoaded() const override;
 
 	void onDrawUi() override;
-
-	const std::string& getPath() const;
 	
 	const std::string* getXposPath() const;
 	void setXposPath(std::optional<std::string_view> path);

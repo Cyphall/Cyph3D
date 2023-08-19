@@ -222,11 +222,6 @@ void MaterialAsset::onDrawUi()
 	}
 }
 
-const std::string& MaterialAsset::getPath() const
-{
-	return _signature.path;
-}
-
 const std::string* MaterialAsset::getAlbedoMapPath() const
 {
 	return _albedoMapPath.has_value() ? &_albedoMapPath.value() : nullptr;
