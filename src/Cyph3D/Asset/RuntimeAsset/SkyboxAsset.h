@@ -58,7 +58,7 @@ public:
 	const std::string* getZnegPath() const;
 	void setZnegPath(std::optional<std::string_view> path);
 	
-	const uint32_t& getBindlessIndex() const;
+	CubemapAsset* getCubemap() const;
 
 	static void create(std::string_view path);
 

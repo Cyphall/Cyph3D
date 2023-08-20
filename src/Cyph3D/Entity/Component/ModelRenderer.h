@@ -26,12 +26,10 @@ public:
 	
 	explicit ModelRenderer(Entity& entity);
 
-	const std::string* getMaterialPath() const;
-	void setMaterialPath(std::optional<std::string_view> path);
+	void setMaterial(std::optional<std::string_view> path);
 	MaterialAsset* getMaterial() const;
 	
-	const std::string* getMeshPath() const;
-	void setMeshPath(std::optional<std::string_view> path);
+	void setMesh(std::optional<std::string_view> path);
 	MeshAsset* getMesh() const;
 	
 	bool getContributeShadows() const;

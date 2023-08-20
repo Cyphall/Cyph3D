@@ -19,16 +19,11 @@ const char* ModelRenderer::identifier = "ModelRenderer";
 ModelRenderer::ModelRenderer(Entity& entity):
 Component(entity)
 {
-	setMaterialPath("materials/internal/Default Material/Default Material.c3dmaterial");
-	setMeshPath("meshes/internal/Default Mesh/Default Mesh.obj");
+	setMaterial("materials/internal/Default Material/Default Material.c3dmaterial");
+	setMesh("meshes/internal/Default Mesh/Default Mesh.obj");
 }
 
-const std::string* ModelRenderer::getMaterialPath() const
-{
-	return _material ? &_material->getSignature().path : nullptr;
-}
-
-void ModelRenderer::setMaterialPath(std::optional<std::string_view> path)
+void ModelRenderer::setMaterial(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -51,12 +46,7 @@ MaterialAsset* ModelRenderer::getMaterial() const
 	return _material;
 }
 
-const std::string* ModelRenderer::getMeshPath() const
-{
-	return _mesh ? &_mesh->getSignature().path : nullptr;
-}
-
-void ModelRenderer::setMeshPath(std::optional<std::string_view> path)
+void ModelRenderer::setMesh(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -97,20 +87,18 @@ ObjectSerialization ModelRenderer::serialize() const
 	serialization.version = 3;
 	serialization.identifier = getIdentifier();
 	
-	const std::string* materialPath = getMaterialPath();
-	if (materialPath)
+	if (_material)
 	{
-		serialization.data["material"] = *materialPath;
+		serialization.data["material"] = _material->getSignature().path;
 	}
 	else
 	{
 		serialization.data["material"] = nullptr;
 	}
 	
-	const std::string* meshPath = getMeshPath();
-	if (meshPath)
+	if (_mesh)
 	{
-		serialization.data["mesh"] = *meshPath;
+		serialization.data["mesh"] = _mesh->getSignature().path;
 	}
 	else
 	{
@@ -134,7 +122,7 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 			std::string convertedPath = std::format("materials/{}/{}.c3dmaterial", oldName, newFileName);
 			if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
 			{
-				setMaterialPath(convertedPath);
+				setMaterial(convertedPath);
 			}
 			else
 			{
@@ -143,12 +131,12 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 		}
 		else
 		{
-			setMaterialPath(modelRendererSerialization.data["material"].get<std::string>());
+			setMaterial(modelRendererSerialization.data["material"].get<std::string>());
 		}
 	}
 	else
 	{
-		setMaterialPath(std::nullopt);
+		setMaterial(std::nullopt);
 	}
 	
 	if (modelRendererSerialization.version <= 2)
@@ -167,7 +155,7 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 					std::string convertedPath = std::format("meshes/{}.obj", oldName);
 					if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
 					{
-						setMeshPath(convertedPath);
+						setMesh(convertedPath);
 					}
 					else
 					{
@@ -176,32 +164,32 @@ void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerializ
 				}
 				else
 				{
-					setMeshPath(jsonMeshPath.get<std::string>());
+					setMesh(jsonMeshPath.get<std::string>());
 				}
 			}
 			else
 			{
-				setMeshPath(std::nullopt);
+				setMesh(std::nullopt);
 			}
 		}
 		else if (shapeSerialization.identifier == "PlaneShape")
 		{
-			setMeshPath("meshes/plane.obj");
+			setMesh("meshes/plane.obj");
 		}
 		else if (shapeSerialization.identifier == "SphereShape")
 		{
-			setMeshPath("meshes/sphere.obj");
+			setMesh("meshes/sphere.obj");
 		}
 	}
 	else
 	{
 		if (!modelRendererSerialization.data["mesh"].is_null())
 		{
-			setMeshPath(modelRendererSerialization.data["mesh"].get<std::string>());
+			setMesh(modelRendererSerialization.data["mesh"].get<std::string>());
 		}
 		else
 		{
-			setMeshPath(std::nullopt);
+			setMesh(std::nullopt);
 		}
 	}
 	
@@ -254,15 +242,15 @@ void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 void ModelRenderer::onDrawUi()
 {
 	std::optional<std::string_view> newMaterialPath;
-	if (ImGuiHelper::AssetInputWidget(getMaterialPath(), "Material", "asset_material", newMaterialPath))
+	if (ImGuiHelper::AssetInputWidget(_material ? &_material->getSignature().path : nullptr, "Material", "asset_material", newMaterialPath))
 	{
-		setMaterialPath(newMaterialPath);
+		setMaterial(newMaterialPath);
 	}
 	
 	std::optional<std::string_view> newMeshPath;
-	if (ImGuiHelper::AssetInputWidget(getMeshPath(), "Mesh", "asset_mesh", newMeshPath))
+	if (ImGuiHelper::AssetInputWidget(_mesh ? &_mesh->getSignature().path : nullptr, "Mesh", "asset_mesh", newMeshPath))
 	{
-		setMeshPath(newMeshPath);
+		setMesh(newMeshPath);
 	}
 	
 	bool contributeShadows = getContributeShadows();
@@ -282,11 +270,11 @@ void ModelRenderer::duplicate(Entity& targetEntity) const
 	ModelRenderer& newComponent = targetEntity.addComponent<ModelRenderer>();
 	if (_material)
 	{
-		newComponent.setMaterialPath(_material->getSignature().path);
+		newComponent.setMaterial(_material->getSignature().path);
 	}
 	if (_mesh)
 	{
-		newComponent.setMeshPath(_mesh->getSignature().path);
+		newComponent.setMesh(_mesh->getSignature().path);
 	}
 	newComponent.setContributeShadows(getContributeShadows());
 }

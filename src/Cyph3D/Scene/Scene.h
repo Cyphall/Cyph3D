@@ -33,8 +33,7 @@ public:
 	
 	Transform& getRoot();
 
-	const std::string* getSkyboxPath() const;
-	void setSkyboxPath(std::optional<std::string_view> path);
+	void setSkybox(std::optional<std::string_view> path);
 	SkyboxAsset* getSkybox();
 	
 	float getSkyboxRotation() const;

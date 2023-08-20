@@ -88,12 +88,12 @@ MaterialAsset::~MaterialAsset()
 
 bool MaterialAsset::isLoaded() const
 {
-	return ((_albedoMap != nullptr && _albedoMap->isLoaded()) || _albedoValueTextureBindlessIndex) &&
-	       ((_normalMap != nullptr && _normalMap->isLoaded()) || _normalValueTextureBindlessIndex) &&
-	       ((_roughnessMap != nullptr && _roughnessMap->isLoaded()) || _roughnessValueTextureBindlessIndex) &&
-	       ((_metalnessMap != nullptr && _metalnessMap->isLoaded()) || _metalnessValueTextureBindlessIndex) &&
-	       ((_displacementMap != nullptr && _displacementMap->isLoaded()) || _displacementValueTextureBindlessIndex) &&
-	       ((_emissiveMap != nullptr && _emissiveMap->isLoaded()) || _emissiveValueTextureBindlessIndex);
+	return ((_albedoTexture != nullptr && _albedoTexture->isLoaded()) || _albedoValueTextureBindlessIndex) &&
+	       ((_normalTexture != nullptr && _normalTexture->isLoaded()) || _normalValueTextureBindlessIndex) &&
+	       ((_roughnessTexture != nullptr && _roughnessTexture->isLoaded()) || _roughnessValueTextureBindlessIndex) &&
+	       ((_metalnessTexture != nullptr && _metalnessTexture->isLoaded()) || _metalnessValueTextureBindlessIndex) &&
+	       ((_displacementTexture != nullptr && _displacementTexture->isLoaded()) || _displacementValueTextureBindlessIndex) &&
+	       ((_emissiveTexture != nullptr && _emissiveTexture->isLoaded()) || _emissiveValueTextureBindlessIndex);
 }
 
 void MaterialAsset::onDrawUi()
@@ -120,12 +120,12 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Albedo");
 		
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getAlbedoMapPath(), "Image", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(_albedoTexture ? &_albedoTexture->getSignature().path : nullptr, "Image", "asset_image", newPath))
 		{
-			setAlbedoMapPath(newPath);
+			setAlbedoTexture(newPath);
 		}
 		
-		if (_albedoMap == nullptr)
+		if (_albedoTexture == nullptr)
 		{
 			glm::vec3 value = getAlbedoValue();
 			if (ImGui::ColorEdit3("Value", glm::value_ptr(value), ImGuiColorEditFlags_Float))
@@ -141,9 +141,9 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Normal");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getNormalMapPath(), "Image", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(_normalTexture ? &_normalTexture->getSignature().path : nullptr, "Image", "asset_image", newPath))
 		{
-			setNormalMapPath(newPath);
+			setNormalTexture(newPath);
 		}
 
 		ImGuiHelper::EndGroupPanel();
@@ -153,12 +153,12 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Roughness");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getRoughnessMapPath(), "Image", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(_roughnessTexture ? &_roughnessTexture->getSignature().path : nullptr, "Image", "asset_image", newPath))
 		{
-			setRoughnessMapPath(newPath);
+			setRoughnessTexture(newPath);
 		}
 
-		if (_roughnessMap == nullptr)
+		if (_roughnessTexture == nullptr)
 		{
 			float value = getRoughnessValue();
 			if (ImGui::SliderFloat("Value", &value, 0.0f, 1.0f))
@@ -174,12 +174,12 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Metalness");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getMetalnessMapPath(), "Image", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(_metalnessTexture ? &_metalnessTexture->getSignature().path : nullptr, "Image", "asset_image", newPath))
 		{
-			setMetalnessMapPath(newPath);
+			setMetalnessTexture(newPath);
 		}
 
-		if (_metalnessMap == nullptr)
+		if (_metalnessTexture == nullptr)
 		{
 			float value = getMetalnessValue();
 			if (ImGui::SliderFloat("Value", &value, 0.0f, 1.0f))
@@ -195,9 +195,9 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Displacement");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getDisplacementMapPath(), "Image", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(_displacementTexture ? &_displacementTexture->getSignature().path : nullptr, "Image", "asset_image", newPath))
 		{
-			setDisplacementMapPath(newPath);
+			setDisplacementTexture(newPath);
 		}
 
 		ImGuiHelper::EndGroupPanel();
@@ -207,9 +207,9 @@ void MaterialAsset::onDrawUi()
 		ImGuiHelper::BeginGroupPanel("Emissive");
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getEmissiveMapPath(), "Image", "asset_image", newPath))
+		if (ImGuiHelper::AssetInputWidget(_emissiveTexture ? &_emissiveTexture->getSignature().path : nullptr, "Image", "asset_image", newPath))
 		{
-			setEmissiveMapPath(newPath);
+			setEmissiveTexture(newPath);
 		}
 		
 		float scale = getEmissiveScale();
@@ -222,12 +222,7 @@ void MaterialAsset::onDrawUi()
 	}
 }
 
-const std::string* MaterialAsset::getAlbedoMapPath() const
-{
-	return _albedoMap ? &_albedoMap->getSignature().path : nullptr;
-}
-
-void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
+void MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -240,15 +235,15 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 			_albedoValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_albedoMap = _manager.loadTexture(path.value(), ImageType::ColorSrgb);
-		_albedoMapChangedConnection = _albedoMap->getChangedSignal().connect([this](){
+		_albedoTexture = _manager.loadTexture(path.value(), ImageType::ColorSrgb);
+		_albedoTextureChangedConnection = _albedoTexture->getChangedSignal().connect([this](){
 			_changed();
 		});
 	}
 	else
 	{
-		_albedoMap = nullptr;
-		_albedoMapChangedConnection = {};
+		_albedoTexture = nullptr;
+		_albedoTextureChangedConnection = {};
 		
 		if (!_albedoValueTextureBindlessIndex)
 		{
@@ -265,15 +260,10 @@ void MaterialAsset::setAlbedoMapPath(std::optional<std::string_view> path)
 
 const uint32_t& MaterialAsset::getAlbedoTextureBindlessIndex() const
 {
-	return _albedoMap != nullptr && _albedoMap->isLoaded() ? _albedoMap->getBindlessIndex() : *_albedoValueTextureBindlessIndex;
+	return _albedoTexture != nullptr && _albedoTexture->isLoaded() ? _albedoTexture->getBindlessIndex() : *_albedoValueTextureBindlessIndex;
 }
 
-const std::string* MaterialAsset::getNormalMapPath() const
-{
-	return _normalMap ? &_normalMap->getSignature().path : nullptr;
-}
-
-void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
+void MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -286,15 +276,15 @@ void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
 			_normalValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_normalMap = _manager.loadTexture(*path, ImageType::NormalMap);
-		_normalMapChangedConnection = _normalMap->getChangedSignal().connect([this](){
+		_normalTexture = _manager.loadTexture(*path, ImageType::NormalMap);
+		_normalTextureChangedConnection = _normalTexture->getChangedSignal().connect([this](){
 			_changed();
 		});
 	}
 	else
 	{
-		_normalMap = nullptr;
-		_normalMapChangedConnection = {};
+		_normalTexture = nullptr;
+		_normalTextureChangedConnection = {};
 		
 		if (!_normalValueTextureBindlessIndex)
 		{
@@ -311,15 +301,10 @@ void MaterialAsset::setNormalMapPath(std::optional<std::string_view> path)
 
 const uint32_t& MaterialAsset::getNormalTextureBindlessIndex() const
 {
-	return _normalMap != nullptr && _normalMap->isLoaded() ? _normalMap->getBindlessIndex() : *_normalValueTextureBindlessIndex;
+	return _normalTexture != nullptr && _normalTexture->isLoaded() ? _normalTexture->getBindlessIndex() : *_normalValueTextureBindlessIndex;
 }
 
-const std::string* MaterialAsset::getRoughnessMapPath() const
-{
-	return _roughnessMap ? &_roughnessMap->getSignature().path : nullptr;
-}
-
-void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
+void MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -332,15 +317,15 @@ void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
 			_roughnessValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_roughnessMap = _manager.loadTexture(*path, ImageType::Grayscale);
-		_roughnessMapChangedConnection = _roughnessMap->getChangedSignal().connect([this](){
+		_roughnessTexture = _manager.loadTexture(*path, ImageType::Grayscale);
+		_roughnessTextureChangedConnection = _roughnessTexture->getChangedSignal().connect([this](){
 			_changed();
 		});
 	}
 	else
 	{
-		_roughnessMap = nullptr;
-		_roughnessMapChangedConnection = {};
+		_roughnessTexture = nullptr;
+		_roughnessTextureChangedConnection = {};
 		
 		if (!_roughnessValueTextureBindlessIndex)
 		{
@@ -357,15 +342,10 @@ void MaterialAsset::setRoughnessMapPath(std::optional<std::string_view> path)
 
 const uint32_t& MaterialAsset::getRoughnessTextureBindlessIndex() const
 {
-	return _roughnessMap != nullptr && _roughnessMap->isLoaded() ? _roughnessMap->getBindlessIndex() : *_roughnessValueTextureBindlessIndex;
+	return _roughnessTexture != nullptr && _roughnessTexture->isLoaded() ? _roughnessTexture->getBindlessIndex() : *_roughnessValueTextureBindlessIndex;
 }
 
-const std::string* MaterialAsset::getMetalnessMapPath() const
-{
-	return _metalnessMap ? &_metalnessMap->getSignature().path : nullptr;
-}
-
-void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
+void MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -378,15 +358,15 @@ void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
 			_metalnessValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_metalnessMap = _manager.loadTexture(*path, ImageType::Grayscale);
-		_metalnessMapChangedConnection = _metalnessMap->getChangedSignal().connect([this](){
+		_metalnessTexture = _manager.loadTexture(*path, ImageType::Grayscale);
+		_metalnessTextureChangedConnection = _metalnessTexture->getChangedSignal().connect([this](){
 			_changed();
 		});
 	}
 	else
 	{
-		_metalnessMap = nullptr;
-		_metalnessMapChangedConnection = {};
+		_metalnessTexture = nullptr;
+		_metalnessTextureChangedConnection = {};
 		
 		if (!_metalnessValueTextureBindlessIndex)
 		{
@@ -403,15 +383,10 @@ void MaterialAsset::setMetalnessMapPath(std::optional<std::string_view> path)
 
 const uint32_t& MaterialAsset::getMetalnessTextureBindlessIndex() const
 {
-	return _metalnessMap != nullptr && _metalnessMap->isLoaded() ? _metalnessMap->getBindlessIndex() : *_metalnessValueTextureBindlessIndex;
+	return _metalnessTexture != nullptr && _metalnessTexture->isLoaded() ? _metalnessTexture->getBindlessIndex() : *_metalnessValueTextureBindlessIndex;
 }
 
-const std::string* MaterialAsset::getDisplacementMapPath() const
-{
-	return _displacementMap ? &_displacementMap->getSignature().path : nullptr;
-}
-
-void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
+void MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -424,15 +399,15 @@ void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
 			_displacementValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_displacementMap = _manager.loadTexture(*path, ImageType::Grayscale);
-		_displacementMapChangedConnection = _displacementMap->getChangedSignal().connect([this](){
+		_displacementTexture = _manager.loadTexture(*path, ImageType::Grayscale);
+		_displacementTextureChangedConnection = _displacementTexture->getChangedSignal().connect([this](){
 			_changed();
 		});
 	}
 	else
 	{
-		_displacementMap = nullptr;
-		_displacementMapChangedConnection = {};
+		_displacementTexture = nullptr;
+		_displacementTextureChangedConnection = {};
 		
 		if (!_displacementValueTextureBindlessIndex)
 		{
@@ -449,15 +424,10 @@ void MaterialAsset::setDisplacementMapPath(std::optional<std::string_view> path)
 
 const uint32_t& MaterialAsset::getDisplacementTextureBindlessIndex() const
 {
-	return _displacementMap != nullptr && _displacementMap->isLoaded() ? _displacementMap->getBindlessIndex() : *_displacementValueTextureBindlessIndex;
+	return _displacementTexture != nullptr && _displacementTexture->isLoaded() ? _displacementTexture->getBindlessIndex() : *_displacementValueTextureBindlessIndex;
 }
 
-const std::string* MaterialAsset::getEmissiveMapPath() const
-{
-	return _emissiveMap ? &_emissiveMap->getSignature().path : nullptr;
-}
-
-void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
+void MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -470,15 +440,15 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 			_emissiveValueTextureBindlessIndex = std::nullopt;
 		}
 		
-		_emissiveMap = _manager.loadTexture(*path, ImageType::Grayscale);
-		_emissiveMapChangedConnection = _emissiveMap->getChangedSignal().connect([this](){
+		_emissiveTexture = _manager.loadTexture(*path, ImageType::Grayscale);
+		_emissiveTextureChangedConnection = _emissiveTexture->getChangedSignal().connect([this](){
 			_changed();
 		});
 	}
 	else
 	{
-		_emissiveMap = nullptr;
-		_emissiveMapChangedConnection = {};
+		_emissiveTexture = nullptr;
+		_emissiveTextureChangedConnection = {};
 		
 		if (!_emissiveValueTextureBindlessIndex)
 		{
@@ -495,7 +465,7 @@ void MaterialAsset::setEmissiveMapPath(std::optional<std::string_view> path)
 
 const uint32_t& MaterialAsset::getEmissiveTextureBindlessIndex() const
 {
-	return _emissiveMap != nullptr && _emissiveMap->isLoaded() ? _emissiveMap->getBindlessIndex() : *_emissiveValueTextureBindlessIndex;
+	return _emissiveTexture != nullptr && _emissiveTexture->isLoaded() ? _emissiveTexture->getBindlessIndex() : *_emissiveValueTextureBindlessIndex;
 }
 
 const glm::vec3& MaterialAsset::getAlbedoValue() const
@@ -631,11 +601,11 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		auto jsonIt = jsonRoot.find("albedo");
 		if (jsonIt != jsonRoot.end())
 		{
-			setAlbedoMapPath(jsonIt.value().get<std::string>());
+			setAlbedoTexture(jsonIt.value().get<std::string>());
 		}
 		else
 		{
-			setAlbedoMapPath(std::nullopt);
+			setAlbedoTexture(std::nullopt);
 		}
 
 		setAlbedoValue({1, 1, 1});
@@ -645,11 +615,11 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		auto jsonIt = jsonRoot.find("normal");
 		if (jsonIt != jsonRoot.end())
 		{
-			setNormalMapPath(jsonIt.value().get<std::string>());
+			setNormalTexture(jsonIt.value().get<std::string>());
 		}
 		else
 		{
-			setNormalMapPath(std::nullopt);
+			setNormalTexture(std::nullopt);
 		}
 	}
 
@@ -657,11 +627,11 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		auto jsonIt = jsonRoot.find("roughness");
 		if (jsonIt != jsonRoot.end())
 		{
-			setRoughnessMapPath(jsonIt.value().get<std::string>());
+			setRoughnessTexture(jsonIt.value().get<std::string>());
 		}
 		else
 		{
-			setRoughnessMapPath(std::nullopt);
+			setRoughnessTexture(std::nullopt);
 		}
 
 		setRoughnessValue(0.5f);
@@ -671,11 +641,11 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		auto jsonIt = jsonRoot.find("metalness");
 		if (jsonIt != jsonRoot.end())
 		{
-			setMetalnessMapPath(jsonIt.value().get<std::string>());
+			setMetalnessTexture(jsonIt.value().get<std::string>());
 		}
 		else
 		{
-			setMetalnessMapPath(std::nullopt);
+			setMetalnessTexture(std::nullopt);
 		}
 
 		setMetalnessValue(0.0f);
@@ -685,11 +655,11 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		auto jsonIt = jsonRoot.find("displacement");
 		if (jsonIt != jsonRoot.end())
 		{
-			setDisplacementMapPath(jsonIt.value().get<std::string>());
+			setDisplacementTexture(jsonIt.value().get<std::string>());
 		}
 		else
 		{
-			setDisplacementMapPath(std::nullopt);
+			setDisplacementTexture(std::nullopt);
 		}
 	}
 
@@ -697,11 +667,11 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		auto jsonIt = jsonRoot.find("emissive");
 		if (jsonIt != jsonRoot.end())
 		{
-			setEmissiveMapPath(jsonIt.value().get<std::string>());
+			setEmissiveTexture(jsonIt.value().get<std::string>());
 		}
 		else
 		{
-			setEmissiveMapPath(std::nullopt);
+			setEmissiveTexture(std::nullopt);
 		}
 
 		setEmissiveScale(0.0f);
@@ -716,11 +686,11 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setAlbedoMapPath(jsonPath.get<std::string>());
+			setAlbedoTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setAlbedoMapPath(std::nullopt);
+			setAlbedoTexture(std::nullopt);
 		}
 
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
@@ -737,11 +707,11 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setNormalMapPath(jsonPath.get<std::string>());
+			setNormalTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setNormalMapPath(std::nullopt);
+			setNormalTexture(std::nullopt);
 		}
 	}
 
@@ -751,11 +721,11 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setRoughnessMapPath(jsonPath.get<std::string>());
+			setRoughnessTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setRoughnessMapPath(std::nullopt);
+			setRoughnessTexture(std::nullopt);
 		}
 
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
@@ -768,11 +738,11 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setMetalnessMapPath(jsonPath.get<std::string>());
+			setMetalnessTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setMetalnessMapPath(std::nullopt);
+			setMetalnessTexture(std::nullopt);
 		}
 
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
@@ -785,11 +755,11 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setDisplacementMapPath(jsonPath.get<std::string>());
+			setDisplacementTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setDisplacementMapPath(std::nullopt);
+			setDisplacementTexture(std::nullopt);
 		}
 	}
 
@@ -799,13 +769,13 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setEmissiveMapPath(jsonPath.get<std::string>());
+			setEmissiveTexture(jsonPath.get<std::string>());
 			
 			setEmissiveScale(1.0f);
 		}
 		else
 		{
-			setEmissiveMapPath(std::nullopt);
+			setEmissiveTexture(std::nullopt);
 			
 			const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 			setEmissiveScale(jsonValue.get<float>());
@@ -821,11 +791,11 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setAlbedoMapPath(jsonPath.get<std::string>());
+			setAlbedoTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setAlbedoMapPath(std::nullopt);
+			setAlbedoTexture(std::nullopt);
 		}
 		
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
@@ -842,11 +812,11 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setNormalMapPath(jsonPath.get<std::string>());
+			setNormalTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setNormalMapPath(std::nullopt);
+			setNormalTexture(std::nullopt);
 		}
 	}
 	
@@ -856,11 +826,11 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setRoughnessMapPath(jsonPath.get<std::string>());
+			setRoughnessTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setRoughnessMapPath(std::nullopt);
+			setRoughnessTexture(std::nullopt);
 		}
 		
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
@@ -873,11 +843,11 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setMetalnessMapPath(jsonPath.get<std::string>());
+			setMetalnessTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setMetalnessMapPath(std::nullopt);
+			setMetalnessTexture(std::nullopt);
 		}
 		
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
@@ -890,11 +860,11 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setDisplacementMapPath(jsonPath.get<std::string>());
+			setDisplacementTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setDisplacementMapPath(std::nullopt);
+			setDisplacementTexture(std::nullopt);
 		}
 	}
 	
@@ -904,11 +874,11 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
-			setEmissiveMapPath(jsonPath.get<std::string>());
+			setEmissiveTexture(jsonPath.get<std::string>());
 		}
 		else
 		{
-			setEmissiveMapPath(std::nullopt);
+			setEmissiveTexture(std::nullopt);
 		}
 		
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("scale");
@@ -923,10 +893,9 @@ void MaterialAsset::save() const
 
 	{
 		nlohmann::ordered_json jsonMap;
-		const std::string* path = getAlbedoMapPath();
-		if (path != nullptr)
+		if (_albedoTexture)
 		{
-			jsonMap["path"] = *path;
+			jsonMap["path"] = _albedoTexture->getSignature().path;
 		}
 		else
 		{
@@ -941,10 +910,9 @@ void MaterialAsset::save() const
 
 	{
 		nlohmann::ordered_json jsonMap;
-		const std::string* path = getNormalMapPath();
-		if (path != nullptr)
+		if (_normalTexture)
 		{
-			jsonMap["path"] = *path;
+			jsonMap["path"] = _normalTexture->getSignature().path;
 		}
 		else
 		{
@@ -956,10 +924,9 @@ void MaterialAsset::save() const
 
 	{
 		nlohmann::ordered_json jsonMap;
-		const std::string* path = getRoughnessMapPath();
-		if (path != nullptr)
+		if (_roughnessTexture)
 		{
-			jsonMap["path"] = *path;
+			jsonMap["path"] = _roughnessTexture->getSignature().path;
 		}
 		else
 		{
@@ -974,10 +941,9 @@ void MaterialAsset::save() const
 
 	{
 		nlohmann::ordered_json jsonMap;
-		const std::string* path = getMetalnessMapPath();
-		if (path != nullptr)
+		if (_metalnessTexture)
 		{
-			jsonMap["path"] = *path;
+			jsonMap["path"] = _metalnessTexture->getSignature().path;
 		}
 		else
 		{
@@ -992,10 +958,9 @@ void MaterialAsset::save() const
 
 	{
 		nlohmann::ordered_json jsonMap;
-		const std::string* path = getDisplacementMapPath();
-		if (path != nullptr)
+		if (_displacementTexture)
 		{
-			jsonMap["path"] = *path;
+			jsonMap["path"] = _displacementTexture->getSignature().path;
 		}
 		else
 		{
@@ -1007,10 +972,9 @@ void MaterialAsset::save() const
 
 	{
 		nlohmann::ordered_json jsonMap;
-		const std::string* path = getEmissiveMapPath();
-		if (path != nullptr)
+		if (_emissiveTexture)
 		{
-			jsonMap["path"] = *path;
+			jsonMap["path"] = _emissiveTexture->getSignature().path;
 		}
 		else
 		{

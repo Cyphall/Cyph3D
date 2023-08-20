@@ -42,28 +42,22 @@ public:
 
 	void onDrawUi() override;
 
-	const std::string* getAlbedoMapPath() const;
-	void setAlbedoMapPath(std::optional<std::string_view> path);
+	void setAlbedoTexture(std::optional<std::string_view> path);
 	const uint32_t& getAlbedoTextureBindlessIndex() const;
 
-	const std::string* getNormalMapPath() const;
-	void setNormalMapPath(std::optional<std::string_view> path);
+	void setNormalTexture(std::optional<std::string_view> path);
 	const uint32_t& getNormalTextureBindlessIndex() const;
 
-	const std::string* getRoughnessMapPath() const;
-	void setRoughnessMapPath(std::optional<std::string_view> path);
+	void setRoughnessTexture(std::optional<std::string_view> path);
 	const uint32_t& getRoughnessTextureBindlessIndex() const;
 
-	const std::string* getMetalnessMapPath() const;
-	void setMetalnessMapPath(std::optional<std::string_view> path);
+	void setMetalnessTexture(std::optional<std::string_view> path);
 	const uint32_t& getMetalnessTextureBindlessIndex() const;
 
-	const std::string* getDisplacementMapPath() const;
-	void setDisplacementMapPath(std::optional<std::string_view> path);
+	void setDisplacementTexture(std::optional<std::string_view> path);
 	const uint32_t& getDisplacementTextureBindlessIndex() const;
 
-	const std::string* getEmissiveMapPath() const;
-	void setEmissiveMapPath(std::optional<std::string_view> path);
+	void setEmissiveTexture(std::optional<std::string_view> path);
 	const uint32_t& getEmissiveTextureBindlessIndex() const;
 
 	const glm::vec3& getAlbedoValue() const;
@@ -103,38 +97,38 @@ private:
 	void uploadDisplacementValue(const float& displacement);
 	void uploadEmissiveValue(const float& emissive);
 	
-	TextureAsset* _albedoMap = nullptr;
-	sigslot::scoped_connection _albedoMapChangedConnection;
+	TextureAsset* _albedoTexture = nullptr;
+	sigslot::scoped_connection _albedoTextureChangedConnection;
 	VKPtr<VKImage> _albedoValueTexture;
 	VKPtr<VKImageView> _albedoValueTextureView;
 	std::optional<uint32_t> _albedoValueTextureBindlessIndex;
 
-	TextureAsset* _normalMap = nullptr;
-	sigslot::scoped_connection _normalMapChangedConnection;
+	TextureAsset* _normalTexture = nullptr;
+	sigslot::scoped_connection _normalTextureChangedConnection;
 	VKPtr<VKImage> _normalValueTexture;
 	VKPtr<VKImageView> _normalValueTextureView;
 	std::optional<uint32_t> _normalValueTextureBindlessIndex;
 
-	TextureAsset* _roughnessMap = nullptr;
-	sigslot::scoped_connection _roughnessMapChangedConnection;
+	TextureAsset* _roughnessTexture = nullptr;
+	sigslot::scoped_connection _roughnessTextureChangedConnection;
 	VKPtr<VKImage> _roughnessValueTexture;
 	VKPtr<VKImageView> _roughnessValueTextureView;
 	std::optional<uint32_t> _roughnessValueTextureBindlessIndex;
 
-	TextureAsset* _metalnessMap = nullptr;
-	sigslot::scoped_connection _metalnessMapChangedConnection;
+	TextureAsset* _metalnessTexture = nullptr;
+	sigslot::scoped_connection _metalnessTextureChangedConnection;
 	VKPtr<VKImage> _metalnessValueTexture;
 	VKPtr<VKImageView> _metalnessValueTextureView;
 	std::optional<uint32_t> _metalnessValueTextureBindlessIndex;
 
-	TextureAsset* _displacementMap = nullptr;
-	sigslot::scoped_connection _displacementMapChangedConnection;
+	TextureAsset* _displacementTexture = nullptr;
+	sigslot::scoped_connection _displacementTextureChangedConnection;
 	VKPtr<VKImage> _displacementValueTexture;
 	VKPtr<VKImageView> _displacementValueTextureView;
 	std::optional<uint32_t> _displacementValueTextureBindlessIndex;
 
-	TextureAsset* _emissiveMap = nullptr;
-	sigslot::scoped_connection _emissiveMapChangedConnection;
+	TextureAsset* _emissiveTexture = nullptr;
+	sigslot::scoped_connection _emissiveTextureChangedConnection;
 	VKPtr<VKImage> _emissiveValueTexture;
 	VKPtr<VKImageView> _emissiveValueTextureView;
 	std::optional<uint32_t> _emissiveValueTextureBindlessIndex;

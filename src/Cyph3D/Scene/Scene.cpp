@@ -117,12 +117,7 @@ Transform& Scene::getRoot()
 	return *_root;
 }
 
-const std::string* Scene::getSkyboxPath() const
-{
-	return _skybox ? &_skybox->getSignature().path : nullptr;
-}
-
-void Scene::setSkyboxPath(std::optional<std::string_view> path)
+void Scene::setSkybox(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -204,7 +199,7 @@ void Scene::load(const std::filesystem::path& path)
 			std::string convertedPath = std::format("skyboxes/{}/{}.c3dskybox", oldName, newFileName);
 			if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
 			{
-				scene->setSkyboxPath(convertedPath);
+				scene->setSkybox(convertedPath);
 			}
 			else
 			{
@@ -219,7 +214,7 @@ void Scene::load(const std::filesystem::path& path)
 		nlohmann::ordered_json& jsonSkybox = jsonRoot["skybox"];
 		if (!jsonSkybox.is_null())
 		{
-			scene->setSkyboxPath(jsonSkybox["name"].get<std::string>());
+			scene->setSkybox(jsonSkybox["name"].get<std::string>());
 			
 			scene->setSkyboxRotation(jsonSkybox["rotation"].get<float>());
 		}
@@ -229,7 +224,7 @@ void Scene::load(const std::filesystem::path& path)
 		nlohmann::ordered_json& jsonSkyboxPath = jsonRoot["skybox"];
 		if (!jsonSkyboxPath.is_null())
 		{
-			scene->setSkyboxPath(jsonSkyboxPath.get<std::string>());
+			scene->setSkybox(jsonSkyboxPath.get<std::string>());
 		}
 		
 		scene->setSkyboxRotation(jsonRoot["skybox_rotation"].get<float>());
@@ -274,10 +269,9 @@ void Scene::save(const std::filesystem::path& path)
 	
 	jsonRoot["camera"] = jsonCamera;
 	
-	const std::string* skyboxPath = getSkyboxPath();
-	if (skyboxPath)
+	if (_skybox)
 	{
-		jsonRoot["skybox"] = *skyboxPath;
+		jsonRoot["skybox"] = _skybox->getSignature().path;
 	}
 	else
 	{

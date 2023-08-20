@@ -7,6 +7,7 @@
 #include "Cyph3D/Window.h"
 #include "Cyph3D/Helper/ImGuiHelper.h"
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -39,9 +40,10 @@ void UIMisc::show()
 		ImGui::Separator();
 
 		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(Engine::getScene().getSkyboxPath(), "Skybox", "asset_skybox", newPath))
+		SkyboxAsset* skybox = Engine::getScene().getSkybox();
+		if (ImGuiHelper::AssetInputWidget(skybox ? &skybox->getSignature().path : nullptr, "Skybox", "asset_skybox", newPath))
 		{
-			Engine::getScene().setSkyboxPath(newPath);
+			Engine::getScene().setSkybox(newPath);
 		}
 
 		if (Engine::getScene().getSkybox() != nullptr)

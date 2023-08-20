@@ -192,9 +192,9 @@ void SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
 	_changed();
 }
 
-const uint32_t& SkyboxAsset::getBindlessIndex() const
+CubemapAsset* SkyboxAsset::getCubemap() const
 {
-	return _cubemap->getBindlessIndex();
+	return _cubemap;
 }
 
 void SkyboxAsset::create(std::string_view path)

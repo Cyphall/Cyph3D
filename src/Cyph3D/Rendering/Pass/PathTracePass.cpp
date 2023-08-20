@@ -196,7 +196,7 @@ void PathTracePass::setupSBT(const PathTracePassInput& input)
 	if (skybox && skybox->isLoaded())
 	{
 		CubemapSkyboxUniforms cubemapSkyboxUniforms{
-			.skyboxIndex = skybox->getBindlessIndex(),
+			.skyboxIndex = skybox->getCubemap()->getBindlessIndex(),
 			.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0))
 		};
 		

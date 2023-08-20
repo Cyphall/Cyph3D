@@ -77,7 +77,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 		pushConstantData.mvp = input.camera.getProjection() *
 		                       glm::mat4(glm::mat3(input.camera.getView())) *
 		                       glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
-		pushConstantData.textureIndex = Engine::getScene().getSkybox()->getBindlessIndex();
+		pushConstantData.textureIndex = Engine::getScene().getSkybox()->getCubemap()->getBindlessIndex();
 		commandBuffer->pushConstants(pushConstantData);
 		
 		commandBuffer->bindVertexBuffer(0, _vertexBuffer);
