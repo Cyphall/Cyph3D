@@ -50,6 +50,12 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 	Assimp::Importer importer;
 
 	const aiScene* scene = importer.ReadFile(input.generic_string(), aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_FlipUVs);
+	
+	if (scene == nullptr)
+	{
+		throw std::runtime_error(std::format("Unable to load mesh {} from disk", input.generic_string()));
+	}
+	
 	aiMesh* mesh = scene->mMeshes[0];
 
 	meshData.positionVertices.resize(mesh->mNumVertices);
