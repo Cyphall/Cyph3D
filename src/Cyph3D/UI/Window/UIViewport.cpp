@@ -58,9 +58,11 @@ VKPtr<VKImageView> UIViewport::_lastViewportImageView;
 void UIViewport::show()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	
 	bool open = ImGui::Begin("Viewport");
 	
+	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
 	
 	if (open)
