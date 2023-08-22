@@ -166,7 +166,7 @@ void main()
 	
 	hitPayload.hit = true;
 	
-	vec3 bitangent = cross(normal, tangent);
+	vec3 bitangent = cross(tangent, normal);
 	mat3 tangentToWorld = mat3(tangent, bitangent, normal);
 	mat3 worldToTangent = transpose(tangentToWorld);
 	
