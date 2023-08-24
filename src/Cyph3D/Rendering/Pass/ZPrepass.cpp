@@ -71,7 +71,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 		pushConstantData.mvp = vp * renderData.matrix;
 		commandBuffer->pushConstants(pushConstantData);
 		
-		commandBuffer->draw(indexBuffer->getSize(), 0);
+		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
 	}
 	
 	commandBuffer->unbindPipeline();

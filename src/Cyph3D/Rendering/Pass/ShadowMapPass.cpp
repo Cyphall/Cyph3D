@@ -87,7 +87,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 				pushConstantData.mvp = directionalLightRenderData.lightViewProjection * modelRendererRenderData.matrix;
 				commandBuffer->pushConstants(pushConstantData);
 				
-				commandBuffer->draw(indexBuffer->getSize(), 0);
+				commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
 			}
 			
 			commandBuffer->unbindPipeline();
@@ -188,7 +188,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 				pushConstantData.model = modelRendererRenderData.matrix;
 				commandBuffer->pushConstants(pushConstantData);
 				
-				commandBuffer->draw(indexBuffer->getSize(), 0);
+				commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
 			}
 			
 			commandBuffer->unbindPipeline();

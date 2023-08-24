@@ -107,7 +107,7 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 				pushConstantData.objectIndex = i;
 				commandBuffer->pushConstants(pushConstantData);
 				
-				commandBuffer->draw(indexBuffer->getSize(), 0);
+				commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
 			}
 			
 			commandBuffer->unbindPipeline();

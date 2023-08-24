@@ -182,7 +182,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		
 		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getCurrent()->getBuffer(), i, 1);
 		
-		commandBuffer->draw(indexBuffer->getSize(), 0);
+		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
 		
 		objectUniformsPtr++;
 	}
