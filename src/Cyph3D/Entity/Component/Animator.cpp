@@ -78,8 +78,14 @@ ObjectSerialization Animator::serialize() const
 
 void Animator::deserialize(const ObjectSerialization& serialization)
 {
-	setVelocity(glm::make_vec3(serialization.data["velocity"].get<std::vector<float>>().data()));
-	setAngularVelocity(glm::make_vec3(serialization.data["angular_velocity"].get<std::vector<float>>().data()));
+	switch (serialization.version)
+	{
+		case 1:
+			deserializeFromVersion1(serialization.data);
+			break;
+		default:
+			throw;
+	}
 }
 
 void Animator::onDrawUi()
@@ -107,4 +113,10 @@ void Animator::duplicate(Entity& targetEntity) const
 	Animator& newComponent = targetEntity.addComponent<Animator>();
 	newComponent.setVelocity(getVelocity());
 	newComponent.setAngularVelocity(getAngularVelocity());
+}
+
+void Animator::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+{
+	setVelocity(glm::make_vec3(jsonRoot["velocity"].get<std::vector<float>>().data()));
+	setAngularVelocity(glm::make_vec3(jsonRoot["angular_velocity"].get<std::vector<float>>().data()));
 }

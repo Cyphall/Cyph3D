@@ -103,14 +103,16 @@ ObjectSerialization PointLight::serialize() const
 
 void PointLight::deserialize(const ObjectSerialization& serialization)
 {
-	setSrgbColor(glm::make_vec3(serialization.data["color"].get<std::vector<float>>().data()));
-	setIntensity(serialization.data["intensity"].get<float>());
-	setCastShadows(serialization.data["cast_shadows"].get<bool>());
-	setResolution(serialization.data["shadow_resolution"].get<int>());
-	
-	if (serialization.version >= 2)
+	switch (serialization.version)
 	{
-		setRadius(serialization.data["radius"].get<float>());
+		case 1:
+			deserializeFromVersion1(serialization.data);
+			break;
+		case 2:
+			deserializeFromVersion2(serialization.data);
+			break;
+		default:
+			throw;
 	}
 }
 
@@ -218,4 +220,21 @@ void PointLight::setRadius(float value)
 	_radius = value;
 	
 	_changed();
+}
+
+void PointLight::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+{
+	setSrgbColor(glm::make_vec3(jsonRoot["color"].get<std::vector<float>>().data()));
+	setIntensity(jsonRoot["intensity"].get<float>());
+	setCastShadows(jsonRoot["cast_shadows"].get<bool>());
+	setResolution(jsonRoot["shadow_resolution"].get<int>());
+}
+
+void PointLight::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
+{
+	setSrgbColor(glm::make_vec3(jsonRoot["color"].get<std::vector<float>>().data()));
+	setIntensity(jsonRoot["intensity"].get<float>());
+	setCastShadows(jsonRoot["cast_shadows"].get<bool>());
+	setResolution(jsonRoot["shadow_resolution"].get<int>());
+	setRadius(jsonRoot["radius"].get<float>());
 }

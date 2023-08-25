@@ -108,14 +108,16 @@ ObjectSerialization DirectionalLight::serialize() const
 
 void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 {
-	setSrgbColor(glm::make_vec3(serialization.data["color"].get<std::vector<float>>().data()));
-	setIntensity(serialization.data["intensity"].get<float>());
-	setCastShadows(serialization.data["cast_shadows"].get<bool>());
-	setResolution(serialization.data["shadow_resolution"].get<int>());
-	
-	if (serialization.version >= 2)
+	switch (serialization.version)
 	{
-		setAngularDiameter(serialization.data["angular_diameter"].get<float>());
+		case 1:
+			deserializeFromVersion1(serialization.data);
+			break;
+		case 2:
+			deserializeFromVersion2(serialization.data);
+			break;
+		default:
+			throw;
 	}
 }
 
@@ -227,4 +229,21 @@ void DirectionalLight::setAngularDiameter(float value)
 	_angularDiameter = value;
 	
 	_changed();
+}
+
+void DirectionalLight::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+{
+	setSrgbColor(glm::make_vec3(jsonRoot["color"].get<std::vector<float>>().data()));
+	setIntensity(jsonRoot["intensity"].get<float>());
+	setCastShadows(jsonRoot["cast_shadows"].get<bool>());
+	setResolution(jsonRoot["shadow_resolution"].get<int>());
+}
+
+void DirectionalLight::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
+{
+	setSrgbColor(glm::make_vec3(jsonRoot["color"].get<std::vector<float>>().data()));
+	setIntensity(jsonRoot["intensity"].get<float>());
+	setCastShadows(jsonRoot["cast_shadows"].get<bool>());
+	setResolution(jsonRoot["shadow_resolution"].get<int>());
+	setAngularDiameter(jsonRoot["angular_diameter"].get<float>());
 }

@@ -5,6 +5,7 @@
 #include "Cyph3D/VKObject/VKDynamic.h"
 
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 
 class VKImage;
 class VKImageView;
@@ -59,4 +60,7 @@ private:
 	
 	bool _castShadows = false;
 	int _resolution = 1024;
+	
+	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
+	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
 };

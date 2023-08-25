@@ -110,90 +110,22 @@ ObjectSerialization ModelRenderer::serialize() const
 	return serialization;
 }
 
-void ModelRenderer::deserialize(const ObjectSerialization& modelRendererSerialization)
+void ModelRenderer::deserialize(const ObjectSerialization& serialization)
 {
-	if (!modelRendererSerialization.data["material"].is_null())
+	switch (serialization.version)
 	{
-		if (modelRendererSerialization.version <= 1)
-		{
-			Logger::info("ModelRenderer deseralization: converting material identifier from version 1.");
-			std::string oldName = modelRendererSerialization.data["material"].get<std::string>();
-			std::string newFileName = std::filesystem::path(oldName).filename().generic_string();
-			std::string convertedPath = std::format("materials/{}/{}.c3dmaterial", oldName, newFileName);
-			if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
-			{
-				setMaterial(convertedPath);
-			}
-			else
-			{
-				Logger::warning("ModelRenderer deseralization: unable to convert material identifier from version 1.");
-			}
-		}
-		else
-		{
-			setMaterial(modelRendererSerialization.data["material"].get<std::string>());
-		}
+		case 1:
+			deserializeFromVersion1(serialization.data);
+			break;
+		case 2:
+			deserializeFromVersion2(serialization.data);
+			break;
+		case 3:
+			deserializeFromVersion3(serialization.data);
+			break;
+		default:
+			throw;
 	}
-	else
-	{
-		setMaterial(std::nullopt);
-	}
-	
-	if (modelRendererSerialization.version <= 2)
-	{
-		ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(modelRendererSerialization.data["shape"]);
-		
-		if (shapeSerialization.identifier == "MeshShape")
-		{
-			const nlohmann::ordered_json& jsonMeshPath = shapeSerialization.data["model"];
-			if (!jsonMeshPath.is_null())
-			{
-				if (shapeSerialization.version <= 1)
-				{
-					Logger::info("ModelRenderer deseralization: converting mesh identifier from MeshShape version 1.");
-					std::string oldName = jsonMeshPath.get<std::string>();
-					std::string convertedPath = std::format("meshes/{}.obj", oldName);
-					if (std::filesystem::exists(FileHelper::getAssetDirectoryPath() / convertedPath))
-					{
-						setMesh(convertedPath);
-					}
-					else
-					{
-						Logger::warning("ModelRenderer deseralization: unable to convert mesh identifier from MeshShape version 1.");
-					}
-				}
-				else
-				{
-					setMesh(jsonMeshPath.get<std::string>());
-				}
-			}
-			else
-			{
-				setMesh(std::nullopt);
-			}
-		}
-		else if (shapeSerialization.identifier == "PlaneShape")
-		{
-			setMesh("meshes/plane.obj");
-		}
-		else if (shapeSerialization.identifier == "SphereShape")
-		{
-			setMesh("meshes/sphere.obj");
-		}
-	}
-	else
-	{
-		if (!modelRendererSerialization.data["mesh"].is_null())
-		{
-			setMesh(modelRendererSerialization.data["mesh"].get<std::string>());
-		}
-		else
-		{
-			setMesh(std::nullopt);
-		}
-	}
-	
-	setContributeShadows(modelRendererSerialization.data["contribute_shadows"].get<bool>());
 }
 
 void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
@@ -277,4 +209,110 @@ void ModelRenderer::duplicate(Entity& targetEntity) const
 		newComponent.setMesh(_mesh->getSignature().path);
 	}
 	newComponent.setContributeShadows(getContributeShadows());
+}
+
+void ModelRenderer::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+{
+	const nlohmann::ordered_json& jsonMaterial = jsonRoot["material"];
+	if (!jsonMaterial.is_null())
+	{
+		std::string oldName = jsonMaterial.get<std::string>();
+		std::string newFileName = std::filesystem::path(oldName).filename().generic_string();
+		std::string convertedPath = std::format("materials/{}/{}.c3dmaterial", oldName, newFileName);
+		setMaterial(convertedPath);
+	}
+	else
+	{
+		setMaterial(std::nullopt);
+	}
+	
+	ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(jsonRoot["shape"]);
+	
+	if (shapeSerialization.identifier == "MeshShape")
+	{
+		const nlohmann::ordered_json& jsonMeshPath = shapeSerialization.data["model"];
+		if (!jsonMeshPath.is_null())
+		{
+			std::string oldName = jsonMeshPath.get<std::string>();
+			std::string convertedPath = std::format("meshes/{}.obj", oldName);
+			setMesh(convertedPath);
+		}
+		else
+		{
+			setMesh(std::nullopt);
+		}
+	}
+	else if (shapeSerialization.identifier == "PlaneShape")
+	{
+		setMesh("meshes/plane.obj");
+	}
+	else if (shapeSerialization.identifier == "SphereShape")
+	{
+		setMesh("meshes/sphere.obj");
+	}
+	
+	setContributeShadows(jsonRoot["contribute_shadows"].get<bool>());
+}
+
+void ModelRenderer::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
+{
+	const nlohmann::ordered_json& jsonMaterial = jsonRoot["material"];
+	if (!jsonMaterial.is_null())
+	{
+		setMaterial(jsonMaterial.get<std::string>());
+	}
+	else
+	{
+		setMaterial(std::nullopt);
+	}
+	
+	ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(jsonRoot["shape"]);
+	
+	if (shapeSerialization.identifier == "MeshShape")
+	{
+		const nlohmann::ordered_json& jsonMeshPath = shapeSerialization.data["model"];
+		if (!jsonMeshPath.is_null())
+		{
+			setMesh(jsonMeshPath.get<std::string>());
+		}
+		else
+		{
+			setMesh(std::nullopt);
+		}
+	}
+	else if (shapeSerialization.identifier == "PlaneShape")
+	{
+		setMesh("meshes/plane.obj");
+	}
+	else if (shapeSerialization.identifier == "SphereShape")
+	{
+		setMesh("meshes/sphere.obj");
+	}
+	
+	setContributeShadows(jsonRoot["contribute_shadows"].get<bool>());
+}
+
+void ModelRenderer::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
+{
+	const nlohmann::ordered_json& jsonMaterial = jsonRoot["material"];
+	if (!jsonMaterial.is_null())
+	{
+		setMaterial(jsonMaterial.get<std::string>());
+	}
+	else
+	{
+		setMaterial(std::nullopt);
+	}
+	
+	const nlohmann::ordered_json& jsonMesh = jsonRoot["mesh"];
+	if (!jsonMesh.is_null())
+	{
+		setMesh(jsonMesh.get<std::string>());
+	}
+	else
+	{
+		setMesh(std::nullopt);
+	}
+	
+	setContributeShadows(jsonRoot["contribute_shadows"].get<bool>());
 }

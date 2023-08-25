@@ -3,6 +3,7 @@
 #include "Cyph3D/Entity/Component/Component.h"
 
 #include <glm/glm.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 class Animator : public Component
 {
@@ -29,4 +30,6 @@ public:
 private:
 	glm::vec3 _velocity = glm::vec3(0);
 	glm::vec3 _angularVelicoty = glm::vec3(0);
+	
+	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
 };

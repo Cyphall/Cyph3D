@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 
 class MaterialAsset;
 class MeshAsset;
@@ -44,7 +45,7 @@ public:
 	const char* getIdentifier() const override;
 	
 	ObjectSerialization serialize() const override;
-	void deserialize(const ObjectSerialization& modelRendererSerialization) override;
+	void deserialize(const ObjectSerialization& serialization) override;
 
 private:
 	MaterialAsset* _material = nullptr;
@@ -54,4 +55,8 @@ private:
 	sigslot::scoped_connection _meshChangedConnection;
 	
 	bool _contributeShadows = true;
+	
+	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
+	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
+	void deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot);
 };

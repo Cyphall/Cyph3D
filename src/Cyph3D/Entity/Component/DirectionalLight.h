@@ -5,6 +5,7 @@
 #include "Cyph3D/VKObject/VKDynamic.h"
 
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 
 class VKImage;
 class VKImageView;
@@ -63,4 +64,7 @@ private:
 	int _resolution = 4096;
 	
 	glm::vec3 getLightDirection();
+	
+	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
+	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
 };
