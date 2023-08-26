@@ -395,7 +395,7 @@ void UIViewport::drawRenderToFilePopup()
 	{
 		int percent = (static_cast<float>(_renderToFileData->renderedSamples) / static_cast<float>(_renderToFileData->totalSamples)) * 100;
 		ImGui::Text("Rendering... %d%%", percent);
-		ImGui::Text("Rendered samples: %llu/%d", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
+		ImGui::Text("Rendered samples: %llu/%llu", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
 		
 		ImGui::EndPopup();
 	}
