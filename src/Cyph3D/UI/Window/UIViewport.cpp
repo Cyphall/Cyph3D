@@ -17,6 +17,7 @@
 #include <GLFW/glfw3.h>
 #include <magic_enum.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <chrono>
 
 struct UIViewport::RenderToFileData
 {
@@ -26,6 +27,8 @@ struct UIViewport::RenderToFileData
 	Camera camera;
 	RenderRegistry registry;
 	std::filesystem::path outputFile;
+	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastBatchTime;
 };
 
 std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
@@ -142,7 +145,7 @@ void UIViewport::show()
 				pathTracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
 			}
 			
-			if (_renderToFileData)
+			if (_renderToFileData && _renderToFileData->renderedSamples < _renderToFileData->totalSamples)
 			{
 				uint64_t remainingSamples = _renderToFileData->totalSamples - _renderToFileData->renderedSamples;
 				uint64_t thisBatchSamples = std::min(remainingSamples, 16ull);
@@ -157,6 +160,8 @@ void UIViewport::show()
 					});
 				
 				_renderToFileData->renderedSamples += thisBatchSamples;
+				
+				_renderToFileData->lastBatchTime = std::chrono::high_resolution_clock::now();
 				
 				if (_renderToFileData->renderedSamples == _renderToFileData->totalSamples)
 				{
@@ -194,15 +199,10 @@ void UIViewport::show()
 					{
 						stbi_write_jpg(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), 95);
 					}
-					
-					ImGui::CloseCurrentPopup();
-					
-					FileHelper::openExplorerAndSelectEntries(_renderToFileData->outputFile.parent_path(), {_renderToFileData->outputFile});
-					
-					_renderToFileData = {};
 				}
 			}
-			else
+			
+			if (!_renderToFileData)
 			{
 				uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
 				_lastViewportImageView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, currentSceneChangeVersion != _sceneChangeVersion, cameraChanged);
@@ -397,6 +397,28 @@ void UIViewport::drawRenderToFilePopup()
 		ImGui::Text("Rendering... %d%%", percent);
 		ImGui::Text("Rendered samples: %llu/%llu", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
 		
+		auto duration = _renderToFileData->lastBatchTime - _renderToFileData->startTime;
+		auto durationRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(duration);
+		ImGui::Text("%s", std::format("Elapsed time: {:%H:%M:%S}", durationRounded).c_str());
+		
+		if (percent == 100)
+		{
+			bool close = ImGui::Button("Close");
+			ImGui::SameLine();
+			bool openInExplorer = ImGui::Button("Open in Explorer");
+			
+			if (openInExplorer)
+			{
+				FileHelper::openExplorerAndSelectEntries(_renderToFileData->outputFile.parent_path(), {_renderToFileData->outputFile});
+			}
+			
+			if (openInExplorer || close)
+			{
+				ImGui::CloseCurrentPopup();
+				_renderToFileData.reset();
+			}
+		}
+		
 		ImGui::EndPopup();
 	}
 }
@@ -433,6 +455,7 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	_renderToFileData->camera = _camera;
 	_renderToFileData->camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));
 	_renderToFileData->outputFile = filePath.value();
+	_renderToFileData->startTime = std::chrono::high_resolution_clock::now();
 
 	Engine::getScene().onPreRender(_renderToFileData->registry, _renderToFileData->camera);
 }
