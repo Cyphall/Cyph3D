@@ -64,7 +64,10 @@ AssetManager::AssetManager(int threadCount):
 }
 
 AssetManager::~AssetManager()
-{}
+{
+	_threadPool.pause();
+	_threadPool.wait_for_tasks();
+}
 
 const VKPtr<VKSampler>& AssetManager::getTextureSampler()
 {
