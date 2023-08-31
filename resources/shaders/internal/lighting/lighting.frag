@@ -285,7 +285,7 @@ vec4 getRandom()
 
 vec3 calculateNormalBias(vec3 fragNormal, vec3 lightDir, float texelSize_WS, float samplingRadius)
 {
-	float angle = acos(dot(fragNormal, lightDir));
+	float angle = acos(min(dot(fragNormal, lightDir), 1.0));
 	float biasScale = sin(angle);
 	
 	float worstCastFilterRadius_WS = (samplingRadius + SQRT_2 * 0.5) * texelSize_WS;
