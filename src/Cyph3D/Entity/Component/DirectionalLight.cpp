@@ -65,11 +65,6 @@ bool DirectionalLight::getCastShadows() const
 	return _castShadows;
 }
 
-glm::vec3 DirectionalLight::getLightDirection()
-{
-	return -getTransform().getUp();
-}
-
 void DirectionalLight::setResolution(int value)
 {
 	bool castShadows = getCastShadows();
@@ -124,7 +119,7 @@ void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	RenderData data{};
-	data.fragToLightDirection = -getLightDirection();
+	data.fragToLightDirection = getTransform().getUp();
 	data.intensity = getIntensity();
 	data.color = getLinearColor();
 	data.angularDiameter = getAngularDiameter();
@@ -133,7 +128,7 @@ void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camer
 	{
 		float texelWorldSize = SHADOW_MAP_WORLD_SIZE / _resolution;
 		glm::mat4 worldToShadowMapTexel = glm::ortho<float>(-texelWorldSize, texelWorldSize, -texelWorldSize, texelWorldSize, 0, 1) *
-		                                  glm::lookAt(glm::vec3(0, 0, 0), getLightDirection(), glm::vec3(0, 1, 0));
+		                                  glm::lookAt(glm::vec3(0, 0, 0), getTransform().getDown(), getTransform().getForward());
 		
 		glm::vec4 shadowMapTexelPos4D = worldToShadowMapTexel * glm::vec4(camera.getPosition(), 1);
 		glm::vec3 shadowMapTexelPos = glm::vec3(shadowMapTexelPos4D) / shadowMapTexelPos4D.w;
@@ -146,8 +141,8 @@ void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camer
 		data.lightViewProjection = _projection *
 		                           glm::lookAt(
 			                           shadowMapRoundedWorldPos,
-			                           shadowMapRoundedWorldPos + getLightDirection(),
-			                           glm::vec3(0, 1, 0));
+			                           shadowMapRoundedWorldPos + getTransform().getDown(),
+			                           getTransform().getForward());
 		data.shadowMapTextureView = &_shadowMapView;
 		data.shadowMapTexelWorldSize = texelWorldSize;
 	}
