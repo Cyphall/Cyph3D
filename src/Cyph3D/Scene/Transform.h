@@ -39,9 +39,12 @@ public:
 	glm::vec3 getEulerWorldRotation() const;
 	void setEulerLocalRotation(glm::vec3 eulerRotation);
 	
-	glm::vec3 getForward() const;
-	glm::vec3 getUp() const;
+	glm::vec3 getRight() const;
 	glm::vec3 getLeft() const;
+	glm::vec3 getUp() const;
+	glm::vec3 getDown() const;
+	glm::vec3 getBackward() const;
+	glm::vec3 getForward() const;
 	
 	const glm::mat4& getLocalToWorldMatrix() const;
 	const glm::mat4& getWorldToLocalMatrix() const;
