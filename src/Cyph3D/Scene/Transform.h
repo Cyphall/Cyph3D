@@ -52,11 +52,23 @@ public:
 	const glm::mat4& getLocalToParentMatrix() const;
 	const glm::mat4& getParentToLocalMatrix() const;
 	
+	glm::mat4 calcCustomLocalToWorldMatrix(bool translate, bool rotate, bool scale) const;
+	glm::mat4 calcCustomWorldToLocalMatrix(bool translate, bool rotate, bool scale) const;
+	
+	glm::mat4 calcCustomLocalToParentMatrix(bool translate, bool rotate, bool scale) const;
+	glm::mat4 calcCustomParentToLocalMatrix(bool translate, bool rotate, bool scale) const;
+	
 	glm::vec3 localToWorldDirection(glm::vec3 localDir) const;
 	glm::vec3 worldToLocalDirection(glm::vec3 worldDir) const;
 	
 	glm::vec3 localToParentDirection(glm::vec3 localDir) const;
 	glm::vec3 parentToLocalDirection(glm::vec3 worldDir) const;
+	
+	glm::vec3 localToWorldPosition(glm::vec3 localDir) const;
+	glm::vec3 worldToLocalPosition(glm::vec3 worldDir) const;
+	
+	glm::vec3 localToParentPosition(glm::vec3 localDir) const;
+	glm::vec3 parentToLocalPosition(glm::vec3 worldDir) const;
 	
 	Entity* getOwner();
 	

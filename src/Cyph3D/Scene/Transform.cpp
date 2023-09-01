@@ -185,6 +185,60 @@ const glm::mat4& Transform::getParentToLocalMatrix() const
 	return _cachedParentToLocalMatrix;
 }
 
+glm::mat4 Transform::calcCustomLocalToWorldMatrix(bool translate, bool rotate, bool scale) const
+{
+	glm::mat4 result = glm::identity<glm::mat4>();
+	
+	if (translate)
+	{
+		glm::translate(result, getWorldPosition());
+	}
+	
+	if (rotate)
+	{
+		result *= glm::toMat4(getWorldRotation());
+	}
+	
+	if (scale)
+	{
+		glm::scale(result, getWorldScale());
+	}
+	
+	return result;
+}
+
+glm::mat4 Transform::calcCustomWorldToLocalMatrix(bool translate, bool rotate, bool scale) const
+{
+	return glm::affineInverse(calcCustomLocalToWorldMatrix(translate, rotate, scale));
+}
+
+glm::mat4 Transform::calcCustomLocalToParentMatrix(bool translate, bool rotate, bool scale) const
+{
+	glm::mat4 result = glm::identity<glm::mat4>();
+	
+	if (translate)
+	{
+		glm::translate(result, getLocalPosition());
+	}
+	
+	if (rotate)
+	{
+		result *= glm::toMat4(getLocalRotation());
+	}
+	
+	if (scale)
+	{
+		glm::scale(result, getLocalScale());
+	}
+	
+	return result;
+}
+
+glm::mat4 Transform::calcCustomParentToLocalMatrix(bool translate, bool rotate, bool scale) const
+{
+	return glm::affineInverse(calcCustomLocalToParentMatrix(translate, rotate, scale));
+}
+
 const glm::mat4& Transform::getLocalToWorldMatrix() const
 {
 	if (_invalidWorldCache)
@@ -337,6 +391,26 @@ glm::vec3 Transform::localToParentDirection(glm::vec3 localDir) const
 glm::vec3 Transform::parentToLocalDirection(glm::vec3 worldDir) const
 {
 	return glm::normalize(glm::vec3(getParentToLocalMatrix() * glm::vec4(worldDir, 0)));
+}
+
+glm::vec3 Transform::localToWorldPosition(glm::vec3 localDir) const
+{
+	return glm::vec3(getLocalToWorldMatrix() * glm::vec4(localDir, 1));
+}
+
+glm::vec3 Transform::worldToLocalPosition(glm::vec3 worldDir) const
+{
+	return glm::vec3(getWorldToLocalMatrix() * glm::vec4(worldDir, 1));
+}
+
+glm::vec3 Transform::localToParentPosition(glm::vec3 localDir) const
+{
+	return glm::vec3(getLocalToParentMatrix() * glm::vec4(localDir, 1));
+}
+
+glm::vec3 Transform::parentToLocalPosition(glm::vec3 worldDir) const
+{
+	return glm::vec3(getParentToLocalMatrix() * glm::vec4(worldDir, 1));
 }
 
 sigslot::signal<>& Transform::getChangedSignal()
