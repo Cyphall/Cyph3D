@@ -155,13 +155,13 @@ void PointLight::onDrawUi()
 	}
 	
 	float intensity = getIntensity();
-	if (ImGui::DragFloat("Intensity", &intensity, 0.01f))
+	if (ImGui::DragFloat("Intensity", &intensity, 0.01f, 0.0f, std::numeric_limits<float>::max(), "%.3f", ImGuiSliderFlags_AlwaysClamp))
 	{
 		setIntensity(intensity);
 	}
 	
 	float radius = getRadius();
-	if (ImGui::SliderFloat("Radius", &radius, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+	if (ImGui::DragFloat("Radius", &radius, 0.01f, 0.0f, std::numeric_limits<float>::max(), "%.3f", ImGuiSliderFlags_AlwaysClamp))
 	{
 		setRadius(radius);
 	}

@@ -159,13 +159,13 @@ void DirectionalLight::onDrawUi()
 	}
 	
 	float intensity = getIntensity();
-	if (ImGui::DragFloat("Intensity", &intensity, 0.01f))
+	if (ImGui::DragFloat("Intensity", &intensity, 0.01f, 0.0f, std::numeric_limits<float>::max(), "%.3f", ImGuiSliderFlags_AlwaysClamp))
 	{
 		setIntensity(intensity);
 	}
 	
 	float angularDiameter = getAngularDiameter();
-	if (ImGui::SliderFloat("Angular Diameter", &angularDiameter, 0.0f, 10.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+	if (ImGui::DragFloat("Angular Diameter", &angularDiameter, 0.01f, 0.0f, 180.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
 	{
 		setAngularDiameter(angularDiameter);
 	}
