@@ -133,7 +133,7 @@ void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camer
 		glm::vec4 shadowMapTexelPos4D = worldToShadowMapTexel * glm::vec4(camera.getPosition(), 1);
 		glm::vec3 shadowMapTexelPos = glm::vec3(shadowMapTexelPos4D) / shadowMapTexelPos4D.w;
 		
-		glm::vec3 roundedShadowMapTexelPos = glm::round(shadowMapTexelPos);
+		glm::vec3 roundedShadowMapTexelPos = glm::vec3(glm::round(glm::vec2(shadowMapTexelPos)), shadowMapTexelPos.z);
 		
 		glm::vec4 shadowMapRoundedWorldPos4D = glm::inverse(worldToShadowMapTexel) * glm::vec4(roundedShadowMapTexelPos, 1);
 		glm::vec3 shadowMapRoundedWorldPos = glm::vec3(shadowMapRoundedWorldPos4D) / shadowMapRoundedWorldPos4D.w;
