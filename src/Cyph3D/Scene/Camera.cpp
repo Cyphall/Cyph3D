@@ -6,6 +6,7 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 
 glm::vec3 Camera::getOrientation() const
 {
@@ -221,7 +222,7 @@ void Camera::cornerRaysChanged() const
 void Camera::recalculateCornerRays() const
 {
 	glm::mat4 projInverse = glm::inverse(getProjection());
-	glm::mat4 viewInverse = glm::inverse(getView());
+	glm::mat4 viewInverse = glm::affineInverse(getView());
 	
 	_cornerRays[0] = glm::vec3(-1, -1, 1); // top left
 	_cornerRays[1] = glm::vec3(1, -1, 1); // top right

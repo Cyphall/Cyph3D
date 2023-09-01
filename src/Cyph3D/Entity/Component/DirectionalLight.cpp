@@ -9,6 +9,7 @@
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"
 
+#include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/integer.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
@@ -135,7 +136,7 @@ void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camer
 		
 		glm::vec3 roundedShadowMapTexelPos = glm::vec3(glm::round(glm::vec2(shadowMapTexelPos)), shadowMapTexelPos.z);
 		
-		glm::vec4 shadowMapRoundedWorldPos4D = glm::inverse(worldToShadowMapTexel) * glm::vec4(roundedShadowMapTexelPos, 1);
+		glm::vec4 shadowMapRoundedWorldPos4D = glm::affineInverse(worldToShadowMapTexel) * glm::vec4(roundedShadowMapTexelPos, 1);
 		glm::vec3 shadowMapRoundedWorldPos = glm::vec3(shadowMapRoundedWorldPos4D) / shadowMapRoundedWorldPos4D.w;
 		
 		data.lightViewProjection = _projection *
