@@ -331,12 +331,12 @@ glm::vec3 Transform::worldToLocalDirection(glm::vec3 worldDir) const
 
 glm::vec3 Transform::localToParentDirection(glm::vec3 localDir) const
 {
-	return getLocalToParentMatrix() * glm::vec4(localDir, 0);
+	return glm::normalize(glm::vec3(getLocalToParentMatrix() * glm::vec4(localDir, 0)));
 }
 
 glm::vec3 Transform::parentToLocalDirection(glm::vec3 worldDir) const
 {
-	return getParentToLocalMatrix() * glm::vec4(worldDir, 0);
+	return glm::normalize(glm::vec3(getParentToLocalMatrix() * glm::vec4(worldDir, 0)));
 }
 
 sigslot::signal<>& Transform::getChangedSignal()
