@@ -49,9 +49,8 @@ void Animator::onUpdate()
 	
 	Transform& transform = getTransform();
 	
-	glm::vec3 velocity = transform.localToParentDirection(_velocity);
-	
-	transform.setLocalPosition(transform.getLocalPosition() + velocity * (float) deltaTime);
+	glm::vec3 newPosition = transform.localToParentPosition(_velocity * static_cast<float>(deltaTime));
+	transform.setLocalPosition(newPosition);
 	
 	glm::vec3 rotationOffset = _angularVelicoty * (float)deltaTime;
 	
