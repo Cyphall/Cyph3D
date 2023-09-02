@@ -14,7 +14,6 @@ struct PointLightUniforms
 	vec3  color;
 	bool  castShadows;
 	uint  textureIndex;
-	float far;
 	float maxTexelSizeAtUnitDistance;
 };
 
@@ -387,9 +386,6 @@ float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
 		vec3 posOffset = (left * uvOffset.x) + (up * uvOffset.y);
 		float sampleDepth = texture(u_pointLightTextures[u_pointLightUniforms[lightIndex].textureIndex], forward + posOffset).r;
-		
-		// it is currently in linear range between [0,1]. Re-transform back to original value
-		sampleDepth *= u_pointLightUniforms[lightIndex].far;
 		
 		if (fragDepth_SMV - bias > sampleDepth)
 		{

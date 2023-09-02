@@ -41,7 +41,6 @@ private:
 	{
 		GLSL_mat4 viewProjections[6];
 		GLSL_vec3 lightPos;
-		GLSL_float far;
 	};
 	
 	struct PointLightPushConstantData

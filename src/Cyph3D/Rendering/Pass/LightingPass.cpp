@@ -96,7 +96,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		if (renderData.castShadows)
 		{
 			uniforms.textureIndex = pointLightShadowIndex;
-			uniforms.far = renderData.far;
 			uniforms.maxTexelSizeAtUnitDistance = 2.0f / renderData.shadowMapResolution;
 			
 			_pointLightDescriptorSet->bindCombinedImageSampler(1, *renderData.shadowMapTextureView, _pointLightSampler, pointLightShadowIndex);

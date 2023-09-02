@@ -140,7 +140,6 @@ void PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
 		data.shadowMapTextureView = &_shadowMapView;
 		data.shadowMapResolution = getResolution();
-		data.far = FAR_DISTANCE;
 	}
 	
 	renderRegistry.addRenderRequest(data);

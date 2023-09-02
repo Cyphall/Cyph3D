@@ -141,7 +141,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			renderingInfo.setViewMask(0b111111);
 			
 			renderingInfo.setDepthAttachment(*pointLightRenderData.shadowMapTextureView)
-				.setLoadOpClear(1.0f)
+				.setLoadOpClear(std::numeric_limits<float>::max())
 				.setStoreOpStore();
 			
 			commandBuffer->pushDebugGroup(std::format("Point light ({})", shadowCastingPointLightIndex));
@@ -164,7 +164,6 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			PointLightUniforms uniforms{};
 			std::copy(std::begin(pointLightRenderData.viewProjections), std::end(pointLightRenderData.viewProjections), std::begin(uniforms.viewProjections));
 			uniforms.lightPos = pointLightRenderData.pos;
-			uniforms.far = pointLightRenderData.far;
 			
 			std::memcpy(pointLightUniformBufferPtr, &uniforms, sizeof(PointLightUniforms));
 			pointLightUniformBufferPtr++;

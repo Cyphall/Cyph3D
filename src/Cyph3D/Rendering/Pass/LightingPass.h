@@ -51,7 +51,6 @@ private:
 		GLSL_vec3  color;
 		GLSL_bool  castShadows;
 		GLSL_uint  textureIndex;
-		GLSL_float far;
 		GLSL_float maxTexelSizeAtUnitDistance;
 	};
 	

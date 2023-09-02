@@ -23,7 +23,6 @@ public:
 		glm::mat4               viewProjections[6];
 		VKPtr<VKImageView>*     shadowMapTextureView;
 		int                     shadowMapResolution;
-		float                   far;
 	};
 	
 	explicit PointLight(Entity& entity);

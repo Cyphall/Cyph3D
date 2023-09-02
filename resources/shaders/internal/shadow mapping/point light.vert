@@ -12,7 +12,6 @@ layout(std430, set = 0, binding = 0) readonly buffer uniforms
 {
 	mat4 u_viewProjections[6];
 	vec3 u_lightPos;
-	float u_far;
 };
 
 layout(location = 0) out V2F
