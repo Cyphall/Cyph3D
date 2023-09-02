@@ -370,7 +370,7 @@ float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 	
 	vec3 forward = lightToFrag / fragDist;
 	forward.z = -forward.z;
-	vec3 up = vec3(0, 1, 0);
+	vec3 up = abs(dot(forward, vec3(0, 1, 0))) > 0.9 ? vec3(1, 0, 0) : vec3(0, 1, 0);
 	vec3 left = normalize(cross(forward, up));
 	up = cross(left, forward);
 	
