@@ -4,8 +4,8 @@
 #include "Cyph3D/VKObject/VKPtr.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
 
-struct RenderRegistry;
 class Camera;
 class VKPipelineLayout;
 class VKGraphicsPipeline;
@@ -63,4 +63,15 @@ private:
 	void createBuffer();
 	void createPipelineLayouts();
 	void createPipelines();
+	
+	void renderDirectionalShadowMap(
+		const VKPtr<VKCommandBuffer>& commandBuffer,
+		const DirectionalLight::RenderData& light,
+		const std::vector<ModelRenderer::RenderData>& models);
+	
+	void renderPointShadowMap(
+		const VKPtr<VKCommandBuffer>& commandBuffer,
+		const PointLight::RenderData& light,
+		const std::vector<ModelRenderer::RenderData>& models,
+		int uniformIndex);
 };
