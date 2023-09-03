@@ -295,12 +295,12 @@ _owner(owner)
 
 glm::vec3 Transform::getRight() const
 {
-	return localToWorldDirection(glm::vec3(0, 0, 1));
+	return localToWorldDirection(glm::vec3(1, 0, 0));
 }
 
 glm::vec3 Transform::getLeft() const
 {
-	return localToWorldDirection(glm::vec3(0, 0, -1));
+	return localToWorldDirection(glm::vec3(-1, 0, 0));
 }
 
 glm::vec3 Transform::getUp() const
@@ -315,12 +315,12 @@ glm::vec3 Transform::getDown() const
 
 glm::vec3 Transform::getBackward() const
 {
-	return localToWorldDirection(glm::vec3(1, 0, 0));
+	return localToWorldDirection(glm::vec3(0, 0, 1));
 }
 
 glm::vec3 Transform::getForward() const
 {
-	return localToWorldDirection(glm::vec3(-1, 0, 0));
+	return localToWorldDirection(glm::vec3(0, 0, -1));
 }
 
 void Transform::recalculateWorldCache() const
