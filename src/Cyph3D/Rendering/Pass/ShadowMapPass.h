@@ -7,7 +7,6 @@
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/ShadowMapManager.h"
 
-class Camera;
 class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKDescriptorSetLayout;
@@ -30,7 +29,6 @@ struct PointShadowMapInfo
 struct ShadowMapPassInput
 {
 	const RenderRegistry& registry;
-	Camera& camera;
 	bool sceneChanged;
 	bool cameraChanged;
 };
@@ -86,8 +84,7 @@ private:
 	void renderDirectionalShadowMap(
 		const VKPtr<VKCommandBuffer>& commandBuffer,
 		const DirectionalLight::RenderData& light,
-		const std::vector<ModelRenderer::RenderData>& models,
-		const Camera& camera);
+		const std::vector<ModelRenderer::RenderData>& models);
 	
 	void renderPointShadowMap(
 		const VKPtr<VKCommandBuffer>& commandBuffer,

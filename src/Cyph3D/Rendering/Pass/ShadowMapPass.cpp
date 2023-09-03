@@ -13,25 +13,10 @@
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
-#include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Transform.h"
+#include "Cyph3D/Helper/MathHelper.h"
 
 #include <glm/gtc/matrix_inverse.hpp>
-
-static const float DIRECTIONAL_SHADOW_MAP_WORLD_SIZE = 60.0f;
-static const float DIRECTIONAL_SHADOW_MAP_WORLD_DEPTH = 100.0f;
-
-static const glm::mat4 DIRECTIONAL_SHADOW_MAP_PROJECTION = []()
-{
-	glm::mat4 projection = glm::ortho(
-		-DIRECTIONAL_SHADOW_MAP_WORLD_SIZE / 2, DIRECTIONAL_SHADOW_MAP_WORLD_SIZE / 2,
-		-DIRECTIONAL_SHADOW_MAP_WORLD_SIZE / 2, DIRECTIONAL_SHADOW_MAP_WORLD_SIZE / 2,
-		-DIRECTIONAL_SHADOW_MAP_WORLD_DEPTH / 2, DIRECTIONAL_SHADOW_MAP_WORLD_DEPTH / 2);
-	
-	projection[1][1] *= -1;
-	
-	return projection;
-}();
 
 static const float POINT_SHADOW_MAP_NEAR = 0.01f;
 static const float POINT_SHADOW_MAP_FAR = 100.0f;
@@ -45,24 +30,46 @@ static const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []()
 	return projection;
 }();
 
-static glm::mat4 calcDirectionalShadowMapView(const DirectionalLight::RenderData& light, const Camera& camera)
+static glm::mat4 calcDirectionalShadowMapView(const DirectionalLight::RenderData& light)
 {
-	float texelWorldSize = DIRECTIONAL_SHADOW_MAP_WORLD_SIZE / light.shadowMapResolution;
-	glm::mat4 worldToShadowMapTexel = glm::ortho<float>(-texelWorldSize, texelWorldSize, -texelWorldSize, texelWorldSize, 0, 1) *
-	                                  glm::lookAt(glm::vec3(0, 0, 0), light.transform.getDown(), light.transform.getForward());
-	
-	glm::vec4 shadowMapTexelPos4D = worldToShadowMapTexel * glm::vec4(camera.getPosition(), 1);
-	glm::vec3 shadowMapTexelPos = glm::vec3(shadowMapTexelPos4D) / shadowMapTexelPos4D.w;
-	
-	glm::vec3 roundedShadowMapTexelPos = glm::vec3(glm::round(glm::vec2(shadowMapTexelPos)), shadowMapTexelPos.z);
-	
-	glm::vec4 shadowMapRoundedWorldPos4D = glm::affineInverse(worldToShadowMapTexel) * glm::vec4(roundedShadowMapTexelPos, 1);
-	glm::vec3 shadowMapRoundedWorldPos = glm::vec3(shadowMapRoundedWorldPos4D) / shadowMapRoundedWorldPos4D.w;
-	
 	return glm::lookAt(
-		shadowMapRoundedWorldPos,
-		shadowMapRoundedWorldPos + light.transform.getDown(),
+		{0, 0, 0},
+		light.transform.getDown(),
 		light.transform.getForward());
+}
+
+static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(const glm::mat4& view, const std::vector<ModelRenderer::RenderData>& models)
+{
+	glm::vec3 min(std::numeric_limits<float>::max());
+	glm::vec3 max(std::numeric_limits<float>::lowest());
+	
+	for (const ModelRenderer::RenderData& model : models)
+	{
+		glm::mat4 modelView = view * model.transform.getLocalToWorldMatrix();
+		
+		auto [boundingBoxMin_SMS, boundingBoxMax_SMS] = MathHelper::transformBoundingBox(
+			modelView,
+			model.mesh.getBoundingBoxMin(),
+			model.mesh.getBoundingBoxMax());
+		
+		min = glm::min(min, boundingBoxMin_SMS);
+		max = glm::max(max, boundingBoxMax_SMS);
+	}
+	
+	min -= 0.01f;
+	max += 0.01f;
+	
+	glm::vec3 center = (max + min) / 2.0f;
+	
+	glm::vec3 size = max - min;
+	size.x = size.y = std::max(size.x, size.y); // force the matrix to have the same width and height to get square shadow map pixels in worldspace
+	
+	glm::mat4 projection = glm::ortho(
+		center.x - size.x / 2, center.x + size.x / 2,
+		center.y + size.y / 2, center.y - size.y / 2,
+		-center.z - size.z / 2, -center.z + size.z / 2);
+	
+	return {projection, size.x, size.z};
 }
 
 static std::array<glm::mat4, 6> calcPointShadowMapView(const PointLight::RenderData& light)
@@ -104,7 +111,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			}
 			
 			commandBuffer->pushDebugGroup(std::format("Directional light ({})", shadowCastingDirectionalLightIndex));
-			renderDirectionalShadowMap(commandBuffer, light, input.registry.getModelRenderRequests(), input.camera);
+			renderDirectionalShadowMap(commandBuffer, light, input.registry.getModelRenderRequests());
 			commandBuffer->popDebugGroup();
 			
 			shadowCastingDirectionalLightIndex++;
@@ -235,8 +242,7 @@ void ShadowMapPass::createPipelines()
 void ShadowMapPass::renderDirectionalShadowMap(
 	const VKPtr<VKCommandBuffer>& commandBuffer,
 	const DirectionalLight::RenderData& light,
-	const std::vector<ModelRenderer::RenderData>& models,
-	const Camera& camera)
+	const std::vector<ModelRenderer::RenderData>& models)
 {
 	VKPtr<VKImageView> shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
 	
@@ -271,7 +277,9 @@ void ShadowMapPass::renderDirectionalShadowMap(
 	scissor.size = {light.shadowMapResolution, light.shadowMapResolution};
 	commandBuffer->setScissor(scissor);
 	
-	glm::mat4 viewProjection = DIRECTIONAL_SHADOW_MAP_PROJECTION * calcDirectionalShadowMapView(light, camera);
+	glm::mat4 view = calcDirectionalShadowMapView(light);
+	auto [projection, worldSize, worldDepth] = calcDirectionalShadowMapProjection(view, models);
+	glm::mat4 viewProjection = projection * view;
 	
 	for (const ModelRenderer::RenderData& model : models)
 	{
@@ -298,8 +306,8 @@ void ShadowMapPass::renderDirectionalShadowMap(
 	commandBuffer->endRendering();
 	
 	_directionalShadowMapInfos.push_back(DirectionalShadowMapInfo{
-		.worldSize = DIRECTIONAL_SHADOW_MAP_WORLD_SIZE,
-		.worldDepth = DIRECTIONAL_SHADOW_MAP_WORLD_DEPTH,
+		.worldSize = worldSize,
+		.worldDepth = worldDepth,
 		.viewProjection = viewProjection,
 		.imageView = shadowMap
 	});

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <glm/glm.hpp>
 
 class MathHelper
 {
 public:
 	static bool between(int64_t number, int64_t lower, int64_t upper);
 	static float fovXtoY(float fovx, float aspect);
+	static std::pair<glm::vec3, glm::vec3> transformBoundingBox(const glm::mat4& matrix, const glm::vec3& boundingBoxMin, const glm::vec3& boundingBoxMax);
 };
