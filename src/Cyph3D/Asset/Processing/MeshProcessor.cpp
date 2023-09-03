@@ -12,14 +12,16 @@ static void writeProcessedMesh(const std::filesystem::path& path, const MeshData
 	std::filesystem::create_directories(path.parent_path());
 	std::ofstream file = FileHelper::openFileForWriting(path);
 
-	uint8_t version = 2;
+	uint8_t version = 3;
 	FileHelper::write(file, &version);
 
 	FileHelper::write(file, meshData.positionVertices);
-	
 	FileHelper::write(file, meshData.fullVertices);
 
 	FileHelper::write(file, meshData.indices);
+
+	FileHelper::write(file, &meshData.boundingBoxMin);
+	FileHelper::write(file, &meshData.boundingBoxMax);
 }
 
 static bool readProcessedMesh(const std::filesystem::path& path, MeshData& meshData)
@@ -29,16 +31,18 @@ static bool readProcessedMesh(const std::filesystem::path& path, MeshData& meshD
 	uint8_t version;
 	FileHelper::read(file, &version);
 
-	if (version != 2)
+	if (version != 3)
 	{
 		return false;
 	}
 
 	FileHelper::read(file, meshData.positionVertices);
-	
 	FileHelper::read(file, meshData.fullVertices);
 
 	FileHelper::read(file, meshData.indices);
+	
+	FileHelper::read(file, &meshData.boundingBoxMin);
+	FileHelper::read(file, &meshData.boundingBoxMax);
 
 	return true;
 }
@@ -60,6 +64,8 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 
 	meshData.positionVertices.resize(mesh->mNumVertices);
 	meshData.fullVertices.resize(mesh->mNumVertices);
+	meshData.boundingBoxMin = glm::vec3(std::numeric_limits<float>::max());
+	meshData.boundingBoxMax = glm::vec3(std::numeric_limits<float>::lowest());
 
 	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
 	{
@@ -69,6 +75,9 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 		std::memcpy(&meshData.fullVertices[i].uv, &mesh->mTextureCoords[0][i], 2 * sizeof(float));
 		std::memcpy(&meshData.fullVertices[i].normal, &mesh->mNormals[i], 3 * sizeof(float));
 		std::memcpy(&meshData.fullVertices[i].tangent, &mesh->mTangents[i], 3 * sizeof(float));
+		
+		meshData.boundingBoxMin = glm::min(meshData.boundingBoxMin, meshData.positionVertices[i].position);
+		meshData.boundingBoxMax = glm::max(meshData.boundingBoxMax, meshData.positionVertices[i].position);
 	}
 
 	meshData.indices.resize(mesh->mNumFaces * 3);

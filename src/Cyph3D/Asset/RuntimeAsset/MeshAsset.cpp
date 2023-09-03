@@ -48,6 +48,18 @@ const VKPtr<VKAccelerationStructure>& MeshAsset::getAccelerationStructure() cons
 	return _accelerationStructure;
 }
 
+const glm::vec3& MeshAsset::getBoundingBoxMin() const
+{
+	checkLoaded();
+	return _boundingBoxMin;
+}
+
+const glm::vec3& MeshAsset::getBoundingBoxMax() const
+{
+	checkLoaded();
+	return _boundingBoxMax;
+}
+
 void MeshAsset::initDefaultAndMissing()
 {
 	_defaultMesh = Engine::getAssetManager().loadMesh("meshes/internal/Default Mesh/Default Mesh.obj");
@@ -195,6 +207,9 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		workerData.computeCommandBuffer->waitExecution();
 		workerData.computeCommandBuffer->reset();
 	}
+	
+	_boundingBoxMin = meshData.boundingBoxMin;
+	_boundingBoxMax = meshData.boundingBoxMax;
 	
 	_changed();
 

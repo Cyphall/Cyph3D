@@ -42,6 +42,9 @@ public:
 	const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const;
 	const VKPtr<VKAccelerationStructure>& getAccelerationStructure() const;
 	
+	const glm::vec3& getBoundingBoxMin() const;
+	const glm::vec3& getBoundingBoxMax() const;
+	
 	static void initDefaultAndMissing();
 	static MeshAsset* getDefaultMesh();
 	static MeshAsset* getMissingMesh();
@@ -57,6 +60,9 @@ private:
 	VKPtr<VKBuffer<FullVertexData>> _fullVertexBuffer;
 	VKPtr<VKBuffer<uint32_t>> _indexBuffer;
 	VKPtr<VKAccelerationStructure> _accelerationStructure;
+	
+	glm::vec3 _boundingBoxMin;
+	glm::vec3 _boundingBoxMax;
 	
 	static MeshAsset* _defaultMesh;
 	static MeshAsset* _missingMesh;
