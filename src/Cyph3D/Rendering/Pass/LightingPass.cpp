@@ -2,6 +2,7 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Transform.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
@@ -37,43 +38,27 @@ LightingPass::LightingPass(glm::uvec2 size):
 
 LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
 {
-	uint32_t directionalLightShadowsCount = 0;
-	for (const DirectionalLight::RenderData& renderData : input.registry.getDirectionalLightRenderRequests())
-	{
-		if (renderData.castShadows)
-		{
-			directionalLightShadowsCount++;
-		}
-	}
-	
-	uint32_t pointLightShadowsCount = 0;
-	for (const PointLight::RenderData& renderData : input.registry.getPointLightRenderRequests())
-	{
-		if (renderData.castShadows)
-		{
-			pointLightShadowsCount++;
-		}
-	}
-	
-	descriptorSetsResizeSmart(directionalLightShadowsCount, pointLightShadowsCount);
+	descriptorSetsResizeSmart(input.directionalShadowMapInfos.size(), input.pointShadowMapInfos.size());
 	
 	_directionalLightsUniforms->resizeSmart(input.registry.getDirectionalLightRenderRequests().size());
 	uint32_t directionalLightShadowIndex = 0;
 	DirectionalLightUniforms* directionalLightUniformsPtr = _directionalLightsUniforms->getHostPointer();
-	for (const DirectionalLight::RenderData& renderData : input.registry.getDirectionalLightRenderRequests())
+	for (const DirectionalLight::RenderData& light : input.registry.getDirectionalLightRenderRequests())
 	{
 		DirectionalLightUniforms uniforms{};
-		uniforms.fragToLightDirection = renderData.fragToLightDirection;
-		uniforms.intensity = renderData.intensity;
-		uniforms.color = renderData.color;
-		uniforms.castShadows = renderData.castShadows;
-		if (renderData.castShadows)
+		uniforms.fragToLightDirection = light.transform.getUp();
+		uniforms.intensity = light.intensity;
+		uniforms.color = light.color;
+		uniforms.castShadows = light.castShadows;
+		if (light.castShadows)
 		{
-			uniforms.lightViewProjection = renderData.lightViewProjection;
-			uniforms.textureIndex = directionalLightShadowIndex;
-			uniforms.shadowMapTexelWorldSize = renderData.shadowMapTexelWorldSize;
+			const DirectionalShadowMapInfo& shadowMapInfo = input.directionalShadowMapInfos[directionalLightShadowIndex];
 			
-			_directionalLightDescriptorSet->bindCombinedImageSampler(1, *renderData.shadowMapTextureView, _directionalLightSampler, directionalLightShadowIndex);
+			uniforms.lightViewProjection = shadowMapInfo.viewProjection;
+			uniforms.textureIndex = directionalLightShadowIndex;
+			uniforms.shadowMapTexelWorldSize = shadowMapInfo.worldSize / light.shadowMapResolution;
+			
+			_directionalLightDescriptorSet->bindCombinedImageSampler(1, shadowMapInfo.imageView, _directionalLightSampler, directionalLightShadowIndex);
 			
 			directionalLightShadowIndex++;
 		}
@@ -86,19 +71,21 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_pointLightsUniforms->resizeSmart(input.registry.getPointLightRenderRequests().size());
 	uint32_t pointLightShadowIndex = 0;
 	PointLightUniforms* pointLightUniformsPtr = _pointLightsUniforms->getHostPointer();
-	for (const PointLight::RenderData& renderData : input.registry.getPointLightRenderRequests())
+	for (const PointLight::RenderData& light : input.registry.getPointLightRenderRequests())
 	{
 		PointLightUniforms uniforms{};
-		uniforms.pos = renderData.pos;
-		uniforms.intensity = renderData.intensity;
-		uniforms.color = renderData.color;
-		uniforms.castShadows = renderData.castShadows;
-		if (renderData.castShadows)
+		uniforms.pos = light.transform.getWorldPosition();
+		uniforms.intensity = light.intensity;
+		uniforms.color = light.color;
+		uniforms.castShadows = light.castShadows;
+		if (light.castShadows)
 		{
-			uniforms.textureIndex = pointLightShadowIndex;
-			uniforms.maxTexelSizeAtUnitDistance = 2.0f / renderData.shadowMapResolution;
+			const PointShadowMapInfo& shadowMapInfo = input.pointShadowMapInfos[pointLightShadowIndex];
 			
-			_pointLightDescriptorSet->bindCombinedImageSampler(1, *renderData.shadowMapTextureView, _pointLightSampler, pointLightShadowIndex);
+			uniforms.textureIndex = pointLightShadowIndex;
+			uniforms.maxTexelSizeAtUnitDistance = 2.0f / light.shadowMapResolution;
+			
+			_pointLightDescriptorSet->bindCombinedImageSampler(1, shadowMapInfo.imageView, _pointLightSampler, pointLightShadowIndex);
 			
 			pointLightShadowIndex++;
 		}
@@ -152,31 +139,32 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	pushConstantData.frameIndex = _frameIndex;
 	commandBuffer->pushConstants(pushConstantData);
 	
-	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
+	glm::mat4 viewProjection = input.camera.getProjection() * input.camera.getView();
 	
 	_objectUniforms->resizeSmart(input.registry.getModelRenderRequests().size());
 	ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer();
 	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 	{
-		ModelRenderer::RenderData modelData = input.registry.getModelRenderRequests()[i];
+		ModelRenderer::RenderData model = input.registry.getModelRenderRequests()[i];
 		
-		const VKPtr<VKBuffer<FullVertexData>>& vertexBuffer = modelData.mesh->getFullVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = modelData.mesh->getIndexBuffer();
+		const VKPtr<VKBuffer<FullVertexData>>& vertexBuffer = model.mesh.getFullVertexBuffer();
+		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 		
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);
 		
-		ObjectUniforms uniforms{};
-		uniforms.normalMatrix = glm::inverseTranspose(glm::mat3(modelData.matrix));
-		uniforms.model = modelData.matrix;
-		uniforms.mvp = vp * modelData.matrix;
-		uniforms.albedoIndex = modelData.material->getAlbedoTextureBindlessIndex();
-		uniforms.normalIndex = modelData.material->getNormalTextureBindlessIndex();
-		uniforms.roughnessIndex = modelData.material->getRoughnessTextureBindlessIndex();
-		uniforms.metalnessIndex = modelData.material->getMetalnessTextureBindlessIndex();
-		uniforms.displacementIndex = modelData.material->getDisplacementTextureBindlessIndex();
-		uniforms.emissiveIndex = modelData.material->getEmissiveTextureBindlessIndex();
-		uniforms.emissiveScale = modelData.material->getEmissiveScale();
+		ObjectUniforms uniforms{
+			.normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix())),
+			.model = model.transform.getLocalToWorldMatrix(),
+			.mvp = viewProjection * model.transform.getLocalToWorldMatrix(),
+			.albedoIndex = model.material.getAlbedoTextureBindlessIndex(),
+			.normalIndex = model.material.getNormalTextureBindlessIndex(),
+			.roughnessIndex = model.material.getRoughnessTextureBindlessIndex(),
+			.metalnessIndex = model.material.getMetalnessTextureBindlessIndex(),
+			.displacementIndex = model.material.getDisplacementTextureBindlessIndex(),
+			.emissiveIndex = model.material.getEmissiveTextureBindlessIndex(),
+			.emissiveScale = model.material.getEmissiveScale()
+		};
 		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
 		
 		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getCurrent()->getBuffer(), i, 1);

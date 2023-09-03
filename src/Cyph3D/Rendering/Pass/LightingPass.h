@@ -4,6 +4,7 @@
 #include "Cyph3D/VKObject/VKPtr.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
 
 struct RenderRegistry;
 class Camera;
@@ -20,6 +21,8 @@ struct LightingPassInput
 	const VKPtr<VKImageView>& multisampledDepthImageView;
 	const RenderRegistry& registry;
 	Camera& camera;
+	const std::vector<DirectionalShadowMapInfo>& directionalShadowMapInfos;
+	const std::vector<PointShadowMapInfo>& pointShadowMapInfos;
 };
 
 struct LightingPassOutput

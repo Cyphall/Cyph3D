@@ -18,11 +18,11 @@ class ModelRenderer : public Component
 public:
 	struct RenderData
 	{
-		MaterialAsset* material;
-		MeshAsset* mesh;
-		glm::mat4 matrix;
-		bool contributeShadows;
-		Entity* owner;
+		Transform&     transform;
+		MaterialAsset& material;
+		MeshAsset&     mesh;
+		bool           contributeShadows;
+		Entity&        owner;
 	};
 	
 	explicit ModelRenderer(Entity& entity);

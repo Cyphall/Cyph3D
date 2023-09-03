@@ -29,6 +29,8 @@ public:
 	static const vk::Format DEPTH_FORMAT;
 	static const vk::Format HDR_COLOR_FORMAT;
 	static const vk::Format ACCUMULATION_FORMAT;
+	static const vk::Format DIRECTIONAL_SHADOW_MAP_DEPTH_FORMAT;
+	static const vk::Format POINT_SHADOW_MAP_DEPTH_FORMAT;
 	
 protected:
 	glm::uvec2 _size;

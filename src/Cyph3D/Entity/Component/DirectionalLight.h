@@ -1,28 +1,20 @@
 #pragma once
 
 #include "Cyph3D/Entity/Component/LightBase.h"
-#include "Cyph3D/VKObject/VKPtr.h"
-#include "Cyph3D/VKObject/VKDynamic.h"
 
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
-
-class VKImage;
-class VKImageView;
 
 class DirectionalLight : public LightBase
 {
 public:
 	struct RenderData
 	{
-		glm::vec3               fragToLightDirection;
-		float                   intensity;
-		glm::vec3               color;
-		float                   angularDiameter;
-		bool                    castShadows;
-		glm::mat4               lightViewProjection;
-		VKPtr<VKImageView>*     shadowMapTextureView;
-		float                   shadowMapTexelWorldSize;
+		Transform&          transform;
+		float               intensity;
+		glm::vec3           color;
+		bool                castShadows;
+		uint32_t            shadowMapResolution;
 	};
 
 	explicit DirectionalLight(Entity& entity);
@@ -36,8 +28,8 @@ public:
 	bool getCastShadows() const;
 	void setCastShadows(bool value);
 	
-	int getResolution() const;
-	void setResolution(int value);
+	uint32_t getResolution() const;
+	void setResolution(uint32_t value);
 	
 	float getAngularDiameter() const;
 	void setAngularDiameter(float value);
@@ -46,22 +38,12 @@ public:
 	
 	ObjectSerialization serialize() const override;
 	void deserialize(const ObjectSerialization& serialization) override;
-	
-	static const vk::Format depthFormat;
 
 private:
-	VKPtr<VKImage> _shadowMap;
-	VKPtr<VKImageView> _shadowMapView;
-	
-	glm::mat4 _projection;
-	
-	float _mapSize = 60;
-	float _mapDepth = 100;
-	
 	float _angularDiameter = 0.53f;
 	
 	bool _castShadows = false;
-	int _resolution = 4096;
+	uint32_t _resolution = 4096;
 	
 	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);

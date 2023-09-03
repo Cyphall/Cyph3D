@@ -1,146 +1,32 @@
 #include "PointLight.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/Entity/Entity.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Scene/Scene.h"
 
 #include <glm/gtc/integer.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
-static const float NEAR_DISTANCE = 0.01f;
-static const float FAR_DISTANCE = 100.0f;
-
 const char* const PointLight::identifier = "PointLight";
-const vk::Format PointLight::depthFormat = vk::Format::eD32Sfloat;
 
 PointLight::PointLight(Entity& entity):
-	LightBase(entity),
-	_projection(glm::perspective(glm::radians(90.0f), 1.0f, NEAR_DISTANCE, FAR_DISTANCE))
+	LightBase(entity)
 {
-	_projection[1][1] *= -1;
-}
 
-void PointLight::setCastShadows(bool value)
-{
-	if (_castShadows == value) return;
-	
-	_castShadows = value;
-	
-	if (value)
-	{
-		VKImageInfo imageInfo(
-			depthFormat,
-			glm::uvec2(_resolution),
-			6,
-			1,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		imageInfo.enableCubeCompatibility();
-		
-		_shadowMap = VKImage::create(Engine::getVKContext(), imageInfo);
-		
-		VKImageViewInfo imageViewInfo(
-			_shadowMap,
-			vk::ImageViewType::eCube);
-		
-		_shadowMapView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
-	}
-	else
-	{
-		_shadowMap = {};
-		_shadowMapView = {};
-	}
-	
-	_changed();
-}
-
-bool PointLight::getCastShadows() const
-{
-	return _castShadows;
-}
-
-void PointLight::setResolution(int value)
-{
-	bool castShadows = getCastShadows();
-	
-	if (castShadows)
-		setCastShadows(false);
-	
-	_resolution = value;
-	
-	if (castShadows)
-		setCastShadows(true);
-	
-	_changed();
-}
-
-int PointLight::getResolution() const
-{
-	return _resolution;
-}
-
-ObjectSerialization PointLight::serialize() const
-{
-	ObjectSerialization serialization;
-	serialization.version = 2;
-	serialization.identifier = getIdentifier();
-	
-	glm::vec3 color = getSrgbColor();
-	serialization.data["color"] = {color.r, color.g, color.b};
-	serialization.data["intensity"] = getIntensity();
-	serialization.data["cast_shadows"] = getCastShadows();
-	serialization.data["shadow_resolution"] = getResolution();
-	serialization.data["radius"] = getRadius();
-	
-	return serialization;
-}
-
-void PointLight::deserialize(const ObjectSerialization& serialization)
-{
-	switch (serialization.version)
-	{
-		case 1:
-			deserializeFromVersion1(serialization.data);
-			break;
-		case 2:
-			deserializeFromVersion2(serialization.data);
-			break;
-		default:
-			throw;
-	}
 }
 
 void PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
-	RenderData data{};
-	data.pos = getTransform().getWorldPosition();
-	data.intensity = getIntensity();
-	data.color = getLinearColor();
-	data.radius = getRadius();
-	data.castShadows = _castShadows;
-	if (_castShadows)
-	{
-		data.viewProjections[0] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(1, 0, 0), glm::vec3(0, 1, 0));
-		data.viewProjections[1] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(-1, 0, 0), glm::vec3(0, 1, 0));
-		data.viewProjections[2] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
-		data.viewProjections[3] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
-		data.viewProjections[4] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
-		data.viewProjections[5] = _projection *
-							  glm::lookAt(data.pos, data.pos + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
-		data.shadowMapTextureView = &_shadowMapView;
-		data.shadowMapResolution = getResolution();
-	}
+	RenderData data{
+		.transform = getTransform(),
+		.intensity = getIntensity(),
+		.color = getLinearColor(),
+		.castShadows = getCastShadows(),
+		.shadowMapResolution = getResolution()
+	};
 	
 	renderRegistry.addRenderRequest(data);
 }
@@ -199,14 +85,28 @@ const char* PointLight::getIdentifier() const
 	return identifier;
 }
 
-void PointLight::duplicate(Entity& targetEntity) const
+bool PointLight::getCastShadows() const
 {
-	PointLight& newComponent = targetEntity.addComponent<PointLight>();
-	newComponent.setSrgbColor(getSrgbColor());
-	newComponent.setIntensity(getIntensity());
-	newComponent.setCastShadows(getCastShadows());
-	newComponent.setResolution(getResolution());
-	newComponent.setRadius(getRadius());
+	return _castShadows;
+}
+
+void PointLight::setCastShadows(bool value)
+{
+	_castShadows = value;
+	
+	_changed();
+}
+
+uint32_t PointLight::getResolution() const
+{
+	return _resolution;
+}
+
+void PointLight::setResolution(uint32_t value)
+{
+	_resolution = value;
+	
+	_changed();
 }
 
 float PointLight::getRadius() const
@@ -219,6 +119,47 @@ void PointLight::setRadius(float value)
 	_radius = value;
 	
 	_changed();
+}
+
+void PointLight::duplicate(Entity& targetEntity) const
+{
+	PointLight& newComponent = targetEntity.addComponent<PointLight>();
+	newComponent.setSrgbColor(getSrgbColor());
+	newComponent.setIntensity(getIntensity());
+	newComponent.setCastShadows(getCastShadows());
+	newComponent.setResolution(getResolution());
+	newComponent.setRadius(getRadius());
+}
+
+ObjectSerialization PointLight::serialize() const
+{
+	ObjectSerialization serialization;
+	serialization.version = 2;
+	serialization.identifier = getIdentifier();
+	
+	glm::vec3 color = getSrgbColor();
+	serialization.data["color"] = {color.r, color.g, color.b};
+	serialization.data["intensity"] = getIntensity();
+	serialization.data["cast_shadows"] = getCastShadows();
+	serialization.data["shadow_resolution"] = getResolution();
+	serialization.data["radius"] = getRadius();
+	
+	return serialization;
+}
+
+void PointLight::deserialize(const ObjectSerialization& serialization)
+{
+	switch (serialization.version)
+	{
+		case 1:
+			deserializeFromVersion1(serialization.data);
+			break;
+		case 2:
+			deserializeFromVersion2(serialization.data);
+			break;
+		default:
+			throw;
+	}
 }
 
 void PointLight::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)

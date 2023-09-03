@@ -15,6 +15,7 @@
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/VertexData.h"
 #include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Transform.h"
 
 ZPrepass::ZPrepass(glm::uvec2 size):
 	RenderPass(size, "Z prepass")
@@ -59,16 +60,16 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	
 	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
 	
-	for (const ModelRenderer::RenderData& renderData : input.registry.getModelRenderRequests())
+	for (const ModelRenderer::RenderData& model : input.registry.getModelRenderRequests())
 	{
-		const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = renderData.mesh->getPositionVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = renderData.mesh->getIndexBuffer();
+		const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
+		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 		
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);
 		
 		PushConstantData pushConstantData{};
-		pushConstantData.mvp = vp * renderData.matrix;
+		pushConstantData.mvp = vp * model.transform.getLocalToWorldMatrix();
 		commandBuffer->pushConstants(pushConstantData);
 		
 		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);

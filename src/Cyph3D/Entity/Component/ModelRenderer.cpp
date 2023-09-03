@@ -160,12 +160,13 @@ void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 	
 	if (material->isLoaded() && mesh->isLoaded())
 	{
-		RenderData data{};
-		data.material = material;
-		data.mesh = mesh;
-		data.owner = &getEntity();
-		data.contributeShadows = getContributeShadows();
-		data.matrix = getTransform().getLocalToWorldMatrix();
+		RenderData data{
+			.transform = getTransform(),
+			.material = *material,
+			.mesh = *mesh,
+			.contributeShadows = getContributeShadows(),
+			.owner = getEntity()
+		};
 		
 		renderRegistry.addRenderRequest(data);
 	}

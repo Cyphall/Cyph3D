@@ -6,6 +6,7 @@
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/VertexData.h"
 #include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Transform.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
@@ -94,16 +95,16 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 			
 			for (int i = 0; i < renderRegistry.getModelRenderRequests().size(); i++)
 			{
-				const ModelRenderer::RenderData& renderData = renderRegistry.getModelRenderRequests()[i];
+				const ModelRenderer::RenderData& model = renderRegistry.getModelRenderRequests()[i];
 				
-				const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = renderData.mesh->getPositionVertexBuffer();
-				const VKPtr<VKBuffer<uint32_t>>& indexBuffer = renderData.mesh->getIndexBuffer();
+				const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
+				const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 				
 				commandBuffer->bindVertexBuffer(0, vertexBuffer);
 				commandBuffer->bindIndexBuffer(indexBuffer);
 				
 				PushConstantData pushConstantData{};
-				pushConstantData.mvp = vp * renderData.matrix;
+				pushConstantData.mvp = vp * model.transform.getLocalToWorldMatrix();
 				pushConstantData.objectIndex = i;
 				commandBuffer->pushConstants(pushConstantData);
 				
@@ -129,7 +130,7 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 	
 	int objectIndex = *_readbackBuffer->getHostPointer();
 	
-	return objectIndex != -1 ? renderRegistry.getModelRenderRequests()[objectIndex].owner : nullptr;
+	return objectIndex != -1 ? &renderRegistry.getModelRenderRequests()[objectIndex].owner : nullptr;
 }
 
 void ObjectPicker::createDescriptorSetLayout()

@@ -5,6 +5,7 @@
 #include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/Rendering/ShadowMapManager.h"
 
 class Camera;
 class VKPipelineLayout;
@@ -12,6 +13,19 @@ class VKGraphicsPipeline;
 class VKDescriptorSetLayout;
 template<typename T>
 class VKResizableBuffer;
+
+struct DirectionalShadowMapInfo
+{
+	float worldSize;
+	float worldDepth;
+	glm::mat4 viewProjection;
+	VKPtr<VKImageView> imageView;
+};
+
+struct PointShadowMapInfo
+{
+	VKPtr<VKImageView> imageView;
+};
 
 struct ShadowMapPassInput
 {
@@ -23,7 +37,8 @@ struct ShadowMapPassInput
 
 struct ShadowMapPassOutput
 {
-
+	const std::vector<DirectionalShadowMapInfo>& directionalShadowMapInfos;
+	const std::vector<PointShadowMapInfo>& pointShadowMapInfos;
 };
 
 class ShadowMapPass : public RenderPass<ShadowMapPassInput, ShadowMapPassOutput>
@@ -48,13 +63,17 @@ private:
 		GLSL_mat4 model;
 	};
 	
+	ShadowMapManager _shadowMapManager;
+	
 	VKPtr<VKPipelineLayout> _directionalLightPipelineLayout;
 	VKPtr<VKGraphicsPipeline> _directionalLightPipeline;
+	std::vector<DirectionalShadowMapInfo> _directionalShadowMapInfos;
 	
 	VKPtr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
 	VKDynamic<VKResizableBuffer<PointLightUniforms>> _pointLightUniformBuffer;
 	VKPtr<VKPipelineLayout> _pointLightPipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pointLightPipeline;
+	std::vector<PointShadowMapInfo> _pointShadowMapInfos;
 	
 	ShadowMapPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input) override;
 	void onResize() override;
@@ -67,7 +86,8 @@ private:
 	void renderDirectionalShadowMap(
 		const VKPtr<VKCommandBuffer>& commandBuffer,
 		const DirectionalLight::RenderData& light,
-		const std::vector<ModelRenderer::RenderData>& models);
+		const std::vector<ModelRenderer::RenderData>& models,
+		const Camera& camera);
 	
 	void renderPointShadowMap(
 		const VKPtr<VKCommandBuffer>& commandBuffer,

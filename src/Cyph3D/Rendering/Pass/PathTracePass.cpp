@@ -3,6 +3,7 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Transform.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
@@ -116,13 +117,13 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 	buildInfo.instancesInfos.reserve(input.registry.getModelRenderRequests().size());
 	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 	{
-		const ModelRenderer::RenderData& renderData = input.registry.getModelRenderRequests()[i];
+		const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
 		
 		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
-		instanceInfo.localToWorld = renderData.matrix;
+		instanceInfo.localToWorld = model.transform.getLocalToWorldMatrix();
 		instanceInfo.customIndex = 0;
 		instanceInfo.recordIndex = i;
-		instanceInfo.accelerationStructure = renderData.mesh->getAccelerationStructure();
+		instanceInfo.accelerationStructure = model.mesh.getAccelerationStructure();
 	}
 	
 	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
@@ -173,19 +174,19 @@ void PathTracePass::setupSBT(const PathTracePassInput& input)
 	
 	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 	{
-		const ModelRenderer::RenderData& renderData = input.registry.getModelRenderRequests()[i];
+		const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
 		
 		ObjectUniforms objectUniforms{
-			.normalMatrix = glm::inverseTranspose(glm::mat3(renderData.matrix)),
-			.vertexBuffer = renderData.mesh->getFullVertexBuffer()->getDeviceAddress(),
-			.indexBuffer = renderData.mesh->getIndexBuffer()->getDeviceAddress(),
-			.albedoIndex = renderData.material->getAlbedoTextureBindlessIndex(),
-			.normalIndex = renderData.material->getNormalTextureBindlessIndex(),
-			.roughnessIndex = renderData.material->getRoughnessTextureBindlessIndex(),
-			.metalnessIndex = renderData.material->getMetalnessTextureBindlessIndex(),
-			.displacementIndex = renderData.material->getDisplacementTextureBindlessIndex(),
-			.emissiveIndex = renderData.material->getEmissiveTextureBindlessIndex(),
-			.emissiveScale = renderData.material->getEmissiveScale()
+			.normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix())),
+			.vertexBuffer = model.mesh.getFullVertexBuffer()->getDeviceAddress(),
+			.indexBuffer = model.mesh.getIndexBuffer()->getDeviceAddress(),
+			.albedoIndex = model.material.getAlbedoTextureBindlessIndex(),
+			.normalIndex = model.material.getNormalTextureBindlessIndex(),
+			.roughnessIndex = model.material.getRoughnessTextureBindlessIndex(),
+			.metalnessIndex = model.material.getMetalnessTextureBindlessIndex(),
+			.displacementIndex = model.material.getDisplacementTextureBindlessIndex(),
+			.emissiveIndex = model.material.getEmissiveTextureBindlessIndex(),
+			.emissiveScale = model.material.getEmissiveScale()
 		};
 		
 		info.addTriangleHitRecord(i, 0, _pipeline->getTriangleHitGroupHandle(0), objectUniforms);

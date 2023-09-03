@@ -35,7 +35,7 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		.cameraChanged = cameraChanged
 	};
 	
-	_shadowMapPass.render(commandBuffer, shadowMapPassInput, _renderPerf);
+	ShadowMapPassOutput shadowMapPassOutput = _shadowMapPass.render(commandBuffer, shadowMapPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
 		zPrepassOutput.multisampledDepthImageView->getInfo().getImage(),
@@ -47,13 +47,26 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
 		vk::ImageLayout::eDepthAttachmentOptimal);
 	
-	for (const DirectionalLight::RenderData& renderData : registry.getDirectionalLightRenderRequests())
+	for (const DirectionalShadowMapInfo& info : shadowMapPassOutput.directionalShadowMapInfos)
 	{
-		if (renderData.castShadows)
+		commandBuffer->imageMemoryBarrier(
+			info.imageView->getInfo().getImage(),
+			0,
+			0,
+			vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+			vk::PipelineStageFlagBits2::eFragmentShader,
+			vk::AccessFlagBits2::eShaderSampledRead,
+			vk::ImageLayout::eReadOnlyOptimal);
+	}
+	
+	for (const PointShadowMapInfo& info : shadowMapPassOutput.pointShadowMapInfos)
+	{
+		for (int i = 0; i < 6; i++)
 		{
 			commandBuffer->imageMemoryBarrier(
-				(*renderData.shadowMapTextureView)->getInfo().getImage(),
-				0,
+				info.imageView->getInfo().getImage(),
+				i,
 				0,
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
 				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
@@ -63,29 +76,12 @@ const VKPtr<VKImageView>& RasterizationSceneRenderer::onRender(const VKPtr<VKCom
 		}
 	}
 	
-	for (const PointLight::RenderData& renderData : registry.getPointLightRenderRequests())
-	{
-		if (renderData.castShadows)
-		{
-			for (int i = 0; i < 6; i++)
-			{
-				commandBuffer->imageMemoryBarrier(
-					(*renderData.shadowMapTextureView)->getInfo().getImage(),
-					i,
-					0,
-					vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-					vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-					vk::PipelineStageFlagBits2::eFragmentShader,
-					vk::AccessFlagBits2::eShaderSampledRead,
-					vk::ImageLayout::eReadOnlyOptimal);
-			}
-		}
-	}
-	
 	LightingPassInput lightingPassInput{
 		.multisampledDepthImageView = zPrepassOutput.multisampledDepthImageView,
 		.registry = registry,
-		.camera = camera
+		.camera = camera,
+		.directionalShadowMapInfos = shadowMapPassOutput.directionalShadowMapInfos,
+		.pointShadowMapInfos = shadowMapPassOutput.pointShadowMapInfos
 	};
 	
 	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput, _renderPerf);
