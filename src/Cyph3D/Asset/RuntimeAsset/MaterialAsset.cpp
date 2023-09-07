@@ -25,7 +25,6 @@ static void createVKImageAndView(vk::Format format, VKPtr<VKImage>& image, VKPtr
 		{1, 1},
 		1,
 		1,
-		vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	

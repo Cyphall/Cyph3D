@@ -1,7 +1,7 @@
 #include "VKImageInfo.h"
 
-VKImageInfo::VKImageInfo(vk::Format format, const glm::uvec2& size, uint32_t layers, uint32_t levels, vk::ImageTiling tiling, vk::ImageUsageFlags usage):
-	_format(format), _size(size), _layers(layers), _levels(levels), _tiling(tiling), _usage(usage)
+VKImageInfo::VKImageInfo(vk::Format format, const glm::uvec2& size, uint32_t layers, uint32_t levels, vk::ImageUsageFlags usage):
+	_format(format), _size(size), _layers(layers), _levels(levels), _usage(usage)
 {
 	_compatibleViewFormats.push_back(format);
 }
@@ -24,11 +24,6 @@ const uint32_t& VKImageInfo::getLayers() const
 const uint32_t& VKImageInfo::getLevels() const
 {
 	return _levels;
-}
-
-const vk::ImageTiling& VKImageInfo::getTiling() const
-{
-	return _tiling;
 }
 
 const vk::ImageUsageFlags& VKImageInfo::getUsage() const

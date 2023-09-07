@@ -394,7 +394,6 @@ void BloomPass::createImages()
 			_size,
 			1,
 			VKImage::calcMaxMipLevels(_size),
-			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
@@ -417,7 +416,6 @@ void BloomPass::createImages()
 			_size,
 			1,
 			1,
-			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		

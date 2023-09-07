@@ -188,7 +188,6 @@ void ObjectPicker::createImage()
 			_currentSize,
 			1,
 			1,
-			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
@@ -207,7 +206,6 @@ void ObjectPicker::createImage()
 			_currentSize,
 			1,
 			1,
-			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eDepthStencilAttachment);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		

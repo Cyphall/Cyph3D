@@ -41,7 +41,7 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		createInfo.mipLevels = _info.getLevels();
 		createInfo.arrayLayers = _info.getLayers();
 		createInfo.format = _info.getFormat();
-		createInfo.tiling = _info.getTiling();
+		createInfo.tiling = vk::ImageTiling::eOptimal;
 		createInfo.initialLayout = vk::ImageLayout::eUndefined;
 		createInfo.usage = _info.getUsage();
 		createInfo.sharingMode = vk::SharingMode::eExclusive;

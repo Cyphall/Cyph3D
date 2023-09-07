@@ -42,7 +42,6 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		imageData.size,
 		1,
 		imageData.levels.size(),
-		vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	

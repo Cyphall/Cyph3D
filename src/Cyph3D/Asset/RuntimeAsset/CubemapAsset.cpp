@@ -81,7 +81,6 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		size,
 		6,
 		levels,
-		vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.enableCubeCompatibility();

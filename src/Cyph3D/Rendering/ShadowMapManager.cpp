@@ -16,7 +16,6 @@ VKPtr<VKImageView> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resol
 			glm::uvec2(resolution),
 			1,
 			1,
-			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
@@ -44,7 +43,6 @@ VKPtr<VKImageView> ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
 			glm::uvec2(resolution),
 			6,
 			1,
-			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.enableCubeCompatibility();

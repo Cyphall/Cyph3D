@@ -13,7 +13,7 @@ VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::For
 	_swapchain(swapchain),
 	_index(index)
 {
-	VKImageInfo info(format, size, 1, 1, vk::ImageTiling::eOptimal, {});
+	VKImageInfo info(format, size, 1, 1, {});
 	info.setSwapchainImageHandle(handle);
 	
 	_image = VKImage::create(_context, info);

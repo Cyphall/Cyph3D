@@ -260,7 +260,6 @@ void ImGuiVulkanBackend::createFontsTexture()
 		glm::uvec2(width, height),
 		1,
 		1,
-		vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	

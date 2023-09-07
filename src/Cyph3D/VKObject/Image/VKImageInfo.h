@@ -9,7 +9,7 @@
 class VKImageInfo
 {
 public:
-	explicit VKImageInfo(vk::Format format, const glm::uvec2& size, uint32_t layers, uint32_t levels, vk::ImageTiling tiling, vk::ImageUsageFlags usage);
+	explicit VKImageInfo(vk::Format format, const glm::uvec2& size, uint32_t layers, uint32_t levels, vk::ImageUsageFlags usage);
 	
 	const vk::Format& getFormat() const;
 	
@@ -18,8 +18,6 @@ public:
 	const uint32_t& getLayers() const;
 	
 	const uint32_t& getLevels() const;
-	
-	const vk::ImageTiling& getTiling() const;
 	
 	const vk::ImageUsageFlags& getUsage() const;
 	
@@ -47,7 +45,6 @@ private:
 	glm::uvec2 _size;
 	uint32_t _layers;
 	uint32_t _levels;
-	vk::ImageTiling _tiling;
 	vk::ImageUsageFlags _usage;
 	vk::MemoryPropertyFlags _requiredMemoryProperties = {};
 	vk::MemoryPropertyFlags _preferredMemoryProperties = {};
