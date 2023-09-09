@@ -636,28 +636,30 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 		throw;
 	}
 	
-	float queuePriority = 1.0f;
+	float mainQueuePriority = 1.0f;
+	float computeQueuePriority = 0.5f;
+	float transferQueuePriority = 0.5f;
 	std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos;
 	
 	{
 		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
 		createInfo.queueFamilyIndex = mainQueueFamily;
 		createInfo.queueCount = 1;
-		createInfo.pQueuePriorities = &queuePriority;
+		createInfo.pQueuePriorities = &mainQueuePriority;
 	}
 	
 	{
 		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
 		createInfo.queueFamilyIndex = computeQueueFamily;
 		createInfo.queueCount = 1;
-		createInfo.pQueuePriorities = &queuePriority;
+		createInfo.pQueuePriorities = &computeQueuePriority;
 	}
 	
 	{
 		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
 		createInfo.queueFamilyIndex = transferQueueFamily;
 		createInfo.queueCount = 1;
-		createInfo.pQueuePriorities = &queuePriority;
+		createInfo.pQueuePriorities = &transferQueuePriority;
 	}
 	
 	vk::PhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayoutFeatures;
