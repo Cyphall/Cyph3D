@@ -5,15 +5,16 @@
 
 class VKDescriptorSetLayout;
 class VKPipelineLayout;
-class VKGraphicsPipeline;
+class VKComputePipeline;
 class VKSampler;
 class VKImage;
 class VKImageView;
 
 struct NormalizationPassInput
 {
-	const VKPtr<VKImageView>& inputImageView;
-	uint32_t accumulatedBatches;
+	std::array<VKPtr<VKImageView>, 3> inputImageView;
+	uint32_t accumulatedSamples;
+	uint32_t fixedPointDecimals;
 };
 
 struct NormalizationPassOutput
@@ -29,15 +30,14 @@ public:
 private:
 	struct PushConstantData
 	{
-		GLSL_uint accumulatedBatches;
+		GLSL_uint accumulatedSamples;
+		GLSL_uint fixedPointDecimals;
 	};
 	
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
 	
 	VKPtr<VKPipelineLayout> _pipelineLayout;
-	VKPtr<VKGraphicsPipeline> _pipeline;
-	
-	VKPtr<VKSampler> _inputSampler;
+	VKPtr<VKComputePipeline> _pipeline;
 	
 	VKPtr<VKImage> _outputImage;
 	VKPtr<VKImageView> _outputImageView;
@@ -45,7 +45,6 @@ private:
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();
-	void createSampler();
 	void createImage();
 	
 	NormalizationPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input) override;

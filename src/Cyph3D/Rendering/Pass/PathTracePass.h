@@ -26,8 +26,9 @@ struct PathTracePassInput
 
 struct PathTracePassOutput
 {
-	const VKPtr<VKImageView>& rawRenderImageView;
-	uint32_t accumulatedBatches;
+	std::array<VKPtr<VKImageView>, 3> rawRenderImageView;
+	uint32_t accumulatedSamples;
+	uint32_t fixedPointDecimals;
 };
 
 class PathTracePass : public RenderPass<PathTracePassInput, PathTracePassOutput>
@@ -70,6 +71,7 @@ private:
 		GLSL_uint batchIndex;
 		GLSL_uint sampleCount;
 		GLSL_bool resetAccumulation;
+		GLSL_uint fixedPointDecimals;
 	};
 	
 	VKPtr<VKAccelerationStructure> _tlas;
@@ -83,11 +85,11 @@ private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKRayTracingPipeline> _pipeline;
 	
-	VKPtr<VKImage> _rawRenderImage;
-	VKPtr<VKImageView> _rawRenderImageView;
+	std::array<VKPtr<VKImage>, 3> _rawRenderImage;
+	std::array<VKPtr<VKImageView>, 3> _rawRenderImageView;
 	
 	uint32_t _batchIndex = 0;
-	uint32_t _accumulatedBatches = 0;
+	uint32_t _accumulatedSamples = 0;
 	
 	PathTracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input) override;
 	void onResize() override;

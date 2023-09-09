@@ -1,8 +1,10 @@
 #version 460 core
+
 #extension GL_EXT_ray_tracing : require
 #extension GL_EXT_buffer_reference : require
 #extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_nonuniform_qualifier : require
+#extension GL_ARB_gpu_shader_int64 : require
 
 const float PI = 3.14159265359;
 const float TWO_PI = PI * 2.0;
@@ -10,7 +12,7 @@ const float TWO_PI = PI * 2.0;
 struct HitPayload
 {
 	uint randomOffset;
-	vec3 light;
+	u64vec3 light;
 	vec3 contribution;
 	bool hit;
 	vec3 rayPosition;
@@ -56,6 +58,7 @@ layout(push_constant) uniform constants
 	uint u_batchIndex;
 	uint u_sampleCount;
 	bool u_resetAccumulation;
+	uint u_fixedPointDecimals;
 };
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
@@ -161,7 +164,7 @@ void main()
 	float emissive = texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r * u_emissiveScale;
 	
 	
-	hitPayload.light += hitPayload.contribution * albedo * emissive;
+	hitPayload.light += u64vec3(max(hitPayload.contribution * albedo * emissive * pow(10, u_fixedPointDecimals), vec3(0)));
 	
 	
 	hitPayload.hit = true;

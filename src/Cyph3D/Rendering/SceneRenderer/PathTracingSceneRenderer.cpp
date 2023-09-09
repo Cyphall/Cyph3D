@@ -35,19 +35,23 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 	
 	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput, _renderPerf);
 	
-	commandBuffer->imageMemoryBarrier(
-		pathTracePassOutput.rawRenderImageView->getInfo().getImage(),
-		0,
-		0,
-		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+	for (int i = 0; i < 3; i++)
+	{
+		commandBuffer->imageMemoryBarrier(
+			pathTracePassOutput.rawRenderImageView[i]->getInfo().getImage(),
+			0,
+			0,
+			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+			vk::AccessFlagBits2::eShaderStorageWrite,
+			vk::PipelineStageFlagBits2::eComputeShader,
+			vk::AccessFlagBits2::eShaderStorageRead,
+			vk::ImageLayout::eGeneral);
+	}
 	
 	NormalizationPassInput normalizationPassInput{
 		.inputImageView = pathTracePassOutput.rawRenderImageView,
-		.accumulatedBatches = pathTracePassOutput.accumulatedBatches
+		.accumulatedSamples = pathTracePassOutput.accumulatedSamples,
+		.fixedPointDecimals = pathTracePassOutput.fixedPointDecimals
 	};
 	
 	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput, _renderPerf);
@@ -56,8 +60,8 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 		normalizationPassOutput.outputImageView->getInfo().getImage(),
 		0,
 		0,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::PipelineStageFlagBits2::eComputeShader,
+		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
 		vk::ImageLayout::eReadOnlyOptimal);

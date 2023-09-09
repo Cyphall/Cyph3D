@@ -28,6 +28,8 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
+static const uint32_t FIXED_POINT_DECIMALS = 3;
+
 PathTracePass::PathTracePass(const glm::uvec2& size):
 	RenderPass(size, "Path trace pass")
 {
@@ -41,18 +43,21 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 {
 	if (input.sceneChanged || input.cameraChanged)
 	{
-		_accumulatedBatches = 0;
+		_accumulatedSamples = 0;
 	}
 	
-	commandBuffer->imageMemoryBarrier(
-		_rawRenderImage,
-		0,
-		0,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eShaderStorageRead | vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::ImageLayout::eGeneral);
+	for (int i = 0; i < 3; i++)
+	{
+		commandBuffer->imageMemoryBarrier(
+			_rawRenderImage[i],
+			0,
+			0,
+			vk::PipelineStageFlagBits2::eComputeShader,
+			vk::AccessFlagBits2::eShaderStorageRead,
+			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+			vk::AccessFlagBits2::eShaderStorageRead | vk::AccessFlagBits2::eShaderStorageWrite,
+			vk::ImageLayout::eGeneral);
+	}
 	
 	bool recreateDescriptorSet = false;
 	
@@ -77,7 +82,10 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 		_descriptorSet = VKDescriptorSet::create(Engine::getVKContext(), info);
 		
 		_descriptorSet->bindAccelerationStructure(0, _tlas);
-		_descriptorSet->bindImage(1, _rawRenderImageView);
+		for (int i = 0; i < 3; i++)
+		{
+			_descriptorSet->bindImage(1, _rawRenderImageView[i], i);
+		}
 	}
 	
 	commandBuffer->bindPipeline(_pipeline);
@@ -88,21 +96,23 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	FramePushConstants framePushConstants{
 		.batchIndex = _batchIndex,
 		.sampleCount = input.sampleCount,
-		.resetAccumulation = _accumulatedBatches == 0
+		.resetAccumulation = _accumulatedSamples == 0,
+		.fixedPointDecimals = FIXED_POINT_DECIMALS
 	};
 	
 	commandBuffer->pushConstants(framePushConstants);
 	
 	commandBuffer->traceRays(_sbt, _size);
 	
-	_accumulatedBatches++;
+	_accumulatedSamples += input.sampleCount;
 	_batchIndex++;
 	
 	commandBuffer->unbindPipeline();
 	
 	return {
 		.rawRenderImageView = _rawRenderImageView,
-		.accumulatedBatches = _accumulatedBatches
+		.accumulatedSamples = _accumulatedSamples,
+		.fixedPointDecimals = FIXED_POINT_DECIMALS
 	};
 }
 
@@ -215,7 +225,7 @@ void PathTracePass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(false);
 	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR);
-	info.addBinding(vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR);
+	info.addBinding(vk::DescriptorType::eStorageImage, 3, vk::ShaderStageFlagBits::eRaygenKHR);
 	
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
@@ -225,7 +235,7 @@ void PathTracePass::createPipelineLayout()
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<FramePushConstants>(vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eClosestHitKHR);
+	info.setPushConstantLayout<FramePushConstants>(vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eClosestHitKHR | vk::ShaderStageFlagBits::eMissKHR);
 	
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
@@ -244,21 +254,24 @@ void PathTracePass::createPipeline()
 
 void PathTracePass::createImage()
 {
-	VKImageInfo imageInfo(
-		SceneRenderer::ACCUMULATION_FORMAT,
-		_size,
-		1,
-		1,
-		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	for (int i = 0; i < 3; i++)
+	{
+		VKImageInfo imageInfo(
+			SceneRenderer::ACCUMULATION_FORMAT,
+			_size,
+			1,
+			1,
+			vk::ImageUsageFlagBits::eStorage);
+		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		
+		_rawRenderImage[i] = VKImage::create(Engine::getVKContext(), imageInfo);
+		
+		VKImageViewInfo imageViewInfo(
+			_rawRenderImage[i],
+			vk::ImageViewType::e2D);
+		
+		_rawRenderImageView[i] = VKImageView::create(Engine::getVKContext(), imageViewInfo);
+	}
 	
-	_rawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	
-	VKImageViewInfo imageViewInfo(
-		_rawRenderImage,
-		vk::ImageViewType::e2D);
-	
-	_rawRenderImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
-	
-	_accumulatedBatches = 0;
+	_accumulatedSamples = 0;
 }

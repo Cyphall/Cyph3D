@@ -1,11 +1,14 @@
 #version 460 core
+
 #extension GL_EXT_ray_tracing : require
 #extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_shader_image_int64 : require
+#extension GL_ARB_gpu_shader_int64 : require
 
 struct HitPayload
 {
 	uint randomOffset;
-	vec3 light;
+	u64vec3 light;
 	vec3 contribution;
 	bool hit;
 	vec3 rayPosition;
@@ -13,7 +16,7 @@ struct HitPayload
 };
 
 layout(set = 1, binding = 0) uniform accelerationStructureEXT u_topLevelAS;
-layout(set = 1, binding = 1, rgba32f) uniform image2D u_color;
+layout(set = 1, binding = 1, r64ui) uniform u64image2D u_color[3];
 
 layout(shaderRecordEXT) buffer uniforms
 {
@@ -29,6 +32,7 @@ layout(push_constant) uniform constants
 	uint u_batchIndex;
 	uint u_sampleCount;
 	bool u_resetAccumulation;
+	uint u_fixedPointDecimals;
 };
 
 layout(location = 0) rayPayloadEXT HitPayload hitPayload;
@@ -50,7 +54,7 @@ vec4 getRandom()
 void main()
 {
 	hitPayload.randomOffset = 0;
-	hitPayload.light = vec3(0);
+	hitPayload.light = u64vec3(0);
 	
 	for (int s = 0; s < u_sampleCount; s++)
 	{
@@ -87,9 +91,15 @@ void main()
 		}
 	}
 	
-	vec3 totalLight = u_resetAccumulation ? vec3(0) : imageLoad(u_color, ivec2(gl_LaunchIDEXT.xy)).rgb;
+	u64vec3 totalLight = u_resetAccumulation ? u64vec3(0) : u64vec3(
+		imageLoad(u_color[0], ivec2(gl_LaunchIDEXT.xy)).r,
+		imageLoad(u_color[1], ivec2(gl_LaunchIDEXT.xy)).r,
+		imageLoad(u_color[2], ivec2(gl_LaunchIDEXT.xy)).r
+	);
 	
-	totalLight += hitPayload.light / u_sampleCount; // we do one division here to reduce precision error causing color banding with very high numbers of samples
+	totalLight += hitPayload.light;
 	
-	imageStore(u_color, ivec2(gl_LaunchIDEXT.xy), vec4(totalLight, 1.0));
+	imageStore(u_color[0], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLight.r, 0, 0, 0));
+	imageStore(u_color[1], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLight.g, 0, 0, 0));
+	imageStore(u_color[2], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLight.b, 0, 0, 0));
 }

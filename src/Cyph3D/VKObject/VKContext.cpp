@@ -173,6 +173,7 @@ static std::vector<const char*> getRequiredDeviceRayTracingExtensions()
 	extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
 	extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
 	extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
+	extensions.push_back(VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME);
 	
 	return extensions;
 }
@@ -662,8 +663,12 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 		createInfo.pQueuePriorities = &transferQueuePriority;
 	}
 	
+	vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT shaderImageAtomicInt64Features;
+	shaderImageAtomicInt64Features.shaderImageInt64Atomics = true;
+	
 	vk::PhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayoutFeatures;
 	scalarBlockLayoutFeatures.scalarBlockLayout = true;
+	scalarBlockLayoutFeatures.pNext = &shaderImageAtomicInt64Features;
 	
 	vk::PhysicalDeviceUniformBufferStandardLayoutFeatures uniformBufferStandardLayoutFeatures;
 	uniformBufferStandardLayoutFeatures.uniformBufferStandardLayout = true;
@@ -730,6 +735,7 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	physicalDeviceFeatures.features.geometryShader = true;
 	physicalDeviceFeatures.features.shaderStorageImageReadWithoutFormat = true;
 	physicalDeviceFeatures.features.shaderStorageImageWriteWithoutFormat = true;
+	physicalDeviceFeatures.features.shaderInt64 = true;
 	
 	vk::DeviceCreateInfo deviceCreateInfo;
 	deviceCreateInfo.pNext = &physicalDeviceFeatures;
