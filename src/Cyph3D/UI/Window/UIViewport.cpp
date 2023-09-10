@@ -11,6 +11,7 @@
 #include "Cyph3D/Window.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
+#include "Cyph3D/Logging/Logger.h"
 
 #include <imgui_internal.h>
 #include <stb_image_write.h>
@@ -18,6 +19,13 @@
 #include <magic_enum.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <chrono>
+
+enum class RenderToFileStatus
+{
+	eRendering,
+	eRenderFinished,
+	eSaveFinished
+};
 
 struct UIViewport::RenderToFileData
 {
@@ -29,6 +37,8 @@ struct UIViewport::RenderToFileData
 	std::filesystem::path outputFile;
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastBatchTime;
+	VKPtr<VKImageView> lastRenderedTexture;
+	RenderToFileStatus status = RenderToFileStatus::eRendering;
 };
 
 std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
@@ -145,19 +155,17 @@ void UIViewport::show()
 				pathTracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
 			}
 			
-			if (_renderToFileData && _renderToFileData->renderedSamples < _renderToFileData->totalSamples)
+			if (_renderToFileData && _renderToFileData->status == RenderToFileStatus::eRendering)
 			{
 				uint64_t remainingSamples = _renderToFileData->totalSamples - _renderToFileData->renderedSamples;
 				uint64_t thisBatchSamples = std::min(remainingSamples, 16ull);
 				
 				_renderToFileData->renderer->setSampleCountPerRender(thisBatchSamples);
 				
-				VKPtr<VKImageView> textureView;
-				Engine::getVKContext().executeImmediate(
-					[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-					{
-						textureView = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
-					});
+				Engine::getVKContext().executeImmediate([&](const VKPtr<VKCommandBuffer>& commandBuffer)
+				{
+					_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
+				});
 				
 				_renderToFileData->renderedSamples += thisBatchSamples;
 				
@@ -165,31 +173,37 @@ void UIViewport::show()
 				
 				if (_renderToFileData->renderedSamples == _renderToFileData->totalSamples)
 				{
-					VKPtr<VKBuffer<std::byte>> stagingBuffer;
-					Engine::getVKContext().executeImmediate(
-						[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-						{
-							commandBuffer->imageMemoryBarrier(
-								textureView->getInfo().getImage(),
-								0,
-								0,
-								vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-								vk::AccessFlagBits2::eColorAttachmentWrite,
-								vk::PipelineStageFlagBits2::eCopy,
-								vk::AccessFlagBits2::eTransferRead,
-								vk::ImageLayout::eTransferSrcOptimal);
-							
-							VKBufferInfo bufferInfo(textureView->getInfo().getImage()->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
-							bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-							bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-							bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
-							
-							stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
-							
-							commandBuffer->copyImageToBuffer(textureView->getInfo().getImage(), 0, 0, stagingBuffer, 0);
-						});
+					_renderToFileData->status = RenderToFileStatus::eRenderFinished;
+				}
+			}
+			
+			if (_renderToFileData && _renderToFileData->status == RenderToFileStatus::eRenderFinished)
+			{
+				if (_renderToFileData->lastRenderedTexture)
+				{
+					VKBufferInfo bufferInfo(_renderToFileData->lastRenderedTexture->getInfo().getImage()->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
+					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
 					
-					glm::ivec2 textureSize = textureView->getInfo().getImage()->getSize(0);
+					VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
+					
+					Engine::getVKContext().executeImmediate([&](const VKPtr<VKCommandBuffer>& commandBuffer)
+					{
+						commandBuffer->imageMemoryBarrier(
+							_renderToFileData->lastRenderedTexture->getInfo().getImage(),
+							0,
+							0,
+							vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+							vk::AccessFlagBits2::eColorAttachmentWrite,
+							vk::PipelineStageFlagBits2::eCopy,
+							vk::AccessFlagBits2::eTransferRead,
+							vk::ImageLayout::eTransferSrcOptimal);
+						
+						commandBuffer->copyImageToBuffer(_renderToFileData->lastRenderedTexture->getInfo().getImage(), 0, 0, stagingBuffer, 0);
+					});
+					
+					glm::ivec2 textureSize = _renderToFileData->lastRenderedTexture->getInfo().getImage()->getSize(0);
 					
 					if (_renderToFileData->outputFile.extension() == ".png")
 					{
@@ -200,6 +214,12 @@ void UIViewport::show()
 						stbi_write_jpg(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), 95);
 					}
 				}
+				else
+				{
+					Logger::error("Could not save render to file, no rendered image has been created yet");
+				}
+				
+				_renderToFileData->status = RenderToFileStatus::eSaveFinished;
 			}
 			
 			if (!_renderToFileData)
@@ -401,7 +421,14 @@ void UIViewport::drawRenderToFilePopup()
 		auto durationRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(duration);
 		ImGui::Text("%s", std::format("Elapsed time: {:%H:%M:%S}", durationRounded).c_str());
 		
-		if (percent == 100)
+		if (_renderToFileData->status == RenderToFileStatus::eRendering)
+		{
+			if (ImGui::Button("Finish now"))
+			{
+				_renderToFileData->status = RenderToFileStatus::eRenderFinished;
+			}
+		}
+		else if (_renderToFileData->status == RenderToFileStatus::eSaveFinished)
 		{
 			bool close = ImGui::Button("Close");
 			ImGui::SameLine();
