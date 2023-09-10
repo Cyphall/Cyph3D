@@ -29,8 +29,8 @@ enum class RenderToFileStatus
 
 struct UIViewport::RenderToFileData
 {
-	uint64_t renderedSamples = 0;
-	uint64_t totalSamples = 0;
+	uint32_t renderedSamples = 0;
+	uint32_t totalSamples = 0;
 	std::unique_ptr<PathTracingSceneRenderer> renderer;
 	Camera camera;
 	RenderRegistry registry;
@@ -157,8 +157,8 @@ void UIViewport::show()
 			
 			if (_renderToFileData && _renderToFileData->status == RenderToFileStatus::eRendering)
 			{
-				uint64_t remainingSamples = _renderToFileData->totalSamples - _renderToFileData->renderedSamples;
-				uint64_t thisBatchSamples = std::min(remainingSamples, 16ull);
+				uint32_t remainingSamples = _renderToFileData->totalSamples - _renderToFileData->renderedSamples;
+				uint32_t thisBatchSamples = std::min(remainingSamples, 16u);
 				
 				_renderToFileData->renderer->setSampleCountPerRender(thisBatchSamples);
 				
@@ -415,7 +415,7 @@ void UIViewport::drawRenderToFilePopup()
 	{
 		int percent = (static_cast<float>(_renderToFileData->renderedSamples) / static_cast<float>(_renderToFileData->totalSamples)) * 100;
 		ImGui::Text("Rendering... %d%%", percent);
-		ImGui::Text("Rendered samples: %llu/%llu", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
+		ImGui::Text("Rendered samples: %u/%u", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
 		
 		auto duration = _renderToFileData->lastBatchTime - _renderToFileData->startTime;
 		auto durationRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(duration);

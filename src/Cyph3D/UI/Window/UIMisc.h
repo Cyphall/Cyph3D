@@ -14,7 +14,7 @@ public:
 
 private:
 	static glm::ivec2 _resolution;
-	static int _renderSampleCount;
+	static uint32_t _renderSampleCount;
 	static bool _simulationEnabled;
 	static int _viewportSampleCount;
 	

@@ -14,7 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
-int UIMisc::_renderSampleCount = 1024;
+uint32_t UIMisc::_renderSampleCount = 1024;
 bool UIMisc::_simulationEnabled = true;
 int UIMisc::_viewportSampleCount = 8;
 
@@ -67,7 +67,12 @@ void UIMisc::show()
 			
 			ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
 			
-			ImGui::InputInt("Render Sample Count", &_renderSampleCount, 1, 128);
+			uint32_t step = 1;
+			uint32_t stepFast = 128;
+			if (ImGui::InputScalar("Render Sample Count", ImGuiDataType_U32, &_renderSampleCount, &step, &stepFast, "%u"))
+			{
+				_renderSampleCount = std::max(_renderSampleCount, 1u);
+			}
 			
 			if (ImGui::Button("Render to file"))
 			{
