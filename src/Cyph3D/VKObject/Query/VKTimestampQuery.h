@@ -11,21 +11,22 @@ public:
 	
 	~VKTimestampQuery() override;
 	
-	uint64_t getTimestamp() const;
-	bool tryGetTimestamp(uint64_t& timestamp) const;
+	bool tryGetElapsedTime(double& elapsedTime) const;
 	
 	const vk::QueryPool& getHandle();
 	
-	bool isInserted() const;
+	void resetTimestamps();
 
 private:
 	friend class VKCommandBuffer;
 	
 	explicit VKTimestampQuery(VKContext& context);
 	
-	void setIsInserted(bool isInserted);
+	void setIsBeginInserted(bool isInserted);
+	void setIsEndInserted(bool isInserted);
 	
 	vk::QueryPool _queryPool;
 	
-	bool _isInserted = false;
+	bool _isBeginInserted = false;
+	bool _isEndInserted = false;
 };

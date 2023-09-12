@@ -24,7 +24,7 @@ public:
 	TOutput render(const VKPtr<VKCommandBuffer>& commandBuffer, TInput& input, PerfStep& parentPerfStep)
 	{
 		_renderPassPerf.clear();
-		_renderPassPerf.setDuration(_perfCounter.retrieve(commandBuffer));
+		_renderPassPerf.setDuration(_perfCounter.retrieve());
 		parentPerfStep.addSubstep(_renderPassPerf);
 		
 		_perfCounter.start(commandBuffer);

@@ -28,7 +28,7 @@ const PerfStep& SceneRenderer::getRenderPerf()
 const VKPtr<VKImageView>& SceneRenderer::render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	_renderPerf.clear();
-	_renderPerf.setDuration(_perfCounter.retrieve(commandBuffer));
+	_renderPerf.setDuration(_perfCounter.retrieve());
 	
 	_perfCounter.start(commandBuffer);
 	

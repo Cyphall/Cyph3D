@@ -13,9 +13,8 @@ public:
 	void start(const VKPtr<VKCommandBuffer>& commandBuffer);
 	void stop(const VKPtr<VKCommandBuffer>& commandBuffer);
 	
-	double retrieve(const VKPtr<VKCommandBuffer>& commandBuffer);
+	double retrieve();
 	
 private:
-	VKDynamic<VKTimestampQuery> _queryBegin;
-	VKDynamic<VKTimestampQuery> _queryEnd;
+	VKDynamic<VKTimestampQuery> _query;
 };

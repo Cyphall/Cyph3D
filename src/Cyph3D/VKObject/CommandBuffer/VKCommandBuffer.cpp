@@ -798,20 +798,20 @@ void VKCommandBuffer::popDebugGroup()
 	_commandBuffer.endDebugUtilsLabelEXT();
 }
 
-void VKCommandBuffer::insertTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery)
+void VKCommandBuffer::beginTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery)
 {
-	_commandBuffer.writeTimestamp2(vk::PipelineStageFlagBits2::eAllCommands, timestampQuery->getHandle(), 0);
+	_commandBuffer.writeTimestamp2(vk::PipelineStageFlagBits2::eNone, timestampQuery->getHandle(), 0);
 	
-	timestampQuery->setIsInserted(true);
+	timestampQuery->setIsBeginInserted(true);
 	
 	_usedObjects.emplace_back(timestampQuery);
 }
 
-void VKCommandBuffer::resetTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery)
+void VKCommandBuffer::endTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery)
 {
-	_commandBuffer.resetQueryPool(timestampQuery->getHandle(), 0, 1);
+	_commandBuffer.writeTimestamp2(vk::PipelineStageFlagBits2::eAllCommands, timestampQuery->getHandle(), 1);
 	
-	timestampQuery->setIsInserted(false);
+	timestampQuery->setIsEndInserted(true);
 	
 	_usedObjects.emplace_back(timestampQuery);
 }

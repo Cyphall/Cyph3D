@@ -93,8 +93,8 @@ public:
 	void pushDebugGroup(std::string_view name);
 	void popDebugGroup();
 	
-	void insertTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
-	void resetTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
+	void beginTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
+	void endTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
 	
 	void queryAccelerationStructureCompactedSize(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKAccelerationStructureCompactedSizeQuery>& accelerationStructureCompactedSizeQuery);
 	

@@ -17,7 +17,7 @@ VKTimestampQuery::VKTimestampQuery(VKContext& context):
 	
 	_queryPool = _context.getDevice().createQueryPool(queryPoolCreateInfo);
 	
-	_context.getDevice().resetQueryPool(_queryPool, 0, 1);
+	resetTimestamps();
 }
 
 VKTimestampQuery::~VKTimestampQuery()
@@ -25,30 +25,22 @@ VKTimestampQuery::~VKTimestampQuery()
 	_context.getDevice().destroyQueryPool(_queryPool);
 }
 
-uint64_t VKTimestampQuery::getTimestamp() const
+bool VKTimestampQuery::tryGetElapsedTime(double& elapsedTime) const
 {
-	auto [result, timestamp] = _context.getDevice().getQueryPoolResult<uint64_t>(
-		_queryPool,
-		0,
-		1,
-		sizeof(uint64_t),
-		vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait);
+	if (!_isBeginInserted || !_isEndInserted)
+		return false;
 	
-	return timestamp;
-}
-
-bool VKTimestampQuery::tryGetTimestamp(uint64_t& timestamp) const
-{
-	auto [result, data] = _context.getDevice().getQueryPoolResult<uint64_t>(
+	auto [result, timestamps] = _context.getDevice().getQueryPoolResult<std::array<uint64_t, 2>>(
 		_queryPool,
 		0,
-		1,
+		2,
 		sizeof(uint64_t),
 		vk::QueryResultFlagBits::e64);
 	
 	if (result == vk::Result::eSuccess)
 	{
-		timestamp = data;
+		double timestampDiff = timestamps[1] - timestamps[0];
+		elapsedTime = static_cast<double>(timestampDiff) * static_cast<double>(_context.getProperties().limits.timestampPeriod) / 1000000.0;
 		return true;
 	}
 	else if (result == vk::Result::eNotReady)
@@ -64,12 +56,17 @@ const vk::QueryPool& VKTimestampQuery::getHandle()
 	return _queryPool;
 }
 
-bool VKTimestampQuery::isInserted() const
+void VKTimestampQuery::resetTimestamps()
 {
-	return _isInserted;
+	_context.getDevice().resetQueryPool(_queryPool, 0, 2);
 }
 
-void VKTimestampQuery::setIsInserted(bool isInserted)
+void VKTimestampQuery::setIsBeginInserted(bool isInserted)
 {
-	_isInserted = isInserted;
+	_isBeginInserted = isInserted;
+}
+
+void VKTimestampQuery::setIsEndInserted(bool isInserted)
+{
+	_isEndInserted = isInserted;
 }
