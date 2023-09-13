@@ -25,30 +25,20 @@ VKTimestampQuery::~VKTimestampQuery()
 	_context.getDevice().destroyQueryPool(_queryPool);
 }
 
-bool VKTimestampQuery::tryGetElapsedTime(double& elapsedTime) const
+double VKTimestampQuery::getElapsedTime() const
 {
 	if (!_isBeginInserted || !_isEndInserted)
-		return false;
+		throw;
 	
-	auto [result, timestamps] = _context.getDevice().getQueryPoolResult<std::array<uint64_t, 2>>(
+	std::array<uint64_t, 2> timestamps = _context.getDevice().getQueryPoolResult<std::array<uint64_t, 2>>(
 		_queryPool,
 		0,
 		2,
 		sizeof(uint64_t),
-		vk::QueryResultFlagBits::e64);
+		vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait).value;
 	
-	if (result == vk::Result::eSuccess)
-	{
-		double timestampDiff = timestamps[1] - timestamps[0];
-		elapsedTime = static_cast<double>(timestampDiff) * static_cast<double>(_context.getProperties().limits.timestampPeriod) / 1000000.0;
-		return true;
-	}
-	else if (result == vk::Result::eNotReady)
-	{
-		return false;
-	}
-	
-	throw;
+	double timestampDiff = timestamps[1] - timestamps[0];
+	return static_cast<double>(timestampDiff) * static_cast<double>(_context.getProperties().limits.timestampPeriod) / 1000000.0;
 }
 
 const vk::QueryPool& VKTimestampQuery::getHandle()
@@ -59,6 +49,11 @@ const vk::QueryPool& VKTimestampQuery::getHandle()
 void VKTimestampQuery::resetTimestamps()
 {
 	_context.getDevice().resetQueryPool(_queryPool, 0, 2);
+}
+
+bool VKTimestampQuery::isInserted() const
+{
+	return _isBeginInserted && _isEndInserted;
 }
 
 void VKTimestampQuery::setIsBeginInserted(bool isInserted)

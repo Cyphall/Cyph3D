@@ -30,8 +30,9 @@ void GpuPerfCounter::stop(const VKPtr<VKCommandBuffer>& commandBuffer)
 double GpuPerfCounter::retrieve()
 {
 	double elapsedTime = 0;
-	if (_query->tryGetElapsedTime(elapsedTime))
+	if (_query->isInserted())
 	{
+		elapsedTime = _query->getElapsedTime();
 		_query.getCurrent()->resetTimestamps();
 	}
 	return elapsedTime;

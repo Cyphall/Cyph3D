@@ -11,11 +11,13 @@ public:
 	
 	~VKTimestampQuery() override;
 	
-	bool tryGetElapsedTime(double& elapsedTime) const;
+	double getElapsedTime() const;
 	
 	const vk::QueryPool& getHandle();
 	
 	void resetTimestamps();
+	
+	bool isInserted() const;
 
 private:
 	friend class VKCommandBuffer;
