@@ -11,6 +11,7 @@ struct ObjectUniforms
 	uint metalnessIndex;
 	uint displacementIndex;
 	uint emissiveIndex;
+	float emissiveScale;
 };
 
 layout(location = 0) in vec3 a_position;
