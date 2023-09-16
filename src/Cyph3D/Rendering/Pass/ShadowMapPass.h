@@ -52,7 +52,7 @@ private:
 	
 	struct PointLightUniforms
 	{
-		GLSL_mat4 viewProjections[6];
+		GLSL_mat4 viewProjection;
 		GLSL_vec3 lightPos;
 	};
 	

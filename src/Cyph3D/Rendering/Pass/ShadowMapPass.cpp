@@ -131,7 +131,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			}
 		}
 		
-		_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights);
+		_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights * 6);
 		
 		int shadowCastingPointLightIndex = 0;
 		for (const PointLight::RenderData& light : input.registry.getPointLightRenderRequests())
@@ -227,8 +227,6 @@ void ShadowMapPass::createPipelines()
 		
 		info.setFragmentShader("resources/shaders/internal/shadow mapping/point light.frag");
 		
-		info.setViewMask(0b111111);
-		
 		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
 		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
 		
@@ -243,10 +241,10 @@ void ShadowMapPass::renderDirectionalShadowMap(
 	const DirectionalLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models)
 {
-	VKPtr<VKImageView> shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
+	ShadowMapManager::DirectionalShadowMapData shadowMapData = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
 	
 	commandBuffer->imageMemoryBarrier(
-		shadowMap->getInfo().getImage(),
+		shadowMapData.imageView->getInfo().getImage(),
 		0,
 		0,
 		vk::PipelineStageFlagBits2::eNone,
@@ -257,7 +255,7 @@ void ShadowMapPass::renderDirectionalShadowMap(
 	
 	VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
 	
-	renderingInfo.setDepthAttachment(shadowMap)
+	renderingInfo.setDepthAttachment(shadowMapData.imageView)
 		.setLoadOpClear(1.0f)
 		.setStoreOpStore();
 	
@@ -308,7 +306,7 @@ void ShadowMapPass::renderDirectionalShadowMap(
 		.worldSize = worldSize,
 		.worldDepth = worldDepth,
 		.viewProjection = viewProjection,
-		.imageView = shadowMap
+		.imageView = shadowMapData.imageView
 	});
 }
 
@@ -318,12 +316,14 @@ void ShadowMapPass::renderPointShadowMap(
 	const std::vector<ModelRenderer::RenderData>& models,
 	int uniformIndex)
 {
-	VKPtr<VKImageView> shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
+	ShadowMapManager::PointShadowMapData shadowMapData = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
+	
+	std::array<glm::mat4, 6> views = calcPointShadowMapView(light);
 	
 	for (int i = 0; i < 6; i++)
 	{
 		commandBuffer->imageMemoryBarrier(
-			shadowMap->getInfo().getImage(),
+			shadowMapData.imageViewAllLayers->getInfo().getImage(),
 			i,
 			0,
 			vk::PipelineStageFlagBits2::eNone,
@@ -331,73 +331,64 @@ void ShadowMapPass::renderPointShadowMap(
 			vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
 			vk::AccessFlagBits2::eDepthStencilAttachmentRead,
 			vk::ImageLayout::eDepthAttachmentOptimal);
-	}
-	
-	VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
-	renderingInfo.setLayers(6);
-	renderingInfo.setViewMask(0b111111);
-	
-	renderingInfo.setDepthAttachment(shadowMap)
-		.setLoadOpClear(std::numeric_limits<float>::max())
-		.setStoreOpStore();
-	
-	commandBuffer->beginRendering(renderingInfo);
-	
-	commandBuffer->bindPipeline(_pointLightPipeline);
-	
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = {light.shadowMapResolution, light.shadowMapResolution};
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-	
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = {light.shadowMapResolution, light.shadowMapResolution};
-	commandBuffer->setScissor(scissor);
-	
-	std::array<glm::mat4, 6> views = calcPointShadowMapView(light);
-	
-	PointLightUniforms uniforms{
-		.viewProjections = {
-			POINT_SHADOW_MAP_PROJECTION * views[0],
-			POINT_SHADOW_MAP_PROJECTION * views[1],
-			POINT_SHADOW_MAP_PROJECTION * views[2],
-			POINT_SHADOW_MAP_PROJECTION * views[3],
-			POINT_SHADOW_MAP_PROJECTION * views[4],
-			POINT_SHADOW_MAP_PROJECTION * views[5]
-		},
-		.lightPos = light.transform.getWorldPosition()
-	};
-	std::memcpy(_pointLightUniformBuffer->getHostPointer() + uniformIndex, &uniforms, sizeof(PointLightUniforms));
-	
-	commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), uniformIndex, 1);
-	
-	for (const ModelRenderer::RenderData& model : models)
-	{
-		if (!model.contributeShadows)
+		
+		VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
+		
+		renderingInfo.setDepthAttachment(shadowMapData.imageViewsOneLayer[i])
+			.setLoadOpClear(std::numeric_limits<float>::max())
+			.setStoreOpStore();
+		
+		commandBuffer->beginRendering(renderingInfo);
+		
+		commandBuffer->bindPipeline(_pointLightPipeline);
+		
+		VKPipelineViewport viewport;
+		viewport.offset = {0, 0};
+		viewport.size = {light.shadowMapResolution, light.shadowMapResolution};
+		viewport.depthRange = {0.0f, 1.0f};
+		commandBuffer->setViewport(viewport);
+		
+		VKPipelineScissor scissor;
+		scissor.offset = {0, 0};
+		scissor.size = {light.shadowMapResolution, light.shadowMapResolution};
+		commandBuffer->setScissor(scissor);
+		
+		int uniformOffset = uniformIndex * 6 + i;
+		
+		PointLightUniforms uniforms{
+			.viewProjection = POINT_SHADOW_MAP_PROJECTION * views[i],
+			.lightPos = light.transform.getWorldPosition()
+		};
+		std::memcpy(_pointLightUniformBuffer->getHostPointer() + uniformOffset, &uniforms, sizeof(PointLightUniforms));
+		
+		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), uniformOffset, 1);
+		
+		for (const ModelRenderer::RenderData& model : models)
 		{
-			continue;
+			if (!model.contributeShadows)
+			{
+				continue;
+			}
+			
+			const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
+			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+			
+			commandBuffer->bindVertexBuffer(0, vertexBuffer);
+			commandBuffer->bindIndexBuffer(indexBuffer);
+			
+			PointLightPushConstantData pushConstantData{};
+			pushConstantData.model = model.transform.getLocalToWorldMatrix();
+			commandBuffer->pushConstants(pushConstantData);
+			
+			commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
 		}
 		
-		const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+		commandBuffer->unbindPipeline();
 		
-		commandBuffer->bindVertexBuffer(0, vertexBuffer);
-		commandBuffer->bindIndexBuffer(indexBuffer);
-		
-		PointLightPushConstantData pushConstantData{};
-		pushConstantData.model = model.transform.getLocalToWorldMatrix();
-		commandBuffer->pushConstants(pushConstantData);
-		
-		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
+		commandBuffer->endRendering();
 	}
 	
-	commandBuffer->unbindPipeline();
-	
-	commandBuffer->endRendering();
-	
 	_pointShadowMapInfos.push_back(PointShadowMapInfo{
-		.imageView = shadowMap
+		.imageView = shadowMapData.imageViewAllLayers
 	});
 }

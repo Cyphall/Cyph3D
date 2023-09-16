@@ -7,7 +7,7 @@ layout(location = 0) in V2F
 
 layout(std430, set = 0, binding = 0) readonly buffer uniforms
 {
-	mat4 u_viewProjections[6];
+	mat4 u_viewProjection;
 	vec3 u_lightPos;
 };
 

@@ -4,9 +4,9 @@
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-VKPtr<VKImageView> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
+ShadowMapManager::DirectionalShadowMapData ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
 {
-	ShadowMapContainer& container = _directionalShadowMaps[resolution];
+	ShadowMapContainer<DirectionalShadowMapData>& container = _directionalShadowMaps[resolution];
 	
 	// all shadow maps for this resolution are already in use, create a new one
 	if (container.allocatedShadowMaps == container.shadowMaps.size())
@@ -25,15 +25,19 @@ VKPtr<VKImageView> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resol
 			shadowMap,
 			vk::ImageViewType::e2D);
 		
-		container.shadowMaps.push_back(VKImageView::create(Engine::getVKContext(), imageViewInfo));
+		DirectionalShadowMapData data{
+			.imageView = VKImageView::create(Engine::getVKContext(), imageViewInfo)
+		};
+		
+		container.shadowMaps.push_back(data);
 	}
 	
 	return container.shadowMaps[container.allocatedShadowMaps++];
 }
 
-VKPtr<VKImageView> ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
+ShadowMapManager::PointShadowMapData ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
 {
-	ShadowMapContainer& container = _pointShadowMaps[resolution];
+	ShadowMapContainer<PointShadowMapData>& container = _pointShadowMaps[resolution];
 	
 	// all shadow maps for this resolution are already in use, create a new one
 	if (container.allocatedShadowMaps == container.shadowMaps.size())
@@ -49,11 +53,28 @@ VKPtr<VKImageView> ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
 		
 		VKPtr<VKImage> shadowMap = VKImage::create(Engine::getVKContext(), imageInfo);
 		
-		VKImageViewInfo imageViewInfo(
-			shadowMap,
-			vk::ImageViewType::eCube);
+		PointShadowMapData data;
 		
-		container.shadowMaps.push_back(VKImageView::create(Engine::getVKContext(), imageViewInfo));
+		{
+			VKImageViewInfo imageViewInfo(
+				shadowMap,
+				vk::ImageViewType::eCube);
+			
+			data.imageViewAllLayers = VKImageView::create(Engine::getVKContext(), imageViewInfo);
+		}
+		
+		for (int i = 0; i < 6; i++)
+		{
+			VKImageViewInfo imageViewInfo(
+				shadowMap,
+				vk::ImageViewType::e2D);
+			
+			imageViewInfo.setCustomLayerRange({i, i});
+			
+			data.imageViewsOneLayer[i] = VKImageView::create(Engine::getVKContext(), imageViewInfo);
+		}
+		
+		container.shadowMaps.push_back(data);
 	}
 	
 	return container.shadowMaps[container.allocatedShadowMaps++];

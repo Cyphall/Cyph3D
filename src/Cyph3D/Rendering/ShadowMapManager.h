@@ -4,23 +4,36 @@
 
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 class ShadowMapManager
 {
 public:
-	VKPtr<VKImageView> allocateDirectionalShadowMap(uint32_t resolution);
-	VKPtr<VKImageView> allocatePointShadowMap(uint32_t resolution);
+	struct DirectionalShadowMapData
+	{
+		VKPtr<VKImageView> imageView;
+	};
+	
+	struct PointShadowMapData
+	{
+		VKPtr<VKImageView> imageViewAllLayers;
+		std::array<VKPtr<VKImageView>, 6> imageViewsOneLayer;
+	};
+	
+	DirectionalShadowMapData allocateDirectionalShadowMap(uint32_t resolution);
+	PointShadowMapData allocatePointShadowMap(uint32_t resolution);
 	
 	void resetDirectionalShadowMapAllocations();
 	void resetPointShadowMapAllocations();
 	
 private:
+	template<typename T>
 	struct ShadowMapContainer
 	{
-		std::vector<VKPtr<VKImageView>> shadowMaps;
+		std::vector<T> shadowMaps;
 		size_t allocatedShadowMaps = 0;
 	};
 	
-	std::unordered_map<uint32_t, ShadowMapContainer> _directionalShadowMaps;
-	std::unordered_map<uint32_t, ShadowMapContainer> _pointShadowMaps;
+	std::unordered_map<uint32_t, ShadowMapContainer<DirectionalShadowMapData>> _directionalShadowMaps;
+	std::unordered_map<uint32_t, ShadowMapContainer<PointShadowMapData>> _pointShadowMaps;
 };
