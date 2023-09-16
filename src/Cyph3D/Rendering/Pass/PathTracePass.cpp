@@ -12,7 +12,6 @@
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/Scene/Transform.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
-#include "Cyph3D/VKObject/AccelerationStructure/VKTopLevelAccelerationStructureBuildInfo.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"

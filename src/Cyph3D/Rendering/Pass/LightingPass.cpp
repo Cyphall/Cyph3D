@@ -12,15 +12,11 @@
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h"
-#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
-#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
-#include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
-#include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
 #include <glm/gtc/matrix_inverse.hpp>
