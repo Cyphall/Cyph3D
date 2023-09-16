@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKObject.h"
 #include "Cyph3D/VKObject/Image/VKImageInfo.h"
+#include "Cyph3D/VKObject/VKObject.h"
 
-#include <vk_mem_alloc.hpp>
 #include <glm/glm.hpp>
+#include <vk_mem_alloc.hpp>
 #include <vulkan/vulkan.hpp>
 
 class VKImage : public VKObject

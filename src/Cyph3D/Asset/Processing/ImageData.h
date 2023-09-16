@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 #include <cstddef>
+#include <vector>
 
 enum class ImageType
 {

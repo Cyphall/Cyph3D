@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Cyph3D/VKObject/Pipeline/VKPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
+#include "Cyph3D/VKObject/Pipeline/VKPipeline.h"
 
 #include <vulkan/vulkan.hpp>
 

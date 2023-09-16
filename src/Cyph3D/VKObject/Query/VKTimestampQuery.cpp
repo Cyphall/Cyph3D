@@ -1,7 +1,7 @@
 #include "VKTimestampQuery.h"
 
-#include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/VKContext.h"
 
 VKPtr<VKTimestampQuery> VKTimestampQuery::create(VKContext& context)
 {

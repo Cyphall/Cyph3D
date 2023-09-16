@@ -3,9 +3,9 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Window.h"
 
+#include <imgui_internal.h>
 #include <format>
 #include <stack>
-#include <imgui_internal.h>
 
 bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const char* label, const char* dragDropId, std::optional<std::string_view>& result)
 {

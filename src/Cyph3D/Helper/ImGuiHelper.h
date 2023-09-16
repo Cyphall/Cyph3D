@@ -1,8 +1,8 @@
 #pragma once
 
+#include <imgui.h>
 #include <optional>
 #include <string_view>
-#include <imgui.h>
 
 class ImGuiHelper
 {

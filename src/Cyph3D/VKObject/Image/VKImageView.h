@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKObject.h"
 #include "Cyph3D/VKObject/Image/VKImageViewInfo.h"
+#include "Cyph3D/VKObject/VKObject.h"
 
 class VKImageView : public VKObject
 {

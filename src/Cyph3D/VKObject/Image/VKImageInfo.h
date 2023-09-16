@@ -2,8 +2,8 @@
 
 #include "Cyph3D/VKObject/VKPtr.h"
 
-#include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
+#include <vulkan/vulkan.hpp>
 #include <optional>
 
 class VKImageInfo

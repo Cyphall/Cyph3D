@@ -3,12 +3,12 @@
 #include "Cyph3D/Entity/Component/Component.h"
 
 #include <glm/glm.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
-#include <memory>
-#include <nlohmann/json_fwd.hpp>
 
 class MaterialAsset;
 class MeshAsset;

@@ -1,25 +1,25 @@
 #include "ImageProcessor.h"
 
+#include "Cyph3D/Engine.h"
+#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/StbImage.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
-#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKComputePipeline.h"
+#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
-#include "Cyph3D/Logging/Logger.h"
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/GLSL_types.h"
 
-#include <filesystem>
-#include <array>
-#include <magic_enum.hpp>
-#include <vulkan/vulkan_format_traits.hpp>
 #include <bc7enc.h>
+#include <magic_enum.hpp>
 #include <rgbcx.h>
+#include <vulkan/vulkan_format_traits.hpp>
+#include <array>
+#include <filesystem>
 
 struct PushConstantData
 {

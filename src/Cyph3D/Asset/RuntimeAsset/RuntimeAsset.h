@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdexcept>
 #include <sigslot/signal.hpp>
+#include <stdexcept>
 
 class AssetManager;
 

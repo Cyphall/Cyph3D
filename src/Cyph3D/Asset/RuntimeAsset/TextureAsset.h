@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Cyph3D/HashBuilder.h"
-#include "Cyph3D/Asset/RuntimeAsset/GPUAsset.h"
 #include "Cyph3D/Asset/Processing/ImageData.h"
+#include "Cyph3D/Asset/RuntimeAsset/GPUAsset.h"
+#include "Cyph3D/HashBuilder.h"
 #include "Cyph3D/VKObject/VKPtr.h"
 
-#include <string>
 #include <memory>
+#include <string>
 
 class AssetManager;
 class VKImage;

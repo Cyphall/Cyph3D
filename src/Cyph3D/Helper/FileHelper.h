@@ -1,11 +1,11 @@
 #pragma once
 
+#include <array>
 #include <filesystem>
+#include <fstream>
 #include <optional>
 #include <string>
 #include <vector>
-#include <array>
-#include <fstream>
 
 struct FileDialogFilter
 {

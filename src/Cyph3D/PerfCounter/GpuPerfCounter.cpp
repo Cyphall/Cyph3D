@@ -1,8 +1,8 @@
 #include "GpuPerfCounter.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/VKObject/Query/VKTimestampQuery.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/Query/VKTimestampQuery.h"
 
 GpuPerfCounter::GpuPerfCounter()
 {

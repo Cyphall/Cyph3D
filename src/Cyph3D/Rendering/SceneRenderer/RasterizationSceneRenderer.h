@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
-#include "Cyph3D/Rendering/Pass/ZPrepass.h"
-#include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
-#include "Cyph3D/Rendering/Pass/LightingPass.h"
-#include "Cyph3D/Rendering/Pass/SkyboxPass.h"
-#include "Cyph3D/Rendering/Pass/ExposurePass.h"
 #include "Cyph3D/Rendering/Pass/BloomPass.h"
+#include "Cyph3D/Rendering/Pass/ExposurePass.h"
+#include "Cyph3D/Rendering/Pass/LightingPass.h"
+#include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
+#include "Cyph3D/Rendering/Pass/SkyboxPass.h"
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
+#include "Cyph3D/Rendering/Pass/ZPrepass.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImageView.h"
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
 #include "Cyph3D/PerfCounter/GpuPerfCounter.h"
 #include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 #include <string>

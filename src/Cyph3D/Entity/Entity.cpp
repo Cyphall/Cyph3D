@@ -1,14 +1,14 @@
 #include "Entity.h"
 
+#include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Component/Animator.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
-#include "Cyph3D/Entity/Component/PointLight.h"
 #include "Cyph3D/Entity/Component/ModelRenderer.h"
+#include "Cyph3D/Entity/Component/PointLight.h"
 #include "Cyph3D/Iterator/ComponentConstIterator.h"
 #include "Cyph3D/Iterator/ComponentIterator.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/Scene/Scene.h"
-#include "Cyph3D/Engine.h"
 #include "Cyph3D/Window.h"
 
 #include <glm/gtc/type_ptr.hpp>

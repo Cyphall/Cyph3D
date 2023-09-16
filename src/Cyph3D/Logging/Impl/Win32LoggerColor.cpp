@@ -1,7 +1,8 @@
 #include "Win32LoggerColor.h"
 
-#include <string>
 #include <format>
+#include <string>
+
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
 #include "Cyph3D/Asset/RuntimeAsset/RuntimeAsset.h"
 #include "Cyph3D/HashBuilder.h"
 #include "Cyph3D/UI/IInspectable.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
-#include <string>
-#include <memory>
-#include <optional>
 #include <glm/glm.hpp>
 #include <nlohmann/json_fwd.hpp>
+#include <memory>
+#include <optional>
+#include <string>
 
 class TextureAsset;
 class VKImage;

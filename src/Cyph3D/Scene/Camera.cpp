@@ -5,8 +5,8 @@
 #include "Cyph3D/Window.h"
 
 #include <GLFW/glfw3.h>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 glm::vec3 Camera::getOrientation() const
 {

@@ -1,8 +1,8 @@
 #include "VKRayTracingPipeline.h"
 
-#include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Shader/VKShader.h"
+#include "Cyph3D/VKObject/VKContext.h"
 
 VKPtr<VKRayTracingPipeline> VKRayTracingPipeline::create(VKContext& context, VKRayTracingPipelineInfo& info)
 {

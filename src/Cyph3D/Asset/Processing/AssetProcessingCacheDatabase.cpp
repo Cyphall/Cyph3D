@@ -3,8 +3,8 @@
 #include "Cyph3D/Helper/FileHelper.h"
 
 #include <SQLiteCpp/Database.h>
-#include <sqlite3.h>
 #include <crossguid/guid.hpp>
+#include <sqlite3.h>
 #include <filesystem>
 
 static xg::Guid columnToGuid(const SQLite::Column& column)

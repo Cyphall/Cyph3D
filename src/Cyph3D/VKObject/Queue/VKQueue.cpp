@@ -1,11 +1,11 @@
 #include "VKQueue.h"
 
-#include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
-#include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
-#include "Cyph3D/VKObject/VKSwapchain.h"
-#include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Fence/VKFence.h"
+#include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
+#include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
+#include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/VKSwapchain.h"
 
 VKQueue::VKQueue(VKContext& context, uint32_t queueFamily, uint32_t queueIndex):
 	VKObject(context), _queueFamily(queueFamily)

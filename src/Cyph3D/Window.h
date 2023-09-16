@@ -1,8 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <array>
 #include <vulkan/vulkan.hpp>
+#include <array>
 
 struct GLFWwindow;
 class VKContext;

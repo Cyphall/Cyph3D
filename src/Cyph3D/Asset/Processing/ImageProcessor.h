@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Cyph3D/Asset/Processing/ImageData.h"
 #include "Cyph3D/Asset/AssetManagerWorkerData.h"
+#include "Cyph3D/Asset/Processing/ImageData.h"
 
-#include <string_view>
 #include <filesystem>
+#include <string_view>
 
 class VKDescriptorSetLayout;
 class VKPipelineLayout;

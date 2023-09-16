@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKObject.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKBottomLevelAccelerationStructureBuildInfo.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKTopLevelAccelerationStructureBuildInfo.h"
+#include "Cyph3D/VKObject/VKObject.h"
 
 #include <vulkan/vulkan.hpp>
 

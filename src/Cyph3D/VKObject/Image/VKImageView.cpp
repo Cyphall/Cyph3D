@@ -1,7 +1,7 @@
 #include "VKImageView.h"
 
-#include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 
 VKPtr<VKImageView> VKImageView::create(VKContext& context, const VKImageViewInfo& info)

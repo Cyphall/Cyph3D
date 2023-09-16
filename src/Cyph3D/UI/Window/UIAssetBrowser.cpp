@@ -1,11 +1,11 @@
 #include "UIAssetBrowser.h"
 
+#include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Scene/Scene.h"
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/Window.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
-#include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Window.h"
 
 #include <imgui_internal.h>
 #include <algorithm>

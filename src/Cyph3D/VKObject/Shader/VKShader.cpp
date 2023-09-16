@@ -1,11 +1,11 @@
 #include "VKShader.h"
 
-#include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/VKObject/VKContext.h"
 
-#include <vector>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 static std::vector<uint32_t> readSPIRV(const std::filesystem::path& filePath)
 {

@@ -1,8 +1,8 @@
 #include "Logger.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Logging/Impl/Win32LoggerColor.h"
 #include "Cyph3D/Helper/FileHelper.h"
+#include "Cyph3D/Logging/Impl/Win32LoggerColor.h"
 
 #include <iomanip>
 #include <iostream>

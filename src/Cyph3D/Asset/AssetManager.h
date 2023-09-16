@@ -5,11 +5,11 @@
 #include "Cyph3D/Asset/Processing/AssetProcessor.h"
 #include "Cyph3D/Asset/Processing/ImageData.h"
 #include "Cyph3D/Asset/Processing/MeshData.h"
-#include "Cyph3D/Asset/RuntimeAsset/TextureAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
-#include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
+#include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
+#include "Cyph3D/Asset/RuntimeAsset/TextureAsset.h"
 
 #include <BS_thread_pool.hpp>
 #include <unordered_map>

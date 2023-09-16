@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
 #include "Cyph3D/GLSL_types.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
-#include <memory>
 #include <imgui.h>
+#include <memory>
 
 class Entity;
 class VKCommandBuffer;

@@ -2,8 +2,8 @@
 
 #include "Cyph3D/VKObject/VKPtr.h"
 
-#include <cstddef>
 #include <vulkan/vulkan.hpp>
+#include <cstddef>
 
 class VKContext;
 class VKImageView;

@@ -1,32 +1,32 @@
 #include "PathTracePass.h"
 
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/Scene/Scene.h"
-#include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/Scene/Transform.h"
-#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
-#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
-#include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
+#include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/MathHelper.h"
-#include "Cyph3D/VKObject/VKHelper.h"
+#include "Cyph3D/Rendering/RenderRegistry.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/Scene/Camera.h"
+#include "Cyph3D/Scene/Scene.h"
+#include "Cyph3D/Scene/Transform.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKTopLevelAccelerationStructureBuildInfo.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
-#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
+#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
 #include "Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h"
+#include "Cyph3D/VKObject/VKHelper.h"
 
-#include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtx/transform.hpp>
 
 static const uint32_t FIXED_POINT_DECIMALS = 3;
 

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <cstddef>
+#include <filesystem>
 #include <functional>
 #include <memory>
-#include <filesystem>
-#include <cstddef>
 
 class StbImage
 {

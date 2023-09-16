@@ -5,10 +5,10 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
+#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKComputePipeline.h"
+#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
 NormalizationPass::NormalizationPass(glm::uvec2 size):

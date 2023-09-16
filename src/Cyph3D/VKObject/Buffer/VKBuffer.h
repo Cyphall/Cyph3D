@@ -4,8 +4,8 @@
 #include "Cyph3D/VKObject/Buffer/VKBufferInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-#include <stdexcept>
 #include <vk_mem_alloc.hpp>
+#include <stdexcept>
 
 template<typename T>
 class VKBuffer : public VKBufferBase

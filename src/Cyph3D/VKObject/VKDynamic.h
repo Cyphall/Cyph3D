@@ -2,8 +2,8 @@
 
 #include "Cyph3D/VKObject/VKContext.h"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 template<typename T>
 class VKDynamic

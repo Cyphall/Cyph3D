@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstddef>
 #include <bit>
+#include <cstddef>
 
 // Based on https://stackoverflow.com/a/50978188/9962106
 class HashBuilder

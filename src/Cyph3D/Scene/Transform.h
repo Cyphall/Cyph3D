@@ -2,9 +2,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <sigslot/signal.hpp>
 #include <memory>
 #include <vector>
-#include <sigslot/signal.hpp>
 
 class Entity;
 
