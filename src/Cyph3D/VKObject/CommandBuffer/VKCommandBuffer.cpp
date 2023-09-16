@@ -975,17 +975,17 @@ void VKCommandBuffer::traceRays(const VKPtr<VKShaderBindingTable>& sbt, glm::uve
 	vk::StridedDeviceAddressRegionKHR raygenRegion;
 	raygenRegion.deviceAddress = sbt->getRaygenSBTAddress();
 	raygenRegion.stride = sbt->getRaygenSBTStride();
-	raygenRegion.size = sbt->getRaygenSBTAlignedSize();
+	raygenRegion.size = sbt->getRaygenSBTSize();
 	
 	vk::StridedDeviceAddressRegionKHR missRegion;
 	missRegion.deviceAddress = sbt->getMissSBTAddress();
 	missRegion.stride = sbt->getMissSBTStride();
-	missRegion.size = sbt->getMissSBTAlignedSize();
+	missRegion.size = sbt->getMissSBTSize();
 	
 	vk::StridedDeviceAddressRegionKHR hitRegion;
 	hitRegion.deviceAddress = sbt->getTriangleHitSBTAddress();
 	hitRegion.stride = sbt->getTriangleHitSBTStride();
-	hitRegion.size = sbt->getTriangleHitSBTAlignedSize();
+	hitRegion.size = sbt->getTriangleHitSBTSize();
 	
 	vk::StridedDeviceAddressRegionKHR callRegion;
 	callRegion.deviceAddress = 0;

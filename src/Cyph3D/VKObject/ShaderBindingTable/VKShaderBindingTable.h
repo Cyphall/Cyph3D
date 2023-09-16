@@ -15,16 +15,14 @@ public:
 	
 	const VKShaderBindingTableInfo& getInfo() const;
 	
-	const VKPtr<VKBuffer<std::byte>>& getBuffer() const;
-	
 	const vk::DeviceAddress& getRaygenSBTAddress() const;
-	const vk::DeviceSize& getRaygenSBTAlignedSize() const;
+	const vk::DeviceSize& getRaygenSBTSize() const;
 	const vk::DeviceSize& getRaygenSBTStride() const;
 	const vk::DeviceAddress& getTriangleHitSBTAddress() const;
-	const vk::DeviceSize& getTriangleHitSBTAlignedSize() const;
+	const vk::DeviceSize& getTriangleHitSBTSize() const;
 	const vk::DeviceSize& getTriangleHitSBTStride() const;
 	const vk::DeviceAddress& getMissSBTAddress() const;
-	const vk::DeviceSize& getMissSBTAlignedSize() const;
+	const vk::DeviceSize& getMissSBTSize() const;
 	const vk::DeviceSize& getMissSBTStride() const;
 
 private:
@@ -35,12 +33,12 @@ private:
 	VKPtr<VKBuffer<std::byte>> _buffer;
 	
 	vk::DeviceAddress _raygenSBTAddress = 0;
-	vk::DeviceSize _raygenSBTAlignedSize = 0;
+	vk::DeviceSize _raygenSBTSize = 0;
 	vk::DeviceSize _raygenSBTStride = 0;
 	vk::DeviceAddress _triangleHitSBTAddress = 0;
-	vk::DeviceSize _triangleHitSBTAlignedSize = 0;
+	vk::DeviceSize _triangleHitSBTSize = 0;
 	vk::DeviceSize _triangleHitSBTStride = 0;
 	vk::DeviceAddress _missSBTAddress = 0;
-	vk::DeviceSize _missSBTAlignedSize = 0;
+	vk::DeviceSize _missSBTSize = 0;
 	vk::DeviceSize _missSBTStride = 0;
 };
