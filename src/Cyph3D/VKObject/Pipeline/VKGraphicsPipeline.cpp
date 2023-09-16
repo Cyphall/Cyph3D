@@ -153,7 +153,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 	colorBlending.blendConstants[3] = 0.0f; // Optional
 	
 	vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo;
-	pipelineRenderingCreateInfo.viewMask = _info.getViewMask();
+	pipelineRenderingCreateInfo.viewMask = 0;
 	pipelineRenderingCreateInfo.colorAttachmentCount = colorAttachmentsFormat.size();
 	pipelineRenderingCreateInfo.pColorAttachmentFormats = colorAttachmentsFormat.data();
 	pipelineRenderingCreateInfo.depthAttachmentFormat = _info.getPipelineAttachmentInfo().hasDepthAttachment() ? _info.getPipelineAttachmentInfo().getDepthAttachmentInfo().format : vk::Format::eUndefined;

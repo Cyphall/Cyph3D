@@ -129,13 +129,3 @@ const vk::SampleCountFlagBits& VKGraphicsPipelineInfo::getRasterizationSampleCou
 {
 	return _rasterizationSampleCount;
 }
-
-void VKGraphicsPipelineInfo::setViewMask(uint32_t viewMask)
-{
-	_viewMask = viewMask;
-}
-
-const uint32_t& VKGraphicsPipelineInfo::getViewMask() const
-{
-	return _viewMask;
-}

@@ -46,13 +46,3 @@ const VKRenderingDepthAttachmentInfo& VKRenderingInfo::getDepthAttachmentInfo() 
 {
 	return _depthAttachmentInfo.value();
 }
-
-void VKRenderingInfo::setViewMask(uint32_t viewMask)
-{
-	_viewMask = viewMask;
-}
-
-const uint32_t& VKRenderingInfo::getViewMask() const
-{
-	return _viewMask;
-}
