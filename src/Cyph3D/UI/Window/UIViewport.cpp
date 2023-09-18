@@ -146,9 +146,6 @@ void UIViewport::show()
 				window.setCursorPos(_lockedCursorPos);
 			}
 			
-			_renderRegistry.clear();
-			Engine::getScene().onPreRender(_renderRegistry, _camera);
-			
 			PathTracingSceneRenderer* pathTracingSceneRenderer = dynamic_cast<PathTracingSceneRenderer*>(_sceneRenderer.get());
 			if (pathTracingSceneRenderer)
 			{
@@ -225,7 +222,16 @@ void UIViewport::show()
 			if (!_renderToFileData)
 			{
 				uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
-				_lastViewportImageView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, currentSceneChangeVersion != _sceneChangeVersion, cameraChanged);
+				bool sceneChanged = currentSceneChangeVersion != _sceneChangeVersion;
+				
+				if (sceneChanged)
+				{
+					_renderRegistry.clear();
+					Engine::getScene().onPreRender(_renderRegistry, _camera);
+				}
+				
+				_lastViewportImageView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, sceneChanged, cameraChanged);
+				
 				_sceneChangeVersion = currentSceneChangeVersion;
 			}
 			
