@@ -130,6 +130,9 @@ vec3 interpolateBarycentrics(vec3 a, vec3 b, vec3 c, vec3 barycentrics)
 
 void main()
 {
+	// flip normals if ray hit a back face
+	float normalScale = gl_HitKindEXT == gl_HitKindBackFacingTriangleEXT ? -1 : 1;
+	
 	uvec3 indices = u_indexBuffer.indices[gl_PrimitiveID];
 	
 	Vertex v1 = u_vertexBuffer.vertices[indices.x];
@@ -153,8 +156,8 @@ void main()
 	vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 	
 	vec3 position = interpolateBarycentrics(position1, position2, position3, barycentrics);
-	vec3 normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics));
-	vec3 tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics));
+	vec3 normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics)) * normalScale;
+	vec3 tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics)) * normalScale;
 	
 	vec2 uv = interpolateBarycentrics(v1.uv, v2.uv, v3.uv, barycentrics);
 	
