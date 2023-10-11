@@ -259,7 +259,7 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 // Based on the code at https://www.gamedev.net/tutorials/programming/graphics/contact-hardening-soft-shadows-made-fast-r4906/
 vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
 {
-	float GoldenAngle = 2.4;
+	float GoldenAngle = 2.39996322973;
 	
 	float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
 	float theta = sampleIndex * GoldenAngle + phi;
