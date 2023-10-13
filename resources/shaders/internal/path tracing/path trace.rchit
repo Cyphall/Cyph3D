@@ -13,7 +13,7 @@ struct HitPayload
 {
 	uint randomOffset;
 	u64vec3 light;
-	vec3 contribution;
+	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
 	vec3 rayDirection;
@@ -167,7 +167,7 @@ void main()
 	float emissive = texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r * u_emissiveScale;
 	
 	
-	hitPayload.light += u64vec3(max(hitPayload.contribution * albedo * emissive * pow(10, u_fixedPointDecimals), vec3(0)));
+	hitPayload.light += u64vec3(max(hitPayload.throughput * albedo * emissive * pow(10, u_fixedPointDecimals), vec3(0)));
 	
 	
 	hitPayload.hit = true;
@@ -194,7 +194,7 @@ void main()
 		
 		hitPayload.rayDirection = reflect(hitPayload.rayDirection, microfacetNormal);
 		
-		hitPayload.contribution *= specularWeight * 2;
+		hitPayload.throughput *= specularWeight * 2;
 	}
 	else
 	{
@@ -202,6 +202,6 @@ void main()
 		
 		hitPayload.rayDirection = tangentToWorld * calcRandomHemisphereDirectionCosWeighted(getRandom().xy);
 		
-		hitPayload.contribution *= albedo * diffuseWeight * (1.0 - metalness) * 2;
+		hitPayload.throughput *= albedo * diffuseWeight * (1.0 - metalness) * 2;
 	}
 }

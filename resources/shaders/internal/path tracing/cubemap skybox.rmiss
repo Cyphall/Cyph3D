@@ -8,7 +8,7 @@ struct HitPayload
 {
 	uint randomOffset;
 	u64vec3 light;
-	vec3 contribution;
+	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
 	vec3 rayDirection;
@@ -39,7 +39,7 @@ void main()
 	rayDir = (u_skyboxRotation * vec4(rayDir, 1.0)).xyz;
 	vec3 skyboxColor = texture(u_textures[u_skyboxIndex], rayDir).rgb;
 	
-	hitPayload.light += u64vec3(max(hitPayload.contribution * skyboxColor * pow(10, u_fixedPointDecimals), vec3(0)));
+	hitPayload.light += u64vec3(max(hitPayload.throughput * skyboxColor * pow(10, u_fixedPointDecimals), vec3(0)));
 	hitPayload.hit = false;
 	hitPayload.rayPosition = vec3(0);
 	hitPayload.rayDirection = vec3(0);

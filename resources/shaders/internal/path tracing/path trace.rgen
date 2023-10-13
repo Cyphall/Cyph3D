@@ -8,7 +8,7 @@ struct HitPayload
 {
 	uint randomOffset;
 	u64vec3 light;
-	vec3 contribution;
+	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
 	vec3 rayDirection;
@@ -57,7 +57,7 @@ void main()
 	
 	for (int s = 0; s < u_sampleCount; s++)
 	{
-		hitPayload.contribution = vec3(1);
+		hitPayload.throughput = vec3(1);
 		hitPayload.rayPosition = u_position;
 		
 		vec2 PS_rayPos = vec2(gl_LaunchIDEXT.xy) + 0.5 + (getRandom().xy - 0.5);
