@@ -128,6 +128,20 @@ vec3 interpolateBarycentrics(vec3 a, vec3 b, vec3 c, vec3 barycentrics)
 	return a * barycentrics.x + b * barycentrics.y + c * barycentrics.z;
 }
 
+void dielectricBRDF(float NdotL, out vec3 diffuseWeight, out vec3 specularWeight)
+{
+	vec3 F0 = vec3(0.04);
+	specularWeight = fresnelSchlick(max(NdotL, 0.0), F0);
+	diffuseWeight = 1.0 - specularWeight;
+}
+
+void conductorBRDF(vec3 albedo, float NdotL, out vec3 diffuseWeight, out vec3 specularWeight)
+{
+	vec3 F0 = albedo;
+	specularWeight = fresnelSchlick(max(NdotL, 0.0), F0);
+	diffuseWeight = vec3(0);
+}
+
 void main()
 {
 	// flip normals if ray hit a back face
@@ -184,9 +198,15 @@ void main()
 	vec4 rand = getRandom();
 	vec3 microfacetNormal = normalize(tangentToWorld * sampleGGXVNDF(-localRayDir, alpha2D, rand.xy));
 	
-	vec3 F0 = mix(vec3(0.04), albedo, metalness);
-	vec3 specularWeight = fresnelSchlick(max(dot(microfacetNormal, -hitPayload.rayDirection), 0.0), F0);
-	vec3 diffuseWeight = 1.0 - specularWeight;
+	float NdotL = max(dot(microfacetNormal, -hitPayload.rayDirection), 0.0);
+	
+	vec3 dielectricDiffuseWeight;
+	vec3 dielectricSpecularWeight;
+	if (metalness < 1.0) dielectricBRDF(NdotL, dielectricDiffuseWeight, dielectricSpecularWeight);
+	
+	vec3 conductorDiffuseWeight;
+	vec3 conductorSpecularWeight;
+	if (metalness > 0.0) conductorBRDF(albedo, NdotL, conductorDiffuseWeight, conductorSpecularWeight);
 	
 	if (rand.z > 0.5)
 	{
@@ -194,7 +214,11 @@ void main()
 		
 		hitPayload.rayDirection = reflect(hitPayload.rayDirection, microfacetNormal);
 		
-		hitPayload.throughput *= specularWeight * 2;
+		vec3 dielectric = dielectricSpecularWeight;
+		vec3 conductor  = conductorSpecularWeight;
+		hitPayload.throughput *= mix(dielectric, conductor, metalness);
+		
+		hitPayload.throughput *= 2;
 	}
 	else
 	{
@@ -202,6 +226,10 @@ void main()
 		
 		hitPayload.rayDirection = tangentToWorld * calcRandomHemisphereDirectionCosWeighted(getRandom().xy);
 		
-		hitPayload.throughput *= albedo * diffuseWeight * (1.0 - metalness) * 2;
+		vec3 dielectric = albedo * dielectricDiffuseWeight;
+		vec3 conductor  = albedo * conductorDiffuseWeight;
+		hitPayload.throughput *= mix(dielectric, conductor, metalness);
+
+		hitPayload.throughput *= 2;
 	}
 }
