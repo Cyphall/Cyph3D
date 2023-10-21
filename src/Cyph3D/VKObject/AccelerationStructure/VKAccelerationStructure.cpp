@@ -33,7 +33,10 @@ VKAccelerationStructure::VKAccelerationStructure(
 	
 	_accelerationStructure = _context.getDevice().createAccelerationStructureKHR(accelerationStructureCreateInfo);
 	
-	_accelerationStructureAddress = _context.getDevice().getAccelerationStructureAddressKHR(_accelerationStructure);
+	vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo;
+	accelerationStructureDeviceAddressInfo.accelerationStructure = _accelerationStructure;
+	
+	_accelerationStructureAddress = _context.getDevice().getAccelerationStructureAddressKHR(accelerationStructureDeviceAddressInfo);
 	
 	_accelerationStructureBackingBuffer = backingBuffer;
 }
