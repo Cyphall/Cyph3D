@@ -544,6 +544,26 @@ void VKCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t indexOffset, uin
 	_commandBuffer.drawIndexed(indexCount, 1, indexOffset, vertexOffset, 0);
 }
 
+void VKCommandBuffer::drawIndirect(const VKPtr<VKBuffer<vk::DrawIndirectCommand>>& drawCommandsBuffer)
+{
+	if (drawCommandsBuffer)
+	{
+		_commandBuffer.drawIndirect(drawCommandsBuffer->getHandle(), 0, drawCommandsBuffer->getSize(), sizeof(vk::DrawIndirectCommand));
+		
+		_usedObjects.emplace_back(drawCommandsBuffer);
+	}
+}
+
+void VKCommandBuffer::drawIndexedIndirect(const VKPtr<VKBuffer<vk::DrawIndexedIndirectCommand>>& drawCommandsBuffer)
+{
+	if (drawCommandsBuffer)
+	{
+		_commandBuffer.drawIndexedIndirect(drawCommandsBuffer->getHandle(), 0, drawCommandsBuffer->getSize(), sizeof(vk::DrawIndexedIndirectCommand));
+		
+		_usedObjects.emplace_back(drawCommandsBuffer);
+	}
+}
+
 void VKCommandBuffer::copyBufferToImage(const VKPtr<VKBufferBase>& srcBuffer, vk::DeviceSize srcByteOffset, const VKPtr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel)
 {
 	if (srcBuffer->getByteSize() - srcByteOffset < dstImage->getLevelByteSize(dstLevel))
@@ -1017,4 +1037,9 @@ void VKCommandBuffer::pushConstants(const void* data, uint32_t dataSize)
 const VKPtr<VKFence>& VKCommandBuffer::getStatusFence() const
 {
 	return _statusFence;
+}
+
+void VKCommandBuffer::addExternallyUsedObject(const VKPtr<VKObject>& object)
+{
+	_usedObjects.emplace_back(object);
 }

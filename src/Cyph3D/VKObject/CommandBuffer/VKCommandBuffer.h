@@ -9,6 +9,8 @@ class VKQueue;
 class VKBufferBase;
 template<typename T>
 class VKResizableBuffer;
+template<typename T>
+class VKBuffer;
 class VKImage;
 class VKImageView;
 class VKSampler;
@@ -71,6 +73,8 @@ public:
 	
 	void draw(uint32_t vertexCount, uint32_t vertexOffset);
 	void drawIndexed(uint32_t indexCount, uint32_t indexOffset, uint32_t vertexOffset);
+	void drawIndirect(const VKPtr<VKBuffer<vk::DrawIndirectCommand>>& drawCommandsBuffer);
+	void drawIndexedIndirect(const VKPtr<VKBuffer<vk::DrawIndexedIndirectCommand>>& drawCommandsBuffer);
 	
 	void copyBufferToImage(const VKPtr<VKBufferBase>& srcBuffer, vk::DeviceSize srcByteOffset, const VKPtr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel);
 	
@@ -108,6 +112,8 @@ public:
 	void traceRays(const VKPtr<VKShaderBindingTable>& sbt, glm::uvec2 size);
 	
 	const VKPtr<VKFence>& getStatusFence() const;
+	
+	void addExternallyUsedObject(const VKPtr<VKObject>& object);
 	
 private:
 	explicit VKCommandBuffer(VKContext& context, const VKQueue& queue);
