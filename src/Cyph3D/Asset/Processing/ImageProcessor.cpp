@@ -1,5 +1,6 @@
 #include "ImageProcessor.h"
 
+#include "Cyph3D/Asset/Processing/ImageCompressor.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Helper/FileHelper.h"
@@ -14,9 +15,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
-#include <bc7enc.h>
 #include <magic_enum.hpp>
-#include <rgbcx.h>
 #include <vulkan/vulkan_format_traits.hpp>
 #include <array>
 #include <filesystem>
@@ -92,108 +91,6 @@ static std::vector<std::byte> convertRgbToRg(std::span<const std::byte> input, i
 	return output;
 }
 
-static void compressLevelBC4(const ImageLevel& uncompressedLevel, ImageLevel& compressedLevel, glm::uvec2 inputSize, glm::uvec2 outputSize)
-{
-	glm::uvec2 inputPixelOffset{
-		1,
-		inputSize.x * 1
-	};
-	
-	glm::uvec2 inputBlockOffset = inputPixelOffset * glm::uvec2(4, 4);
-	
-	std::array<uint8_t, 16> blockInput{};
-	std::array<uint8_t, 8> blockOutput{};
-	
-	std::byte* outputPtr = compressedLevel.data.data();
-	for (int blockY = 0; blockY < outputSize.y; blockY++)
-	{
-		for (int blockX = 0; blockX < outputSize.x; blockX++)
-		{
-			size_t baseInputOffset = (blockX * inputBlockOffset.x) + (blockY * inputBlockOffset.y);
-			std::memcpy(blockInput.data() + 0, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 0), 4);
-			std::memcpy(blockInput.data() + 4, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 1), 4);
-			std::memcpy(blockInput.data() + 8, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 2), 4);
-			std::memcpy(blockInput.data() + 12, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 3), 4);
-			
-			rgbcx::encode_bc4(blockOutput.data(), blockInput.data(), 1);
-			
-			std::memcpy(outputPtr, blockOutput.data(), 8);
-			outputPtr += 8;
-		}
-	}
-}
-
-static void compressLevelBC5(const ImageLevel& uncompressedLevel, ImageLevel& compressedLevel, glm::uvec2 inputSize, glm::uvec2 outputSize)
-{
-	glm::uvec2 inputPixelOffset{
-		2,
-		inputSize.x * 2
-	};
-	
-	glm::uvec2 inputBlockOffset = inputPixelOffset * glm::uvec2(4, 4);
-	
-	std::array<uint8_t, 32> blockInput{};
-	std::array<uint8_t, 16> blockOutput{};
-	
-	std::byte* outputPtr = compressedLevel.data.data();
-	for (int blockY = 0; blockY < outputSize.y; blockY++)
-	{
-		for (int blockX = 0; blockX < outputSize.x; blockX++)
-		{
-			size_t baseInputOffset = (blockX * inputBlockOffset.x) + (blockY * inputBlockOffset.y);
-			std::memcpy(blockInput.data() + 0, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 0), 8);
-			std::memcpy(blockInput.data() + 8, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 1), 8);
-			std::memcpy(blockInput.data() + 16, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 2), 8);
-			std::memcpy(blockInput.data() + 24, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 3), 8);
-			
-			rgbcx::encode_bc5(blockOutput.data(), blockInput.data(), 0, 1, 2);
-			
-			std::memcpy(outputPtr, blockOutput.data(), 16);
-			outputPtr += 16;
-		}
-	}
-}
-
-static void compressLevelBC7(const ImageLevel& uncompressedLevel, ImageLevel& compressedLevel, glm::uvec2 inputSize, glm::uvec2 outputSize)
-{
-	glm::uvec2 inputPixelOffset{
-		4,
-		inputSize.x * 4
-	};
-	
-	glm::uvec2 inputBlockOffset = inputPixelOffset * glm::uvec2(4, 4);
-	
-	bc7enc_compress_block_init();
-	
-	bc7enc_compress_block_params params{};
-	bc7enc_compress_block_params_init(&params);
-	params.m_max_partitions = 0;
-	params.m_uber_level = 0;
-	params.m_mode17_partition_estimation_filterbank = true;
-	params.m_try_least_squares = false;
-	
-	std::array<uint8_t, 64> blockInput{};
-	std::array<uint8_t, 16> blockOutput{};
-	
-	std::byte* outputPtr = compressedLevel.data.data();
-	for (int blockY = 0; blockY < outputSize.y; blockY++)
-	{
-		for (int blockX = 0; blockX < outputSize.x; blockX++)
-		{
-			size_t baseInputOffset = (blockX * inputBlockOffset.x) + (blockY * inputBlockOffset.y);
-			std::memcpy(blockInput.data() + 0, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 0), 16);
-			std::memcpy(blockInput.data() + 16, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 1), 16);
-			std::memcpy(blockInput.data() + 32, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 2), 16);
-			std::memcpy(blockInput.data() + 48, uncompressedLevel.data.data() + baseInputOffset + (inputPixelOffset.y * 3), 16);
-			
-			bc7enc_compress_block(blockOutput.data(), blockInput.data(), &params);
-			
-			std::memcpy(outputPtr, blockOutput.data(), 16);
-			outputPtr += 16;
-		}
-	}
-}
-
 ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format requestedFormat)
 {
 	ImageData compressedImageData;
@@ -203,36 +100,14 @@ ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format reques
 	glm::uvec2 size = mipmappedImageData.size;
 	for (const ImageLevel& level : mipmappedImageData.levels)
 	{
-		if (size.x % vk::blockExtent(requestedFormat)[0] != 0 ||
-			size.y % vk::blockExtent(requestedFormat)[1] != 0)
-		{
+		std::vector<std::byte> compressedData;
+		if (!ImageCompressor::tryCompressImage(level.data, size, requestedFormat, compressedData))
 			break;
-		}
-		
-		glm::uvec2 blockCount(
-			size.x / vk::blockExtent(requestedFormat)[0],
-			size.y / vk::blockExtent(requestedFormat)[1]
-		);
 		
 		ImageLevel& compressedLevel = compressedImageData.levels.emplace_back();
-		compressedLevel.data.resize(blockCount.x * blockCount.y * vk::blockSize(requestedFormat));
+		compressedLevel.data = std::move(compressedData);
 		
-		switch (requestedFormat)
-		{
-			case vk::Format::eBc7SrgbBlock:
-				compressLevelBC7(level, compressedLevel, size, blockCount);
-				break;
-			case vk::Format::eBc5UnormBlock:
-				compressLevelBC5(level, compressedLevel, size, blockCount);
-				break;
-			case vk::Format::eBc4UnormBlock:
-				compressLevelBC4(level, compressedLevel, size, blockCount);
-				break;
-			default:
-				throw;
-		}
-		
-		size /= 2;
+		size = glm::max(size / 2u, glm::uvec2(1, 1));
 	}
 	
 	return compressedImageData;
@@ -257,8 +132,6 @@ ImageProcessor::ImageProcessor()
 		"resources/shaders/internal/asset processing/gen mipmap.comp");
 	
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
-	
-	rgbcx::init();
 }
 
 ImageData ImageProcessor::readImageData(AssetManagerWorkerData& workerData, std::string_view path, ImageType type, std::string_view cachePath)

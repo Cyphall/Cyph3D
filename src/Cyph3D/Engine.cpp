@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #include "Cyph3D/Asset/AssetManager.h"
+#include "Cyph3D/Asset/Processing/ImageCompressor.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Helper/ThreadHelper.h"
@@ -33,6 +34,8 @@ void Engine::init()
 #else
 	Logger::setLogLevel(Logger::LogLevel::WARNING);
 #endif
+	
+	ImageCompressor::init();
 	
 	glfwInit();
 

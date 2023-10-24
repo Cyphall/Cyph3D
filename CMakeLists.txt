@@ -258,6 +258,8 @@ add_executable(Cyph3D
 		src/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h
 		src/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.cpp
 		src/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.h
+		src/Cyph3D/Asset/Processing/ImageCompressor.cpp
+		src/Cyph3D/Asset/Processing/ImageCompressor.h
 )
 
 target_compile_features(Cyph3D PRIVATE cxx_std_20)
