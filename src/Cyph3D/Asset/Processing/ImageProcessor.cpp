@@ -64,10 +64,10 @@ static bool readProcessedImage(const std::filesystem::path& path, ImageData& ima
 	
 	FileHelper::read(file, &imageData.size);
 	
-	uint32_t levels = imageData.levels.size();
+	uint32_t levels;
 	FileHelper::read(file, &levels);
-	imageData.levels.resize(levels);
 	
+	imageData.levels.resize(levels);
 	for (uint32_t i = 0; i < levels; i++)
 	{
 		FileHelper::read(file, imageData.levels[i].data);
