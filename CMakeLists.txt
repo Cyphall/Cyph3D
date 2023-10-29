@@ -317,6 +317,9 @@ target_link_libraries(Cyph3D PRIVATE sigslot)
 add_subdirectory("vendor/ISPCTextureCompressor/691513b4fb406eccfc2f7d7f8213c8505ff5b897")
 target_link_libraries(Cyph3D PRIVATE ISPCTextureCompressor)
 
+add_subdirectory("vendor/half/v2.2.0")
+target_link_libraries(Cyph3D PRIVATE half)
+
 find_package(Python COMPONENTS Interpreter)
 add_custom_target(copy_resources
 		COMMAND ${Python_EXECUTABLE} "${PROJECT_SOURCE_DIR}/copy_resources.py" "${PROJECT_SOURCE_DIR}/resources" "${PROJECT_BINARY_DIR}/resources" "${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}" "${CMAKE_BUILD_TYPE}")

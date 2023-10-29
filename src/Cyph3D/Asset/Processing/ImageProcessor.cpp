@@ -19,6 +19,7 @@
 #include <vulkan/vulkan_format_traits.hpp>
 #include <array>
 #include <filesystem>
+#include <half.hpp>
 
 struct PushConstantData
 {
@@ -86,6 +87,22 @@ static std::vector<std::byte> convertRgbToRg(std::span<const std::byte> input, i
 	for (size_t i = 0; i < output.size(); i++)
 	{
 		output[i] = input[i + (i / 2 / bytesPerChannel) * bytesPerChannel];
+	}
+	
+	return output;
+}
+
+static std::vector<std::byte> convertFloatToHalf(std::span<const std::byte> input)
+{
+	std::vector<std::byte> output(input.size() / 2);
+	
+	for (size_t i = 0; i < input.size() / sizeof(float); i++)
+	{
+		float dataF;
+		std::memcpy(&dataF, input.data() + i * sizeof(float), sizeof(float));
+		
+		half_float::half dataH(std::clamp(dataF, -65000.0f, 65000.0f));
+		std::memcpy(output.data() + i * sizeof(half_float::half), &dataH, sizeof(half_float::half));
 	}
 	
 	return output;
@@ -249,9 +266,9 @@ ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const
 					compressionFormat = vk::Format::eBc7SrgbBlock;
 					break;
 				case 32:
-					mipmapGenFormat = vk::Format::eR32G32B32A32Sfloat;
+					mipmapGenFormat = vk::Format::eR16G16B16A16Sfloat;
 					isMipmapGenFormatSrgb = false;
-					compressionFormat = vk::Format::eUndefined;
+					compressionFormat = vk::Format::eBc6HUfloatBlock;
 					break;
 				default:
 					throw;
@@ -263,19 +280,19 @@ ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const
 	
 	std::vector<std::byte> convertedData;
 	std::span<const std::byte> data;
-	switch (type)
+	if (type == ImageType::NormalMap)
 	{
-		case ImageType::ColorSrgb:
-		case ImageType::Grayscale:
-		case ImageType::Skybox:
-			data = {image.getPtr(), image.getByteSize()};
-			break;
-		case ImageType::NormalMap:
-			convertedData = convertRgbToRg({image.getPtr(), image.getByteSize()}, 1);
-			data = convertedData;
-			break;
-		default:
-			throw;
+		convertedData = convertRgbToRg({image.getPtr(), image.getByteSize()}, 1);
+		data = convertedData;
+	}
+	else if (type == ImageType::Skybox && image.getBitsPerChannel() == 32)
+	{
+		convertedData = convertFloatToHalf({image.getPtr(), image.getByteSize()});
+		data = convertedData;
+	}
+	else
+	{
+		data = {image.getPtr(), image.getByteSize()};
 	}
 	
 	ImageData imageData = genMipmaps(workerData, mipmapGenFormat, image.getSize(), data, isMipmapGenFormatSrgb);

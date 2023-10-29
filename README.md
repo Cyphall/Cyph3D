@@ -75,4 +75,5 @@ This work by [Cyphall](https://github.com/Cyphall) is licensed under the [Creati
 [FreeType](https://freetype.org) is licensed under the [Freetype Project License](https://spdx.org/licenses/FTL.html).<br/>
 [SRombauts/SQLiteCpp](https://github.com/SRombauts/SQLiteCpp) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
 [graeme-hill/crossguid](https://github.com/graeme-hill/crossguid) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
-[GameTechDev/ISPCTextureCompressor](https://github.com/GameTechDev/ISPCTextureCompressor) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
+[GameTechDev/ISPCTextureCompressor](https://github.com/GameTechDev/ISPCTextureCompressor) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[half](https://half.sourceforge.net/) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
