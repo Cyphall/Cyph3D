@@ -39,7 +39,7 @@ _data32bit(nullptr, stbi_image_free)
 	}
 	
 	_size = {width, height};
-	_channelCount = channelCount;
+	_channelCount = desiredChannels == Channels::eAny ? channelCount : static_cast<int>(desiredChannels);
 }
 
 const std::byte* StbImage::getPtr() const
