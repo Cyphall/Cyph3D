@@ -74,4 +74,5 @@ This work by [Cyphall](https://github.com/Cyphall) is licensed under the [Creati
 [Neargye/magic_enum](https://github.com/Neargye/magic_enum) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
 [FreeType](https://freetype.org) is licensed under the [Freetype Project License](https://spdx.org/licenses/FTL.html).<br/>
 [SRombauts/SQLiteCpp](https://github.com/SRombauts/SQLiteCpp) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
-[graeme-hill/crossguid](https://github.com/graeme-hill/crossguid) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
+[graeme-hill/crossguid](https://github.com/graeme-hill/crossguid) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
+[GameTechDev/ISPCTextureCompressor](https://github.com/GameTechDev/ISPCTextureCompressor) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
