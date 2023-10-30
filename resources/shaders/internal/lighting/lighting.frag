@@ -300,80 +300,78 @@ float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 }
 
 // Normal Distribution Function
-float DistributionGGX(vec3 N, vec3 H, float roughness)
+float D_GGX(float NdotH, float alpha)
 {
-	float a      = roughness*roughness;
-	float a2     = a*a;
-	float NdotH  = max(dot(N, H), 0.0);
-	float NdotH2 = NdotH*NdotH;
+	float alpha2 = alpha * alpha;
 	
-	float num   = a2;
-	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	float num   = alpha2;
+	float denom = (NdotH * NdotH * (alpha2 - 1.0) + 1.0);
 	denom = PI * denom * denom;
 	
 	return num / max(denom, 0.0000001);
 }
 
 // Geometry Shadowing Function
-float GeometrySchlickGGX(float NdotV, float roughness)
+float G_SmithGGX(float NdotV, float NdotL, float alpha)
 {
-	float r = (roughness + 1.0);
-	float k = (r*r) / 8.0;
+	float alpha2 = alpha * alpha;
 	
-	float num   = NdotV;
-	float denom = NdotV * (1.0 - k) + k;
+	float ggx1 = (2.0 * NdotV) / (NdotV + sqrt(alpha2 + (1 - alpha2) * NdotV * NdotV));
+	float ggx2 = (2.0 * NdotL) / (NdotL + sqrt(alpha2 + (1 - alpha2) * NdotL * NdotL));
 	
-	return num / max(denom, 0.0000001);
-}
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
-	float NdotV = max(dot(N, V), 0.0);
-	float NdotL = max(dot(N, L), 0.0);
-	float ggx2  = GeometrySchlickGGX(NdotV, roughness);
-	float ggx1  = GeometrySchlickGGX(NdotL, roughness);
-	
-	return ggx1 * ggx2;
+	return isnan(ggx1) || isnan(ggx2) ? 0.0 : ggx1 * ggx2;
 }
 
 // Fresnel Function
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
+vec3 F_Schlick(float HdotV, vec3 F0, vec3 F90)
 {
-	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+	return F0 + (F90 - F0) * pow(1.0 - HdotV, 5.0);
 }
 
-// Cook-Torrance
-vec3 calculateBRDF(vec3 lightDir, vec3 viewDir, vec3 halfwayDir, vec3 albedo, vec3 normal, float roughness, float metalness, vec3 F0)
+vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 viewDir, vec3 albedo, vec3 normal, float roughness, float metalness)
 {
-	// ---------- Specular part ----------
+	vec3 halfwayDir = normalize(viewDir + lightDir);
 	
-	float D = DistributionGGX(normal, halfwayDir, roughness);
-	vec3  F = fresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), F0);
-	float G = GeometrySmith(normal, viewDir, lightDir, roughness);
+	float HdotV = clamp(dot(halfwayDir, viewDir), 0.0, 1.0);
+	float NdotV = clamp(dot(normal, viewDir),     0.0, 1.0);
+	float NdotL = clamp(dot(normal, lightDir),    0.0, 1.0);
+	float NdotH = clamp(dot(normal, halfwayDir),  0.0, 1.0);
 	
-	vec3  numerator   = D * F * G;
-	float denominator = 4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0);
-	vec3  specular    = numerator / max(denominator, 0.001);
+	// ---------- Specular BRDF (Cook-Torrance) ----------
 	
-	vec3 specularWeight = F;
+	float alpha = roughness * roughness;
 	
-	// ---------- Diffuse part ----------
+	float D = D_GGX(NdotH, alpha);
+	float G = G_SmithGGX(NdotV, NdotL, alpha);
 	
-	vec3 diffuse = albedo / PI;
+	float numerator   = D * G;
+	float denominator = 4.0 * NdotV * NdotL;
 	
-	vec3 diffuseWeight = vec3(1.0) - specularWeight;
-	diffuseWeight *= 1.0 - metalness; // Metals have no diffuse
+	float specularBRDF = numerator / max(denominator, 0.001);
 	
-	// ---------- Final result ----------
+	// ---------- Diffuse BRDF (Lambertian) ----------
 	
-	// specularWeight already integrated to specular
-	return (diffuseWeight * diffuse) + (specular);
-}
-
-vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 viewDir, vec3 halfwayDir, vec3 albedo, vec3 normal, float roughness, float metalness, vec3 F0)
-{
-	vec3 brdf = calculateBRDF(lightDir, viewDir, halfwayDir, albedo, normal, roughness, metalness, F0);
+	vec3 diffuseBRDF = albedo / PI;
 	
-	return brdf * radiance * max(dot(normal, lightDir), 0.0);
+	// ---------- Dielectric and conductor terms ----------
+	
+	// dielectric terms
+	vec3 dielectricSpecularWeight = F_Schlick(HdotV, vec3(0.04), vec3(1.0));
+	vec3 dielectricDiffuseWeight  = vec3(1.0) - dielectricSpecularWeight;
+	
+	// conductor terms
+	vec3 conductorSpecularWeight  = F_Schlick(HdotV, albedo, vec3(1.0));
+	vec3 conductorDiffuseWeight   = vec3(0);
+	
+	// ---------- Result ----------
+	
+	// combined terms
+	vec3 specularWeight = mix(dielectricSpecularWeight, conductorSpecularWeight, metalness);
+	vec3 diffuseWeight  = mix(dielectricDiffuseWeight,  conductorDiffuseWeight,  metalness);
+	
+	vec3 brdf = (diffuseWeight * diffuseBRDF) + (specularWeight * specularBRDF);
+	
+	return brdf * radiance * NdotL;
 }
 
 // Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
@@ -421,9 +419,6 @@ void main()
 	
 	vec3 fragPos = i_fragPos;
 	
-	
-	vec3 F0 = mix(vec3(0.04), albedo, metalness);
-	
 	// aka Lo
 	vec3 finalColor = albedo * emissive;
 
@@ -434,10 +429,9 @@ void main()
 
 		// calculate light parameters
 		vec3 lightDir    = u_directionalLightUniforms[i].fragToLightDirection;
-		vec3 halfwayDir  = normalize(viewDir + lightDir);
 		vec3 radiance    = u_directionalLightUniforms[i].color * u_directionalLightUniforms[i].intensity;
 
-		finalColor += calculateLighting(radiance, lightDir, viewDir, halfwayDir, albedo, normal, roughness, metalness, F0) * (1 - shadow);
+		finalColor += calculateLighting(radiance, lightDir, viewDir, albedo, normal, roughness, metalness) * (1 - shadow);
 	}
 	
 	// Point Light calculation
@@ -447,12 +441,11 @@ void main()
 		
 		// calculate light parameters
 		vec3  lightDir    = normalize(u_pointLightUniforms[i].pos - fragPos);
-		vec3  halfwayDir  = normalize(viewDir + lightDir);
 		float distance    = length(u_pointLightUniforms[i].pos - fragPos);
 		float attenuation = 1.0 / (1 + distance * distance);
 		vec3  radiance    = u_pointLightUniforms[i].color * u_pointLightUniforms[i].intensity * attenuation;
 		
-		finalColor += calculateLighting(radiance, lightDir, viewDir, halfwayDir, albedo, normal, roughness, metalness, F0) * (1 - shadow);
+		finalColor += calculateLighting(radiance, lightDir, viewDir, albedo, normal, roughness, metalness) * (1 - shadow);
 	}
 	
 	o_color = vec4(finalColor, 1);
