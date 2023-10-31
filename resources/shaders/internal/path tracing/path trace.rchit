@@ -142,6 +142,27 @@ void conductorBRDF(vec3 albedo, float NdotL, out vec3 diffuseWeight, out vec3 sp
 	diffuseWeight = vec3(0);
 }
 
+vec3 offsetRay(const vec3 p, const vec3 n)
+{
+	const float origin = 1.0 / 32.0;
+	const float float_scale = 1.0 / 65536.0;
+	const float int_scale = 256.0;
+
+	ivec3 of_i = ivec3(int_scale * n.x, int_scale * n.y, int_scale * n.z);
+
+	vec3 p_i = vec3(
+		intBitsToFloat(floatBitsToInt(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
+		intBitsToFloat(floatBitsToInt(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
+		intBitsToFloat(floatBitsToInt(p.z) + ((p.z < 0) ? -of_i.z : of_i.z))
+	);
+
+	return vec3(
+		abs(p.x) < origin ? p.x+float_scale*n.x : p_i.x,
+		abs(p.y) < origin ? p.y+float_scale*n.y : p_i.y,
+		abs(p.z) < origin ? p.z+float_scale*n.z : p_i.z
+	);
+}
+
 void main()
 {
 	// flip normals if ray hit a back face
@@ -172,6 +193,9 @@ void main()
 	vec3 position = interpolateBarycentrics(position1, position2, position3, barycentrics);
 	vec3 normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics)) * normalScale;
 	vec3 tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics)) * normalScale;
+	vec3 geometryNormal = normalize(cross(position3 - position2, position1 - position2));
+	
+	geometryNormal = dot(geometryNormal, hitPayload.rayDirection) < 0.0 ? geometryNormal : -geometryNormal;
 	
 	vec2 uv = interpolateBarycentrics(v1.uv, v2.uv, v3.uv, barycentrics);
 	
@@ -190,7 +214,7 @@ void main()
 	mat3 tangentToWorld = mat3(tangent, bitangent, normal);
 	mat3 worldToTangent = transpose(tangentToWorld);
 	
-	hitPayload.rayPosition = position + normal * 0.001;
+	hitPayload.rayPosition = offsetRay(position, geometryNormal);
 	
 	vec3 localRayDir = worldToTangent * hitPayload.rayDirection;
 	float alpha = roughness * roughness;
