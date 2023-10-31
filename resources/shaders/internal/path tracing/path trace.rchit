@@ -193,6 +193,7 @@ void main()
 	vec3 position = interpolateBarycentrics(position1, position2, position3, barycentrics);
 	vec3 normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics)) * normalScale;
 	vec3 tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics)) * normalScale;
+	vec3 bitangent = cross(tangent, normal);
 	vec3 geometryNormal = normalize(cross(position3 - position2, position1 - position2));
 	
 	geometryNormal = dot(geometryNormal, hitPayload.rayDirection) < 0.0 ? geometryNormal : -geometryNormal;
@@ -204,15 +205,22 @@ void main()
 	float metalness = texture(u_textures[nonuniformEXT(u_metalnessIndex)], uv).r;
 	float emissive = texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r * u_emissiveScale;
 	
+	vec3 textureNormal = vec3(0);
+	textureNormal.xy = texture(u_textures[nonuniformEXT(u_normalIndex)], uv).rg * 2.0 - 1.0;
+	textureNormal.z = sqrt(1 - min(dot(textureNormal.xy, textureNormal.xy), 1));
+	
+	normal = normalize(mat3(tangent, bitangent, normal) * textureNormal);
+	tangent = normalize(tangent - normal * dot(tangent, normal));
+	bitangent = cross(tangent, normal);
+	
+	mat3 tangentToWorld = mat3(tangent, bitangent, normal);
+	mat3 worldToTangent = transpose(tangentToWorld);
+	
 	
 	hitPayload.light += u64vec3(max(hitPayload.throughput * albedo * emissive * pow(10, u_fixedPointDecimals), vec3(0)));
 	
 	
 	hitPayload.hit = true;
-	
-	vec3 bitangent = cross(tangent, normal);
-	mat3 tangentToWorld = mat3(tangent, bitangent, normal);
-	mat3 worldToTangent = transpose(tangentToWorld);
 	
 	hitPayload.rayPosition = offsetRay(position, geometryNormal);
 	
