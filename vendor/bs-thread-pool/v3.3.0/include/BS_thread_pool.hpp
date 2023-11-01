@@ -26,6 +26,7 @@
 #include <type_traits>        // std::common_type_t, std::conditional_t, std::decay_t, std::invoke_result_t, std::is_void_v
 #include <utility>            // std::forward, std::move, std::swap
 #include <vector>             // std::vector
+#include <Cyph3D/Logging/Logger.h>
 
 namespace BS
 {
@@ -578,7 +579,16 @@ private:
                 task = std::move(tasks.front());
                 tasks.pop();
                 tasks_lock.unlock();
-                task(workerData);
+				
+				try
+				{
+					task(workerData);
+				}
+				catch (const std::exception& e)
+				{
+					Logger::error(std::format("Thread pool exception: {}", e.what()));
+				}
+				
                 tasks_lock.lock();
                 --tasks_total;
                 if (waiting)
