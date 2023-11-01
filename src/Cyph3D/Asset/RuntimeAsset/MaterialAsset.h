@@ -43,22 +43,22 @@ public:
 	void onDrawUi() override;
 
 	void setAlbedoTexture(std::optional<std::string_view> path);
-	const uint32_t& getAlbedoTextureBindlessIndex() const;
+	int32_t getAlbedoTextureBindlessIndex() const;
 
 	void setNormalTexture(std::optional<std::string_view> path);
-	const uint32_t& getNormalTextureBindlessIndex() const;
+	int32_t getNormalTextureBindlessIndex() const;
 
 	void setRoughnessTexture(std::optional<std::string_view> path);
-	const uint32_t& getRoughnessTextureBindlessIndex() const;
+	int32_t getRoughnessTextureBindlessIndex() const;
 
 	void setMetalnessTexture(std::optional<std::string_view> path);
-	const uint32_t& getMetalnessTextureBindlessIndex() const;
+	int32_t getMetalnessTextureBindlessIndex() const;
 
 	void setDisplacementTexture(std::optional<std::string_view> path);
-	const uint32_t& getDisplacementTextureBindlessIndex() const;
+	int32_t getDisplacementTextureBindlessIndex() const;
 
 	void setEmissiveTexture(std::optional<std::string_view> path);
-	const uint32_t& getEmissiveTextureBindlessIndex() const;
+	int32_t getEmissiveTextureBindlessIndex() const;
 
 	const glm::vec3& getAlbedoValue() const;
 	void setAlbedoValue(const glm::vec3& value);
@@ -90,48 +90,23 @@ private:
 	void save() const;
 	void reload();
 	
-	void uploadAlbedoValue(const glm::vec3& albedo);
-	void uploadNormalValue(const glm::vec3& normal);
-	void uploadRoughnessValue(const float& roughness);
-	void uploadMetalnessValue(const float& metalness);
-	void uploadDisplacementValue(const float& displacement);
-	void uploadEmissiveValue(const float& emissive);
-	
 	TextureAsset* _albedoTexture = nullptr;
 	sigslot::scoped_connection _albedoTextureChangedConnection;
-	VKPtr<VKImage> _albedoValueTexture;
-	VKPtr<VKImageView> _albedoValueTextureView;
-	std::optional<uint32_t> _albedoValueTextureBindlessIndex;
 
 	TextureAsset* _normalTexture = nullptr;
 	sigslot::scoped_connection _normalTextureChangedConnection;
-	VKPtr<VKImage> _normalValueTexture;
-	VKPtr<VKImageView> _normalValueTextureView;
-	std::optional<uint32_t> _normalValueTextureBindlessIndex;
 
 	TextureAsset* _roughnessTexture = nullptr;
 	sigslot::scoped_connection _roughnessTextureChangedConnection;
-	VKPtr<VKImage> _roughnessValueTexture;
-	VKPtr<VKImageView> _roughnessValueTextureView;
-	std::optional<uint32_t> _roughnessValueTextureBindlessIndex;
 
 	TextureAsset* _metalnessTexture = nullptr;
 	sigslot::scoped_connection _metalnessTextureChangedConnection;
-	VKPtr<VKImage> _metalnessValueTexture;
-	VKPtr<VKImageView> _metalnessValueTextureView;
-	std::optional<uint32_t> _metalnessValueTextureBindlessIndex;
 
 	TextureAsset* _displacementTexture = nullptr;
 	sigslot::scoped_connection _displacementTextureChangedConnection;
-	VKPtr<VKImage> _displacementValueTexture;
-	VKPtr<VKImageView> _displacementValueTextureView;
-	std::optional<uint32_t> _displacementValueTextureBindlessIndex;
 
 	TextureAsset* _emissiveTexture = nullptr;
 	sigslot::scoped_connection _emissiveTextureChangedConnection;
-	VKPtr<VKImage> _emissiveValueTexture;
-	VKPtr<VKImageView> _emissiveValueTextureView;
-	std::optional<uint32_t> _emissiveValueTextureBindlessIndex;
 
 	glm::vec3 _albedoValue{};
 	float _roughnessValue{};

@@ -195,6 +195,9 @@ void PathTracePass::setupSBT(const PathTracePassInput& input)
 			.metalnessIndex = model.material.getMetalnessTextureBindlessIndex(),
 			.displacementIndex = model.material.getDisplacementTextureBindlessIndex(),
 			.emissiveIndex = model.material.getEmissiveTextureBindlessIndex(),
+			.albedoValue = model.material.getAlbedoValue(),
+			.roughnessValue = model.material.getRoughnessValue(),
+			.metalnessValue = model.material.getMetalnessValue(),
 			.emissiveScale = model.material.getEmissiveScale()
 		};
 		

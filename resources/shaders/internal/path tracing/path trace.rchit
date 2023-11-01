@@ -44,12 +44,15 @@ layout(shaderRecordEXT) buffer uniforms
 	mat4 u_normalMatrix;
 	VertexBuffer u_vertexBuffer;
 	IndexBuffer u_indexBuffer;
-	uint u_albedoIndex;
-	uint u_normalIndex;
-	uint u_roughnessIndex;
-	uint u_metalnessIndex;
-	uint u_displacementIndex;
-	uint u_emissiveIndex;
+	int u_albedoIndex;
+	int u_normalIndex;
+	int u_roughnessIndex;
+	int u_metalnessIndex;
+	int u_displacementIndex;
+	int u_emissiveIndex;
+	vec3 u_albedoValue;
+	float u_roughnessValue;
+	float u_metalnessValue;
 	float u_emissiveScale;
 };
 
@@ -200,13 +203,13 @@ void main()
 	
 	vec2 uv = interpolateBarycentrics(v1.uv, v2.uv, v3.uv, barycentrics);
 	
-	vec3 albedo = texture(u_textures[nonuniformEXT(u_albedoIndex)], uv).rgb;
-	float roughness = texture(u_textures[nonuniformEXT(u_roughnessIndex)], uv).r;
-	float metalness = texture(u_textures[nonuniformEXT(u_metalnessIndex)], uv).r;
-	float emissive = texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r * u_emissiveScale;
+	vec3 albedo = u_albedoIndex >= 0 ? texture(u_textures[nonuniformEXT(u_albedoIndex)], uv).rgb : u_albedoValue;
+	float roughness = u_roughnessIndex >= 0 ? texture(u_textures[nonuniformEXT(u_roughnessIndex)], uv).r : u_roughnessValue;
+	float metalness = u_metalnessIndex >= 0 ? texture(u_textures[nonuniformEXT(u_metalnessIndex)], uv).r : u_metalnessValue;
+	float emissive = (u_emissiveIndex >= 0 ? texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r : 1.0) * u_emissiveScale;
 	
 	vec3 textureNormal = vec3(0);
-	textureNormal.xy = texture(u_textures[nonuniformEXT(u_normalIndex)], uv).rg * 2.0 - 1.0;
+	textureNormal.xy = u_normalIndex >= 0 ? texture(u_textures[nonuniformEXT(u_normalIndex)], uv).rg * 2.0 - 1.0 : vec2(0.0, 0.0);
 	textureNormal.z = sqrt(1 - min(dot(textureNormal.xy, textureNormal.xy), 1));
 	
 	normal = normalize(mat3(tangent, bitangent, normal) * textureNormal);

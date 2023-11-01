@@ -57,12 +57,15 @@ private:
 		GLSL_mat4 normalMatrix;
 		GLSL_DeviceAddress vertexBuffer;
 		GLSL_DeviceAddress indexBuffer;
-		GLSL_uint albedoIndex;
-		GLSL_uint normalIndex;
-		GLSL_uint roughnessIndex;
-		GLSL_uint metalnessIndex;
-		GLSL_uint displacementIndex;
-		GLSL_uint emissiveIndex;
+		GLSL_int albedoIndex;
+		GLSL_int normalIndex;
+		GLSL_int roughnessIndex;
+		GLSL_int metalnessIndex;
+		GLSL_int displacementIndex;
+		GLSL_int emissiveIndex;
+		GLSL_vec3 albedoValue;
+		GLSL_float roughnessValue;
+		GLSL_float metalnessValue;
 		GLSL_float emissiveScale;
 	};
 	

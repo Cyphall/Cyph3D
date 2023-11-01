@@ -18,64 +18,6 @@
 MaterialAsset* MaterialAsset::_defaultMaterial = nullptr;
 MaterialAsset* MaterialAsset::_missingMaterial = nullptr;
 
-static void createVKImageAndView(vk::Format format, VKPtr<VKImage>& image, VKPtr<VKImageView>& imageView)
-{
-	VKImageInfo imageInfo(
-		format,
-		{1, 1},
-		1,
-		1,
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	
-	image = VKImage::create(Engine::getVKContext(), imageInfo);
-	
-	VKImageViewInfo imageViewInfo(
-		image,
-		vk::ImageViewType::e2D);
-	
-	imageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
-}
-
-template<typename T>
-static void uploadImageData(const VKPtr<VKImage>& image, const T& value)
-{
-	VKBufferInfo bufferInfo(1, vk::BufferUsageFlagBits::eTransferSrc);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	
-	VKPtr<VKBuffer<T>> stagingBuffer = VKBuffer<T>::create(Engine::getVKContext(), bufferInfo);
-	
-	std::memcpy(stagingBuffer->getHostPointer(), &value, sizeof(T));
-	
-	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
-		{
-			commandBuffer->imageMemoryBarrier(
-				image,
-				0,
-				0,
-				vk::PipelineStageFlagBits2::eFragmentShader,
-				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
-				vk::ImageLayout::eTransferDstOptimal);
-			
-			commandBuffer->copyBufferToImage(stagingBuffer, 0, image, 0, 0);
-			
-			commandBuffer->imageMemoryBarrier(
-				image,
-				0,
-				0,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
-				vk::PipelineStageFlagBits2::eFragmentShader,
-				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal);
-		});
-}
-
 MaterialAsset::MaterialAsset(AssetManager& manager, const MaterialAssetSignature& signature):
 	RuntimeAsset(manager, signature)
 {
@@ -87,12 +29,12 @@ MaterialAsset::~MaterialAsset()
 
 bool MaterialAsset::isLoaded() const
 {
-	return ((_albedoTexture != nullptr && _albedoTexture->isLoaded()) || _albedoValueTextureBindlessIndex) &&
-	       ((_normalTexture != nullptr && _normalTexture->isLoaded()) || _normalValueTextureBindlessIndex) &&
-	       ((_roughnessTexture != nullptr && _roughnessTexture->isLoaded()) || _roughnessValueTextureBindlessIndex) &&
-	       ((_metalnessTexture != nullptr && _metalnessTexture->isLoaded()) || _metalnessValueTextureBindlessIndex) &&
-	       ((_displacementTexture != nullptr && _displacementTexture->isLoaded()) || _displacementValueTextureBindlessIndex) &&
-	       ((_emissiveTexture != nullptr && _emissiveTexture->isLoaded()) || _emissiveValueTextureBindlessIndex);
+	return (_albedoTexture != nullptr ? _albedoTexture->isLoaded() : true) &&
+	       (_normalTexture != nullptr ? _normalTexture->isLoaded() : true) &&
+	       (_roughnessTexture != nullptr ? _roughnessTexture->isLoaded() : true) &&
+	       (_metalnessTexture != nullptr ? _metalnessTexture->isLoaded() : true) &&
+	       (_displacementTexture != nullptr ? _displacementTexture->isLoaded() : true) &&
+	       (_emissiveTexture != nullptr ? _emissiveTexture->isLoaded() : true);
 }
 
 void MaterialAsset::onDrawUi()
@@ -225,15 +167,6 @@ void MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_albedoValueTexture = {};
-		_albedoValueTextureView = {};
-		
-		if (_albedoValueTextureBindlessIndex)
-		{
-			_manager.getBindlessTextureManager().releaseIndex(*_albedoValueTextureBindlessIndex);
-			_albedoValueTextureBindlessIndex = std::nullopt;
-		}
-		
 		_albedoTexture = _manager.loadTexture(path.value(), ImageType::ColorSrgb);
 		_albedoTextureChangedConnection = _albedoTexture->getChangedSignal().connect([this](){
 			_changed();
@@ -243,38 +176,20 @@ void MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 	{
 		_albedoTexture = nullptr;
 		_albedoTextureChangedConnection = {};
-		
-		if (!_albedoValueTextureBindlessIndex)
-		{
-			createVKImageAndView(vk::Format::eR8G8B8A8Srgb, _albedoValueTexture, _albedoValueTextureView);
-			uploadAlbedoValue(_albedoValue);
-			
-			_albedoValueTextureBindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
-			_manager.getBindlessTextureManager().setTexture(*_albedoValueTextureBindlessIndex, _albedoValueTextureView, _manager.getTextureSampler());
-		}
 	}
 	
 	_changed();
 }
 
-const uint32_t& MaterialAsset::getAlbedoTextureBindlessIndex() const
+int32_t MaterialAsset::getAlbedoTextureBindlessIndex() const
 {
-	return _albedoTexture != nullptr && _albedoTexture->isLoaded() ? _albedoTexture->getBindlessIndex() : *_albedoValueTextureBindlessIndex;
+	return _albedoTexture != nullptr && _albedoTexture->isLoaded() ? _albedoTexture->getBindlessIndex() : -1;
 }
 
 void MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_normalValueTexture = {};
-		_normalValueTextureView = {};
-		
-		if (_normalValueTextureBindlessIndex)
-		{
-			_manager.getBindlessTextureManager().releaseIndex(*_normalValueTextureBindlessIndex);
-			_normalValueTextureBindlessIndex = std::nullopt;
-		}
-		
 		_normalTexture = _manager.loadTexture(*path, ImageType::NormalMap);
 		_normalTextureChangedConnection = _normalTexture->getChangedSignal().connect([this](){
 			_changed();
@@ -284,38 +199,20 @@ void MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 	{
 		_normalTexture = nullptr;
 		_normalTextureChangedConnection = {};
-		
-		if (!_normalValueTextureBindlessIndex)
-		{
-			createVKImageAndView(vk::Format::eR8G8Unorm, _normalValueTexture, _normalValueTextureView);
-			uploadNormalValue({0.5f, 0.5f, 1.0f});
-			
-			_normalValueTextureBindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
-			_manager.getBindlessTextureManager().setTexture(*_normalValueTextureBindlessIndex, _normalValueTextureView, _manager.getTextureSampler());
-		}
 	}
 	
 	_changed();
 }
 
-const uint32_t& MaterialAsset::getNormalTextureBindlessIndex() const
+int32_t MaterialAsset::getNormalTextureBindlessIndex() const
 {
-	return _normalTexture != nullptr && _normalTexture->isLoaded() ? _normalTexture->getBindlessIndex() : *_normalValueTextureBindlessIndex;
+	return _normalTexture != nullptr && _normalTexture->isLoaded() ? _normalTexture->getBindlessIndex() : -1;
 }
 
 void MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_roughnessValueTexture = {};
-		_roughnessValueTextureView = {};
-		
-		if (_roughnessValueTextureBindlessIndex)
-		{
-			_manager.getBindlessTextureManager().releaseIndex(*_roughnessValueTextureBindlessIndex);
-			_roughnessValueTextureBindlessIndex = std::nullopt;
-		}
-		
 		_roughnessTexture = _manager.loadTexture(*path, ImageType::Grayscale);
 		_roughnessTextureChangedConnection = _roughnessTexture->getChangedSignal().connect([this](){
 			_changed();
@@ -325,38 +222,20 @@ void MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
 	{
 		_roughnessTexture = nullptr;
 		_roughnessTextureChangedConnection = {};
-		
-		if (!_roughnessValueTextureBindlessIndex)
-		{
-			createVKImageAndView(vk::Format::eR8Unorm, _roughnessValueTexture, _roughnessValueTextureView);
-			uploadRoughnessValue(_roughnessValue);
-			
-			_roughnessValueTextureBindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
-			_manager.getBindlessTextureManager().setTexture(*_roughnessValueTextureBindlessIndex, _roughnessValueTextureView, _manager.getTextureSampler());
-		}
 	}
 	
 	_changed();
 }
 
-const uint32_t& MaterialAsset::getRoughnessTextureBindlessIndex() const
+int32_t MaterialAsset::getRoughnessTextureBindlessIndex() const
 {
-	return _roughnessTexture != nullptr && _roughnessTexture->isLoaded() ? _roughnessTexture->getBindlessIndex() : *_roughnessValueTextureBindlessIndex;
+	return _roughnessTexture != nullptr && _roughnessTexture->isLoaded() ? _roughnessTexture->getBindlessIndex() : -1;
 }
 
 void MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_metalnessValueTexture = {};
-		_metalnessValueTextureView = {};
-		
-		if (_metalnessValueTextureBindlessIndex)
-		{
-			_manager.getBindlessTextureManager().releaseIndex(*_metalnessValueTextureBindlessIndex);
-			_metalnessValueTextureBindlessIndex = std::nullopt;
-		}
-		
 		_metalnessTexture = _manager.loadTexture(*path, ImageType::Grayscale);
 		_metalnessTextureChangedConnection = _metalnessTexture->getChangedSignal().connect([this](){
 			_changed();
@@ -366,38 +245,20 @@ void MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
 	{
 		_metalnessTexture = nullptr;
 		_metalnessTextureChangedConnection = {};
-		
-		if (!_metalnessValueTextureBindlessIndex)
-		{
-			createVKImageAndView(vk::Format::eR8Unorm, _metalnessValueTexture, _metalnessValueTextureView);
-			uploadMetalnessValue(_metalnessValue);
-			
-			_metalnessValueTextureBindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
-			_manager.getBindlessTextureManager().setTexture(*_metalnessValueTextureBindlessIndex, _metalnessValueTextureView, _manager.getTextureSampler());
-		}
 	}
 	
 	_changed();
 }
 
-const uint32_t& MaterialAsset::getMetalnessTextureBindlessIndex() const
+int32_t MaterialAsset::getMetalnessTextureBindlessIndex() const
 {
-	return _metalnessTexture != nullptr && _metalnessTexture->isLoaded() ? _metalnessTexture->getBindlessIndex() : *_metalnessValueTextureBindlessIndex;
+	return _metalnessTexture != nullptr && _metalnessTexture->isLoaded() ? _metalnessTexture->getBindlessIndex() : -1;
 }
 
 void MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_displacementValueTexture = {};
-		_displacementValueTextureView = {};
-		
-		if (_displacementValueTextureBindlessIndex)
-		{
-			_manager.getBindlessTextureManager().releaseIndex(*_displacementValueTextureBindlessIndex);
-			_displacementValueTextureBindlessIndex = std::nullopt;
-		}
-		
 		_displacementTexture = _manager.loadTexture(*path, ImageType::Grayscale);
 		_displacementTextureChangedConnection = _displacementTexture->getChangedSignal().connect([this](){
 			_changed();
@@ -407,38 +268,20 @@ void MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
 	{
 		_displacementTexture = nullptr;
 		_displacementTextureChangedConnection = {};
-		
-		if (!_displacementValueTextureBindlessIndex)
-		{
-			createVKImageAndView(vk::Format::eR8Unorm, _displacementValueTexture, _displacementValueTextureView);
-			uploadDisplacementValue(1.0f);
-			
-			_displacementValueTextureBindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
-			_manager.getBindlessTextureManager().setTexture(*_displacementValueTextureBindlessIndex, _displacementValueTextureView, _manager.getTextureSampler());
-		}
 	}
 	
 	_changed();
 }
 
-const uint32_t& MaterialAsset::getDisplacementTextureBindlessIndex() const
+int32_t MaterialAsset::getDisplacementTextureBindlessIndex() const
 {
-	return _displacementTexture != nullptr && _displacementTexture->isLoaded() ? _displacementTexture->getBindlessIndex() : *_displacementValueTextureBindlessIndex;
+	return _displacementTexture != nullptr && _displacementTexture->isLoaded() ? _displacementTexture->getBindlessIndex() : -1;
 }
 
 void MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
-		_emissiveValueTexture = {};
-		_emissiveValueTextureView = {};
-		
-		if (_emissiveValueTextureBindlessIndex)
-		{
-			_manager.getBindlessTextureManager().releaseIndex(*_emissiveValueTextureBindlessIndex);
-			_emissiveValueTextureBindlessIndex = std::nullopt;
-		}
-		
 		_emissiveTexture = _manager.loadTexture(*path, ImageType::Grayscale);
 		_emissiveTextureChangedConnection = _emissiveTexture->getChangedSignal().connect([this](){
 			_changed();
@@ -448,23 +291,14 @@ void MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
 	{
 		_emissiveTexture = nullptr;
 		_emissiveTextureChangedConnection = {};
-		
-		if (!_emissiveValueTextureBindlessIndex)
-		{
-			createVKImageAndView(vk::Format::eR8Unorm, _emissiveValueTexture, _emissiveValueTextureView);
-			uploadEmissiveValue(1.0f);
-			
-			_emissiveValueTextureBindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
-			_manager.getBindlessTextureManager().setTexture(*_emissiveValueTextureBindlessIndex, _emissiveValueTextureView, _manager.getTextureSampler());
-		}
 	}
 	
 	_changed();
 }
 
-const uint32_t& MaterialAsset::getEmissiveTextureBindlessIndex() const
+int32_t MaterialAsset::getEmissiveTextureBindlessIndex() const
 {
-	return _emissiveTexture != nullptr && _emissiveTexture->isLoaded() ? _emissiveTexture->getBindlessIndex() : *_emissiveValueTextureBindlessIndex;
+	return _emissiveTexture != nullptr && _emissiveTexture->isLoaded() ? _emissiveTexture->getBindlessIndex() : -1;
 }
 
 const glm::vec3& MaterialAsset::getAlbedoValue() const
@@ -475,11 +309,6 @@ const glm::vec3& MaterialAsset::getAlbedoValue() const
 void MaterialAsset::setAlbedoValue(const glm::vec3& value)
 {
 	_albedoValue = glm::clamp(value, glm::vec3(0.0f), glm::vec3(1.0f));
-	
-	if (_albedoValueTextureBindlessIndex)
-	{
-		uploadAlbedoValue(_albedoValue);
-	}
 	
 	_changed();
 }
@@ -492,11 +321,6 @@ const float& MaterialAsset::getRoughnessValue() const
 void MaterialAsset::setRoughnessValue(const float& value)
 {
 	_roughnessValue = glm::clamp(value, 0.0f, 1.0f);
-
-	if (_roughnessValueTextureBindlessIndex)
-	{
-		uploadRoughnessValue(_roughnessValue);
-	}
 	
 	_changed();
 }
@@ -508,12 +332,7 @@ const float& MaterialAsset::getMetalnessValue() const
 
 void MaterialAsset::setMetalnessValue(const float& value)
 {
-	_metalnessValue = glm::clamp(value, 0.0f, 1.0f);;
-
-	if (_metalnessValueTextureBindlessIndex)
-	{
-		uploadMetalnessValue(_metalnessValue);
-	}
+	_metalnessValue = glm::clamp(value, 0.0f, 1.0f);
 	
 	_changed();
 }
@@ -1018,40 +837,4 @@ void MaterialAsset::reload()
 		default:
 			throw;
 	}
-}
-
-void MaterialAsset::uploadAlbedoValue(const glm::vec3& albedo)
-{
-	glm::u8vec4 uploadValue = glm::u8vec4(glm::round(albedo * 255.0f), 255);
-	uploadImageData(_albedoValueTexture, uploadValue);
-}
-
-void MaterialAsset::uploadNormalValue(const glm::vec3& normal)
-{
-	glm::u8vec2 uploadValue = glm::round(normal * 255.0f);
-	uploadImageData(_normalValueTexture, uploadValue);
-}
-
-void MaterialAsset::uploadRoughnessValue(const float& roughness)
-{
-	uint8_t uploadValue = glm::round(roughness * 255.0f);
-	uploadImageData(_roughnessValueTexture, uploadValue);
-}
-
-void MaterialAsset::uploadMetalnessValue(const float& metalness)
-{
-	uint8_t uploadValue = glm::round(metalness * 255.0f);
-	uploadImageData(_metalnessValueTexture, uploadValue);
-}
-
-void MaterialAsset::uploadDisplacementValue(const float& displacement)
-{
-	uint8_t uploadValue = glm::round(displacement * 255.0f);
-	uploadImageData(_displacementValueTexture, uploadValue);
-}
-
-void MaterialAsset::uploadEmissiveValue(const float& emissive)
-{
-	uint8_t uploadValue = glm::round(emissive * 255.0f);
-	uploadImageData(_emissiveValueTexture, uploadValue);
 }

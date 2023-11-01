@@ -5,12 +5,15 @@ struct ObjectUniforms
 	mat4 normalMatrix;
 	mat4 model;
 	mat4 mvp;
-	uint albedoIndex;
-	uint normalIndex;
-	uint roughnessIndex;
-	uint metalnessIndex;
-	uint displacementIndex;
-	uint emissiveIndex;
+	int albedoIndex;
+	int normalIndex;
+	int roughnessIndex;
+	int metalnessIndex;
+	int displacementIndex;
+	int emissiveIndex;
+	vec3 albedoValue;
+	float roughnessValue;
+	float metalnessValue;
 	float emissiveScale;
 };
 

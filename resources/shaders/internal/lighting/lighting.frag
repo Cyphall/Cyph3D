@@ -33,12 +33,15 @@ struct ObjectUniforms
 	mat4 normalMatrix;
 	mat4 model;
 	mat4 mvp;
-	uint albedoIndex;
-	uint normalIndex;
-	uint roughnessIndex;
-	uint metalnessIndex;
-	uint displacementIndex;
-	uint emissiveIndex;
+	int albedoIndex;
+	int normalIndex;
+	int roughnessIndex;
+	int metalnessIndex;
+	int displacementIndex;
+	int emissiveIndex;
+	vec3 albedoValue;
+	float roughnessValue;
+	float metalnessValue;
 	float emissiveScale;
 };
 
@@ -84,7 +87,7 @@ layout(location = 0) out vec4 o_color;
 
 float getDepth(vec2 texCoords)
 {
-	return 1 - texture(u_textures[u_objectUniforms.displacementIndex], texCoords).r;
+	return u_objectUniforms.displacementIndex >= 0 ? 1.0 - texture(u_textures[u_objectUniforms.displacementIndex], texCoords).r : 0.0;
 }
 
 vec2 POM(vec2 texCoords, vec3 viewDir)
@@ -390,26 +393,26 @@ void main()
 	
 	// ----------------- albedo -----------------
 	
-	vec3 albedo = texture(u_textures[u_objectUniforms.albedoIndex], texCoords).rgb;
+	vec3 albedo = u_objectUniforms.albedoIndex >= 0 ? texture(u_textures[u_objectUniforms.albedoIndex], texCoords).rgb : u_objectUniforms.albedoValue;
 	
 	// ----------------- normal -----------------
 	
 	vec3 normal = vec3(0);
-	normal.xy = texture(u_textures[u_objectUniforms.normalIndex], texCoords).rg * 2.0 - 1.0;
+	normal.xy = u_objectUniforms.normalIndex >= 0 ? texture(u_textures[u_objectUniforms.normalIndex], texCoords).rg * 2.0 - 1.0 : vec2(0.0, 0.0);
 	normal.z = sqrt(1 - min(dot(normal.xy, normal.xy), 1));
 	normal = tangentToWorld * normal;
 	
 	// ----------------- roughness -----------------
 	
-	float roughness = texture(u_textures[u_objectUniforms.roughnessIndex], texCoords).r;
+	float roughness = u_objectUniforms.roughnessIndex >= 0 ? texture(u_textures[u_objectUniforms.roughnessIndex], texCoords).r : u_objectUniforms.roughnessValue;
 	
 	// ----------------- metalness -----------------
 	
-	float metalness = texture(u_textures[u_objectUniforms.metalnessIndex], texCoords).r;
+	float metalness = u_objectUniforms.metalnessIndex >= 0 ? texture(u_textures[u_objectUniforms.metalnessIndex], texCoords).r : u_objectUniforms.metalnessValue;
 	
 	// ----------------- emissive -----------------
 	
-	float emissive = texture(u_textures[u_objectUniforms.emissiveIndex], texCoords).r * u_objectUniforms.emissiveScale;
+	float emissive = (u_objectUniforms.emissiveIndex >= 0 ? texture(u_textures[u_objectUniforms.emissiveIndex], texCoords).r : 1.0) * u_objectUniforms.emissiveScale;
 	
 	// ----------------- geometry normal -----------------
 	
