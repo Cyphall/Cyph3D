@@ -1,1 +1,1 @@
-{"version":2,"pos_x":"skyboxes/desert/px.hdr","neg_x":"skyboxes/desert/nx.hdr","pos_y":"skyboxes/desert/py.hdr","neg_y":"skyboxes/desert/ny.hdr","pos_z":"skyboxes/desert/pz.hdr","neg_z":"skyboxes/desert/nz.hdr"}
+{"version":3,"layout":"equirectangular","pos_x":null,"neg_x":null,"pos_y":null,"neg_y":null,"pos_z":null,"neg_z":null,"equirectangularPath":"skyboxes/desert/goegap_4k.hdr"}

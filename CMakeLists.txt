@@ -256,6 +256,9 @@ add_executable(Cyph3D
 		src/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.h
 		src/Cyph3D/Asset/Processing/ImageCompressor.cpp
 		src/Cyph3D/Asset/Processing/ImageCompressor.h
+		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.cpp
+		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.h
+		src/Cyph3D/Asset/Processing/EquirectangularSkyboxData.h
 )
 
 target_compile_features(Cyph3D PRIVATE cxx_std_20)

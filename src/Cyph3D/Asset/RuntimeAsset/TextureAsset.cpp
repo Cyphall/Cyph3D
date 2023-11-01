@@ -60,7 +60,7 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	for (uint32_t i = 0; i < imageData.levels.size(); i++)
 	{
 		vk::DeviceSize byteSize = _image->getLevelByteSize(i);
-		std::memcpy(ptr, imageData.levels[i].data.data(), byteSize);
+		std::memcpy(ptr, imageData.levels[i].data(), byteSize);
 		ptr += byteSize;
 	}
 	

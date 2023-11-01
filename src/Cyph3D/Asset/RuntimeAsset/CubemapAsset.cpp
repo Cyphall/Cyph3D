@@ -42,54 +42,80 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	
 	vk::Format format;
 	glm::uvec2 size;
-	uint32_t levels;
-	std::array<ImageData, 6> imageDataList;
-	for (uint32_t i = 0; i < 6; i++)
+	std::array<std::vector<std::vector<std::byte>>, 6> faces;
+	if (!_signature.equirectangularPath.empty())
 	{
-		imageDataList[i] = _manager.getAssetProcessor().readImageData(workerData, paths[i].get(), _signature.type);
-		
-		if (i == 0)
+		EquirectangularSkyboxData equirectangularSkyboxData = _manager.getAssetProcessor().readEquirectangularSkyboxData(workerData, _signature.equirectangularPath);
+		format = equirectangularSkyboxData.format;
+		size = equirectangularSkyboxData.size;
+		faces = std::move(equirectangularSkyboxData.faces);
+	}
+	else
+	{
+		uint32_t levels;
+		for (uint32_t i = 0; i < 6; i++)
 		{
-			format = imageDataList[i].format;
-			size = imageDataList[i].size;
-			levels = imageDataList[i].levels.size();
-		}
-		else
-		{
-			if (format != imageDataList[i].format)
-				throw std::runtime_error("All 6 faces of a cubemap must have the same format.");
-			if (size != imageDataList[i].size)
-				throw std::runtime_error("All 6 faces of a cubemap must have the same size.");
-			if (levels != imageDataList[i].levels.size())
-				throw std::runtime_error("All 6 faces of a cubemap must have the same level count.");
+			ImageData imageData = _manager.getAssetProcessor().readImageData(workerData, paths[i].get(), _signature.type);
+			faces[i] = std::move(imageData.levels);
+			
+			if (i == 0)
+			{
+				format = imageData.format;
+				size = imageData.size;
+				levels = imageData.levels.size();
+			}
+			else
+			{
+				if (format != imageData.format)
+					throw std::runtime_error("All 6 faces of a cubemap must have the same format.");
+				if (size != imageData.size)
+					throw std::runtime_error("All 6 faces of a cubemap must have the same size.");
+				if (levels != imageData.levels.size())
+					throw std::runtime_error("All 6 faces of a cubemap must have the same level count.");
+			}
 		}
 	}
 	
-	Logger::info(std::format("Uploading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
-		_signature.xposPath,
-		_signature.xnegPath,
-		_signature.yposPath,
-		_signature.ynegPath,
-		_signature.zposPath,
-		_signature.znegPath,
-		magic_enum::enum_name(_signature.type)));
+	if (!_signature.equirectangularPath.empty())
+	{
+		Logger::info(std::format("Uploading cubemap [equirectangular: {}]...", _signature.equirectangularPath));
+	}
+	else
+	{
+		Logger::info(std::format("Uploading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
+		                         _signature.xposPath,
+		                         _signature.xnegPath,
+		                         _signature.yposPath,
+		                         _signature.ynegPath,
+		                         _signature.zposPath,
+		                         _signature.znegPath,
+		                         magic_enum::enum_name(_signature.type)));
+	}
 	
 	// create cubemap
 	VKImageInfo imageInfo(
 		format,
 		size,
 		6,
-		levels,
+		faces[0].size(),
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.enableCubeCompatibility();
-	imageInfo.setName(std::format("{}|{}|{}|{}|{}|{}",
-		  _signature.xposPath,
-          _signature.xnegPath,
-          _signature.yposPath,
-          _signature.ynegPath,
-          _signature.zposPath,
-          _signature.znegPath));
+	
+	if (!_signature.equirectangularPath.empty())
+	{
+		imageInfo.setName(_signature.equirectangularPath);
+	}
+	else
+	{
+		imageInfo.setName(std::format("{}|{}|{}|{}|{}|{}",
+		                              _signature.xposPath,
+		                              _signature.xnegPath,
+		                              _signature.yposPath,
+		                              _signature.ynegPath,
+		                              _signature.zposPath,
+		                              _signature.znegPath));
+	}
 	
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 	
@@ -105,10 +131,10 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	{
 		// copy face data to staging buffer
 		std::byte* ptr = stagingBuffer->getHostPointer();
-		for (uint32_t i = 0; i < imageDataList[face].levels.size(); i++)
+		for (uint32_t level = 0; level < faces[face].size(); level++)
 		{
-			vk::DeviceSize byteSize = _image->getLevelByteSize(i);
-			std::memcpy(ptr, imageDataList[face].levels[i].data.data(), byteSize);
+			vk::DeviceSize byteSize = _image->getLevelByteSize(level);
+			std::memcpy(ptr, faces[face][level].data(), byteSize);
 			ptr += byteSize;
 		}
 		
@@ -156,12 +182,19 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	_changed();
 
 	_loaded = true;
-	Logger::info(std::format("Cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})] uploaded succesfully",
-		_signature.xposPath,
-		_signature.xnegPath,
-		_signature.yposPath,
-		_signature.ynegPath,
-		_signature.zposPath,
-		_signature.znegPath,
-		magic_enum::enum_name(_signature.type)));
+	if (!_signature.equirectangularPath.empty())
+	{
+		Logger::info(std::format("Cubemap [equirectangular: {}] uploaded succesfully", _signature.equirectangularPath));
+	}
+	else
+	{
+		Logger::info(std::format("Cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})] uploaded succesfully",
+		                         _signature.xposPath,
+		                         _signature.xnegPath,
+		                         _signature.yposPath,
+		                         _signature.ynegPath,
+		                         _signature.zposPath,
+		                         _signature.znegPath,
+		                         magic_enum::enum_name(_signature.type)));
+	}
 }

@@ -31,6 +31,7 @@ public:
 
 	TextureAsset* loadTexture(std::string_view path, ImageType type);
 	CubemapAsset* loadCubemap(std::string_view xposPath, std::string_view xnegPath, std::string_view yposPath, std::string_view ynegPath, std::string_view zposPath, std::string_view znegPath, ImageType type);
+	CubemapAsset* loadCubemap(std::string_view equirectangularPath);
 	MeshAsset* loadMesh(std::string_view path);
 	MaterialAsset* loadMaterial(std::string_view path);
 	SkyboxAsset* loadSkybox(std::string_view path);

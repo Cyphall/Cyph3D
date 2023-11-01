@@ -13,14 +13,9 @@ enum class ImageType
 	Skybox
 };
 
-struct ImageLevel
-{
-	std::vector<std::byte> data;
-};
-
 struct ImageData
 {
 	vk::Format format;
 	glm::uvec2 size;
-	std::vector<ImageLevel> levels;
+	std::vector<std::vector<std::byte>> levels; // Level<Data>
 };

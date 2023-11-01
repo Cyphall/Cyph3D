@@ -11,3 +11,9 @@ MeshData AssetProcessor::readMeshData(AssetManagerWorkerData& workerData, std::s
 	std::string cachePath = _database.getMeshCachePath(path);
 	return _meshProcessor.readMeshData(workerData, path, cachePath);
 }
+
+EquirectangularSkyboxData AssetProcessor::readEquirectangularSkyboxData(AssetManagerWorkerData& workerData, std::string_view path)
+{
+	std::string cachePath = _database.getEquirectangularSkyboxCachePath(path);
+	return _equirectangularSkyboxProcessor.readEquirectangularSkyboxData(workerData, path, cachePath);
+}

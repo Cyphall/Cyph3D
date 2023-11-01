@@ -46,6 +46,15 @@ AssetProcessingCacheDatabase::AssetProcessingCacheDatabase()
 		"	lastWriteTime BIGINT NOT NULL,\n"
 		"	UNIQUE(path, lastWriteTime)\n"
 		") WITHOUT ROWID;");
+	
+	_database->exec(
+		"CREATE TABLE IF NOT EXISTS EquirectangularSkybox\n"
+		"(\n"
+		"	guid BINARY(16) NOT NULL PRIMARY KEY,\n"
+		"	path TEXT NOT NULL,\n"
+		"	lastWriteTime BIGINT NOT NULL,\n"
+		"	UNIQUE(path, lastWriteTime)\n"
+		") WITHOUT ROWID;");
 }
 
 AssetProcessingCacheDatabase::~AssetProcessingCacheDatabase()
@@ -158,5 +167,59 @@ std::string AssetProcessingCacheDatabase::getMeshCachePath(std::string_view path
 		updateQuery.exec();
 	}
 
+	return cachePath;
+}
+
+std::string AssetProcessingCacheDatabase::getEquirectangularSkyboxCachePath(std::string_view path)
+{
+	int64_t currentLastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
+	
+	SQLite::Statement selectQuery(*_database,
+	                              "SELECT guid, lastWriteTime FROM EquirectangularSkybox\n"
+	                              "WHERE path=?;");
+	
+	selectQuery.bind(1, path.data(), path.size());
+	
+	xg::Guid guid;
+	int64_t lastWriteTime;
+	
+	if (selectQuery.executeStep())
+	{
+		guid = columnToGuid(selectQuery.getColumn(0));
+		lastWriteTime = selectQuery.getColumn(1).getInt64();
+	}
+	else
+	{
+		guid = xg::newGuid();
+		lastWriteTime = currentLastWriteTime;
+		
+		SQLite::Statement insertQuery(*_database,
+		                              "INSERT INTO EquirectangularSkybox\n"
+		                              "VALUES(?, ?, ?);");
+		
+		insertQuery.bind(1, guid.bytes().data(), guid.bytes().size());
+		insertQuery.bind(2, path.data(), path.size());
+		insertQuery.bind(3, lastWriteTime);
+		
+		insertQuery.exec();
+	}
+	
+	std::string cachePath = std::format("equirectangularSkyboxes/{}.c3dcache", guid.str());
+	
+	if (currentLastWriteTime != lastWriteTime)
+	{
+		std::filesystem::remove(FileHelper::getCacheAssetDirectoryPath() / cachePath);
+		
+		SQLite::Statement updateQuery(*_database,
+		                              "UPDATE EquirectangularSkybox\n"
+		                              "SET lastWriteTime=?\n"
+		                              "WHERE guid=?;");
+		
+		updateQuery.bind(1, currentLastWriteTime);
+		updateQuery.bind(2, guid.bytes().data(), guid.bytes().size());
+		
+		updateQuery.exec();
+	}
+	
 	return cachePath;
 }

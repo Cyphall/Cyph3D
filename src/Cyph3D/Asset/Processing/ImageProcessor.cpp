@@ -43,7 +43,7 @@ static void writeProcessedImage(const std::filesystem::path& path, const ImageDa
 	
 	for (uint32_t i = 0; i < levels; i++)
 	{
-		FileHelper::write(file, imageData.levels[i].data);
+		FileHelper::write(file, imageData.levels[i]);
 	}
 }
 
@@ -69,7 +69,7 @@ static bool readProcessedImage(const std::filesystem::path& path, ImageData& ima
 	imageData.levels.resize(levels);
 	for (uint32_t i = 0; i < levels; i++)
 	{
-		FileHelper::read(file, imageData.levels[i].data);
+		FileHelper::read(file, imageData.levels[i]);
 	}
 
 	return true;
@@ -114,14 +114,13 @@ ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format reques
 	compressedImageData.size = mipmappedImageData.size;
 	
 	glm::uvec2 size = mipmappedImageData.size;
-	for (const ImageLevel& level : mipmappedImageData.levels)
+	for (const std::vector<std::byte>& level : mipmappedImageData.levels)
 	{
 		std::vector<std::byte> compressedData;
-		if (!ImageCompressor::tryCompressImage(level.data, size, requestedFormat, compressedData))
+		if (!ImageCompressor::tryCompressImage(level, size, requestedFormat, compressedData))
 			break;
 		
-		ImageLevel& compressedLevel = compressedImageData.levels.emplace_back();
-		compressedLevel.data = std::move(compressedData);
+		compressedImageData.levels.emplace_back(std::move(compressedData));
 		
 		size = glm::max(size / 2u, glm::uvec2(1, 1));
 	}
@@ -458,11 +457,11 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	std::byte* ptr = stagingBuffer->getHostPointer();
 	for (uint32_t i = 0; i < imageData.levels.size(); i++)
 	{
-		imageData.levels[i].data.resize(texture->getLevelByteSize(i));
+		imageData.levels[i].resize(texture->getLevelByteSize(i));
 		
-		std::memcpy(imageData.levels[i].data.data(), ptr, imageData.levels[i].data.size());
+		std::memcpy(imageData.levels[i].data(), ptr, imageData.levels[i].size());
 		
-		ptr += imageData.levels[i].data.size();
+		ptr += imageData.levels[i].size();
 	}
 	
 	return imageData;

@@ -7,6 +7,8 @@
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Window.h"
 
+#include <magic_enum.hpp>
+
 SkyboxAsset::SkyboxAsset(AssetManager& manager, const SkyboxAssetSignature& signature):
 	RuntimeAsset(manager, signature)
 {
@@ -39,79 +41,131 @@ void SkyboxAsset::onDrawUi()
 	{
 		save();
 	}
-
+	
 	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	
+	if (ImGui::BeginCombo("Layout", magic_enum::enum_name(_layout).data()))
 	{
-		ImGuiHelper::BeginGroupPanel("Positive X");
-
-		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getXposPath(), "Image", "asset_image", newPath))
+		for (Layout layout : magic_enum::enum_values<Layout>())
 		{
-			setXposPath(newPath);
+			bool isSelected = (layout == _layout);
+			if (ImGui::Selectable(magic_enum::enum_name(layout).data(), isSelected))
+			{
+				setLayout(layout);
+			}
+			
+			if (isSelected)
+				ImGui::SetItemDefaultFocus();
 		}
-
-		ImGuiHelper::EndGroupPanel();
+		ImGui::EndCombo();
 	}
-	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+
+	switch (_layout)
 	{
-		ImGuiHelper::BeginGroupPanel("Negative X");
-
-		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getXnegPath(), "Image", "asset_image", newPath))
-		{
-			setXnegPath(newPath);
-		}
-
-		ImGuiHelper::EndGroupPanel();
+		case Layout::Cubemap:
+			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+			{
+				ImGuiHelper::BeginGroupPanel("Positive X");
+				
+				std::optional<std::string_view> newPath;
+				if (ImGuiHelper::AssetInputWidget(getXposPath(), "Image", "asset_image", newPath))
+				{
+					setXposPath(newPath);
+				}
+				
+				ImGuiHelper::EndGroupPanel();
+			}
+			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+			{
+				ImGuiHelper::BeginGroupPanel("Negative X");
+				
+				std::optional<std::string_view> newPath;
+				if (ImGuiHelper::AssetInputWidget(getXnegPath(), "Image", "asset_image", newPath))
+				{
+					setXnegPath(newPath);
+				}
+				
+				ImGuiHelper::EndGroupPanel();
+			}
+			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+			{
+				ImGuiHelper::BeginGroupPanel("Positive Y");
+				
+				std::optional<std::string_view> newPath;
+				if (ImGuiHelper::AssetInputWidget(getYposPath(), "Image", "asset_image", newPath))
+				{
+					setYposPath(newPath);
+				}
+				
+				ImGuiHelper::EndGroupPanel();
+			}
+			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+			{
+				ImGuiHelper::BeginGroupPanel("Negative Y");
+				
+				std::optional<std::string_view> newPath;
+				if (ImGuiHelper::AssetInputWidget(getYnegPath(), "Image", "asset_image", newPath))
+				{
+					setYnegPath(newPath);
+				}
+				
+				ImGuiHelper::EndGroupPanel();
+			}
+			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+			{
+				ImGuiHelper::BeginGroupPanel("Positive Z");
+				
+				std::optional<std::string_view> newPath;
+				if (ImGuiHelper::AssetInputWidget(getZposPath(), "Image", "asset_image", newPath))
+				{
+					setZposPath(newPath);
+				}
+				
+				ImGuiHelper::EndGroupPanel();
+			}
+			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+			{
+				ImGuiHelper::BeginGroupPanel("Negative Z");
+				
+				std::optional<std::string_view> newPath;
+				if (ImGuiHelper::AssetInputWidget(getZnegPath(), "Image", "asset_image", newPath))
+				{
+					setZnegPath(newPath);
+				}
+				
+				ImGuiHelper::EndGroupPanel();
+			}
+			break;
+		case Layout::Equirectangular:
+			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+			{
+				ImGuiHelper::BeginGroupPanel("Equirectangular");
+				
+				std::optional<std::string_view> newPath;
+				if (ImGuiHelper::AssetInputWidget(getEquirectangularPath(), "Image", "asset_image", newPath))
+				{
+					setEquirectangularPath(newPath);
+				}
+				
+				ImGuiHelper::EndGroupPanel();
+			}
+			break;
+		default:
+			throw;
 	}
-	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
-	{
-		ImGuiHelper::BeginGroupPanel("Positive Y");
+}
 
-		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getYposPath(), "Image", "asset_image", newPath))
-		{
-			setYposPath(newPath);
-		}
+const SkyboxAsset::Layout& SkyboxAsset::getLayout() const
+{
+	return _layout;
+}
 
-		ImGuiHelper::EndGroupPanel();
-	}
-	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
-	{
-		ImGuiHelper::BeginGroupPanel("Negative Y");
-
-		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getYnegPath(), "Image", "asset_image", newPath))
-		{
-			setYnegPath(newPath);
-		}
-
-		ImGuiHelper::EndGroupPanel();
-	}
-	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
-	{
-		ImGuiHelper::BeginGroupPanel("Positive Z");
-
-		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getZposPath(), "Image", "asset_image", newPath))
-		{
-			setZposPath(newPath);
-		}
-
-		ImGuiHelper::EndGroupPanel();
-	}
-	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
-	{
-		ImGuiHelper::BeginGroupPanel("Negative Z");
-
-		std::optional<std::string_view> newPath;
-		if (ImGuiHelper::AssetInputWidget(getZnegPath(), "Image", "asset_image", newPath))
-		{
-			setZnegPath(newPath);
-		}
-
-		ImGuiHelper::EndGroupPanel();
-	}
+void SkyboxAsset::setLayout(const SkyboxAsset::Layout& layout)
+{
+	_layout = layout;
+	onChanged();
+	
+	_changed();
 }
 
 const std::string* SkyboxAsset::getXposPath() const
@@ -122,7 +176,7 @@ const std::string* SkyboxAsset::getXposPath() const
 void SkyboxAsset::setXposPath(std::optional<std::string_view> path)
 {
 	_xposPath = path;
-	onPathChange();
+	onChanged();
 	
 	_changed();
 }
@@ -135,7 +189,7 @@ const std::string* SkyboxAsset::getXnegPath() const
 void SkyboxAsset::setXnegPath(std::optional<std::string_view> path)
 {
 	_xnegPath = path;
-	onPathChange();
+	onChanged();
 	
 	_changed();
 }
@@ -148,7 +202,7 @@ const std::string* SkyboxAsset::getYposPath() const
 void SkyboxAsset::setYposPath(std::optional<std::string_view> path)
 {
 	_yposPath = path;
-	onPathChange();
+	onChanged();
 	
 	_changed();
 }
@@ -161,7 +215,7 @@ const std::string* SkyboxAsset::getYnegPath() const
 void SkyboxAsset::setYnegPath(std::optional<std::string_view> path)
 {
 	_ynegPath = path;
-	onPathChange();
+	onChanged();
 	
 	_changed();
 }
@@ -174,7 +228,7 @@ const std::string* SkyboxAsset::getZposPath() const
 void SkyboxAsset::setZposPath(std::optional<std::string_view> path)
 {
 	_zposPath = path;
-	onPathChange();
+	onChanged();
 	
 	_changed();
 }
@@ -187,7 +241,20 @@ const std::string* SkyboxAsset::getZnegPath() const
 void SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
 {
 	_znegPath = path;
-	onPathChange();
+	onChanged();
+	
+	_changed();
+}
+
+const std::string* SkyboxAsset::getEquirectangularPath() const
+{
+	return _equirectangularPath.has_value() ? &_equirectangularPath.value() : nullptr;
+}
+
+void SkyboxAsset::setEquirectangularPath(std::optional<std::string_view> path)
+{
+	_equirectangularPath = path;
+	onChanged();
 	
 	_changed();
 }
@@ -214,6 +281,7 @@ void SkyboxAsset::create(std::string_view path)
 
 void SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
+	setLayout(Layout::Cubemap);
 	setXposPath(jsonRoot["pos_x"].get<std::string>());
 	setXnegPath(jsonRoot["neg_x"].get<std::string>());
 	setYposPath(jsonRoot["pos_y"].get<std::string>());
@@ -224,6 +292,8 @@ void SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot
 
 void SkyboxAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
 {
+	setLayout(Layout::Cubemap);
+	
 	{
 		const nlohmann::ordered_json& path = jsonRoot["pos_x"];
 		if (!path.is_null())
@@ -297,10 +367,125 @@ void SkyboxAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot
 	}
 }
 
+void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
+{
+	{
+		const nlohmann::ordered_json& layout = jsonRoot["layout"];
+		if (layout == "cubemap")
+		{
+			setLayout(Layout::Cubemap);
+		}
+		else if (layout == "equirectangular")
+		{
+			setLayout(Layout::Equirectangular);
+		}
+		else
+		{
+			throw;
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& path = jsonRoot["pos_x"];
+		if (!path.is_null())
+		{
+			setXposPath(path.get<std::string>());
+		}
+		else
+		{
+			setXposPath(std::nullopt);
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& path = jsonRoot["neg_x"];
+		if (!path.is_null())
+		{
+			setXnegPath(path.get<std::string>());
+		}
+		else
+		{
+			setXnegPath(std::nullopt);
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& path = jsonRoot["pos_y"];
+		if (!path.is_null())
+		{
+			setYposPath(path.get<std::string>());
+		}
+		else
+		{
+			setYposPath(std::nullopt);
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& path = jsonRoot["neg_y"];
+		if (!path.is_null())
+		{
+			setYnegPath(path.get<std::string>());
+		}
+		else
+		{
+			setYnegPath(std::nullopt);
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& path = jsonRoot["pos_z"];
+		if (!path.is_null())
+		{
+			setZposPath(path.get<std::string>());
+		}
+		else
+		{
+			setZposPath(std::nullopt);
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& path = jsonRoot["neg_z"];
+		if (!path.is_null())
+		{
+			setZnegPath(path.get<std::string>());
+		}
+		else
+		{
+			setZnegPath(std::nullopt);
+		}
+	}
+	
+	{
+		const nlohmann::ordered_json& path = jsonRoot["equirectangularPath"];
+		if (!path.is_null())
+		{
+			setEquirectangularPath(path.get<std::string>());
+		}
+		else
+		{
+			setEquirectangularPath(std::nullopt);
+		}
+	}
+}
+
 void SkyboxAsset::save() const
 {
 	nlohmann::ordered_json jsonRoot;
-	jsonRoot["version"] = 2;
+	jsonRoot["version"] = 3;
+	
+	switch (_layout)
+	{
+		case Layout::Cubemap:
+			jsonRoot["layout"] = "cubemap";
+			break;
+		case Layout::Equirectangular:
+			jsonRoot["layout"] = "equirectangular";
+			break;
+		default:
+			throw;
+	}
 
 	{
 		const std::string* path = getXposPath();
@@ -374,6 +559,18 @@ void SkyboxAsset::save() const
 		}
 	}
 	
+	{
+		const std::string* path = getEquirectangularPath();
+		if (path != nullptr)
+		{
+			jsonRoot["equirectangularPath"] = *path;
+		}
+		else
+		{
+			jsonRoot["equirectangularPath"] = nullptr;
+		}
+	}
+	
 	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / _signature.path);
 }
 
@@ -400,14 +597,17 @@ void SkyboxAsset::reload()
 		case 2:
 			deserializeFromVersion2(jsonRoot);
 			break;
+		case 3:
+			deserializeFromVersion3(jsonRoot);
+			break;
 		default:
 			throw;
 	}
 }
 
-void SkyboxAsset::onPathChange()
+void SkyboxAsset::onChanged()
 {
-	if (_xposPath && _xnegPath && _yposPath && _ynegPath && _zposPath && _znegPath)
+	if (_layout == Layout::Cubemap && _xposPath && _xnegPath && _yposPath && _ynegPath && _zposPath && _znegPath)
 	{
 		_cubemap = _manager.loadCubemap(
 			_xposPath.value(),
@@ -418,6 +618,13 @@ void SkyboxAsset::onPathChange()
 			_zposPath.value(),
 			ImageType::Skybox
 		);
+		_cubemapChangedConnection = _cubemap->getChangedSignal().connect([this](){
+			_changed();
+		});
+	}
+	else if (_layout == Layout::Equirectangular && _equirectangularPath)
+	{
+		_cubemap = _manager.loadCubemap(_equirectangularPath.value());
 		_cubemapChangedConnection = _cubemap->getChangedSignal().connect([this](){
 			_changed();
 		});

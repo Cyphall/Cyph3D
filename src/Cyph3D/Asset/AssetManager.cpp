@@ -124,6 +124,20 @@ CubemapAsset* AssetManager::loadCubemap(std::string_view xposPath, std::string_v
 	return it->second.get();
 }
 
+CubemapAsset* AssetManager::loadCubemap(std::string_view equirectangularPath)
+{
+	CubemapAssetSignature signature;
+	signature.equirectangularPath = equirectangularPath;
+	
+	auto it = _cubemaps.find(signature);
+	if (it == _cubemaps.end())
+	{
+		it = _cubemaps.try_emplace(signature, std::unique_ptr<CubemapAsset>(new CubemapAsset(*this, signature))).first;
+	}
+	
+	return it->second.get();
+}
+
 MeshAsset* AssetManager::loadMesh(std::string_view path)
 {
 	MeshAssetSignature signature;

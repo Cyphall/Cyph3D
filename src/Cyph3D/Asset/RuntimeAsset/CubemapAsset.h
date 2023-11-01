@@ -21,6 +21,7 @@ struct CubemapAssetSignature
 	std::string ynegPath;
 	std::string zposPath;
 	std::string znegPath;
+	std::string equirectangularPath;
 	ImageType type;
 
 	bool operator==(const CubemapAssetSignature& other) const = default;
@@ -38,6 +39,7 @@ struct std::hash<CubemapAssetSignature>
 			.hash(key.ynegPath)
 			.hash(key.zposPath)
 			.hash(key.znegPath)
+			.hash(key.equirectangularPath)
 			.hash(key.type)
 			.get();
 	}
