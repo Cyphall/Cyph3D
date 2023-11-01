@@ -264,6 +264,8 @@ add_executable(Cyph3D
 
 target_compile_features(Cyph3D PRIVATE cxx_std_20)
 
+target_precompile_headers(Cyph3D PRIVATE <vulkan/vulkan.hpp>)
+
 target_include_directories(Cyph3D PRIVATE "src")
 
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
