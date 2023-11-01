@@ -55,6 +55,16 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		allocationCreateInfo.preferredFlags = _info.getPreferredMemoryProperties();
 		
 		std::tie(_handle, _imageAlloc) = _context.getVmaAllocator().createImage(createInfo, allocationCreateInfo);
+		
+		if (_info.hasName())
+		{
+			vk::DebugUtilsObjectNameInfoEXT objectNameInfo;
+			objectNameInfo.objectType = vk::ObjectType::eImage;
+			objectNameInfo.objectHandle = reinterpret_cast<uintptr_t>(static_cast<VkImage>(_handle));
+			objectNameInfo.pObjectName = _info.getName().c_str();
+			
+			_context.getDevice().setDebugUtilsObjectNameEXT(objectNameInfo);
+		}
 	}
 	
 	uint32_t layers = _info.getLayers();

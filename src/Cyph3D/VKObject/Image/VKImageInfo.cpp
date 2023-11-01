@@ -95,3 +95,18 @@ const vk::SampleCountFlagBits& VKImageInfo::getSampleCount() const
 {
 	return _sampleCount;
 }
+
+void VKImageInfo::setName(std::string_view name)
+{
+	_name = name;
+}
+
+bool VKImageInfo::hasName() const
+{
+	return _name.has_value();
+}
+
+const std::string& VKImageInfo::getName() const
+{
+	return _name.value();
+}

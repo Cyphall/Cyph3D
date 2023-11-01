@@ -139,6 +139,7 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 	
 	VKBufferInfo backingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
 	backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	backingBufferInfo.setName("TLAS buffer");
 	VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
 	
 	_tlas = VKAccelerationStructure::create(
@@ -265,6 +266,7 @@ void PathTracePass::createImage()
 			1,
 			vk::ImageUsageFlagBits::eStorage);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		imageInfo.setName("Raw render image");
 		
 		_rawRenderImage[i] = VKImage::create(Engine::getVKContext(), imageInfo);
 		

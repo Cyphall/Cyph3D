@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <optional>
 
 class VKResizableBufferInfo
 {
@@ -19,10 +20,15 @@ public:
 	
 	void setRequiredAlignment(vk::DeviceSize requiredAlignment);
 	const vk::DeviceSize& getRequiredAlignment() const;
+	
+	void setName(std::string_view name);
+	bool hasName() const;
+	const std::string& getName() const;
 
 private:
 	vk::BufferUsageFlags _usage;
 	vk::MemoryPropertyFlags _requiredMemoryProperties = {};
 	vk::MemoryPropertyFlags _preferredMemoryProperties = {};
 	vk::DeviceSize _requiredAlignment = 1;
+	std::optional<std::string> _name;
 };

@@ -39,6 +39,10 @@ public:
 	
 	void setSampleCount(vk::SampleCountFlagBits sampleCount);
 	const vk::SampleCountFlagBits& getSampleCount() const;
+	
+	void setName(std::string_view name);
+	bool hasName() const;
+	const std::string& getName() const;
 
 private:
 	vk::Format _format;
@@ -52,4 +56,5 @@ private:
 	std::vector<vk::Format> _compatibleViewFormats;
 	std::optional<vk::Image> _swapchainImageHandle;
 	vk::SampleCountFlagBits _sampleCount = vk::SampleCountFlagBits::e1;
+	std::optional<std::string> _name;
 };

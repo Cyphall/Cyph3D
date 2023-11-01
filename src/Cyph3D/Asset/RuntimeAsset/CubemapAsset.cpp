@@ -84,6 +84,13 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.enableCubeCompatibility();
+	imageInfo.setName(std::format("{}|{}|{}|{}|{}|{}",
+		  _signature.xposPath,
+          _signature.xnegPath,
+          _signature.yposPath,
+          _signature.ynegPath,
+          _signature.zposPath,
+          _signature.znegPath));
 	
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 	

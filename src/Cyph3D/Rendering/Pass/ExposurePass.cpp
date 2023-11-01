@@ -142,6 +142,7 @@ void ExposurePass::createImage()
 		1,
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	imageInfo.setName("Exposure output image");
 	
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	

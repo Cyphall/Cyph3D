@@ -95,6 +95,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 		positionVertexBufferInfo.setRequiredAlignment(positionVertexBufferAlignment);
+		positionVertexBufferInfo.setName(std::format("{}.PositionVertexBuffer", _signature.path));
 		
 		_positionVertexBuffer = VKBuffer<PositionVertexData>::create(Engine::getVKContext(), positionVertexBufferInfo);
 		
@@ -114,6 +115,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 		fullVertexBufferInfo.setRequiredAlignment(fullVertexBufferAlignment);
+		fullVertexBufferInfo.setName(std::format("{}.FullVertexBuffer", _signature.path));
 		
 		_fullVertexBuffer = VKBuffer<FullVertexData>::create(Engine::getVKContext(), fullVertexBufferInfo);
 		
@@ -133,6 +135,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 		indexBufferInfo.setRequiredAlignment(indexBufferAlignment);
+		indexBufferInfo.setName(std::format("{}.IndexBuffer", _signature.path));
 		
 		_indexBuffer = VKBuffer<uint32_t>::create(Engine::getVKContext(), indexBufferInfo);
 		
@@ -189,6 +192,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		
 		VKBufferInfo backingBufferInfo(compactedSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
 		backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		backingBufferInfo.setName(std::format("{}.AccelerationStructureBuffer", _signature.path));
 		
 		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
 		

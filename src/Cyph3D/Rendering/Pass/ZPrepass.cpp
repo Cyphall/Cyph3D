@@ -124,6 +124,7 @@ void ZPrepass::createImage()
 		vk::ImageUsageFlagBits::eDepthStencilAttachment);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
+	imageInfo.setName("Depth image");
 	
 	_depthImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	

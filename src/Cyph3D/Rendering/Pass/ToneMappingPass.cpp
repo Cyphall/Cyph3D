@@ -139,6 +139,7 @@ void ToneMappingPass::createImage()
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.addAdditionalCompatibleViewFormat(LINEAR_OUTPUT_FORMAT);
+	imageInfo.setName("Tone mapping output image");
 	
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	

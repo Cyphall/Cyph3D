@@ -44,6 +44,7 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		imageData.levels.size(),
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	imageInfo.setName(_signature.path);
 	
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 	

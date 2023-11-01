@@ -262,6 +262,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 		1,
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	imageInfo.setName("ImGui fonts texture");
 	
 	_fontsTexture = VKImage::create(Engine::getVKContext(), imageInfo);
 	
@@ -309,6 +310,7 @@ void ImGuiVulkanBackend::createBuffers()
 		info.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 		info.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 		info.addPreferredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		info.setName("ImGui vertex buffer");
 		
 		_vertexBuffer = VKDynamic<VKResizableBuffer<ImDrawVert>>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{
@@ -321,6 +323,7 @@ void ImGuiVulkanBackend::createBuffers()
 		info.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 		info.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 		info.addPreferredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		info.setName("ImGui index buffer");
 		
 		_indexBuffer = VKDynamic<VKResizableBuffer<ImDrawIdx>>(Engine::getVKContext(), [&](VKContext& context, int index)
 		{

@@ -18,6 +18,7 @@ ShadowMapManager::DirectionalShadowMapData ShadowMapManager::allocateDirectional
 			1,
 			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		imageInfo.setName("Directional light shadow map");
 
 		VKPtr<VKImage> shadowMap = VKImage::create(Engine::getVKContext(), imageInfo);
 
@@ -50,6 +51,7 @@ ShadowMapManager::PointShadowMapData ShadowMapManager::allocatePointShadowMap(ui
 			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.enableCubeCompatibility();
+		imageInfo.setName("Point light shadow map");
 		
 		VKPtr<VKImage> shadowMap = VKImage::create(Engine::getVKContext(), imageInfo);
 		

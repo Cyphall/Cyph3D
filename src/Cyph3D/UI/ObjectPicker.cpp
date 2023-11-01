@@ -176,6 +176,7 @@ void ObjectPicker::createBuffer()
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+	bufferInfo.setName("Object picker readback buffer");
 	
 	_readbackBuffer = VKBuffer<int32_t>::create(Engine::getVKContext(), bufferInfo);
 }

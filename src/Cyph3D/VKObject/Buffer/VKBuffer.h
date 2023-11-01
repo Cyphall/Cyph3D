@@ -86,6 +86,16 @@ private:
 			
 			_deviceAddress = _context.getDevice().getBufferAddress(bufferDeviceAddressInfo);
 		}
+		
+		if (_info.hasName())
+		{
+			vk::DebugUtilsObjectNameInfoEXT objectNameInfo;
+			objectNameInfo.objectType = vk::ObjectType::eBuffer;
+			objectNameInfo.objectHandle = reinterpret_cast<uintptr_t>(static_cast<VkBuffer>(_buffer));
+			objectNameInfo.pObjectName = _info.getName().c_str();
+			
+			_context.getDevice().setDebugUtilsObjectNameEXT(objectNameInfo);
+		}
 	}
 	
 	VKBufferInfo _info;

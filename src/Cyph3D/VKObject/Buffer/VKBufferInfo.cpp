@@ -55,3 +55,18 @@ const vk::DeviceSize& VKBufferInfo::getRequiredAlignment() const
 {
 	return _requiredAlignment;
 }
+
+void VKBufferInfo::setName(std::string_view name)
+{
+	_name = name;
+}
+
+bool VKBufferInfo::hasName() const
+{
+	return _name.has_value();
+}
+
+const std::string& VKBufferInfo::getName() const
+{
+	return _name.value();
+}

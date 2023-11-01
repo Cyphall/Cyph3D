@@ -98,6 +98,7 @@ void NormalizationPass::createImage()
 		1,
 		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	imageInfo.setName("Normalization output image");
 	
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	

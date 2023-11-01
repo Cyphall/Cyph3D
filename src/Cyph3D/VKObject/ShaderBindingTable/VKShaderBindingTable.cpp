@@ -43,6 +43,7 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	bufferInfo.setRequiredAlignment(_context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
+	bufferInfo.setName("SBT buffer");
 	
 	_buffer = VKBuffer<std::byte>::create(context, bufferInfo);
 	

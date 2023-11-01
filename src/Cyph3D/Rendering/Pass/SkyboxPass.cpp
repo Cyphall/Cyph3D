@@ -137,6 +137,7 @@ void SkyboxPass::createImages()
 			1,
 			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		imageInfo.setName("Resolved raw render image");
 		
 		_resolvedRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
 		
@@ -198,6 +199,7 @@ void SkyboxPass::createBuffer()
 	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	vertexBufferInfo.setName("Skybox vertex buffer");
 	
 	_vertexBuffer = VKBuffer<VertexData>::create(Engine::getVKContext(), vertexBufferInfo);
 	

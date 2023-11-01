@@ -195,6 +195,7 @@ void LightingPass::createUniformBuffers()
 	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	directionalLightsUniformsBufferInfo.setName("Directional lights uniform buffer");
 	
 	_directionalLightsUniforms = VKDynamic<VKResizableBuffer<DirectionalLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
@@ -205,6 +206,7 @@ void LightingPass::createUniformBuffers()
 	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	pointLightsUniformsBufferInfo.setName("Point lights uniform buffer");
 	
 	_pointLightsUniforms = VKDynamic<VKResizableBuffer<PointLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
@@ -215,6 +217,7 @@ void LightingPass::createUniformBuffers()
 	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+	objectUniformsBufferInfo.setName("Objects uniform buffer");
 	
 	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
 	{
@@ -342,6 +345,7 @@ void LightingPass::createImage()
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
+	imageInfo.setName("Multisampled raw render image");
 	
 	_multisampledRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
 	

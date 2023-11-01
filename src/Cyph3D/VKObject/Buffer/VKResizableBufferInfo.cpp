@@ -50,3 +50,18 @@ const vk::DeviceSize& VKResizableBufferInfo::getRequiredAlignment() const
 {
 	return _requiredAlignment;
 }
+
+void VKResizableBufferInfo::setName(std::string_view name)
+{
+	_name = name;
+}
+
+bool VKResizableBufferInfo::hasName() const
+{
+	return _name.has_value();
+}
+
+const std::string& VKResizableBufferInfo::getName() const
+{
+	return _name.value();
+}
