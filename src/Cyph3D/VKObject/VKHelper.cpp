@@ -2,7 +2,6 @@
 
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
@@ -30,15 +29,14 @@ vk::ImageAspectFlags VKHelper::getAspect(vk::Format format)
 	}
 }
 
-void VKHelper::assertImageViewHasUniqueLayout(const VKPtr<VKImageView>& imageView)
+void VKHelper::assertImageViewHasUniqueLayout(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
 #if defined(_DEBUG)
 	// make sure all referenced layers and levels have the same layout
-	const VKPtr<VKImage>& image = imageView->getInfo().getImage();
-	vk::ImageLayout layout = image->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
-	for (uint32_t layer = imageView->getFirstReferencedLayer(); layer <= imageView->getLastReferencedLayer(); layer++)
+	vk::ImageLayout layout = image->getLayout(layerRange.x, levelRange.x);
+	for (uint32_t layer = layerRange.x; layer <= layerRange.y; layer++)
 	{
-		for (uint32_t level = imageView->getFirstReferencedLevel(); level <= imageView->getLastReferencedLevel(); level++)
+		for (uint32_t level = levelRange.x; level <= levelRange.y; level++)
 		{
 			if (image->getLayout(layer, level) != layout)
 			{

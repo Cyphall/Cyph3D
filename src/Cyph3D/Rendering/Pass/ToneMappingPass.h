@@ -8,16 +8,15 @@ class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKSampler;
 class VKImage;
-class VKImageView;
 
 struct ToneMappingPassInput
 {
-	const VKPtr<VKImageView>& inputImageView;
+	const VKPtr<VKImage>& inputImage;
 };
 
 struct ToneMappingPassOutput
 {
-	const VKPtr<VKImageView>& outputImageView;
+	const VKPtr<VKImage>& outputImage;
 };
 
 class ToneMappingPass : public RenderPass<ToneMappingPassInput, ToneMappingPassOutput>
@@ -34,8 +33,6 @@ private:
 	VKPtr<VKSampler> _inputSampler;
 	
 	VKPtr<VKImage> _outputImage;
-	VKPtr<VKImageView> _outputLinearImageView;
-	VKPtr<VKImageView> _outputSrgbImageView;
 	
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

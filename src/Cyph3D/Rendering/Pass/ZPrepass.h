@@ -10,7 +10,6 @@ class Camera;
 class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKImage;
-class VKImageView;
 
 struct ZPrepassInput
 {
@@ -20,7 +19,7 @@ struct ZPrepassInput
 
 struct ZPrepassOutput
 {
-	const VKPtr<VKImageView>& multisampledDepthImageView;
+	const VKPtr<VKImage>& multisampledDepthImage;
 };
 
 class ZPrepass : public RenderPass<ZPrepassInput, ZPrepassOutput>
@@ -38,7 +37,6 @@ private:
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
 	VKPtr<VKImage> _depthImage;
-	VKPtr<VKImageView> _depthImageView;
 	
 	ZPrepassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
 	void onResize() override;

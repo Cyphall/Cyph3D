@@ -1,6 +1,7 @@
 #include "VKImage.h"
 
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/VKHelper.h"
 
 #include <vulkan/vulkan_format_traits.hpp>
 
@@ -91,6 +92,11 @@ VKImage::~VKImage()
 	{
 		_context.getVmaAllocator().destroyImage(_handle, _imageAlloc);
 	}
+	
+	for (auto& [viewInfo, view] : _views)
+	{
+		_context.getDevice().destroyImageView(view);
+	}
 }
 
 const VKImageInfo& VKImage::getInfo() const
@@ -147,12 +153,60 @@ bool VKImage::isCompressed() const
 	return vk::isCompressed(_info.getFormat());
 }
 
+vk::ImageView VKImage::getView(vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+{
+	ViewInfo viewInfo{
+		.type = type,
+		.layerRange = layerRange,
+		.levelRange = levelRange,
+		.format = format
+	};
+	
+	auto it = _views.find(viewInfo);
+	if (it == _views.end())
+	{
+		vk::ImageViewCreateInfo imageViewCreateInfo;
+		imageViewCreateInfo.image = _handle;
+		imageViewCreateInfo.viewType = type;
+		imageViewCreateInfo.format = format;
+		if (_info.hasSwizzle())
+		{
+			imageViewCreateInfo.components.r = _info.getSwizzle()[0];
+			imageViewCreateInfo.components.g = _info.getSwizzle()[1];
+			imageViewCreateInfo.components.b = _info.getSwizzle()[2];
+			imageViewCreateInfo.components.a = _info.getSwizzle()[3];
+		}
+		else
+		{
+			imageViewCreateInfo.components.r = vk::ComponentSwizzle::eIdentity;
+			imageViewCreateInfo.components.g = vk::ComponentSwizzle::eIdentity;
+			imageViewCreateInfo.components.b = vk::ComponentSwizzle::eIdentity;
+			imageViewCreateInfo.components.a = vk::ComponentSwizzle::eIdentity;
+		}
+		imageViewCreateInfo.subresourceRange.aspectMask = VKHelper::getAspect(imageViewCreateInfo.format);
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = layerRange.x;
+		imageViewCreateInfo.subresourceRange.layerCount = layerRange.y - layerRange.x + 1;
+		imageViewCreateInfo.subresourceRange.baseMipLevel = levelRange.x;
+		imageViewCreateInfo.subresourceRange.levelCount = levelRange.y - levelRange.x + 1;
+		
+		it = _views.try_emplace(viewInfo,  _context.getDevice().createImageView(imageViewCreateInfo)).first;
+	}
+	
+	return it->second;
+}
+
 int VKImage::calcMaxMipLevels(const glm::uvec2& size)
 {
 	return static_cast<int>(glm::floor(glm::log2(static_cast<float>(glm::min(size.x, size.y))))) + 1;
 }
 
-void VKImage::setLayout(uint32_t layer, uint32_t level, vk::ImageLayout layout)
+void VKImage::setLayout(glm::uvec2 layerRange, glm::uvec2 levelRange, vk::ImageLayout layout)
 {
-	_currentLayouts[layer][level] = layout;
+	for (uint32_t layer = layerRange.x; layer <= layerRange.y; layer++)
+	{
+		for (uint32_t level = levelRange.x; level <= levelRange.y; level++)
+		{
+			_currentLayouts[layer][level] = layout;
+		}
+	}
 }

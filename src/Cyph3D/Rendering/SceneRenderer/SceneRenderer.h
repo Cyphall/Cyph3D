@@ -11,7 +11,7 @@
 
 class Scene;
 class Camera;
-class VKImageView;
+class VKImage;
 
 class SceneRenderer
 {
@@ -19,7 +19,7 @@ public:
 	SceneRenderer(std::string_view name, glm::uvec2 size);
 	virtual ~SceneRenderer() = default;
 	
-	const VKPtr<VKImageView>& render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged);
+	const VKPtr<VKImage>& render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged);
 	void resize(glm::uvec2 size);
 
 	glm::uvec2 getSize() const;
@@ -40,6 +40,6 @@ protected:
 	
 	bool _firstRender = true;
 	
-	virtual const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) = 0;
+	virtual const VKPtr<VKImage>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) = 0;
 	virtual void onResize() = 0;
 };

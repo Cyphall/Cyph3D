@@ -4,9 +4,10 @@
 
 #include <vulkan/vulkan.hpp>
 #include <cstddef>
+#include <glm/glm.hpp>
 
 class VKContext;
-class VKImageView;
+class VKImage;
 
 class VKHelper
 {
@@ -15,5 +16,5 @@ public:
 	
 	static vk::ImageAspectFlags getAspect(vk::Format format);
 	
-	static void assertImageViewHasUniqueLayout(const VKPtr<VKImageView>& imageView);
+	static void assertImageViewHasUniqueLayout(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange);
 };

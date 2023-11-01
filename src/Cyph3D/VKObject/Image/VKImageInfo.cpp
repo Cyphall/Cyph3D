@@ -110,3 +110,18 @@ const std::string& VKImageInfo::getName() const
 {
 	return _name.value();
 }
+
+void VKImageInfo::setSwizzle(std::array<vk::ComponentSwizzle, 4> swizzle)
+{
+	_swizzle = swizzle;
+}
+
+bool VKImageInfo::hasSwizzle() const
+{
+	return _swizzle.has_value();
+}
+
+const std::array<vk::ComponentSwizzle, 4>& VKImageInfo::getSwizzle() const
+{
+	return _swizzle.value();
+}

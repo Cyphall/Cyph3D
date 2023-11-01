@@ -10,6 +10,7 @@
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
+#include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKSwapchain.h"
@@ -84,7 +85,7 @@ void Engine::run()
 
 		_scene->onUpdate();
 		
-		const VKPtr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.imageView, nextImageInfo.imageAvailableSemaphore);
+		const VKPtr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.image->getImage(), nextImageInfo.imageAvailableSemaphore);
 		if (!_vkContext->getMainQueue().present(nextImageInfo.image, renderFinishedSemaphore))
 		{
 			glm::uvec2 surfaceSize = _window->getSurfaceSize();

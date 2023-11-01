@@ -1,20 +1,33 @@
 #include "VKRenderingDepthAttachmentInfo.h"
 
-VKRenderingDepthAttachmentInfo::VKRenderingDepthAttachmentInfo(const VKPtr<VKImageView>& imageView):
-	_imageView(imageView)
+#include "Cyph3D/VKObject/Image/VKImage.h"
+
+VKRenderingDepthAttachmentInfo::VKRenderingDepthAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
+	_imageInfo(image, type, layerRange, levelRange, format)
 {
 	
 }
 
-const VKPtr<VKImageView>& VKRenderingDepthAttachmentInfo::getImageView() const
+const VKRenderingDepthAttachmentInfo::ImageInfo& VKRenderingDepthAttachmentInfo::getImageInfo() const
 {
-	return _imageView;
+	return _imageInfo;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImageView>& imageView)
+VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image)
+{
+	return enableResolve(
+		mode,
+		image,
+		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		image->getInfo().getFormat());
+}
+
+VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	_resolveMode = mode;
-	_resolveImageView = imageView;
+	_resolveImageInfo = {image, type, layerRange, levelRange, format};
 	
 	return *this;
 }
@@ -24,9 +37,9 @@ const vk::ResolveModeFlagBits& VKRenderingDepthAttachmentInfo::getResolveMode() 
 	return _resolveMode;
 }
 
-const VKPtr<VKImageView>& VKRenderingDepthAttachmentInfo::getResolveImageView() const
+const VKRenderingDepthAttachmentInfo::ImageInfo& VKRenderingDepthAttachmentInfo::getResolveImageInfo() const
 {
-	return _resolveImageView;
+	return _resolveImageInfo;
 }
 
 VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setLoadOpLoad()

@@ -14,7 +14,6 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
@@ -54,7 +53,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.textureIndex = directionalLightShadowIndex;
 			uniforms.shadowMapTexelWorldSize = shadowMapInfo.worldSize / light.shadowMapResolution;
 			
-			_directionalLightDescriptorSet->bindCombinedImageSampler(1, shadowMapInfo.imageView, _directionalLightSampler, directionalLightShadowIndex);
+			_directionalLightDescriptorSet->bindDescriptor(1, shadowMapInfo.image, _directionalLightSampler, directionalLightShadowIndex);
 			
 			directionalLightShadowIndex++;
 		}
@@ -62,7 +61,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		std::memcpy(directionalLightUniformsPtr, &uniforms, sizeof(DirectionalLightUniforms));
 		directionalLightUniformsPtr++;
 	}
-	_directionalLightDescriptorSet->bindBuffer(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getDirectionalLightRenderRequests().size());
+	_directionalLightDescriptorSet->bindDescriptor(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getDirectionalLightRenderRequests().size());
 	
 	_pointLightsUniforms->resizeSmart(input.registry.getPointLightRenderRequests().size());
 	uint32_t pointLightShadowIndex = 0;
@@ -81,7 +80,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			uniforms.textureIndex = pointLightShadowIndex;
 			uniforms.maxTexelSizeAtUnitDistance = 2.0f / light.shadowMapResolution;
 			
-			_pointLightDescriptorSet->bindCombinedImageSampler(1, shadowMapInfo.imageView, _pointLightSampler, pointLightShadowIndex);
+			_pointLightDescriptorSet->bindDescriptor(1, shadowMapInfo.image, _pointLightSampler, pointLightShadowIndex);
 			
 			pointLightShadowIndex++;
 		}
@@ -89,12 +88,10 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		std::memcpy(pointLightUniformsPtr, &uniforms, sizeof(PointLightUniforms));
 		pointLightUniformsPtr++;
 	}
-	_pointLightDescriptorSet->bindBuffer(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
+	_pointLightDescriptorSet->bindDescriptor(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
 	
 	commandBuffer->imageMemoryBarrier(
 		_multisampledRawRenderImage,
-		0,
-		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -103,11 +100,11 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(_multisampledRawRenderImageView)
+	renderingInfo.addColorAttachment(_multisampledRawRenderImage)
 		.setLoadOpClear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
 		.setStoreOpStore();
 	
-	renderingInfo.setDepthAttachment(input.multisampledDepthImageView)
+	renderingInfo.setDepthAttachment(input.multisampledDepthImage)
 		.setLoadOpLoad()
 		.setStoreOpNone();
 	
@@ -180,7 +177,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	_frameIndex++;
 	
 	return {
-		.multisampledRawRenderImageView = _multisampledRawRenderImageView
+		.multisampledRawRenderImage = _multisampledRawRenderImage
 	};
 }
 
@@ -348,12 +345,6 @@ void LightingPass::createImage()
 	imageInfo.setName("Multisampled raw render image");
 	
 	_multisampledRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	
-	VKImageViewInfo imageViewInfo(
-		_multisampledRawRenderImage,
-		vk::ImageViewType::e2D);
-	
-	_multisampledRawRenderImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }
 
 void LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount)

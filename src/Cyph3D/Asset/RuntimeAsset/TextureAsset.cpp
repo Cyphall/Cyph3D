@@ -6,7 +6,6 @@
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
 #include <magic_enum.hpp>
@@ -48,13 +47,6 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 	
-	// create texture view
-	VKImageViewInfo imageViewInfo(
-		_image,
-		vk::ImageViewType::e2D);
-	
-	_imageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
-	
 	// create staging buffer
 	VKBufferInfo bufferInfo(_image->getLayerByteSize(),vk::BufferUsageFlagBits::eTransferSrc);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -79,7 +71,9 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
 	{
 		workerData.transferCommandBuffer->imageMemoryBarrier(
-			_image, 0, i,
+			_image,
+			{0, 0},
+			{i, i},
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eCopy,
@@ -90,7 +84,9 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		bufferOffset += _image->getLevelByteSize(i);
 		
 		workerData.transferCommandBuffer->imageMemoryBarrier(
-			_image, 0, i,
+			_image,
+			{0, 0},
+			{i, i},
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferWrite,
 			vk::PipelineStageFlagBits2::eNone,
@@ -106,7 +102,7 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	workerData.transferCommandBuffer->reset();
 	
 	// set texture to bindless descriptor set
-	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _imageView, _manager.getTextureSampler());
+	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getTextureSampler());
 	
 	_changed();
 	

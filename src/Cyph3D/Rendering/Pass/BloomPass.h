@@ -9,16 +9,15 @@ class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKSampler;
 class VKImage;
-class VKImageView;
 
 struct BloomPassInput
 {
-	const VKPtr<VKImageView>& inputImageView;
+	const VKPtr<VKImage>& inputImage;
 };
 
 struct BloomPassOutput
 {
-	const VKPtr<VKImageView>& outputImageView;
+	const VKPtr<VKImage>& outputImage;
 };
 
 class BloomPass : public RenderPass<BloomPassInput, BloomPassOutput>
@@ -31,10 +30,7 @@ private:
 	// common
 	
 	VKPtr<VKImage> _workImage;
-	std::vector<VKPtr<VKImageView>> _workImageViews;
-	
 	VKPtr<VKImage> _outputImage;
-	VKPtr<VKImageView> _outputImageView;
 	
 	VKPtr<VKSampler> _workImageSampler;
 	
@@ -82,7 +78,7 @@ private:
 	
 	void downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
 	void upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
-	void compose(const VKPtr<VKImageView>& input, const VKPtr<VKCommandBuffer>& commandBuffer);
+	void compose(const VKPtr<VKImage>& input, const VKPtr<VKCommandBuffer>& commandBuffer);
 	
 	void createDescriptorSetLayouts();
 	void createPipelineLayouts();

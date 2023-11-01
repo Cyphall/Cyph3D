@@ -7,7 +7,6 @@
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 
 class PathTracingSceneRenderer : public SceneRenderer
 {
@@ -25,6 +24,6 @@ private:
 	
 	uint32_t _sampleCount = 8;
 	
-	const VKPtr<VKImageView>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
+	const VKPtr<VKImage>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
 	void onResize() override;
 };

@@ -13,7 +13,6 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
@@ -48,8 +47,6 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 		{
 			commandBuffer->imageMemoryBarrier(
 				_objectIndexImage,
-				0,
-				0,
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -58,8 +55,6 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 			
 			commandBuffer->imageMemoryBarrier(
 				_depthImage,
-				0,
-				0,
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -68,11 +63,11 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 			
 			VKRenderingInfo renderingInfo(_currentSize);
 			
-			renderingInfo.addColorAttachment(_objectIndexImageView)
+			renderingInfo.addColorAttachment(_objectIndexImage)
 				.setLoadOpClear(glm::ivec4(-1, 0, 0, 0))
 				.setStoreOpStore();
 			
-			renderingInfo.setDepthAttachment(_depthImageView)
+			renderingInfo.setDepthAttachment(_depthImage)
 				.setLoadOpClear(1.0f)
 				.setStoreOpStore();
 			
@@ -117,8 +112,6 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 			
 			commandBuffer->imageMemoryBarrier(
 				_objectIndexImage,
-				0,
-				0,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eCopy,
@@ -193,12 +186,6 @@ void ObjectPicker::createImage()
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
 		_objectIndexImage = VKImage::create(Engine::getVKContext(), imageInfo);
-		
-		VKImageViewInfo imageViewInfo(
-			_objectIndexImage,
-			vk::ImageViewType::e2D);
-		
-		_objectIndexImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	}
 	
 	{
@@ -211,11 +198,5 @@ void ObjectPicker::createImage()
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		
 		_depthImage = VKImage::create(Engine::getVKContext(), imageInfo);
-		
-		VKImageViewInfo imageViewInfo(
-			_depthImage,
-			vk::ImageViewType::e2D);
-		
-		_depthImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	}
 }

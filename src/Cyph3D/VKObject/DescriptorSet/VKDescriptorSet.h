@@ -5,11 +5,12 @@
 
 #include <vulkan/vulkan.hpp>
 #include <vector>
+#include <glm/glm.hpp>
 
 class VKDescriptorSetLayout;
 class VKBufferBase;
 class VKSampler;
-class VKImageView;
+class VKImage;
 class VKAccelerationStructure;
 
 class VKDescriptorSet : public VKObject
@@ -23,11 +24,13 @@ public:
 	
 	const vk::DescriptorSet& getHandle();
 	
-	void bindBuffer(uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex = 0);
-	void bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
-	void bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex = 0);
-	void bindCombinedImageSampler(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
-	void bindAccelerationStructure(uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex = 0);
+	void bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex = 0);
+	void bindDescriptor(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, uint32_t arrayIndex = 0);
+	void bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex = 0);
+	void bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void bindDescriptor(uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex = 0);
 	
 	void copyTo(uint32_t srcBindingIndex, uint32_t srcArrayIndex, const VKPtr<VKDescriptorSet>& dst, uint32_t dstBindingIndex, uint32_t dstArrayIndex, uint32_t count);
 	

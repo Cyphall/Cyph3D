@@ -1,5 +1,7 @@
 #include "VKRenderingInfo.h"
 
+#include "Cyph3D/VKObject/Image/VKImage.h"
+
 VKRenderingInfo::VKRenderingInfo(glm::uvec2 size):
 	_size(size)
 {
@@ -21,9 +23,19 @@ const uint32_t& VKRenderingInfo::getLayers() const
 	return _layers;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const VKPtr<VKImageView>& imageView)
+VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const VKPtr<VKImage>& image)
 {
-	return _colorAttachmentsInfos.emplace_back(imageView);
+	return addColorAttachment(
+		image,
+		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		image->getInfo().getFormat());
+}
+
+VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+{
+	return _colorAttachmentsInfos.emplace_back(image, type, layerRange, levelRange, format);
 }
 
 const std::vector<VKRenderingColorAttachmentInfo>& VKRenderingInfo::getColorAttachmentInfos() const
@@ -31,9 +43,19 @@ const std::vector<VKRenderingColorAttachmentInfo>& VKRenderingInfo::getColorAtta
 	return _colorAttachmentsInfos;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const VKPtr<VKImageView>& imageView)
+VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const VKPtr<VKImage>& image)
 {
-	_depthAttachmentInfo = std::make_optional<VKRenderingDepthAttachmentInfo>(imageView);
+	return setDepthAttachment(
+		image,
+		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		image->getInfo().getFormat());
+}
+
+VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+{
+	_depthAttachmentInfo = std::make_optional<VKRenderingDepthAttachmentInfo>(image, type, layerRange, levelRange, format);
 	return _depthAttachmentInfo.value();
 }
 

@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 #include <optional>
+#include <array>
 
 class VKImageInfo
 {
@@ -43,6 +44,10 @@ public:
 	void setName(std::string_view name);
 	bool hasName() const;
 	const std::string& getName() const;
+	
+	void setSwizzle(std::array<vk::ComponentSwizzle, 4> swizzle);
+	bool hasSwizzle() const;
+	const std::array<vk::ComponentSwizzle, 4>& getSwizzle() const;
 
 private:
 	vk::Format _format;
@@ -57,4 +62,5 @@ private:
 	std::optional<vk::Image> _swapchainImageHandle;
 	vk::SampleCountFlagBits _sampleCount = vk::SampleCountFlagBits::e1;
 	std::optional<std::string> _name;
+	std::optional<std::array<vk::ComponentSwizzle, 4>> _swizzle;
 };

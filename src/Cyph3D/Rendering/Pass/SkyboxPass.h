@@ -9,20 +9,19 @@ class Camera;
 class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKImage;
-class VKImageView;
 template<typename T>
 class VKBuffer;
 
 struct SkyboxPassInput
 {
 	Camera& camera;
-	const VKPtr<VKImageView>& multisampledRawRenderImageView;
-	const VKPtr<VKImageView>& multisampledDepthImageView;
+	const VKPtr<VKImage>& multisampledRawRenderImage;
+	const VKPtr<VKImage>& multisampledDepthImage;
 };
 
 struct SkyboxPassOutput
 {
-	const VKPtr<VKImageView>& rawRenderImageView;
+	const VKPtr<VKImage>& rawRenderImage;
 };
 
 class SkyboxPass : public RenderPass<SkyboxPassInput, SkyboxPassOutput>
@@ -46,7 +45,6 @@ private:
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
 	VKPtr<VKImage> _resolvedRawRenderImage;
-	VKPtr<VKImageView> _resolvedRawRenderImageView;
 	
 	VKPtr<VKBuffer<SkyboxPass::VertexData>> _vertexBuffer;
 	

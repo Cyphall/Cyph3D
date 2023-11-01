@@ -13,7 +13,6 @@
 
 class TextureAsset;
 class VKImage;
-class VKImageView;
 
 struct MaterialAssetSignature
 {

@@ -13,7 +13,6 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 
@@ -32,8 +31,6 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 {
 	commandBuffer->imageMemoryBarrier(
 		_resolvedRawRenderImage,
-		0,
-		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -42,12 +39,12 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(input.multisampledRawRenderImageView)
-		.enableResolve(vk::ResolveModeFlagBits::eAverage, _resolvedRawRenderImageView)
+	renderingInfo.addColorAttachment(input.multisampledRawRenderImage)
+		.enableResolve(vk::ResolveModeFlagBits::eAverage, _resolvedRawRenderImage)
 		.setLoadOpLoad()
 		.setStoreOpStore();
 	
-	renderingInfo.setDepthAttachment(input.multisampledDepthImageView)
+	renderingInfo.setDepthAttachment(input.multisampledDepthImage)
 		.setLoadOpLoad()
 		.setStoreOpNone();
 	
@@ -87,7 +84,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 	commandBuffer->endRendering();
 	
 	return {
-		.rawRenderImageView = _resolvedRawRenderImageView
+		.rawRenderImage = _resolvedRawRenderImage
 	};
 }
 
@@ -140,12 +137,6 @@ void SkyboxPass::createImages()
 		imageInfo.setName("Resolved raw render image");
 		
 		_resolvedRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
-		
-		VKImageViewInfo imageViewInfo(
-			_resolvedRawRenderImage,
-			vk::ImageViewType::e2D);
-		
-		_resolvedRawRenderImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	}
 }
 

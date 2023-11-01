@@ -5,7 +5,6 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
@@ -91,7 +90,7 @@ const vk::DescriptorSet& VKDescriptorSet::getHandle()
 	return _descriptorSet;
 }
 
-void VKDescriptorSet::bindBuffer(uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
 {
 	if (buffer && size > 0)
 	{
@@ -141,7 +140,7 @@ void VKDescriptorSet::bindBuffer(uint32_t bindingIndex, const VKPtr<VKBufferBase
 	}
 }
 
-void VKDescriptorSet::bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (sampler)
 	{
@@ -170,15 +169,34 @@ void VKDescriptorSet::bindSampler(uint32_t bindingIndex, const VKPtr<VKSampler>&
 	}
 }
 
-void VKDescriptorSet::bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, uint32_t arrayIndex)
 {
-	if (imageView)
+	if (image)
 	{
-		VKHelper::assertImageViewHasUniqueLayout(imageView);
+		bindDescriptor(
+			bindingIndex,
+			image,
+			image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
+			{0, image->getInfo().getLayers() - 1},
+			{0, image->getInfo().getLevels() - 1},
+			image->getInfo().getFormat(),
+			arrayIndex);
+	}
+	else
+	{
+		_boundObjects[bindingIndex][arrayIndex] = {};
+	}
+}
+
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
+{
+	if (image)
+	{
+		VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
 		
 		vk::DescriptorImageInfo imageInfo;
-		imageInfo.imageView = imageView->getHandle();
-		imageInfo.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+		imageInfo.imageView = image->getView(type, layerRange, levelRange, format);
+		imageInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
 		
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
 		
@@ -194,7 +212,7 @@ void VKDescriptorSet::bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>&
 		
 		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
 		
-		_boundObjects[bindingIndex][arrayIndex] = {imageView};
+		_boundObjects[bindingIndex][arrayIndex] = {image};
 	}
 	else
 	{
@@ -202,15 +220,35 @@ void VKDescriptorSet::bindImage(uint32_t bindingIndex, const VKPtr<VKImageView>&
 	}
 }
 
-void VKDescriptorSet::bindCombinedImageSampler(uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
 {
-	if (imageView && sampler)
+	if (image && sampler)
 	{
-		VKHelper::assertImageViewHasUniqueLayout(imageView);
+		bindDescriptor(
+			bindingIndex,
+			image,
+			image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
+			{0, image->getInfo().getLayers() - 1},
+			{0, image->getInfo().getLevels() - 1},
+			image->getInfo().getFormat(),
+			sampler,
+			arrayIndex);
+	}
+	else
+	{
+		_boundObjects[bindingIndex][arrayIndex] = {};
+	}
+}
+
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+{
+	if (image && sampler)
+	{
+		VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
 		
 		vk::DescriptorImageInfo combinedImageSamplerInfo;
-		combinedImageSamplerInfo.imageView = imageView->getHandle();
-		combinedImageSamplerInfo.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+		combinedImageSamplerInfo.imageView = image->getView(type, layerRange, levelRange, format);
+		combinedImageSamplerInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
 		combinedImageSamplerInfo.sampler = sampler->getHandle();
 		
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
@@ -227,7 +265,7 @@ void VKDescriptorSet::bindCombinedImageSampler(uint32_t bindingIndex, const VKPt
 		
 		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
 		
-		_boundObjects[bindingIndex][arrayIndex] = {imageView, sampler};
+		_boundObjects[bindingIndex][arrayIndex] = {image, sampler};
 	}
 	else
 	{
@@ -235,7 +273,7 @@ void VKDescriptorSet::bindCombinedImageSampler(uint32_t bindingIndex, const VKPt
 	}
 }
 
-void VKDescriptorSet::bindAccelerationStructure(uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
 {
 	if (accelerationStructure)
 	{

@@ -11,7 +11,6 @@
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
@@ -62,7 +61,7 @@ void UIHelper::init()
 	_nextSubmitSemaphore = VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo);
 }
 
-const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageView, const VKPtr<VKSemaphore>& imageAvailableSemaphore)
+const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, const VKPtr<VKSemaphore>& imageAvailableSemaphore)
 {
 	ImGuiID dockspaceId = ImGui::DockSpaceOverViewport();
 	
@@ -89,21 +88,17 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImageView>& destImageVi
 	ImGui::Render();
 	
 	commandBuffer->imageMemoryBarrier(
-		destImageView->getInfo().getImage(),
-		0,
-		0,
+		destImage,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal);
 	
-	_vulkanBackend->renderDrawData(ImGui::GetDrawData(), commandBuffer, destImageView);
+	_vulkanBackend->renderDrawData(ImGui::GetDrawData(), commandBuffer, destImage);
 	
 	commandBuffer->imageMemoryBarrier(
-		destImageView->getInfo().getImage(),
-		0,
-		0,
+		destImage,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eNone,

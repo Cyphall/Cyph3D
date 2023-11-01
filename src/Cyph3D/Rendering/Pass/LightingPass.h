@@ -12,13 +12,12 @@ class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKDescriptorSetLayout;
 class VKImage;
-class VKImageView;
 template<typename T>
 class VKResizableBuffer;
 
 struct LightingPassInput
 {
-	const VKPtr<VKImageView>& multisampledDepthImageView;
+	const VKPtr<VKImage>& multisampledDepthImage;
 	const RenderRegistry& registry;
 	Camera& camera;
 	const std::vector<DirectionalShadowMapInfo>& directionalShadowMapInfos;
@@ -27,7 +26,7 @@ struct LightingPassInput
 
 struct LightingPassOutput
 {
-	const VKPtr<VKImageView>& multisampledRawRenderImageView;
+	const VKPtr<VKImage>& multisampledRawRenderImage;
 };
 
 class LightingPass : public RenderPass<LightingPassInput, LightingPassOutput>
@@ -99,7 +98,6 @@ private:
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
 	VKPtr<VKImage> _multisampledRawRenderImage;
-	VKPtr<VKImageView> _multisampledRawRenderImageView;
 	
 	uint32_t _frameIndex = 0;
 	

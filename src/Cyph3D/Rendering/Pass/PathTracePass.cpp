@@ -18,7 +18,6 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
 #include "Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h"
@@ -49,8 +48,6 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	{
 		commandBuffer->imageMemoryBarrier(
 			_rawRenderImage[i],
-			0,
-			0,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
 			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
@@ -80,10 +77,10 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 		
 		_descriptorSet = VKDescriptorSet::create(Engine::getVKContext(), info);
 		
-		_descriptorSet->bindAccelerationStructure(0, _tlas);
+		_descriptorSet->bindDescriptor(0, _tlas);
 		for (int i = 0; i < 3; i++)
 		{
-			_descriptorSet->bindImage(1, _rawRenderImageView[i], i);
+			_descriptorSet->bindDescriptor(1, _rawRenderImage[i], i);
 		}
 	}
 	
@@ -109,7 +106,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	commandBuffer->unbindPipeline();
 	
 	return {
-		.rawRenderImageView = _rawRenderImageView,
+		.rawRenderImage = _rawRenderImage,
 		.accumulatedSamples = _accumulatedSamples,
 		.fixedPointDecimals = FIXED_POINT_DECIMALS
 	};
@@ -269,12 +266,6 @@ void PathTracePass::createImage()
 		imageInfo.setName("Raw render image");
 		
 		_rawRenderImage[i] = VKImage::create(Engine::getVKContext(), imageInfo);
-		
-		VKImageViewInfo imageViewInfo(
-			_rawRenderImage[i],
-			vk::ImageViewType::e2D);
-		
-		_rawRenderImageView[i] = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 	}
 	
 	_accumulatedSamples = 0;

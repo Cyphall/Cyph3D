@@ -9,17 +9,16 @@ class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKSampler;
 class VKImage;
-class VKImageView;
 
 struct ExposurePassInput
 {
-	const VKPtr<VKImageView>& inputImageView;
+	const VKPtr<VKImage>& inputImage;
 	const Camera& camera;
 };
 
 struct ExposurePassOutput
 {
-	const VKPtr<VKImageView>& outputImageView;
+	const VKPtr<VKImage>& outputImage;
 };
 
 class ExposurePass : public RenderPass<ExposurePassInput, ExposurePassOutput>
@@ -41,7 +40,6 @@ private:
 	VKPtr<VKSampler> _inputSampler;
 	
 	VKPtr<VKImage> _outputImage;
-	VKPtr<VKImageView> _outputImageView;
 	
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

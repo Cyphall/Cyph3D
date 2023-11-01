@@ -12,7 +12,6 @@ class VKDescriptorSet;
 class VKPipelineLayout;
 class VKRayTracingPipeline;
 class VKImage;
-class VKImageView;
 class VKShaderBindingTable;
 
 struct PathTracePassInput
@@ -26,7 +25,7 @@ struct PathTracePassInput
 
 struct PathTracePassOutput
 {
-	std::array<VKPtr<VKImageView>, 3> rawRenderImageView;
+	std::array<VKPtr<VKImage>, 3> rawRenderImage;
 	uint32_t accumulatedSamples;
 	uint32_t fixedPointDecimals;
 };
@@ -89,7 +88,6 @@ private:
 	VKPtr<VKRayTracingPipeline> _pipeline;
 	
 	std::array<VKPtr<VKImage>, 3> _rawRenderImage;
-	std::array<VKPtr<VKImageView>, 3> _rawRenderImageView;
 	
 	uint32_t _batchIndex = 0;
 	uint32_t _accumulatedSamples = 0;

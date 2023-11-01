@@ -11,7 +11,6 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Fence/VKFence.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineScissor.h"
@@ -126,46 +125,36 @@ void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk:
 	_usedObjects.emplace_back(buffer);
 }
 
-void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
+void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
 {
-	vk::ImageMemoryBarrier2 imageMemoryBarrier;
-	imageMemoryBarrier.srcStageMask = srcStageMask;
-	imageMemoryBarrier.srcAccessMask = srcAccessMask;
-	imageMemoryBarrier.dstStageMask = dstStageMask;
-	imageMemoryBarrier.dstAccessMask = dstAccessMask;
-	imageMemoryBarrier.oldLayout = vk::ImageLayout::eUndefined;
-	imageMemoryBarrier.newLayout = vk::ImageLayout::eUndefined;
-	imageMemoryBarrier.image = image->getHandle();
-	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
-	imageMemoryBarrier.subresourceRange.baseMipLevel = level;
-	imageMemoryBarrier.subresourceRange.levelCount = 1;
-	imageMemoryBarrier.subresourceRange.baseArrayLayer = layer;
-	imageMemoryBarrier.subresourceRange.layerCount = 1;
-	
-	vk::DependencyInfo dependencyInfo;
-	dependencyInfo.imageMemoryBarrierCount = 1;
-	dependencyInfo.pImageMemoryBarriers = &imageMemoryBarrier;
-	
-	_commandBuffer.pipelineBarrier2(dependencyInfo);
-	
-	_usedObjects.emplace_back(image);
+	imageMemoryBarrier(
+		image,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		srcStageMask,
+		srcAccessMask,
+		dstStageMask,
+		dstAccessMask,
+		newImageLayout);
 }
 
-void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
 {
+	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+	
 	vk::ImageMemoryBarrier2 imageMemoryBarrier;
 	imageMemoryBarrier.srcStageMask = srcStageMask;
 	imageMemoryBarrier.srcAccessMask = srcAccessMask;
 	imageMemoryBarrier.dstStageMask = dstStageMask;
 	imageMemoryBarrier.dstAccessMask = dstAccessMask;
-	imageMemoryBarrier.oldLayout = image->getLayout(layer, level);
+	imageMemoryBarrier.oldLayout = image->getLayout(layerRange.x, levelRange.x);
 	imageMemoryBarrier.newLayout = newImageLayout;
 	imageMemoryBarrier.image = image->getHandle();
 	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
-	imageMemoryBarrier.subresourceRange.baseMipLevel = level;
-	imageMemoryBarrier.subresourceRange.levelCount = 1;
-	imageMemoryBarrier.subresourceRange.baseArrayLayer = layer;
-	imageMemoryBarrier.subresourceRange.layerCount = 1;
+	imageMemoryBarrier.subresourceRange.baseArrayLayer = layerRange.x;
+	imageMemoryBarrier.subresourceRange.layerCount = layerRange.y - layerRange.x + 1;
+	imageMemoryBarrier.subresourceRange.baseMipLevel = levelRange.x;
+	imageMemoryBarrier.subresourceRange.levelCount = levelRange.y - levelRange.x + 1;
 	
 	vk::DependencyInfo dependencyInfo;
 	dependencyInfo.imageMemoryBarrierCount = 1;
@@ -173,7 +162,7 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t l
 	
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 	
-	image->setLayout(layer, level, newImageLayout);
+	image->setLayout(layerRange, levelRange, newImageLayout);
 	
 	_usedObjects.emplace_back(image);
 }
@@ -187,26 +176,23 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 	colorAttachments.reserve(renderingInfo.getColorAttachmentInfos().size());
 	for (const VKRenderingColorAttachmentInfo& colorAttachmentInfo : renderingInfo.getColorAttachmentInfos())
 	{
-		const VKPtr<VKImageView>& imageView = colorAttachmentInfo.getImageView();
-		
-		_usedObjects.emplace_back(imageView);
-
-		VKHelper::assertImageViewHasUniqueLayout(imageView);
-		
 		vk::RenderingAttachmentInfo& colorAttachment = colorAttachments.emplace_back();
-		colorAttachment.imageView = imageView->getHandle();
-		colorAttachment.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+		
+		const VKRenderingColorAttachmentInfo::ImageInfo& imageInfo = colorAttachmentInfo.getImageInfo();
+		_usedObjects.emplace_back(imageInfo.image);
+		VKHelper::assertImageViewHasUniqueLayout(imageInfo.image, imageInfo.layerRange, imageInfo.levelRange);
+		colorAttachment.imageView = imageInfo.image->getView(imageInfo.type, imageInfo.layerRange, imageInfo.levelRange, imageInfo.format);
+		colorAttachment.imageLayout = imageInfo.image->getLayout(imageInfo.layerRange.x, imageInfo.levelRange.x);
 		
 		if (colorAttachmentInfo.getResolveMode() != vk::ResolveModeFlagBits::eNone)
 		{
 			colorAttachment.resolveMode = colorAttachmentInfo.getResolveMode();
 			
-			const VKPtr<VKImageView>& resolveImageView = colorAttachmentInfo.getResolveImageView();
-			
-			VKHelper::assertImageViewHasUniqueLayout(resolveImageView);
-			
-			colorAttachment.resolveImageView = resolveImageView->getHandle();
-			colorAttachment.resolveImageLayout = resolveImageView->getInfo().getImage()->getLayout(resolveImageView->getFirstReferencedLayer(), resolveImageView->getFirstReferencedLevel());
+			const VKRenderingColorAttachmentInfo::ImageInfo& resolveImageInfo = colorAttachmentInfo.getResolveImageInfo();
+			_usedObjects.emplace_back(resolveImageInfo.image);
+			VKHelper::assertImageViewHasUniqueLayout(resolveImageInfo.image, resolveImageInfo.layerRange, resolveImageInfo.levelRange);
+			colorAttachment.resolveImageView = resolveImageInfo.image->getView(resolveImageInfo.type, resolveImageInfo.layerRange, resolveImageInfo.levelRange, resolveImageInfo.format);
+			colorAttachment.resolveImageLayout = resolveImageInfo.image->getLayout(resolveImageInfo.layerRange.x, resolveImageInfo.levelRange.x);
 		}
 		else
 		{
@@ -234,25 +220,21 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 	{
 		const VKRenderingDepthAttachmentInfo& depthAttachmentInfo = renderingInfo.getDepthAttachmentInfo();
 		
-		const VKPtr<VKImageView>& imageView = depthAttachmentInfo.getImageView();
-		
-		_usedObjects.emplace_back(imageView);
-		
-		VKHelper::assertImageViewHasUniqueLayout(imageView);
-		
-		depthAttachment.imageView = imageView->getHandle();
-		depthAttachment.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+		const VKRenderingDepthAttachmentInfo::ImageInfo& imageInfo = depthAttachmentInfo.getImageInfo();
+		_usedObjects.emplace_back(imageInfo.image);
+		VKHelper::assertImageViewHasUniqueLayout(imageInfo.image, imageInfo.layerRange, imageInfo.levelRange);
+		depthAttachment.imageView = imageInfo.image->getView(imageInfo.type, imageInfo.layerRange, imageInfo.levelRange, imageInfo.format);
+		depthAttachment.imageLayout = imageInfo.image->getLayout(imageInfo.layerRange.x, imageInfo.levelRange.x);
 		
 		if (depthAttachmentInfo.getResolveMode() != vk::ResolveModeFlagBits::eNone)
 		{
 			depthAttachment.resolveMode = depthAttachmentInfo.getResolveMode();
 			
-			const VKPtr<VKImageView>& resolveImageView = depthAttachmentInfo.getResolveImageView();
-			
-			VKHelper::assertImageViewHasUniqueLayout(resolveImageView);
-			
-			depthAttachment.resolveImageView = resolveImageView->getHandle();
-			depthAttachment.resolveImageLayout = resolveImageView->getInfo().getImage()->getLayout(resolveImageView->getFirstReferencedLayer(), resolveImageView->getFirstReferencedLevel());
+			const VKRenderingDepthAttachmentInfo::ImageInfo& resolveImageInfo = depthAttachmentInfo.getResolveImageInfo();
+			_usedObjects.emplace_back(resolveImageInfo.image);
+			VKHelper::assertImageViewHasUniqueLayout(resolveImageInfo.image, resolveImageInfo.layerRange, resolveImageInfo.levelRange);
+			depthAttachment.resolveImageView = resolveImageInfo.image->getView(resolveImageInfo.type, resolveImageInfo.layerRange, resolveImageInfo.levelRange, resolveImageInfo.format);
+			depthAttachment.resolveImageLayout = resolveImageInfo.image->getLayout(resolveImageInfo.layerRange.x, resolveImageInfo.levelRange.x);
 		}
 		else
 		{
@@ -404,16 +386,29 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	_usedObjects.emplace_back(sampler);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, uint32_t arrayIndex)
+{
+	pushDescriptor(
+		setIndex,
+		bindingIndex,
+		image,
+		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		image->getInfo().getFormat(),
+		arrayIndex);
+}
+
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
 {
 	if (_boundPipeline == nullptr)
 		throw;
 	
-	VKHelper::assertImageViewHasUniqueLayout(imageView);
+	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
 	
 	vk::DescriptorImageInfo imageInfo;
-	imageInfo.imageView = imageView->getHandle();
-	imageInfo.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+	imageInfo.imageView = image->getView(type, layerRange, levelRange, format);
+	imageInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
 	
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
 	
@@ -433,19 +428,33 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		setIndex,
 		descriptorWrite);
 	
-	_usedObjects.emplace_back(imageView);
+	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+{
+	pushDescriptor(
+		setIndex,
+		bindingIndex,
+		image,
+		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		image->getInfo().getFormat(),
+		sampler,
+		arrayIndex);
+}
+
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (_boundPipeline == nullptr)
 		throw;
 	
-	VKHelper::assertImageViewHasUniqueLayout(imageView);
+	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
 	
 	vk::DescriptorImageInfo combinedImageSamplerInfo;
-	combinedImageSamplerInfo.imageView = imageView->getHandle();
-	combinedImageSamplerInfo.imageLayout = imageView->getInfo().getImage()->getLayout(imageView->getFirstReferencedLayer(), imageView->getFirstReferencedLevel());
+	combinedImageSamplerInfo.imageView = image->getView(type, layerRange, levelRange, format);
+	combinedImageSamplerInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
 	combinedImageSamplerInfo.sampler = sampler->getHandle();
 	
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
@@ -466,7 +475,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		setIndex,
 		descriptorWrite);
 	
-	_usedObjects.emplace_back(imageView);
+	_usedObjects.emplace_back(image);
 	_usedObjects.emplace_back(sampler);
 }
 

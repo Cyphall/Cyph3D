@@ -5,18 +5,28 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
-class VKImageView;
+class VKImage;
 
 class VKRenderingDepthAttachmentInfo
 {
 public:
-	explicit VKRenderingDepthAttachmentInfo(const VKPtr<VKImageView>& imageView);
+	struct ImageInfo
+	{
+		VKPtr<VKImage> image;
+		vk::ImageViewType type;
+		glm::uvec2 layerRange;
+		glm::uvec2 levelRange;
+		vk::Format format;
+	};
 	
-	const VKPtr<VKImageView>& getImageView() const;
+	VKRenderingDepthAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
 	
-	VKRenderingDepthAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImageView>& imageView);
+	const ImageInfo& getImageInfo() const;
+	
+	VKRenderingDepthAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image);
+	VKRenderingDepthAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
 	const vk::ResolveModeFlagBits& getResolveMode() const;
-	const VKPtr<VKImageView>& getResolveImageView() const;
+	const ImageInfo& getResolveImageInfo() const;
 	
 	VKRenderingDepthAttachmentInfo& setLoadOpLoad();
 	VKRenderingDepthAttachmentInfo& setLoadOpClear(float clearValue);
@@ -30,10 +40,10 @@ public:
 	const vk::AttachmentStoreOp& getStoreOp() const;
 
 private:
-	VKPtr<VKImageView> _imageView;
+	ImageInfo _imageInfo;
 	vk::ResolveModeFlagBits _resolveMode = vk::ResolveModeFlagBits::eNone;
-	VKPtr<VKImageView> _resolveImageView;
+	ImageInfo _resolveImageInfo;
 	vk::AttachmentLoadOp _loadOp = vk::AttachmentLoadOp::eDontCare;
-	vk::AttachmentStoreOp _storeOp = vk::AttachmentStoreOp::eDontCare;
 	vk::ClearValue _clearValue;
+	vk::AttachmentStoreOp _storeOp = vk::AttachmentStoreOp::eDontCare;
 };

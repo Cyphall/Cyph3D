@@ -6,7 +6,6 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKComputePipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
@@ -24,8 +23,6 @@ NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>
 {
 	commandBuffer->imageMemoryBarrier(
 		_outputImage,
-		0,
-		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
@@ -38,9 +35,9 @@ NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>
 	
 	for (int i = 0; i < 3; i++)
 	{
-		commandBuffer->pushDescriptor(0, 0, input.inputImageView[i], i);
+		commandBuffer->pushDescriptor(0, 0, input.inputImage[i], i);
 	}
-	commandBuffer->pushDescriptor(0, 1, _outputImageView, 0);
+	commandBuffer->pushDescriptor(0, 1, _outputImage, 0);
 	
 	PushConstantData pushConstantData{
 		.accumulatedSamples = input.accumulatedSamples,
@@ -53,7 +50,7 @@ NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>
 	commandBuffer->unbindPipeline();
 	
 	return {
-		_outputImageView
+		_outputImage
 	};
 }
 
@@ -101,10 +98,4 @@ void NormalizationPass::createImage()
 	imageInfo.setName("Normalization output image");
 	
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	
-	VKImageViewInfo imageViewInfo(
-		_outputImage,
-		vk::ImageViewType::e2D);
-	
-	_outputImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }

@@ -9,7 +9,6 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
@@ -44,9 +43,9 @@ ImGuiVulkanBackend::~ImGuiVulkanBackend()
 	io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
 }
 
-void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& outputImageView)
+void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImage>& outputImage)
 {
-	glm::uvec2 framebufferSize = outputImageView->getInfo().getImage()->getSize(0);
+	glm::uvec2 framebufferSize = outputImage->getSize(0);
 	
 	_vertexBuffer->resizeSmart(drawData->TotalVtxCount);
 	_indexBuffer->resizeSmart(drawData->TotalIdxCount);
@@ -66,7 +65,7 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 	
 	VKRenderingInfo renderingInfo(framebufferSize);
 	
-	renderingInfo.addColorAttachment(outputImageView)
+	renderingInfo.addColorAttachment(outputImage)
 		.setLoadOpClear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
 		.setStoreOpStore();
 	
@@ -115,20 +114,20 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 				scissor.size.y = clipMax.y - clipMin.y;
 				commandBuffer->setScissor(scissor);
 				
-				const VKPtr<VKImageView>& textureView = *static_cast<const VKPtr<VKImageView>*>(pcmd->TextureId);
+				const VKPtr<VKImage>& texture = *static_cast<const VKPtr<VKImage>*>(pcmd->TextureId);
 				
-				if (textureView->getInfo().getImage()->getLayout(0, 0) != vk::ImageLayout::eReadOnlyOptimal)
+				if (texture->getLayout(0, 0) != vk::ImageLayout::eReadOnlyOptimal)
 				{
 					Logger::error("VKImage passed to ImGui has the wrong layout");
 				}
 				
-				if (textureView.get() == _fontsTextureView.get())
+				if (texture.get() == _fontsTexture.get())
 				{
-					commandBuffer->pushDescriptor(0, 0, _fontsTextureView, _fontsSampler);
+					commandBuffer->pushDescriptor(0, 0, _fontsTexture, _fontsSampler);
 				}
 				else
 				{
-					commandBuffer->pushDescriptor(0, 0, textureView, _textureSampler);
+					commandBuffer->pushDescriptor(0, 0, texture, vk::ImageViewType::e2D, {0, 0}, {0, 0}, texture->getInfo().getFormat(), _textureSampler);
 				}
 				
 				commandBuffer->drawIndexed(pcmd->ElemCount, pcmd->IdxOffset + globalIndexOffset, pcmd->VtxOffset + globalVertexOffset);
@@ -263,6 +262,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setName("ImGui fonts texture");
+	imageInfo.setSwizzle({vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eR});
 	
 	_fontsTexture = VKImage::create(Engine::getVKContext(), imageInfo);
 	
@@ -271,8 +271,6 @@ void ImGuiVulkanBackend::createFontsTexture()
 		{
 			commandBuffer->imageMemoryBarrier(
 				_fontsTexture,
-				0,
-				0,
 				vk::PipelineStageFlagBits2::eHost,
 				vk::AccessFlagBits2::eHostWrite,
 				vk::PipelineStageFlagBits2::eCopy,
@@ -283,8 +281,6 @@ void ImGuiVulkanBackend::createFontsTexture()
 			
 			commandBuffer->imageMemoryBarrier(
 				_fontsTexture,
-				0,
-				0,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
@@ -293,14 +289,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 		}
 	);
 	
-	VKImageViewInfo imageViewInfo(
-		_fontsTexture,
-		vk::ImageViewType::e2D);
-	imageViewInfo.setSwizzle({vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eR});
-	
-	_fontsTextureView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
-	
-	io.Fonts->SetTexID(static_cast<ImTextureID>(&_fontsTextureView));
+	io.Fonts->SetTexID(static_cast<ImTextureID>(&_fontsTexture));
 }
 
 void ImGuiVulkanBackend::createBuffers()

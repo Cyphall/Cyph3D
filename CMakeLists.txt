@@ -211,11 +211,7 @@ add_executable(Cyph3D
 		src/Cyph3D/VKObject/Image/VKImage.h
 		src/Cyph3D/VKObject/Image/VKImageInfo.cpp
 		src/Cyph3D/VKObject/Image/VKImageInfo.h
-		src/Cyph3D/VKObject/Image/VKImageView.cpp
-		src/Cyph3D/VKObject/Image/VKImageView.h
-		src/Cyph3D/VKObject/Image/VKImageViewInfo.cpp
-		src/Cyph3D/VKObject/Image/VKImageViewInfo.h
-		src/Cyph3D/VKObject/Image/VKSwapchainImage.cpp
+        src/Cyph3D/VKObject/Image/VKSwapchainImage.cpp
 		src/Cyph3D/VKObject/Image/VKSwapchainImage.h
 		src/Cyph3D/VKObject/Pipeline/VKComputePipeline.cpp
 		src/Cyph3D/VKObject/Pipeline/VKComputePipeline.h

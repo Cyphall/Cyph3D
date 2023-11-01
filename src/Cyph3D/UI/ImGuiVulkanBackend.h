@@ -13,7 +13,6 @@ class VKSampler;
 class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKImage;
-class VKImageView;
 template<typename T>
 class VKResizableBuffer;
 
@@ -23,7 +22,7 @@ public:
 	ImGuiVulkanBackend();
 	~ImGuiVulkanBackend();
 	
-	void renderDrawData(ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImageView>& outputImageView);
+	void renderDrawData(ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImage>& outputImage);
 
 private:
 	struct PushConstantData
@@ -42,7 +41,6 @@ private:
 	VKPtr<VKGraphicsPipeline> _pipeline;
 	
 	VKPtr<VKImage> _fontsTexture;
-	VKPtr<VKImageView> _fontsTextureView;
 	
 	VKDynamic<VKResizableBuffer<ImDrawVert>> _vertexBuffer;
 	VKDynamic<VKResizableBuffer<ImDrawIdx>> _indexBuffer;

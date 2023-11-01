@@ -11,7 +11,6 @@
 
 class CubemapAsset;
 class VKImage;
-class VKImageView;
 
 struct SkyboxAssetSignature
 {

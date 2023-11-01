@@ -18,12 +18,12 @@ struct DirectionalShadowMapInfo
 	float worldSize;
 	float worldDepth;
 	glm::mat4 viewProjection;
-	VKPtr<VKImageView> imageView;
+	VKPtr<VKImage> image;
 };
 
 struct PointShadowMapInfo
 {
-	VKPtr<VKImageView> imageView;
+	VKPtr<VKImage> image;
 };
 
 struct ShadowMapPassInput

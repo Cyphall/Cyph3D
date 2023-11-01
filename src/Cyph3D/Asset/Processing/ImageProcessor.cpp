@@ -10,7 +10,6 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKComputePipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
@@ -320,16 +319,6 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	
 	VKPtr<VKImage> texture = VKImage::create(Engine::getVKContext(), imageInfo);
 	
-	// create texture views
-	std::vector<VKPtr<VKImageView>> textureViews;
-	for (int i = 0; i < texture->getInfo().getLevels(); i++)
-	{
-		VKImageViewInfo imageViewInfo(texture, vk::ImageViewType::e2D);
-		imageViewInfo.setCustomLevelRange({i, i});
-		
-		textureViews.push_back(VKImageView::create(Engine::getVKContext(), imageViewInfo));
-	}
-	
 	// create staging buffer
 	VKBufferInfo bufferInfo(texture->getLayerByteSize(), vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -345,7 +334,9 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	workerData.transferCommandBuffer->begin();
 	
 	workerData.transferCommandBuffer->imageMemoryBarrier(
-		texture, 0, 0,
+		texture,
+		{0, 0},
+		{0, 0},
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eCopy,
@@ -373,7 +364,9 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	workerData.computeCommandBuffer->pushConstants(pushConstantData);
 	
 	workerData.computeCommandBuffer->imageMemoryBarrier(
-		texture, 0, 0,
+		texture,
+		{0, 0},
+		{0, 0},
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
@@ -383,22 +376,42 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	for (int i = 1; i < texture->getInfo().getLevels(); i++)
 	{
 		workerData.computeCommandBuffer->imageMemoryBarrier(
-			texture, 0, i-1,
+			texture,
+			{0, 0},
+			{i-1, i-1},
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageRead);
+			vk::AccessFlagBits2::eShaderStorageRead,
+			vk::ImageLayout::eGeneral);
 		
 		workerData.computeCommandBuffer->imageMemoryBarrier(
-			texture, 0, i,
+			texture,
+			{0, 0},
+			{i, i},
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::ImageLayout::eGeneral);
 		
-		workerData.computeCommandBuffer->pushDescriptor(0, 0, textureViews[i-1]);
-		workerData.computeCommandBuffer->pushDescriptor(0, 1, textureViews[i]);
+		workerData.computeCommandBuffer->pushDescriptor(
+			0,
+			0,
+			texture,
+			vk::ImageViewType::e2D,
+			{0, 0},
+			{i-1, i-1},
+			texture->getInfo().getFormat());
+		
+		workerData.computeCommandBuffer->pushDescriptor(
+			0,
+			1,
+			texture,
+			vk::ImageViewType::e2D,
+			{0, 0},
+			{i, i},
+			texture->getInfo().getFormat());
 		
 		glm::uvec2 dstSize = texture->getSize(i);
 		workerData.computeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
@@ -417,7 +430,9 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	for (uint32_t i = 1; i < texture->getInfo().getLevels(); i++)
 	{
 		workerData.transferCommandBuffer->imageMemoryBarrier(
-			texture, 0, i,
+			texture,
+			{0, 0},
+			{i, i},
 			vk::PipelineStageFlagBits2::eNone,
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eCopy,

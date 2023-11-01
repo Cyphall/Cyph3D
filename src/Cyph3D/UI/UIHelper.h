@@ -12,13 +12,13 @@ template<typename T>
 class VKDynamic;
 class VKCommandBuffer;
 class VKSemaphore;
-class VKImageView;
+class VKImage;
 
 class UIHelper
 {
 public:
 	static void init();
-	static const VKPtr<VKSemaphore>& render(const VKPtr<VKImageView>& destImageView, const VKPtr<VKSemaphore>& imageAvailableSemaphore);
+	static const VKPtr<VKSemaphore>& render(const VKPtr<VKImage>& destImage, const VKPtr<VKSemaphore>& imageAvailableSemaphore);
 	static void shutdown();
 	static void onNewFrame();
 

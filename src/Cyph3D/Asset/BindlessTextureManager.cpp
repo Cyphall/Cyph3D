@@ -40,11 +40,11 @@ void BindlessTextureManager::releaseIndex(uint32_t index)
 	_availableIndices.push(index);
 }
 
-void BindlessTextureManager::setTexture(uint32_t index, const VKPtr<VKImageView>& texture, const VKPtr<VKSampler>& sampler)
+void BindlessTextureManager::setTexture(uint32_t index, const VKPtr<VKImage>& texture, const VKPtr<VKSampler>& sampler)
 {
 	std::scoped_lock lock(_mutex);
 	
-	_descriptorSets[_currentFrame]->bindCombinedImageSampler(0, texture, sampler, index);
+	_descriptorSets[_currentFrame]->bindDescriptor(0, texture, sampler, index);
 	
 	for (int i = 0; i < Engine::getVKContext().getConcurrentFrameCount(); i++)
 	{
@@ -80,7 +80,7 @@ void BindlessTextureManager::onNewFrame()
 	
 	for (const TextureChange& textureChange : _pendingChanges[_currentFrame])
 	{
-		_descriptorSets[_currentFrame]->bindCombinedImageSampler(0, textureChange.texture, textureChange.sampler, textureChange.index);
+		_descriptorSets[_currentFrame]->bindDescriptor(0, textureChange.texture, textureChange.sampler, textureChange.index);
 	}
 	
 	_pendingChanges[_currentFrame].clear();

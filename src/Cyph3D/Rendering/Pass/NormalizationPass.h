@@ -8,18 +8,17 @@ class VKPipelineLayout;
 class VKComputePipeline;
 class VKSampler;
 class VKImage;
-class VKImageView;
 
 struct NormalizationPassInput
 {
-	std::array<VKPtr<VKImageView>, 3> inputImageView;
+	std::array<VKPtr<VKImage>, 3> inputImage;
 	uint32_t accumulatedSamples;
 	uint32_t fixedPointDecimals;
 };
 
 struct NormalizationPassOutput
 {
-	const VKPtr<VKImageView>& outputImageView;
+	const VKPtr<VKImage>& outputImage;
 };
 
 class NormalizationPass : public RenderPass<NormalizationPassInput, NormalizationPassOutput>
@@ -40,7 +39,6 @@ private:
 	VKPtr<VKComputePipeline> _pipeline;
 	
 	VKPtr<VKImage> _outputImage;
-	VKPtr<VKImageView> _outputImageView;
 	
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

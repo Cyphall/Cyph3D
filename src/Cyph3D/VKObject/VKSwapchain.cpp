@@ -1,7 +1,6 @@
 #include "VKSwapchain.h"
 
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
 #include "Cyph3D/VKObject/VKContext.h"
@@ -57,7 +56,6 @@ VKSwapchain::NextImageInfo VKSwapchain::retrieveNextImage()
 	
 	return {
 		.image = _swapchainImages[imageIndex],
-		.imageView = _swapchainImageViews[imageIndex],
 		.imageAvailableSemaphore = semaphore
 	};
 }
@@ -107,7 +105,6 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 	
 	std::vector<vk::Image> swapchainImages = _context.getDevice().getSwapchainImagesKHR(_swapchain);
 	_swapchainImages.reserve(swapchainImages.size());
-	_swapchainImageViews.reserve(swapchainImages.size());
 	for (int i = 0; i < swapchainImages.size(); i++)
 	{
 		_swapchainImages.push_back(VKSwapchainImage::create(
@@ -117,12 +114,6 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 			glm::uvec2(createInfo.imageExtent.width, createInfo.imageExtent.height),
 			*this,
 			i));
-		
-		VKImageViewInfo imageViewInfo(
-			_swapchainImages.back()->getImage(),
-			vk::ImageViewType::e2D);
-		
-		_swapchainImageViews.push_back(VKImageView::create(_context, imageViewInfo));
 	}
 }
 

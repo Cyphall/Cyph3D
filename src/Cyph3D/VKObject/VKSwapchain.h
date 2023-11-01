@@ -6,7 +6,6 @@
 #include <vulkan/vulkan.hpp>
 
 class VKSwapchainImage;
-class VKImageView;
 class VKSemaphore;
 
 class VKSwapchain : public VKObject
@@ -15,7 +14,6 @@ public:
 	struct NextImageInfo
 	{
 		const VKPtr<VKSwapchainImage>& image;
-		const VKPtr<VKImageView>& imageView;
 		const VKPtr<VKSemaphore>& imageAvailableSemaphore;
 	};
 	
@@ -43,7 +41,6 @@ private:
 	vk::SwapchainKHR _swapchain;
 	
 	std::vector<VKPtr<VKSwapchainImage>> _swapchainImages;
-	std::vector<VKPtr<VKImageView>> _swapchainImageViews;
 	
 	std::vector<VKPtr<VKSemaphore>> _semaphores;
 	size_t _nextIndex = 0;

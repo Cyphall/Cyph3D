@@ -15,7 +15,6 @@ class VKDescriptorSetLayout;
 class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKImage;
-class VKImageView;
 template<typename T>
 class VKBuffer;
 
@@ -45,9 +44,7 @@ private:
 	VKPtr<VKBuffer<int32_t>> _readbackBuffer;
 	
 	VKPtr<VKImage> _objectIndexImage;
-	VKPtr<VKImageView> _objectIndexImageView;
 	VKPtr<VKImage> _depthImage;
-	VKPtr<VKImageView> _depthImageView;
 	
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

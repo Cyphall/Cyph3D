@@ -5,7 +5,6 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
@@ -27,8 +26,6 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 {
 	commandBuffer->imageMemoryBarrier(
 		_outputImage,
-		0,
-		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -37,7 +34,7 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(_outputSrgbImageView)
+	renderingInfo.addColorAttachment(_outputImage, vk::ImageViewType::e2D, {0, 0}, {0, 0}, SRGB_OUTPUT_FORMAT)
 		.setLoadOpDontCare()
 		.setStoreOpStore();
 	
@@ -56,7 +53,7 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 	scissor.size = _size;
 	commandBuffer->setScissor(scissor);
 	
-	commandBuffer->pushDescriptor(0, 0, input.inputImageView, _inputSampler);
+	commandBuffer->pushDescriptor(0, 0, input.inputImage, _inputSampler);
 	
 	commandBuffer->draw(3, 0);
 	
@@ -65,7 +62,7 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 	commandBuffer->endRendering();
 	
 	return {
-		_outputLinearImageView
+		_outputImage
 	};
 }
 
@@ -132,28 +129,14 @@ void ToneMappingPass::createSampler()
 void ToneMappingPass::createImage()
 {
 	VKImageInfo imageInfo(
-		SRGB_OUTPUT_FORMAT,
+		LINEAR_OUTPUT_FORMAT,
 		_size,
 		1,
 		1,
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	imageInfo.addAdditionalCompatibleViewFormat(LINEAR_OUTPUT_FORMAT);
+	imageInfo.addAdditionalCompatibleViewFormat(SRGB_OUTPUT_FORMAT);
 	imageInfo.setName("Tone mapping output image");
 	
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	
-	VKImageViewInfo linearImageViewInfo(
-		_outputImage,
-		vk::ImageViewType::e2D);
-	linearImageViewInfo.setCustomViewFormat(LINEAR_OUTPUT_FORMAT);
-	
-	_outputLinearImageView = VKImageView::create(Engine::getVKContext(), linearImageViewInfo);
-	
-	VKImageViewInfo srgbImageViewInfo(
-		_outputImage,
-		vk::ImageViewType::e2D);
-	srgbImageViewInfo.setCustomViewFormat(SRGB_OUTPUT_FORMAT);
-	
-	_outputSrgbImageView = VKImageView::create(Engine::getVKContext(), srgbImageViewInfo);
 }

@@ -11,7 +11,6 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 
@@ -27,8 +26,6 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 {
 	commandBuffer->imageMemoryBarrier(
 		_depthImage,
-		0,
-		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -37,7 +34,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.setDepthAttachment(_depthImageView)
+	renderingInfo.setDepthAttachment(_depthImage)
 		.setLoadOpClear(1.0f)
 		.setStoreOpStore();
 	
@@ -78,7 +75,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	commandBuffer->endRendering();
 	
 	return {
-		.multisampledDepthImageView = _depthImageView
+		.multisampledDepthImage = _depthImage
 	};
 }
 
@@ -127,10 +124,4 @@ void ZPrepass::createImage()
 	imageInfo.setName("Depth image");
 	
 	_depthImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	
-	VKImageViewInfo imageViewInfo(
-		_depthImage,
-		vk::ImageViewType::e2D);
-	
-	_depthImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }

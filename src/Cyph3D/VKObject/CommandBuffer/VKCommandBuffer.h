@@ -12,7 +12,6 @@ class VKResizableBuffer;
 template<typename T>
 class VKBuffer;
 class VKImage;
-class VKImageView;
 class VKSampler;
 class VKDescriptorSet;
 class VKPipeline;
@@ -44,8 +43,8 @@ public:
 	
 	void memoryBarrier(vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask);
 	void bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask);
-	void imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask);
-	void imageMemoryBarrier(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout);
+	void imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout);
+	void imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout);
 	
 	void beginRendering(const VKRenderingInfo& renderingInfo);
 	void endRendering();
@@ -64,8 +63,10 @@ public:
 	
 	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex = 0);
 	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
-	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, uint32_t arrayIndex = 0);
-	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImageView>& imageView, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, uint32_t arrayIndex = 0);
+	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex = 0);
+	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
+	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex = 0);
 	void pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex = 0);
 	
 	void bindVertexBuffer(uint32_t vertexBufferIndex, const VKPtr<VKBufferBase>& vertexBuffer);

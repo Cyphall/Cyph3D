@@ -10,7 +10,6 @@
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIMisc.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/Window.h"
 
 #include <GLFW/glfw3.h>
@@ -37,7 +36,7 @@ struct UIViewport::RenderToFileData
 	std::filesystem::path outputFile;
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastBatchTime;
-	VKPtr<VKImageView> lastRenderedTexture;
+	VKPtr<VKImage> lastRenderedTexture;
 	RenderToFileStatus status = RenderToFileStatus::eRendering;
 };
 
@@ -66,7 +65,7 @@ std::unique_ptr<ObjectPicker> UIViewport::_objectPicker;
 
 std::unique_ptr<UIViewport::RenderToFileData> UIViewport::_renderToFileData;
 bool UIViewport::_showRenderToFilePopup = false;
-VKPtr<VKImageView> UIViewport::_lastViewportImageView;
+VKPtr<VKImage> UIViewport::_lastViewportImage;
 
 void UIViewport::show()
 {
@@ -178,7 +177,7 @@ void UIViewport::show()
 			{
 				if (_renderToFileData->lastRenderedTexture)
 				{
-					VKBufferInfo bufferInfo(_renderToFileData->lastRenderedTexture->getInfo().getImage()->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
+					VKBufferInfo bufferInfo(_renderToFileData->lastRenderedTexture->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
 					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
@@ -188,19 +187,17 @@ void UIViewport::show()
 					Engine::getVKContext().executeImmediate([&](const VKPtr<VKCommandBuffer>& commandBuffer)
 					{
 						commandBuffer->imageMemoryBarrier(
-							_renderToFileData->lastRenderedTexture->getInfo().getImage(),
-							0,
-							0,
+							_renderToFileData->lastRenderedTexture,
 							vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 							vk::AccessFlagBits2::eColorAttachmentWrite,
 							vk::PipelineStageFlagBits2::eCopy,
 							vk::AccessFlagBits2::eTransferRead,
 							vk::ImageLayout::eTransferSrcOptimal);
 						
-						commandBuffer->copyImageToBuffer(_renderToFileData->lastRenderedTexture->getInfo().getImage(), 0, 0, stagingBuffer, 0);
+						commandBuffer->copyImageToBuffer(_renderToFileData->lastRenderedTexture, 0, 0, stagingBuffer, 0);
 					});
 					
-					glm::ivec2 textureSize = _renderToFileData->lastRenderedTexture->getInfo().getImage()->getSize(0);
+					glm::ivec2 textureSize = _renderToFileData->lastRenderedTexture->getSize(0);
 					
 					if (_renderToFileData->outputFile.extension() == ".png")
 					{
@@ -230,14 +227,14 @@ void UIViewport::show()
 					Engine::getScene().onPreRender(_renderRegistry, _camera);
 				}
 				
-				_lastViewportImageView = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, sceneChanged, cameraChanged);
+				_lastViewportImage = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, sceneChanged, cameraChanged);
 				
 				_sceneChangeVersion = currentSceneChangeVersion;
 			}
 			
 			ImGui::Image(
-				static_cast<ImTextureID>(const_cast<VKPtr<VKImageView>*>(&_lastViewportImageView)),
-				glm::vec2(_lastViewportImageView->getInfo().getImage()->getSize(0)),
+				static_cast<ImTextureID>(const_cast<VKPtr<VKImage>*>(&_lastViewportImage)),
+				glm::vec2(_lastViewportImage->getSize(0)),
 				ImVec2(0, 0),
 				ImVec2(1, 1));
 			
@@ -508,5 +505,5 @@ void UIViewport::shutdown()
 	_sceneRenderer = {};
 	_objectPicker = {};
 	_renderToFileData = {};
-	_lastViewportImageView = {};
+	_lastViewportImage = {};
 }

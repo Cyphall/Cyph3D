@@ -1,20 +1,33 @@
 #include "VKRenderingColorAttachmentInfo.h"
 
-VKRenderingColorAttachmentInfo::VKRenderingColorAttachmentInfo(const VKPtr<VKImageView>& imageView):
-_imageView(imageView)
+#include "Cyph3D/VKObject/Image/VKImage.h"
+
+VKRenderingColorAttachmentInfo::VKRenderingColorAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
+	_imageInfo(image, type, layerRange, levelRange, format)
 {
 
 }
 
-const VKPtr<VKImageView>& VKRenderingColorAttachmentInfo::getImageView() const
+const VKRenderingColorAttachmentInfo::ImageInfo& VKRenderingColorAttachmentInfo::getImageInfo() const
 {
-	return _imageView;
+	return _imageInfo;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImageView>& imageView)
+VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image)
+{
+	return enableResolve(
+		mode,
+		image,
+		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		image->getInfo().getFormat());
+}
+
+VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	_resolveMode = mode;
-	_resolveImageView = imageView;
+	_resolveImageInfo = {image, type, layerRange, levelRange, format};
 	
 	return *this;
 }
@@ -24,9 +37,9 @@ const vk::ResolveModeFlagBits& VKRenderingColorAttachmentInfo::getResolveMode() 
 	return _resolveMode;
 }
 
-const VKPtr<VKImageView>& VKRenderingColorAttachmentInfo::getResolveImageView() const
+const VKRenderingColorAttachmentInfo::ImageInfo& VKRenderingColorAttachmentInfo::getResolveImageInfo() const
 {
-	return _resolveImageView;
+	return _resolveImageInfo;
 }
 
 VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpLoad()

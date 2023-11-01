@@ -11,7 +11,6 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 
@@ -242,12 +241,10 @@ void ShadowMapPass::renderDirectionalShadowMap(
 	const DirectionalLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models)
 {
-	ShadowMapManager::DirectionalShadowMapData shadowMapData = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
+	VKPtr<VKImage> shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
 	
 	commandBuffer->imageMemoryBarrier(
-		shadowMapData.imageView->getInfo().getImage(),
-		0,
-		0,
+		shadowMap,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
@@ -256,7 +253,7 @@ void ShadowMapPass::renderDirectionalShadowMap(
 	
 	VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
 	
-	renderingInfo.setDepthAttachment(shadowMapData.imageView)
+	renderingInfo.setDepthAttachment(shadowMap)
 		.setLoadOpClear(1.0f)
 		.setStoreOpStore();
 	
@@ -307,7 +304,7 @@ void ShadowMapPass::renderDirectionalShadowMap(
 		.worldSize = worldSize,
 		.worldDepth = worldDepth,
 		.viewProjection = viewProjection,
-		.imageView = shadowMapData.imageView
+		.image = shadowMap
 	});
 }
 
@@ -317,25 +314,28 @@ void ShadowMapPass::renderPointShadowMap(
 	const std::vector<ModelRenderer::RenderData>& models,
 	int uniformIndex)
 {
-	ShadowMapManager::PointShadowMapData shadowMapData = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
+	VKPtr<VKImage> shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
+	
+	commandBuffer->imageMemoryBarrier(
+		shadowMap,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
+		vk::ImageLayout::eDepthAttachmentOptimal);
 	
 	std::array<glm::mat4, 6> views = calcPointShadowMapView(light);
 	
 	for (int i = 0; i < 6; i++)
 	{
-		commandBuffer->imageMemoryBarrier(
-			shadowMapData.imageViewAllLayers->getInfo().getImage(),
-			i,
-			0,
-			vk::PipelineStageFlagBits2::eNone,
-			vk::AccessFlagBits2::eNone,
-			vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-			vk::AccessFlagBits2::eDepthStencilAttachmentRead,
-			vk::ImageLayout::eDepthAttachmentOptimal);
-		
 		VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
 		
-		renderingInfo.setDepthAttachment(shadowMapData.imageViewsOneLayer[i])
+		renderingInfo.setDepthAttachment(
+			shadowMap,
+			vk::ImageViewType::e2D,
+			{i, i},
+			{0, 0},
+			shadowMap->getInfo().getFormat())
 			.setLoadOpClear(std::numeric_limits<float>::max())
 			.setStoreOpStore();
 		
@@ -390,6 +390,6 @@ void ShadowMapPass::renderPointShadowMap(
 	}
 	
 	_pointShadowMapInfos.push_back(PointShadowMapInfo{
-		.imageView = shadowMapData.imageViewAllLayers
+		.image = shadowMap
 	});
 }

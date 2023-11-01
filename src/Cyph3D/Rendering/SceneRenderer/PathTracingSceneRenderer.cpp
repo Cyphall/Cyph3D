@@ -5,7 +5,6 @@
 #include "Cyph3D/Rendering/Pass/ExposurePass.h"
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 
 PathTracingSceneRenderer::PathTracingSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Path tracing SceneRenderer", size),
@@ -23,7 +22,7 @@ void PathTracingSceneRenderer::setSampleCountPerRender(uint32_t count)
 	_sampleCount = count;
 }
 
-const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	PathTracePassInput pathTracePassInput{
 		.registry = registry,
@@ -38,9 +37,7 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 	for (int i = 0; i < 3; i++)
 	{
 		commandBuffer->imageMemoryBarrier(
-			pathTracePassOutput.rawRenderImageView[i]->getInfo().getImage(),
-			0,
-			0,
+			pathTracePassOutput.rawRenderImage[i],
 			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 			vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::PipelineStageFlagBits2::eComputeShader,
@@ -49,7 +46,7 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 	}
 	
 	NormalizationPassInput normalizationPassInput{
-		.inputImageView = pathTracePassOutput.rawRenderImageView,
+		.inputImage = pathTracePassOutput.rawRenderImage,
 		.accumulatedSamples = pathTracePassOutput.accumulatedSamples,
 		.fixedPointDecimals = pathTracePassOutput.fixedPointDecimals
 	};
@@ -57,9 +54,7 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		normalizationPassOutput.outputImageView->getInfo().getImage(),
-		0,
-		0,
+		normalizationPassOutput.outputImage,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
@@ -67,16 +62,14 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 		vk::ImageLayout::eReadOnlyOptimal);
 	
 	ExposurePassInput exposurePassInput{
-		.inputImageView = normalizationPassOutput.outputImageView,
+		.inputImage = normalizationPassOutput.outputImage,
 		.camera = camera
 	};
 	
 	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		exposurePassOutput.outputImageView->getInfo().getImage(),
-		0,
-		0,
+		exposurePassOutput.outputImage,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
@@ -84,15 +77,13 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 		vk::ImageLayout::eReadOnlyOptimal);
 	
 	BloomPassInput bloomPassInput{
-		.inputImageView = exposurePassOutput.outputImageView
+		.inputImage = exposurePassOutput.outputImage
 	};
 	
 	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		bloomPassOutput.outputImageView->getInfo().getImage(),
-		0,
-		0,
+		bloomPassOutput.outputImage,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
@@ -100,22 +91,20 @@ const VKPtr<VKImageView>& PathTracingSceneRenderer::onRender(const VKPtr<VKComma
 		vk::ImageLayout::eReadOnlyOptimal);
 	
 	ToneMappingPassInput toneMappingPassInput{
-		.inputImageView = bloomPassOutput.outputImageView
+		.inputImage = bloomPassOutput.outputImage
 	};
 	
 	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput, _renderPerf);
 	
 	commandBuffer->imageMemoryBarrier(
-		toneMappingPassOutput.outputImageView->getInfo().getImage(),
-		0,
-		0,
+		toneMappingPassOutput.outputImage,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
 		vk::ImageLayout::eReadOnlyOptimal);
 	
-	return toneMappingPassOutput.outputImageView;
+	return toneMappingPassOutput.outputImage;
 }
 
 void PathTracingSceneRenderer::onResize()

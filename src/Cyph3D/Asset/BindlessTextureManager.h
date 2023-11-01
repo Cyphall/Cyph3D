@@ -7,7 +7,7 @@
 #include <stack>
 #include <vector>
 
-class VKImageView;
+class VKImage;
 class VKDescriptorSetLayout;
 class VKDescriptorSet;
 class VKSampler;
@@ -19,7 +19,7 @@ public:
 	
 	uint32_t acquireIndex();
 	void releaseIndex(uint32_t index);
-	void setTexture(uint32_t index, const VKPtr<VKImageView>& texture, const VKPtr<VKSampler>& sampler);
+	void setTexture(uint32_t index, const VKPtr<VKImage>& texture, const VKPtr<VKSampler>& sampler);
 	
 	const VKPtr<VKDescriptorSetLayout>& getDescriptorSetLayout();
 	const VKPtr<VKDescriptorSet>& getDescriptorSet();
@@ -30,7 +30,7 @@ private:
 	struct TextureChange
 	{
 		uint32_t index;
-		VKPtr<VKImageView> texture;
+		VKPtr<VKImage> texture;
 		VKPtr<VKSampler> sampler;
 	};
 	

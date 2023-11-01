@@ -10,7 +10,6 @@
 
 class AssetManager;
 class VKImage;
-class VKImageView;
 class VKSampler;
 struct AssetManagerWorkerData;
 
@@ -59,6 +58,5 @@ private:
 	void load_async(AssetManagerWorkerData& workerData);
 	
 	VKPtr<VKImage> _image;
-	VKPtr<VKImageView> _imageView;
 	uint32_t _bindlessIndex;
 };

@@ -7,7 +7,6 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Image/VKImageView.h"
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
@@ -26,8 +25,6 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 {
 	commandBuffer->imageMemoryBarrier(
 		_outputImage,
-		0,
-		0,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -36,7 +33,7 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(_outputImageView)
+	renderingInfo.addColorAttachment(_outputImage)
 		.setLoadOpDontCare()
 		.setStoreOpStore();
 	
@@ -55,7 +52,7 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	scissor.size = _size;
 	commandBuffer->setScissor(scissor);
 	
-	commandBuffer->pushDescriptor(0, 0, input.inputImageView, _inputSampler);
+	commandBuffer->pushDescriptor(0, 0, input.inputImage, _inputSampler);
 	
 	PushConstantData pushConstantData{};
 	pushConstantData.exposure = input.camera.getExposure();
@@ -68,7 +65,7 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->endRendering();
 	
 	return {
-		_outputImageView
+		_outputImage
 	};
 }
 
@@ -145,10 +142,4 @@ void ExposurePass::createImage()
 	imageInfo.setName("Exposure output image");
 	
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	
-	VKImageViewInfo imageViewInfo(
-		_outputImage,
-		vk::ImageViewType::e2D);
-	
-	_outputImageView = VKImageView::create(Engine::getVKContext(), imageViewInfo);
 }
