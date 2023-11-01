@@ -95,6 +95,8 @@ def process_file(input_path: str):
 		compile_shader(input_path, output_path)
 	elif ext == ".rint":
 		compile_shader(input_path, output_path)
+	elif ext == ".glsl":
+		pass # glsl common files, not compiled as is but included in other shader files
 	else:
 		copy_file(input_path, output_path)
 
