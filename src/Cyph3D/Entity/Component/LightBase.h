@@ -22,7 +22,4 @@ private:
 	glm::vec3 _linearColor;
 	glm::vec3 _srgbColor;
 	float _intensity = 1;
-	
-	static glm::vec3 toLinear(glm::vec3 color);
-	static glm::vec3 toSrgb(glm::vec3 color);
 };

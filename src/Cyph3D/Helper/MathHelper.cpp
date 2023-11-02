@@ -39,3 +39,21 @@ std::pair<glm::vec3, glm::vec3> MathHelper::transformBoundingBox(const glm::mat4
 	
 	return {min, max};
 }
+
+glm::vec3 MathHelper::srgbToLinear(glm::vec3 color)
+{
+	glm::bvec3 cutoff = lessThan(color, glm::vec3(0.04045f));
+	glm::vec3 higher = pow((color + glm::vec3(0.055f))/glm::vec3(1.055f), glm::vec3(2.4f));
+	glm::vec3 lower = color/glm::vec3(12.92f);
+	
+	return glm::mix(higher, lower, cutoff);
+}
+
+glm::vec3 MathHelper::linearToSrgb(glm::vec3 color)
+{
+	glm::bvec3 cutoff = lessThan(color, glm::vec3(0.0031308f));
+	glm::vec3 higher = glm::vec3(1.055f)*pow(color, glm::vec3(1.0f/2.4f)) - glm::vec3(0.055f);
+	glm::vec3 lower = color * glm::vec3(12.92f);
+	
+	return glm::mix(higher, lower, cutoff);
+}

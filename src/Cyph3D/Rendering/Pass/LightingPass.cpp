@@ -5,6 +5,7 @@
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/MathHelper.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Scene/Camera.h"
@@ -156,7 +157,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			.metalnessIndex = model.material.getMetalnessTextureBindlessIndex(),
 			.displacementIndex = model.material.getDisplacementTextureBindlessIndex(),
 			.emissiveIndex = model.material.getEmissiveTextureBindlessIndex(),
-			.albedoValue = model.material.getAlbedoValue(),
+			.albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue()),
 			.roughnessValue = model.material.getRoughnessValue(),
 			.metalnessValue = model.material.getMetalnessValue(),
 			.emissiveScale = model.material.getEmissiveScale()
