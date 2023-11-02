@@ -13,7 +13,7 @@
 #include <format>
 
 static const float BLOOM_RADIUS = 0.85f;
-static const float BLOOM_STRENGTH = 0.3f;
+static const float BLOOM_STRENGTH = 0.15f;
 
 BloomPass::BloomPass(glm::uvec2 size):
 	RenderPass(size, "Bloom pass")
