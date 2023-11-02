@@ -5,6 +5,9 @@
 #extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_nonuniform_qualifier : require
 #extension GL_ARB_gpu_shader_int64 : require
+#extension GL_GOOGLE_include_directive : require
+
+#include "../common/colorspace.glsl"
 
 const float PI = 3.14159265359;
 const float TWO_PI = PI * 2.0;
@@ -203,7 +206,7 @@ void main()
 	
 	vec2 uv = interpolateBarycentrics(v1.uv, v2.uv, v3.uv, barycentrics);
 	
-	vec3 albedo = u_albedoIndex >= 0 ? texture(u_textures[nonuniformEXT(u_albedoIndex)], uv).rgb : u_albedoValue;
+	vec3 albedo = linearToAP1(u_albedoIndex >= 0 ? texture(u_textures[nonuniformEXT(u_albedoIndex)], uv).rgb : u_albedoValue);
 	float roughness = u_roughnessIndex >= 0 ? texture(u_textures[nonuniformEXT(u_roughnessIndex)], uv).r : u_roughnessValue;
 	float metalness = u_metalnessIndex >= 0 ? texture(u_textures[nonuniformEXT(u_metalnessIndex)], uv).r : u_metalnessValue;
 	float emissive = (u_emissiveIndex >= 0 ? texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r : 1.0) * u_emissiveScale;

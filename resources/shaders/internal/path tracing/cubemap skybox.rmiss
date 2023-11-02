@@ -3,6 +3,9 @@
 #extension GL_EXT_ray_tracing : require
 #extension GL_EXT_nonuniform_qualifier : require
 #extension GL_ARB_gpu_shader_int64 : require
+#extension GL_GOOGLE_include_directive : require
+
+#include "../common/colorspace.glsl"
 
 struct HitPayload
 {
@@ -37,7 +40,7 @@ void main()
 	vec3 rayDir = gl_WorldRayDirectionEXT;
 	rayDir *= vec3(1, 1, -1);
 	rayDir = (u_skyboxRotation * vec4(rayDir, 1.0)).xyz;
-	vec3 skyboxColor = texture(u_textures[u_skyboxIndex], rayDir).rgb;
+	vec3 skyboxColor = linearToAP1(texture(u_textures[u_skyboxIndex], rayDir).rgb);
 	
 	hitPayload.light += u64vec3(max(hitPayload.throughput * skyboxColor * pow(10, u_fixedPointDecimals), vec3(0)));
 	hitPayload.hit = false;

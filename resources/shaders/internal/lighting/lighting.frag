@@ -1,5 +1,8 @@
 #version 460 core
 #extension GL_EXT_nonuniform_qualifier : require
+#extension GL_GOOGLE_include_directive : require
+
+#include "../common/colorspace.glsl"
 
 /* ------ consts ------ */
 const float PI = 3.14159265359;
@@ -393,7 +396,7 @@ void main()
 	
 	// ----------------- albedo -----------------
 	
-	vec3 albedo = u_objectUniforms.albedoIndex >= 0 ? texture(u_textures[u_objectUniforms.albedoIndex], texCoords).rgb : u_objectUniforms.albedoValue;
+	vec3 albedo = linearToAP1(u_objectUniforms.albedoIndex >= 0 ? texture(u_textures[u_objectUniforms.albedoIndex], texCoords).rgb : u_objectUniforms.albedoValue);
 	
 	// ----------------- normal -----------------
 	
@@ -432,7 +435,7 @@ void main()
 
 		// calculate light parameters
 		vec3 lightDir    = u_directionalLightUniforms[i].fragToLightDirection;
-		vec3 radiance    = u_directionalLightUniforms[i].color * u_directionalLightUniforms[i].intensity;
+		vec3 radiance    = linearToAP1(u_directionalLightUniforms[i].color) * u_directionalLightUniforms[i].intensity;
 
 		finalColor += calculateLighting(radiance, lightDir, viewDir, albedo, normal, roughness, metalness) * (1 - shadow);
 	}
@@ -446,7 +449,7 @@ void main()
 		vec3  lightDir    = normalize(u_pointLightUniforms[i].pos - fragPos);
 		float distance    = length(u_pointLightUniforms[i].pos - fragPos);
 		float attenuation = 1.0 / (1 + distance * distance);
-		vec3  radiance    = u_pointLightUniforms[i].color * u_pointLightUniforms[i].intensity * attenuation;
+		vec3  radiance    = linearToAP1(u_pointLightUniforms[i].color) * u_pointLightUniforms[i].intensity * attenuation;
 		
 		finalColor += calculateLighting(radiance, lightDir, viewDir, albedo, normal, roughness, metalness) * (1 - shadow);
 	}
