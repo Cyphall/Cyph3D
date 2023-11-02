@@ -1,1 +1,1 @@
-{"version":2,"albedo":{"path":null,"value":[0.9960784316062927,0.9333333373069763,0.6392157077789307]},"normal":{"path":null},"roughness":{"path":null,"value":1.0},"metalness":{"path":null,"value":0.0},"displacement":{"path":null},"emissive":{"path":null,"value":1.0}}
+{"version":3,"albedo":{"path":null,"value":[1.0,0.5764706134796143,0.16078431904315948]},"normal":{"path":null},"roughness":{"path":null,"value":1.0},"metalness":{"path":null,"value":0.0},"displacement":{"path":null},"emissive":{"path":null,"scale":250.0}}
