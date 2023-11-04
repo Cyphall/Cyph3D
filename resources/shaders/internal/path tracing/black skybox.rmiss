@@ -2,24 +2,15 @@
 
 #extension GL_EXT_ray_tracing : require
 #extension GL_EXT_nonuniform_qualifier : require
-#extension GL_ARB_gpu_shader_int64 : require
 
 struct HitPayload
 {
 	uint randomOffset;
-	u64vec3 light;
+	vec3 light;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
 	vec3 rayDirection;
-};
-
-layout(push_constant) uniform constants
-{
-	uint u_batchIndex;
-	uint u_sampleCount;
-	bool u_resetAccumulation;
-	uint u_fixedPointDecimals;
 };
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;

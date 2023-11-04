@@ -4,7 +4,6 @@
 #extension GL_EXT_buffer_reference : require
 #extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_nonuniform_qualifier : require
-#extension GL_ARB_gpu_shader_int64 : require
 #extension GL_GOOGLE_include_directive : require
 
 #include "../common/colorspace.glsl"
@@ -15,7 +14,7 @@ const float TWO_PI = PI * 2.0;
 struct HitPayload
 {
 	uint randomOffset;
-	u64vec3 light;
+	vec3 light;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
@@ -223,7 +222,7 @@ void main()
 	mat3 worldToTangent = transpose(tangentToWorld);
 	
 	
-	hitPayload.light += u64vec3(max(hitPayload.throughput * albedo * emissive * pow(10, u_fixedPointDecimals), vec3(0)));
+	hitPayload.light += hitPayload.throughput * albedo * emissive;
 	
 	
 	hitPayload.hit = true;

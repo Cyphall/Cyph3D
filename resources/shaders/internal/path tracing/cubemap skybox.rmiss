@@ -2,7 +2,6 @@
 
 #extension GL_EXT_ray_tracing : require
 #extension GL_EXT_nonuniform_qualifier : require
-#extension GL_ARB_gpu_shader_int64 : require
 #extension GL_GOOGLE_include_directive : require
 
 #include "../common/colorspace.glsl"
@@ -10,19 +9,11 @@
 struct HitPayload
 {
 	uint randomOffset;
-	u64vec3 light;
+	vec3 light;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
 	vec3 rayDirection;
-};
-
-layout(push_constant) uniform constants
-{
-	uint u_batchIndex;
-	uint u_sampleCount;
-	bool u_resetAccumulation;
-	uint u_fixedPointDecimals;
 };
 
 layout(set = 0, binding = 0) uniform samplerCube u_textures[];
@@ -42,7 +33,7 @@ void main()
 	rayDir = (u_skyboxRotation * vec4(rayDir, 1.0)).xyz;
 	vec3 skyboxColor = linearToAP1(texture(u_textures[u_skyboxIndex], rayDir).rgb);
 	
-	hitPayload.light += u64vec3(max(hitPayload.throughput * skyboxColor * pow(10, u_fixedPointDecimals), vec3(0)));
+	hitPayload.light += hitPayload.throughput * skyboxColor;
 	hitPayload.hit = false;
 	hitPayload.rayPosition = vec3(0);
 	hitPayload.rayDirection = vec3(0);

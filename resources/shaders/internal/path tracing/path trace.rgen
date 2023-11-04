@@ -7,7 +7,7 @@
 struct HitPayload
 {
 	uint randomOffset;
-	u64vec3 light;
+	vec3 light;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
@@ -53,7 +53,7 @@ vec4 getRandom()
 void main()
 {
 	hitPayload.randomOffset = 0;
-	hitPayload.light = u64vec3(0);
+	hitPayload.light = vec3(0);
 	
 	for (int s = 0; s < u_sampleCount; s++)
 	{
@@ -96,7 +96,7 @@ void main()
 		imageLoad(u_color[2], ivec2(gl_LaunchIDEXT.xy)).r
 	);
 	
-	totalLight += hitPayload.light;
+	totalLight += u64vec3(max(hitPayload.light * pow(10, u_fixedPointDecimals), vec3(0)));
 	
 	imageStore(u_color[0], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLight.r, 0, 0, 0));
 	imageStore(u_color[1], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLight.g, 0, 0, 0));
