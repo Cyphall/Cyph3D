@@ -15,12 +15,3 @@ vec3 linearToSrgb(vec3 color)
 	
 	return mix(higher, lower, cutoff);
 }
-
-vec3 linearToAP1(vec3 color)
-{
-	return color * mat3(
-		0.613097, 0.339523, 0.047379,
-		0.070194, 0.916354, 0.013452,
-		0.020616, 0.109570, 0.869815
-	);
-}
