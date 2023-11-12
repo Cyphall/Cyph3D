@@ -1,6 +1,7 @@
 #include "ToneMappingPass.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
@@ -9,11 +10,8 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
-const vk::Format LINEAR_OUTPUT_FORMAT = vk::Format::eR8G8B8A8Unorm;
-const vk::Format SRGB_OUTPUT_FORMAT = vk::Format::eR8G8B8A8Srgb;
-
 ToneMappingPass::ToneMappingPass(glm::uvec2 size):
-	RenderPass(size, "ToneMapping pass")
+	RenderPass(size, "Tone mapping pass")
 {
 	createDescriptorSetLayout();
 	createPipelineLayout();
@@ -34,7 +32,7 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 	
 	VKRenderingInfo renderingInfo(_size);
 	
-	renderingInfo.addColorAttachment(_outputImage, vk::ImageViewType::e2D, {0, 0}, {0, 0}, SRGB_OUTPUT_FORMAT)
+	renderingInfo.addColorAttachment(_outputImage)
 		.setLoadOpDontCare()
 		.setStoreOpStore();
 	
@@ -98,7 +96,7 @@ void ToneMappingPass::createPipeline()
 	
 	info.setFragmentShader("resources/shaders/internal/post-processing/tone mapping/tone mapping.frag");
 	
-	info.getPipelineAttachmentInfo().addColorAttachment(SRGB_OUTPUT_FORMAT);
+	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::FINAL_COLOR_FORMAT);
 	
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
@@ -129,13 +127,12 @@ void ToneMappingPass::createSampler()
 void ToneMappingPass::createImage()
 {
 	VKImageInfo imageInfo(
-		LINEAR_OUTPUT_FORMAT,
+		SceneRenderer::FINAL_COLOR_FORMAT,
 		_size,
 		1,
 		1,
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	imageInfo.addAdditionalCompatibleViewFormat(SRGB_OUTPUT_FORMAT);
 	imageInfo.setName("Tone mapping output image");
 	
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);

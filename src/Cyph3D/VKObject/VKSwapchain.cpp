@@ -27,6 +27,34 @@ static SwapChainSupportDetails querySwapchainSupport(vk::PhysicalDevice device, 
 	return details;
 }
 
+static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+{
+	constexpr std::array<vk::SurfaceFormatKHR, 2> preferredSurfaceFormats = {
+		vk::SurfaceFormatKHR{
+			.format = vk::Format::eA2B10G10R10UnormPack32,
+			.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear
+		},
+		vk::SurfaceFormatKHR{
+			.format = vk::Format::eB8G8R8A8Unorm,
+			.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear
+		}
+	};
+	
+	std::vector<vk::SurfaceFormatKHR> supportedSurfaceFormats = physicalDevice.getSurfaceFormatsKHR(surface);
+	
+	for (const vk::SurfaceFormatKHR& preferredSurfaceFormat : preferredSurfaceFormats)
+	{
+		if (std::find(supportedSurfaceFormats.begin(), supportedSurfaceFormats.end(), preferredSurfaceFormat) != supportedSurfaceFormats.end())
+		{
+			return preferredSurfaceFormat;
+		}
+	}
+	
+	Logger::error("Could not find a preferred surface format", "Vulkan");
+	
+	return supportedSurfaceFormats[0];
+}
+
 std::unique_ptr<VKSwapchain> VKSwapchain::create(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
 {
 	return std::unique_ptr<VKSwapchain>(new VKSwapchain(context, surface, oldSwapchain));
@@ -84,12 +112,13 @@ size_t VKSwapchain::getImageCount() const
 void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
 {
 	SwapChainSupportDetails swapchainSupport = querySwapchainSupport(_context.getPhysicalDevice(), surface);
+	vk::SurfaceFormatKHR surfaceFormat = findBestSurfaceFormat(_context.getPhysicalDevice(), surface);
 	
 	vk::SwapchainCreateInfoKHR createInfo;
 	createInfo.surface = surface;
 	createInfo.minImageCount = 3;
-	createInfo.imageFormat = vk::Format::eB8G8R8A8Unorm;
-	createInfo.imageColorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
+	createInfo.imageFormat = surfaceFormat.format;
+	createInfo.imageColorSpace = surfaceFormat.colorSpace;
 	createInfo.imageExtent = swapchainSupport.capabilities.currentExtent;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;

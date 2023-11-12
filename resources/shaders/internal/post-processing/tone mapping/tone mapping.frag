@@ -1,5 +1,9 @@
 #version 460 core
 
+#extension GL_GOOGLE_include_directive : require
+
+#include "../../common/colorspace.glsl"
+
 layout(set = 0, binding = 0) uniform sampler2D u_colorTexture;
 
 layout(location = 0) out vec4 o_color;
@@ -66,6 +70,8 @@ void main()
 	vec3 color = texelFetch(u_colorTexture, ivec2(gl_FragCoord.xy), 0).rgb;
 	
 	color = agx(color);
+	
+	color = linearToSrgb(color);
 	
 	o_color = vec4(clamp(color, vec3(0.0), vec3(1.0)), 1);
 }

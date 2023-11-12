@@ -8,6 +8,7 @@ const vk::Format SceneRenderer::HDR_COLOR_FORMAT = vk::Format::eR16G16B16A16Sflo
 const vk::Format SceneRenderer::ACCUMULATION_FORMAT = vk::Format::eR64Uint;
 const vk::Format SceneRenderer::DIRECTIONAL_SHADOW_MAP_DEPTH_FORMAT = vk::Format::eD32Sfloat;
 const vk::Format SceneRenderer::POINT_SHADOW_MAP_DEPTH_FORMAT = vk::Format::eD32Sfloat;
+const vk::Format SceneRenderer::FINAL_COLOR_FORMAT = vk::Format::eA2B10G10R10UnormPack32;
 
 SceneRenderer::SceneRenderer(std::string_view name, glm::uvec2 size):
 	_size(size), _renderPerf(name)

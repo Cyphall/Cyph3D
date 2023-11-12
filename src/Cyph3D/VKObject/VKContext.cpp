@@ -83,6 +83,7 @@ static std::vector<const char*> getRequiredInstanceExtensions()
 	}
 	
 	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	extensions.push_back(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
 #if defined(_DEBUG)
 	extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
 #endif
