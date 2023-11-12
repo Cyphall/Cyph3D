@@ -32,7 +32,8 @@ private:
 	VKPtr<VKImage> _workImage;
 	VKPtr<VKImage> _outputImage;
 	
-	VKPtr<VKSampler> _workImageSampler;
+	VKPtr<VKSampler> _downsampleSampler;
+	VKPtr<VKSampler> _upsampleSampler;
 	
 	// downsample
 	
@@ -76,7 +77,7 @@ private:
 	VKPtr<VKSampler> _inputImageSampler;
 
 	
-	void downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
+	void downsampleAnsBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
 	void upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
 	void compose(const VKPtr<VKImage>& input, const VKPtr<VKCommandBuffer>& commandBuffer);
 	

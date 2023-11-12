@@ -65,7 +65,7 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	// downsample work image
 	for (int i = 1; i < _workImage->getInfo().getLevels(); i++)
 	{
-		commandBuffer->pushDebugGroup(std::format("downsample({}->{})", i-1, i));
+		commandBuffer->pushDebugGroup(std::format("downsampleAnsBlur({}->{})", i-1, i));
 		{
 			commandBuffer->imageMemoryBarrier(
 				_workImage,
@@ -77,7 +77,7 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::ImageLayout::eColorAttachmentOptimal);
 			
-			downsample(commandBuffer, i);
+			downsampleAnsBlur(commandBuffer, i);
 			
 			commandBuffer->imageMemoryBarrier(
 				_workImage,
@@ -155,7 +155,7 @@ void BloomPass::onResize()
 	createImages();
 }
 
-void BloomPass::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void BloomPass::downsampleAnsBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	VKRenderingInfo renderingInfo(_workImage->getSize(dstLevel));
 	
@@ -191,7 +191,7 @@ void BloomPass::downsample(const VKPtr<VKCommandBuffer>& commandBuffer, int dstL
 		{0, 0},
 		{dstLevel-1, dstLevel-1},
 		_workImage->getInfo().getFormat(),
-		_workImageSampler);
+		_downsampleSampler);
 	
 	DownsamplePushConstantData pushConstantData{};
 	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workImage->getSize(dstLevel-1));
@@ -241,7 +241,7 @@ void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int
 		{0, 0},
 		{dstLevel+1, dstLevel+1},
 		_workImage->getInfo().getFormat(),
-		_workImageSampler);
+		_upsampleSampler);
 	
 	UpsamplePushConstantData pushConstantData{};
 	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workImage->getSize(dstLevel+1));
@@ -280,7 +280,7 @@ void BloomPass::compose(const VKPtr<VKImage>& input, const VKPtr<VKCommandBuffer
 	commandBuffer->setScissor(scissor);
 	
 	commandBuffer->pushDescriptor(0, 0, input, _inputImageSampler);
-	commandBuffer->pushDescriptor(0, 1, _workImage, _workImageSampler);
+	commandBuffer->pushDescriptor(0, 1, _workImage, _inputImageSampler);
 	
 	ComposePushConstantData pushConstantData{};
 	pushConstantData.factor = glm::clamp(BLOOM_STRENGTH, 0.0f, 1.0f);
@@ -452,7 +452,29 @@ void BloomPass::createSamplers()
 		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 		createInfo.unnormalizedCoordinates = false;
 		
-		_workImageSampler = VKSampler::create(Engine::getVKContext(), createInfo);
+		_downsampleSampler = VKSampler::create(Engine::getVKContext(), createInfo);
+	}
+	
+	{
+		vk::SamplerCreateInfo createInfo;
+		createInfo.flags = {};
+		createInfo.magFilter = vk::Filter::eLinear;
+		createInfo.minFilter = vk::Filter::eLinear;
+		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
+		createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+		createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+		createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
+		createInfo.mipLodBias = 0.0f;
+		createInfo.anisotropyEnable = false;
+		createInfo.maxAnisotropy = 1;
+		createInfo.compareEnable = false;
+		createInfo.compareOp = vk::CompareOp::eNever;
+		createInfo.minLod = -1000.0f;
+		createInfo.maxLod = 1000.0f;
+		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+		createInfo.unnormalizedCoordinates = false;
+		
+		_upsampleSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 	}
 	
 	{
