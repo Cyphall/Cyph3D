@@ -1,5 +1,6 @@
 #include "VKSwapchain.h"
 
+#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
@@ -51,7 +52,7 @@ VKSwapchain::NextImageInfo VKSwapchain::retrieveNextImage()
 	auto [result, imageIndex] = _context.getDevice().acquireNextImageKHR(_swapchain, UINT64_MAX, semaphore->getHandle(), VK_NULL_HANDLE);
 	if (result == vk::Result::eSuboptimalKHR)
 	{
-		std::cout << "WARNING: Suboptimal swapchain." << std::endl;
+		Logger::warning("Suboptimal swapchain", "Vulkan");
 	}
 	
 	return {
