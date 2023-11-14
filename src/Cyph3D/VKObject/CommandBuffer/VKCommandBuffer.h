@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
+#include "Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
@@ -18,7 +19,6 @@ class VKPipeline;
 class VKFence;
 class VKTimestampQuery;
 class VKAccelerationStructure;
-class VKRenderingInfo;
 class VKAccelerationStructureCompactedSizeQuery;
 class VKShaderBindingTable;
 struct VKPipelineViewport;
