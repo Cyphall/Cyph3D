@@ -9,6 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include "Queue/VKQueue.h"
+
 struct SwapChainSupportDetails
 {
 	vk::SurfaceCapabilitiesKHR capabilities;
@@ -113,6 +115,12 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 {
 	SwapChainSupportDetails swapchainSupport = querySwapchainSupport(_context.getPhysicalDevice(), surface);
 	vk::SurfaceFormatKHR surfaceFormat = findBestSurfaceFormat(_context.getPhysicalDevice(), surface);
+
+	std::array<uint32_t, 3> queues = {
+		_context.getMainQueue().getFamily(),
+		_context.getComputeQueue().getFamily(),
+		_context.getTransferQueue().getFamily()
+	};
 	
 	vk::SwapchainCreateInfoKHR createInfo;
 	createInfo.surface = surface;
@@ -122,9 +130,9 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 	createInfo.imageExtent = swapchainSupport.capabilities.currentExtent;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
-	createInfo.imageSharingMode = vk::SharingMode::eExclusive;
-	createInfo.queueFamilyIndexCount = 0; // Optional
-	createInfo.pQueueFamilyIndices = nullptr; // Optional
+	createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+	createInfo.queueFamilyIndexCount = queues.size();
+	createInfo.pQueueFamilyIndices = queues.data();
 	createInfo.preTransform = swapchainSupport.capabilities.currentTransform;
 	createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 	createInfo.presentMode = vk::PresentModeKHR::eFifo;

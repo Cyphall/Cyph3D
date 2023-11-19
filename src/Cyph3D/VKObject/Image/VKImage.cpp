@@ -1,5 +1,6 @@
 #include "VKImage.h"
 
+#include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 
@@ -35,6 +36,12 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		vk::ImageFormatListCreateInfo viewFormatsCreateInfo;
 		viewFormatsCreateInfo.viewFormatCount = _info.getCompatibleViewFormats().size();
 		viewFormatsCreateInfo.pViewFormats = _info.getCompatibleViewFormats().data();
+
+		std::array<uint32_t, 3> queues = {
+			_context.getMainQueue().getFamily(),
+			_context.getComputeQueue().getFamily(),
+			_context.getTransferQueue().getFamily()
+		};
 		
 		vk::ImageCreateInfo createInfo;
 		createInfo.imageType = vk::ImageType::e2D;
@@ -45,7 +52,9 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		createInfo.tiling = vk::ImageTiling::eOptimal;
 		createInfo.initialLayout = vk::ImageLayout::eUndefined;
 		createInfo.usage = _info.getUsage();
-		createInfo.sharingMode = vk::SharingMode::eExclusive;
+		createInfo.sharingMode = vk::SharingMode::eConcurrent;
+		createInfo.queueFamilyIndexCount = queues.size();
+		createInfo.pQueueFamilyIndices = queues.data();
 		createInfo.samples = _info.getSampleCount();
 		createInfo.flags = flags;
 		createInfo.pNext = &viewFormatsCreateInfo;

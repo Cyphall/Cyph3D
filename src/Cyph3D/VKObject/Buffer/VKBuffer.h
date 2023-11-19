@@ -2,6 +2,7 @@
 
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
 #include "Cyph3D/VKObject/Buffer/VKBufferInfo.h"
+#include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
 #include <vk_mem_alloc.hpp>
@@ -66,10 +67,18 @@ private:
 		VKBufferBase(context),
 		_info(info)
 	{
+		std::array<uint32_t, 3> queues = {
+			_context.getMainQueue().getFamily(),
+			_context.getComputeQueue().getFamily(),
+			_context.getTransferQueue().getFamily()
+		};
+
 		vk::BufferCreateInfo bufferCreateInfo;
 		bufferCreateInfo.size = _info.getSize() * sizeof(T);
 		bufferCreateInfo.usage = _info.getUsage();
-		bufferCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+		bufferCreateInfo.sharingMode = vk::SharingMode::eConcurrent;
+		bufferCreateInfo.queueFamilyIndexCount = queues.size();
+		bufferCreateInfo.pQueueFamilyIndices = queues.data();
 		
 		vma::AllocationCreateInfo allocationCreateInfo{};
 		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
