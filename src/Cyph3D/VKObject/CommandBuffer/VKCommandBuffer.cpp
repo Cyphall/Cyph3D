@@ -59,9 +59,10 @@ const vk::CommandBuffer& VKCommandBuffer::getHandle()
 	return _commandBuffer;
 }
 
-bool VKCommandBuffer::waitExecution() const
+void VKCommandBuffer::waitExecution() const
 {
-	return _statusFence->wait();
+	if (!_statusFence->wait())
+		throw;
 }
 
 void VKCommandBuffer::begin()

@@ -35,7 +35,7 @@ public:
 	
 	const vk::CommandBuffer& getHandle();
 	
-	bool waitExecution() const;
+	void waitExecution() const;
 	
 	void begin();
 	void end();
