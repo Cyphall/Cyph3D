@@ -13,7 +13,7 @@
 #include <unordered_set>
 #include <vector>
 
-static const uint32_t VULKAN_VERSION = VK_API_VERSION_1_3;
+static constexpr uint32_t VULKAN_VERSION = VK_API_VERSION_1_3;
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -74,8 +74,7 @@ static std::vector<const char*> getRequiredInstanceExtensions()
 	std::vector<const char*> extensions;
 	
 	uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions;
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+	const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 	
 	for (int i = 0; i < glfwExtensionCount; i++)
 	{
@@ -127,7 +126,7 @@ static void checkInstanceLayersSupport(const std::vector<const char*>& requiredI
 {
 	for (const char* requiredInstanceLayer : requiredInstanceLayers)
 	{
-		if (supportedInstanceLayers.find(std::string(requiredInstanceLayer)) == supportedInstanceLayers.end())
+		if (!supportedInstanceLayers.contains(std::string(requiredInstanceLayer)))
 		{
 			throw std::runtime_error(std::format("Vulkan instance layer \"{}\" is not supported by this driver.", requiredInstanceLayer));
 		}
@@ -138,7 +137,7 @@ static void checkInstanceExtensionSupport(const std::vector<const char*>& requir
 {
 	for (const char* requiredInstanceExtension : requiredInstanceExtensions)
 	{
-		if (supportedInstanceExtensions.find(std::string(requiredInstanceExtension)) == supportedInstanceExtensions.end())
+		if (!supportedInstanceExtensions.contains(std::string(requiredInstanceExtension)))
 		{
 			throw std::runtime_error(std::format("Vulkan instance extension \"{}\" is not supported by this driver.", requiredInstanceExtension));
 		}
@@ -226,7 +225,7 @@ PhysicalDeviceInfo getPhysicalDeviceInfo(
 	physicalDeviceInfo.coreLayersSupported = true;
 	for (const char* requiredDeviceLayer : requiredDeviceLayers)
 	{
-		if (supportedDeviceLayers.find(std::string(requiredDeviceLayer)) == supportedDeviceLayers.end())
+		if (!supportedDeviceLayers.contains(std::string(requiredDeviceLayer)))
 		{
 			physicalDeviceInfo.coreLayersSupported = false;
 			break;
@@ -238,7 +237,7 @@ PhysicalDeviceInfo getPhysicalDeviceInfo(
 	physicalDeviceInfo.coreExtensionsSupported = true;
 	for (const char* requiredDeviceCoreExtension : requiredDeviceCoreExtensions)
 	{
-		if (supportedDeviceExtensions.find(std::string(requiredDeviceCoreExtension)) == supportedDeviceExtensions.end())
+		if (!supportedDeviceExtensions.contains(std::string(requiredDeviceCoreExtension)))
 		{
 			physicalDeviceInfo.coreExtensionsSupported = false;
 			break;
@@ -248,7 +247,7 @@ PhysicalDeviceInfo getPhysicalDeviceInfo(
 	physicalDeviceInfo.rayTracingExtensionsSupported = true;
 	for (const char* requiredDeviceRayTracingExtension : requiredDeviceRayTracingExtensions)
 	{
-		if (supportedDeviceExtensions.find(std::string(requiredDeviceRayTracingExtension)) == supportedDeviceExtensions.end())
+		if (!supportedDeviceExtensions.contains(std::string(requiredDeviceRayTracingExtension)))
 		{
 			physicalDeviceInfo.rayTracingExtensionsSupported = false;
 			break;
@@ -591,7 +590,7 @@ bool VKContext::findBestQueueFamilies(uint32_t& mainQueueFamily, uint32_t& compu
 		}
 	}
 	
-	std::sort(queueFamilyInfos.begin(), queueFamilyInfos.end(), [](const QueueFamilyInfo& a, const QueueFamilyInfo& b)
+	std::ranges::sort(queueFamilyInfos, [](const QueueFamilyInfo& a, const QueueFamilyInfo& b)
 	{
 		return a.usageCount < b.usageCount;
 	});
