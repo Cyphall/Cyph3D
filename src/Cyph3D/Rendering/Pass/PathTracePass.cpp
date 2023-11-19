@@ -50,7 +50,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
 			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eShaderStorageRead | vk::AccessFlagBits2::eShaderStorageWrite,
+			vk::AccessFlagBits2::eShaderStorageRead,
 			vk::ImageLayout::eGeneral);
 	}
 	

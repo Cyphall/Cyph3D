@@ -27,7 +27,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 		_depthImage,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 		vk::ImageLayout::eDepthAttachmentOptimal);
 	

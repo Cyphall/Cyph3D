@@ -246,7 +246,7 @@ void ShadowMapPass::renderDirectionalShadowMap(
 		shadowMap,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 		vk::ImageLayout::eDepthAttachmentOptimal);
 	
@@ -319,8 +319,8 @@ void ShadowMapPass::renderPointShadowMap(
 		shadowMap,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
+		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
+		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 		vk::ImageLayout::eDepthAttachmentOptimal);
 	
 	std::array<glm::mat4, 6> views = calcPointShadowMapView(light);

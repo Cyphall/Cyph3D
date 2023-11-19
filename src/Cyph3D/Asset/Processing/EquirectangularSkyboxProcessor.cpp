@@ -417,8 +417,8 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 		cubemapTexture,
 		{0, 5},
 		{0, 0},
-		vk::PipelineStageFlagBits2::eComputeShader,
-		vk::AccessFlagBits2::eShaderStorageWrite,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageRead,
 		vk::ImageLayout::eGeneral);

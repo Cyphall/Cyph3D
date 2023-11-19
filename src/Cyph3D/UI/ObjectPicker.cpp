@@ -56,8 +56,8 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 				_depthImage,
 				vk::PipelineStageFlagBits2::eNone,
 				vk::AccessFlagBits2::eNone,
-				vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-				vk::AccessFlagBits2::eDepthStencilAttachmentRead | vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+				vk::PipelineStageFlagBits2::eEarlyFragmentTests,
+				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 				vk::ImageLayout::eDepthAttachmentOptimal);
 			
 			VKRenderingInfo renderingInfo(_currentSize);

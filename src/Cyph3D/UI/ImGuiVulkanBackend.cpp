@@ -270,8 +270,8 @@ void ImGuiVulkanBackend::createFontsTexture()
 		{
 			commandBuffer->imageMemoryBarrier(
 				_fontsTexture,
-				vk::PipelineStageFlagBits2::eHost,
-				vk::AccessFlagBits2::eHostWrite,
+				vk::PipelineStageFlagBits2::eNone,
+				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
 				vk::ImageLayout::eTransferDstOptimal);

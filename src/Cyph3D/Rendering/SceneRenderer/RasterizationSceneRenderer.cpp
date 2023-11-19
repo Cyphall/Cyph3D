@@ -37,9 +37,9 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 	
 	commandBuffer->imageMemoryBarrier(
 		zPrepassOutput.multisampledDepthImage,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+		vk::PipelineStageFlagBits2::eLateFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
 		vk::ImageLayout::eDepthAttachmentOptimal);
 	
@@ -47,7 +47,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 	{
 		commandBuffer->imageMemoryBarrier(
 			info.image,
-			vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+			vk::PipelineStageFlagBits2::eLateFragmentTests,
 			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 			vk::PipelineStageFlagBits2::eFragmentShader,
 			vk::AccessFlagBits2::eShaderSampledRead,
@@ -58,7 +58,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 	{
 		commandBuffer->imageMemoryBarrier(
 			info.image,
-			vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+			vk::PipelineStageFlagBits2::eLateFragmentTests,
 			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 			vk::PipelineStageFlagBits2::eFragmentShader,
 			vk::AccessFlagBits2::eShaderSampledRead,

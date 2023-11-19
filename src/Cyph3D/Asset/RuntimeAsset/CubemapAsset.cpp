@@ -120,61 +120,60 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 	
 	// create staging buffer
-	VKBufferInfo bufferInfo(_image->getLayerByteSize(), vk::BufferUsageFlagBits::eTransferSrc);
+	VKBufferInfo bufferInfo(_image->getLayerByteSize() * 6, vk::BufferUsageFlagBits::eTransferSrc);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
 	
+	// copy face data to staging buffer
+	std::byte* ptr = stagingBuffer->getHostPointer();
 	for (uint32_t face = 0; face < 6; face++)
 	{
-		// copy face data to staging buffer
-		std::byte* ptr = stagingBuffer->getHostPointer();
 		for (uint32_t level = 0; level < faces[face].size(); level++)
 		{
 			vk::DeviceSize byteSize = _image->getLevelByteSize(level);
 			std::memcpy(ptr, faces[face][level].data(), byteSize);
 			ptr += byteSize;
 		}
-		
-		// upload staging buffer to texture
-		workerData.transferCommandBuffer->begin();
-		
-		vk::DeviceSize bufferOffset = 0;
+	}
+	
+	// upload staging buffer to texture
+	workerData.transferCommandBuffer->begin();
+	
+	workerData.transferCommandBuffer->imageMemoryBarrier(
+		_image,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferWrite,
+		vk::ImageLayout::eTransferDstOptimal);
+	
+	vk::DeviceSize bufferOffset = 0;
+	for (uint32_t face = 0; face < 6; face++)
+	{
 		for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
 		{
-			workerData.transferCommandBuffer->imageMemoryBarrier(
-				_image,
-				{face, face},
-				{i, i},
-				vk::PipelineStageFlagBits2::eNone,
-				vk::AccessFlagBits2::eNone,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
-				vk::ImageLayout::eTransferDstOptimal);
-			
 			workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, face, i);
 			bufferOffset += _image->getLevelByteSize(i);
-			
-			workerData.transferCommandBuffer->imageMemoryBarrier(
-				_image,
-				{face, face},
-				{i, i},
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
-				vk::PipelineStageFlagBits2::eNone,
-				vk::AccessFlagBits2::eNone,
-				vk::ImageLayout::eReadOnlyOptimal);
 		}
-		
-		workerData.transferCommandBuffer->end();
-		
-		Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
-		
-		workerData.transferCommandBuffer->waitExecution();
-		workerData.transferCommandBuffer->reset();
 	}
+	
+	workerData.transferCommandBuffer->imageMemoryBarrier(
+		_image,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferWrite,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::ImageLayout::eReadOnlyOptimal);
+	
+	workerData.transferCommandBuffer->end();
+	
+	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
+	
+	workerData.transferCommandBuffer->waitExecution();
+	workerData.transferCommandBuffer->reset();
 	
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getCubemapSampler());

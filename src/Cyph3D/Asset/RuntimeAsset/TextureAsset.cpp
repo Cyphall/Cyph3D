@@ -67,32 +67,28 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	// upload staging buffer to texture
 	workerData.transferCommandBuffer->begin();
 	
+	workerData.transferCommandBuffer->imageMemoryBarrier(
+		_image,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferWrite,
+		vk::ImageLayout::eTransferDstOptimal);
+	
 	vk::DeviceSize bufferOffset = 0;
 	for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
 	{
-		workerData.transferCommandBuffer->imageMemoryBarrier(
-			_image,
-			{0, 0},
-			{i, i},
-			vk::PipelineStageFlagBits2::eNone,
-			vk::AccessFlagBits2::eNone,
-			vk::PipelineStageFlagBits2::eCopy,
-			vk::AccessFlagBits2::eTransferWrite,
-			vk::ImageLayout::eTransferDstOptimal);
-		
 		workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, 0, i);
 		bufferOffset += _image->getLevelByteSize(i);
-		
-		workerData.transferCommandBuffer->imageMemoryBarrier(
-			_image,
-			{0, 0},
-			{i, i},
-			vk::PipelineStageFlagBits2::eCopy,
-			vk::AccessFlagBits2::eTransferWrite,
-			vk::PipelineStageFlagBits2::eNone,
-			vk::AccessFlagBits2::eNone,
-			vk::ImageLayout::eReadOnlyOptimal);
 	}
+	
+	workerData.transferCommandBuffer->imageMemoryBarrier(
+		_image,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferWrite,
+		vk::PipelineStageFlagBits2::eNone,
+		vk::AccessFlagBits2::eNone,
+		vk::ImageLayout::eReadOnlyOptimal);
 	
 	workerData.transferCommandBuffer->end();
 	

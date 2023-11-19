@@ -369,21 +369,11 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
-		vk::AccessFlagBits2::eShaderStorageWrite,
+		vk::AccessFlagBits2::eShaderStorageRead,
 		vk::ImageLayout::eGeneral);
 	
 	for (int i = 1; i < texture->getInfo().getLevels(); i++)
 	{
-		workerData.computeCommandBuffer->imageMemoryBarrier(
-			texture,
-			{0, 0},
-			{i-1, i-1},
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral);
-		
 		workerData.computeCommandBuffer->imageMemoryBarrier(
 			texture,
 			{0, 0},
@@ -414,6 +404,16 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		
 		glm::uvec2 dstSize = texture->getSize(i);
 		workerData.computeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
+		
+		workerData.computeCommandBuffer->imageMemoryBarrier(
+			texture,
+			{0, 0},
+			{i, i},
+			vk::PipelineStageFlagBits2::eComputeShader,
+			vk::AccessFlagBits2::eShaderStorageWrite,
+			vk::PipelineStageFlagBits2::eComputeShader,
+			vk::AccessFlagBits2::eShaderStorageRead,
+			vk::ImageLayout::eGeneral);
 	}
 	workerData.computeCommandBuffer->end();
 	
