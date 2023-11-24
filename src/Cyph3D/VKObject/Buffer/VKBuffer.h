@@ -7,6 +7,7 @@
 
 #include <vk_mem_alloc.hpp>
 #include <stdexcept>
+#include <set>
 
 template<typename T>
 class VKBuffer : public VKBufferBase
@@ -67,18 +68,20 @@ private:
 		VKBufferBase(context),
 		_info(info)
 	{
-		std::array<uint32_t, 3> queues = {
+		std::set<uint32_t> queues = {
 			_context.getMainQueue().getFamily(),
 			_context.getComputeQueue().getFamily(),
 			_context.getTransferQueue().getFamily()
 		};
 
+		std::vector<uint32_t> queuesVec(queues.begin(), queues.end());
+
 		vk::BufferCreateInfo bufferCreateInfo;
 		bufferCreateInfo.size = _info.getSize() * sizeof(T);
 		bufferCreateInfo.usage = _info.getUsage();
-		bufferCreateInfo.sharingMode = vk::SharingMode::eConcurrent;
-		bufferCreateInfo.queueFamilyIndexCount = queues.size();
-		bufferCreateInfo.pQueueFamilyIndices = queues.data();
+		bufferCreateInfo.sharingMode = queuesVec.size() > 1 ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
+		bufferCreateInfo.queueFamilyIndexCount = queuesVec.size();
+		bufferCreateInfo.pQueueFamilyIndices = queuesVec.data();
 		
 		vma::AllocationCreateInfo allocationCreateInfo{};
 		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;

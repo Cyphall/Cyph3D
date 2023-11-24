@@ -47,6 +47,22 @@ public:
 
 private:
 	struct HelperData;
+
+	struct QueueFamilyInfo
+	{
+		uint32_t index;
+		uint32_t totalQueues;
+		uint32_t usedQueues;
+		uint32_t usageCount;
+		vk::QueueFlags usages;
+	};
+
+	struct QueueID
+	{
+		uint32_t family;
+		uint32_t index;
+		float priority;
+	};
 	
 	int _concurrentFrameCount;
 	int _currentConcurrentFrame = 0;
@@ -77,7 +93,8 @@ private:
 	void createInstance(const std::vector<const char*>& layers, const std::vector<const char*>& extensions);
 	
 	void createMessenger();
-	bool findBestQueueFamilies(uint32_t& mainQueueFamily, uint32_t& computeQueueFamily, uint32_t& transferQueueFamily);
+	std::vector<QueueFamilyInfo> parseQueues();
+	static std::optional<QueueID> findBestQueue(std::vector<QueueFamilyInfo>& queueFamilyInfos, vk::QueueFlags requiredFlags, float priority);
 	void createLogicalDevice(const std::vector<const char*>& layers, const std::vector<const char*>& extensions);
 	
 	void createVmaAllocator();

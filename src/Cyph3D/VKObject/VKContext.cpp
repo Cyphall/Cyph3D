@@ -398,8 +398,8 @@ VKContext::VKContext(int concurrentFrameCount):
 VKContext::~VKContext()
 {
 	_mainQueue->handleCompletedSubmits();
-	_computeQueue->handleCompletedSubmits();
-	_transferQueue->handleCompletedSubmits();
+	if (_computeQueue) _computeQueue->handleCompletedSubmits();
+	if (_transferQueue) _transferQueue->handleCompletedSubmits();
 	_helperData.reset();
 	_vmaAllocator.destroy();
 	_device.destroy();
@@ -421,8 +421,8 @@ void VKContext::onNewFrame()
 {
 	_currentConcurrentFrame = (_currentConcurrentFrame + 1) % _concurrentFrameCount;
 	_mainQueue->handleCompletedSubmits();
-	_computeQueue->handleCompletedSubmits();
-	_transferQueue->handleCompletedSubmits();
+	if (_computeQueue) _computeQueue->handleCompletedSubmits();
+	if (_transferQueue) _transferQueue->handleCompletedSubmits();
 	_vmaAllocator.setCurrentFrameIndex(_currentConcurrentFrame);
 }
 
@@ -448,12 +448,12 @@ VKQueue& VKContext::getMainQueue()
 
 VKQueue& VKContext::getComputeQueue()
 {
-	return *_computeQueue;
+	return _computeQueue ? *_computeQueue : *_mainQueue;
 }
 
 VKQueue& VKContext::getTransferQueue()
 {
-	return *_transferQueue;
+	return _transferQueue ? *_transferQueue : *_mainQueue;
 }
 
 vma::Allocator VKContext::getVmaAllocator()
@@ -554,113 +554,96 @@ void VKContext::createMessenger()
 	_messenger = _instance.createDebugUtilsMessengerEXT(createInfo);
 }
 
-bool VKContext::findBestQueueFamilies(uint32_t& mainQueueFamily, uint32_t& computeQueueFamily, uint32_t& transferQueueFamily)
+std::vector<VKContext::QueueFamilyInfo> VKContext::parseQueues()
 {
 	std::vector<vk::QueueFamilyProperties> queueFamilyProperties = _physicalDevice.getQueueFamilyProperties();
-	
-	struct QueueFamilyInfo
-	{
-		uint32_t index{};
-		uint32_t usageCount{};
-		vk::QueueFlags usages{};
-	};
-	
-	std::vector<QueueFamilyInfo> queueFamilyInfos(queueFamilyProperties.size());
-	
+
+	std::vector<QueueFamilyInfo> queueFamilyInfos;
+
 	for (int i = 0; i < queueFamilyProperties.size(); i++)
 	{
-		queueFamilyInfos[i].index = i;
-		
+		QueueFamilyInfo& queueFamilyInfo = queueFamilyInfos.emplace_back();
+		queueFamilyInfo.index = i;
+		queueFamilyInfo.totalQueues = queueFamilyProperties[i].queueCount;
+		queueFamilyInfo.usedQueues = 0;
+
 		if (queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics)
 		{
-			queueFamilyInfos[i].usages |= vk::QueueFlagBits::eGraphics;
-			queueFamilyInfos[i].usageCount++;
+			queueFamilyInfo.usages |= vk::QueueFlagBits::eGraphics;
+			queueFamilyInfo.usageCount++;
 		}
-		
+
 		if (queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eCompute)
 		{
-			queueFamilyInfos[i].usages |= vk::QueueFlagBits::eCompute;
-			queueFamilyInfos[i].usageCount++;
+			queueFamilyInfo.usages |= vk::QueueFlagBits::eCompute;
+			queueFamilyInfo.usageCount++;
 		}
-		
+
 		if (queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eTransfer)
 		{
-			queueFamilyInfos[i].usages |= vk::QueueFlagBits::eTransfer;
-			queueFamilyInfos[i].usageCount++;
+			queueFamilyInfo.usages |= vk::QueueFlagBits::eTransfer;
+			queueFamilyInfo.usageCount++;
 		}
 	}
-	
+
 	std::ranges::sort(queueFamilyInfos, [](const QueueFamilyInfo& a, const QueueFamilyInfo& b)
 	{
 		return a.usageCount < b.usageCount;
 	});
-	
-	bool mainQueueFamilyFound = false;
-	bool computeQueueFamilyFound = false;
-	bool transferQueueFamilyFound = false;
-	for (const QueueFamilyInfo& queueFamilyInfo : queueFamilyInfos)
+
+	return queueFamilyInfos;
+}
+
+std::optional<VKContext::QueueID> VKContext::findBestQueue(std::vector<QueueFamilyInfo>& queueFamilyInfos, vk::QueueFlags requiredFlags, float priority)
+{
+	for (QueueFamilyInfo& queueFamilyInfo : queueFamilyInfos)
 	{
-		if (!mainQueueFamilyFound &&
-			queueFamilyInfo.usages & vk::QueueFlagBits::eGraphics &&
-			queueFamilyInfo.usages & vk::QueueFlagBits::eCompute &&
-			queueFamilyInfo.usages & vk::QueueFlagBits::eTransfer)
+		if ((queueFamilyInfo.usages & requiredFlags) == requiredFlags && queueFamilyInfo.usedQueues < queueFamilyInfo.totalQueues)
 		{
-			mainQueueFamily = queueFamilyInfo.index;
-			mainQueueFamilyFound = true;
-		}
-		
-		if (!computeQueueFamilyFound &&
-		    queueFamilyInfo.usages & vk::QueueFlagBits::eCompute)
-		{
-			computeQueueFamily = queueFamilyInfo.index;
-			computeQueueFamilyFound = true;
-		}
-		
-		if (!transferQueueFamilyFound &&
-		    queueFamilyInfo.usages & vk::QueueFlagBits::eTransfer)
-		{
-			transferQueueFamily = queueFamilyInfo.index;
-			transferQueueFamilyFound = true;
+			return QueueID{
+				.family = queueFamilyInfo.index,
+				.index = queueFamilyInfo.usedQueues++,
+				.priority = priority
+			};
 		}
 	}
-	
-	return mainQueueFamilyFound && computeQueueFamilyFound && transferQueueFamilyFound;
+
+	return std::nullopt;
 }
 
 void VKContext::createLogicalDevice(const std::vector<const char*>& layers, const std::vector<const char*>& extensions)
 {
-	uint32_t mainQueueFamily;
-	uint32_t computeQueueFamily;
-	uint32_t transferQueueFamily;
-	if (!findBestQueueFamilies(mainQueueFamily, computeQueueFamily, transferQueueFamily))
+	std::vector<QueueFamilyInfo> queueFamilyInfos = parseQueues();
+
+	std::unordered_map<uint32_t, std::vector<float>> queueFamilyUsages;
+
+	std::optional<QueueID> mainQueue = findBestQueue(queueFamilyInfos, vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eTransfer, 1.0f);
+	if (mainQueue)
 	{
-		throw;
+		queueFamilyUsages[mainQueue->family].emplace_back(mainQueue->priority);
 	}
-	
-	float mainQueuePriority = 1.0f;
-	float computeQueuePriority = 0.5f;
-	float transferQueuePriority = 0.5f;
+
+	std::optional<QueueID> computeQueue = findBestQueue(queueFamilyInfos, vk::QueueFlagBits::eCompute, 0.5f);
+	if (computeQueue)
+	{
+		queueFamilyUsages[computeQueue->family].emplace_back(computeQueue->priority);
+	}
+
+	std::optional<QueueID> transferQueue = findBestQueue(queueFamilyInfos, vk::QueueFlagBits::eTransfer, 0.5f);
+	if (transferQueue)
+	{
+		queueFamilyUsages[transferQueue->family].emplace_back(transferQueue->priority);
+	}
+
 	std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos;
-	
+
+	for (const auto& [queueFamilyIndex, queueFamilyUsage] : queueFamilyUsages)
 	{
-		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
-		createInfo.queueFamilyIndex = mainQueueFamily;
-		createInfo.queueCount = 1;
-		createInfo.pQueuePriorities = &mainQueuePriority;
-	}
-	
-	{
-		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
-		createInfo.queueFamilyIndex = computeQueueFamily;
-		createInfo.queueCount = 1;
-		createInfo.pQueuePriorities = &computeQueuePriority;
-	}
-	
-	{
-		vk::DeviceQueueCreateInfo& createInfo = deviceQueueCreateInfos.emplace_back();
-		createInfo.queueFamilyIndex = transferQueueFamily;
-		createInfo.queueCount = 1;
-		createInfo.pQueuePriorities = &transferQueuePriority;
+		vk::DeviceQueueCreateInfo& deviceQueueCreateInfo = deviceQueueCreateInfos.emplace_back();
+		deviceQueueCreateInfo.flags = {};
+		deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
+		deviceQueueCreateInfo.queueCount = queueFamilyUsage.size();
+		deviceQueueCreateInfo.pQueuePriorities = queueFamilyUsage.data();
 	}
 	
 	vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT shaderImageAtomicInt64Features;
@@ -743,10 +726,19 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	deviceCreateInfo.ppEnabledLayerNames = layers.data();
 	
 	_device = _physicalDevice.createDevice(deviceCreateInfo);
-	
-	_mainQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, mainQueueFamily, 0));
-	_computeQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, computeQueueFamily, 0));
-	_transferQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, transferQueueFamily, 0));
+
+	if (mainQueue)
+	{
+		_mainQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, mainQueue->family, mainQueue->index));
+	}
+	if (computeQueue)
+	{
+		_computeQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, computeQueue->family, computeQueue->index));
+	}
+	if (transferQueue)
+	{
+		_transferQueue = std::unique_ptr<VKQueue>(new VKQueue(*this, transferQueue->family, transferQueue->index));
+	}
 }
 
 void VKContext::createVmaAllocator()
