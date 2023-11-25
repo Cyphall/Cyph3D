@@ -70,6 +70,8 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 
 bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores)
 {
+	std::scoped_lock lock(_mutex);
+
 	std::vector<vk::Semaphore> waitVkSemaphores;
 	for (const VKPtr<VKSemaphore>& semaphore : waitSemaphores)
 	{
