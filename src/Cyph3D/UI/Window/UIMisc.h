@@ -17,6 +17,12 @@ private:
 	static uint32_t _renderSampleCount;
 	static bool _simulationEnabled;
 	static int _viewportSampleCount;
-	
+
+	static std::array<float, 512> _frametimes;
+	static uint32_t _lastFrametimeIndex;
+	static float _overlayFrametime;
+	static float _timeUntilOverlayUpdate;
+
 	static void displayPerfStep(const PerfStep& perfStep);
+	static void displayFrametime();
 };

@@ -62,6 +62,7 @@ static std::vector<const char*> getRequiredInstanceLayers()
 {
 	std::vector<const char*> layers;
 
+	layers.push_back("VK_LAYER_LUNARG_monitor");
 #if defined(_DEBUG)
 	layers.push_back("VK_LAYER_KHRONOS_validation");
 #endif

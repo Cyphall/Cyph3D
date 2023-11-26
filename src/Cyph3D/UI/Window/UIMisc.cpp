@@ -17,15 +17,20 @@ glm::ivec2 UIMisc::_resolution(1920, 1080);
 uint32_t UIMisc::_renderSampleCount = 1024;
 bool UIMisc::_simulationEnabled = true;
 int UIMisc::_viewportSampleCount = 8;
+std::array<float, 512> UIMisc::_frametimes{};
+uint32_t UIMisc::_lastFrametimeIndex = 0;
+float UIMisc::_overlayFrametime = 0.0f;
+float UIMisc::_timeUntilOverlayUpdate = 0.0f;
 
 void UIMisc::show()
 {
 	if (ImGui::Begin("Misc", nullptr))
 	{
-		int fps = 1 / Engine::getTimer().deltaTime();
-		ImGui::Text("FPS: %d", fps);
+		displayFrametime();
 
-		float cameraSpeed = UIViewport::getCamera().getSpeed();;
+		ImGui::Separator();
+
+		float cameraSpeed = UIViewport::getCamera().getSpeed();
 		if (ImGui::SliderFloat("Camera speed", &cameraSpeed, 0, 10))
 		{
 			UIViewport::getCamera().setSpeed(cameraSpeed);
@@ -54,6 +59,8 @@ void UIMisc::show()
 				Engine::getScene().setSkyboxRotation(skyboxRotation);
 			}
 		}
+
+		ImGui::Separator();
 		
 		ImGui::Checkbox("Simulate", &_simulationEnabled);
 		
@@ -120,4 +127,30 @@ void UIMisc::displayPerfStep(const PerfStep& perfStep)
 		ImGui::TreeNodeEx(perfStep.getName().c_str(), ImGuiTreeNodeFlags_Leaf, "%s: %.3fms", perfStep.getName().c_str(), perfStep.getDuration());
 		ImGui::TreePop();
 	}
+}
+
+void UIMisc::displayFrametime()
+{
+	double deltaTime = Engine::getTimer().deltaTime();
+	_timeUntilOverlayUpdate -= deltaTime;
+	if (_timeUntilOverlayUpdate < 0.0f)
+	{
+		_overlayFrametime = deltaTime * 1000.0f;
+		_timeUntilOverlayUpdate += 0.5f;
+	}
+
+	_lastFrametimeIndex = (_lastFrametimeIndex + 1) % _frametimes.size();
+	_frametimes[_lastFrametimeIndex] = deltaTime * 1000.0;
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	std::string overlay = std::format("{:.1f} ms", _overlayFrametime);
+	ImGui::PlotLines(
+		"Frametime",
+		_frametimes.data(),
+		_frametimes.size(),
+		_lastFrametimeIndex,
+		overlay.c_str(),
+		0.0f,
+		1000.0f / 30.0f,
+		{0, (ImGui::GetFontSize() + style.FramePadding.y * 2.0f) * 3.0f});
 }
