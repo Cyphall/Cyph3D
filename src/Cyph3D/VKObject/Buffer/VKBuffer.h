@@ -20,6 +20,12 @@ public:
 	
 	~VKBuffer() override
 	{
+#if defined(_DEBUG)
+		if (_allocationInfo.pMappedData)
+		{
+			std::memset(_allocationInfo.pMappedData, 0xDD, _info.getSize() * sizeof(T));
+		}
+#endif
 		_context.getVmaAllocator().destroyBuffer(_buffer, _allocation);
 	}
 	
@@ -108,6 +114,13 @@ private:
 			
 			_context.getDevice().setDebugUtilsObjectNameEXT(objectNameInfo);
 		}
+
+#if defined(_DEBUG)
+		if (_allocationInfo.pMappedData)
+		{
+			std::memset(_allocationInfo.pMappedData, 0xCD, _info.getSize() * sizeof(T));
+		}
+#endif
 	}
 	
 	VKBufferInfo _info;
