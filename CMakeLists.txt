@@ -267,14 +267,17 @@ target_precompile_headers(Cyph3D PRIVATE <vulkan/vulkan.hpp>)
 
 target_include_directories(Cyph3D PRIVATE "src")
 
-find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
-target_include_directories(Cyph3D PRIVATE ${STB_INCLUDE_DIRS})
+find_package(Stb REQUIRED)
+target_include_directories(Cyph3D PRIVATE ${Stb_INCLUDE_DIR})
 
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE assimp::assimp)
 
-find_package(freetype CONFIG REQUIRED)
-target_link_libraries(Cyph3D PRIVATE freetype)
+find_package(crossguid CONFIG REQUIRED)
+target_link_libraries(Cyph3D PRIVATE crossguid)
+
+find_package(Freetype REQUIRED)
+target_link_libraries(Cyph3D PRIVATE Freetype::Freetype)
 
 find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE glfw)
@@ -290,9 +293,6 @@ target_link_libraries(Cyph3D PRIVATE nlohmann_json::nlohmann_json)
 
 find_package(SQLiteCpp CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE SQLiteCpp)
-
-find_package(crossguid CONFIG REQUIRED)
-target_link_libraries(Cyph3D PRIVATE crossguid)
 
 find_package(Vulkan REQUIRED)
 target_link_libraries(Cyph3D PRIVATE Vulkan::Headers)
