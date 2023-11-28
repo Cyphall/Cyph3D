@@ -61,11 +61,6 @@ public:
 	
 	vk::DeviceAddress getDeviceAddress() const override
 	{
-		if (_deviceAddress == 0)
-		{
-			throw;
-		}
-		
 		return _deviceAddress;
 	}
 
