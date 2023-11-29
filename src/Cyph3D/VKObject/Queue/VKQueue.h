@@ -3,6 +3,7 @@
 #include "Cyph3D/VKObject/VKObject.h"
 
 #include <vulkan/vulkan.hpp>
+#include <mutex>
 
 class VKFence;
 class VKCommandBuffer;

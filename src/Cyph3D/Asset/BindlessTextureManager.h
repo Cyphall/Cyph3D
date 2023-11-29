@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <stack>
 #include <vector>
+#include <mutex>
 
 class VKImage;
 class VKDescriptorSetLayout;
