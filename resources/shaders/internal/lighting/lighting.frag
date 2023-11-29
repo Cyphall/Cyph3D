@@ -42,6 +42,7 @@ struct ObjectUniforms
 	vec3 albedoValue;
 	float roughnessValue;
 	float metalnessValue;
+	float displacementScale;
 	float emissiveScale;
 };
 
@@ -92,7 +93,6 @@ float getDepth(vec2 texCoords)
 
 vec2 POM(vec2 texCoords, vec3 viewDir)
 {
-	const float depthScale     = 0.05;
 	const int   linearSamples  = 8;
 	const int   binarySamples  = 6;
 	
@@ -107,7 +107,7 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 	if (viewDir.z <= 0) return texCoords;
 	
 	// Offsets applied at each steps
-	vec2  texCoordsStepOffset = -(viewDir.xy / viewDir.z) / linearSamples * depthScale;
+	vec2  texCoordsStepOffset = -(viewDir.xy / viewDir.z) / linearSamples * u_objectUniforms.displacementScale;
 	float depthStepOffset     = 1.0 / linearSamples;
 	
 	float currentDepth = 0;

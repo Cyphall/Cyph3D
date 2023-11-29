@@ -70,6 +70,7 @@ private:
 		GLSL_vec3 albedoValue;
 		GLSL_float roughnessValue;
 		GLSL_float metalnessValue;
+		GLSL_float displacementScale;
 		GLSL_float emissiveScale;
 	};
 	

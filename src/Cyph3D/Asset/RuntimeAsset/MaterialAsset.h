@@ -68,6 +68,9 @@ public:
 	const float& getMetalnessValue() const;
 	void setMetalnessValue(const float& value);
 	
+	const float& getDisplacementScale() const;
+	void setDisplacementScale(const float& scale);
+	
 	const float& getEmissiveScale() const;
 	void setEmissiveScale(const float& scale);
 	
@@ -85,6 +88,7 @@ private:
 	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot);
+	void deserializeFromVersion4(const nlohmann::ordered_json& jsonRoot);
 	
 	void save() const;
 	void reload();
@@ -111,6 +115,7 @@ private:
 	float _roughnessValue{};
 	float _metalnessValue{};
 	
+	float _displacementScale{};
 	float _emissiveScale{};
 
 	static MaterialAsset* _defaultMaterial;

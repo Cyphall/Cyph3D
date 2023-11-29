@@ -159,6 +159,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			.albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue()),
 			.roughnessValue = model.material.getRoughnessValue(),
 			.metalnessValue = model.material.getMetalnessValue(),
+			.displacementScale = model.material.getDisplacementScale(),
 			.emissiveScale = model.material.getEmissiveScale()
 		};
 		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));

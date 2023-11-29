@@ -14,6 +14,7 @@ struct ObjectUniforms
 	vec3 albedoValue;
 	float roughnessValue;
 	float metalnessValue;
+	float displacementScale;
 	float emissiveScale;
 };
 
