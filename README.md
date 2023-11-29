@@ -42,6 +42,23 @@ This project is a full C++ rewrite of my [original C# 3D engine](https://github.
 - [ ] Directional Light
 - [ ] Point Light
 
+## Build
+
+Cyph3D only supports Windows. Support for any other OS is not currently planned.
+
+### Requirements:
+
+- Somewhat recent version of Python 3
+- CMake 3.19+
+- Latest MSVC (with the English Language Pack, vcpkg won't work otherwise, see [microsoft/vcpkg#3842](https://github.com/microsoft/vcpkg/issues/3842))
+  - Building with Clang-cl may work, but was not tested.
+- Latest Vulkan SDK
+
+### Steps:
+
+1. Run the `init.bat` file to initialize vcpkg
+2. Build with CMake (via command line or your favorite IDE)
+
 ## Screenshots
 
 ![](screenshots/01.jpg?raw=true "Cyph3D Interface")
