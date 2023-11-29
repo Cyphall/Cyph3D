@@ -30,7 +30,7 @@ void SkyboxAsset::onDrawUi()
 
 	ImGui::Separator();
 
-	if (ImGui::Button("Reset"))
+	if (ImGui::Button("Reload"))
 	{
 		reload();
 	}
