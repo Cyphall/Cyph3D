@@ -112,6 +112,8 @@ void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk:
 	bufferMemoryBarrier.srcAccessMask = srcAccessMask;
 	bufferMemoryBarrier.dstStageMask = dstStageMask;
 	bufferMemoryBarrier.dstAccessMask = dstAccessMask;
+	bufferMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	bufferMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	bufferMemoryBarrier.buffer = buffer->getHandle();
 	bufferMemoryBarrier.offset = 0;
 	bufferMemoryBarrier.size = VK_WHOLE_SIZE;
@@ -149,6 +151,8 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2
 	imageMemoryBarrier.dstAccessMask = dstAccessMask;
 	imageMemoryBarrier.oldLayout = image->getLayout(layerRange.x, levelRange.x);
 	imageMemoryBarrier.newLayout = newImageLayout;
+	imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imageMemoryBarrier.image = image->getHandle();
 	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
 	imageMemoryBarrier.subresourceRange.baseArrayLayer = layerRange.x;
