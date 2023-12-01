@@ -4,13 +4,25 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems
 set(VCPKG_TARGET_TRIPLET "x64-windows-static")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+set(CMAKE_ISPC_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/tools/ispc/ispc.exe")
 
 cmake_policy(SET CMP0091 NEW)
 
 project(Cyph3D)
 
-add_compile_options(/Zc:__cplusplus)
-add_compile_options(/utf-8)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:/Zc:__STDC__>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:/Zc:__cplusplus>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:/utf-8>)
+
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Zc:__STDC__>)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/utf-8>)
+
+add_compile_options($<$<COMPILE_LANGUAGE:ISPC>:--arch=x86-64>)
+add_compile_options($<$<COMPILE_LANGUAGE:ISPC>:--target=avx2-i32x16>)
+add_compile_options($<$<COMPILE_LANGUAGE:ISPC>:--target-os=windows>)
+add_compile_options($<$<COMPILE_LANGUAGE:ISPC>:--woff>)
+add_compile_options($<$<COMPILE_LANGUAGE:ISPC>:--opt=fast-math>)
 
 add_compile_definitions(GLM_FORCE_DEPTH_ZERO_TO_ONE)
 add_compile_definitions(GLFW_INCLUDE_NONE)

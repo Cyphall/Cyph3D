@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.19)
 
-project(ISPCTextureCompressor)
+set(CMAKE_ISPC_COMPILER_TARGET )
 
-add_library(ISPCTextureCompressor STATIC IMPORTED GLOBAL)
+project(ISPCTextureCompressor LANGUAGES CXX ISPC)
 
-set_target_properties(ISPCTextureCompressor PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/lib/ispc_texcomp.lib")
+add_library(ISPCTextureCompressor STATIC src/ispc_texcomp.cpp src/kernel.ispc)
 
-target_include_directories(ISPCTextureCompressor INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include")
+target_include_directories(ISPCTextureCompressor PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include")
