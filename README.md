@@ -51,7 +51,6 @@ Cyph3D only supports Windows. Support for any other OS is not currently planned.
 - Somewhat recent version of Python 3
 - CMake 3.19+
 - Latest MSVC (with the English Language Pack, vcpkg won't work otherwise, see [microsoft/vcpkg#3842](https://github.com/microsoft/vcpkg/issues/3842))
-  - Building with Clang-cl may work, but was not tested.
 - Latest Vulkan SDK
 
 ### Steps:

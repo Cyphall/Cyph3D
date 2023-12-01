@@ -9,14 +9,8 @@ cmake_policy(SET CMP0091 NEW)
 
 project(Cyph3D)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") # MSVC
-	add_compile_options(/Zc:__cplusplus)
-	add_compile_options(/utf-8)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC") # clang-cl
-	add_compile_options(/Zc:__cplusplus)
-	add_compile_options(/utf-8)
-	add_compile_options(/EHsc)
-endif()
+add_compile_options(/Zc:__cplusplus)
+add_compile_options(/utf-8)
 
 add_compile_definitions(GLM_FORCE_DEPTH_ZERO_TO_ONE)
 add_compile_definitions(GLFW_INCLUDE_NONE)
