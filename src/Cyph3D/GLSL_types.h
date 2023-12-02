@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
-#include <cstdint>
 
 #define GLSL_bool alignas(4) uint32_t
 #define GLSL_int alignas(4) int32_t

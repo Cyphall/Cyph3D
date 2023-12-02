@@ -2,19 +2,19 @@
 
 #include "Cyph3D/Entity/Component/LightBase.h"
 
-#include <nlohmann/json_fwd.hpp>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 
 class DirectionalLight : public LightBase
 {
 public:
 	struct RenderData
 	{
-		Transform&          transform;
-		float               intensity;
-		glm::vec3           color;
-		bool                castShadows;
-		uint32_t            shadowMapResolution;
+		Transform& transform;
+		float intensity;
+		glm::vec3 color;
+		bool castShadows;
+		uint32_t shadowMapResolution;
 	};
 
 	explicit DirectionalLight(Entity& entity);

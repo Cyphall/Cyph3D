@@ -5,8 +5,8 @@
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 
-#include <imgui.h>
 #include <filesystem>
+#include <imgui.h>
 
 bool UIMenuBar::_showDemoWindow = false;
 
@@ -26,12 +26,14 @@ void UIMenuBar::show()
 
 			if (ImGui::MenuItem("Open Scene"))
 			{
+				// clang-format off
 				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogOpen({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",
 						.fileTypeExtensions = L"*.c3dscene"
 					}
 				}, "resources/scenes");
+				// clang-format on
 
 				if (filePath.has_value())
 				{
@@ -48,19 +50,20 @@ void UIMenuBar::show()
 
 			if (ImGui::MenuItem("Save Scene"))
 			{
-				Scene& scene = Engine::getScene();
+				// clang-format off
 				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 					FileDialogFilter{
 						.fileTypeDisplayName = L"Cyph3D Scene",
 						.fileTypeExtensions = L"*.c3dscene"
 					}
-				}, "resources/scenes", scene.getName());
+				}, "resources/scenes", Engine::getScene().getName());
+				// clang-format on
 
 				if (filePath.has_value())
 				{
 					if (FileHelper::isAssetPath(filePath.value()))
 					{
-						scene.save(filePath.value());
+						Engine::getScene().save(filePath.value());
 					}
 					else
 					{

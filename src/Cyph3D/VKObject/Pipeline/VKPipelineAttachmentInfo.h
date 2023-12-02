@@ -2,9 +2,9 @@
 
 #include "Cyph3D/VKObject/Pipeline/VKPipelineBlendingInfo.h"
 
-#include <vulkan/vulkan.hpp>
 #include <optional>
 #include <vector>
+#include <vulkan/vulkan.hpp>
 
 class VKPipelineAttachmentInfo
 {

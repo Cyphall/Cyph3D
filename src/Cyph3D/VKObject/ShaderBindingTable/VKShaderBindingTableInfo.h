@@ -12,7 +12,6 @@ public:
 	VKShaderBindingTableInfo(const std::array<std::byte, 32>& raygenGroupHandle, const TUniforms& uniforms):
 		VKShaderBindingTableInfo(raygenGroupHandle, &uniforms, sizeof(TUniforms))
 	{
-
 	}
 
 	const std::vector<std::byte>& getRaygenRecord() const;

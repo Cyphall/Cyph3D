@@ -5,7 +5,6 @@
 VKRenderingInfo::VKRenderingInfo(glm::uvec2 size):
 	_size(size)
 {
-
 }
 
 const glm::uvec2& VKRenderingInfo::getSize() const
@@ -30,7 +29,8 @@ VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const VKPtr<
 		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
 		{0, image->getInfo().getLayers() - 1},
 		{0, image->getInfo().getLevels() - 1},
-		image->getInfo().getFormat());
+		image->getInfo().getFormat()
+	);
 }
 
 VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
@@ -50,7 +50,8 @@ VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const VKPtr<
 		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
 		{0, image->getInfo().getLayers() - 1},
 		{0, image->getInfo().getLevels() - 1},
-		image->getInfo().getFormat());
+		image->getInfo().getFormat()
+	);
 }
 
 VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)

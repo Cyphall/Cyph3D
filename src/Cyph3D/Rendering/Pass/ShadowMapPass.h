@@ -84,11 +84,13 @@ private:
 	void renderDirectionalShadowMap(
 		const VKPtr<VKCommandBuffer>& commandBuffer,
 		const DirectionalLight::RenderData& light,
-		const std::vector<ModelRenderer::RenderData>& models);
+		const std::vector<ModelRenderer::RenderData>& models
+	);
 
 	void renderPointShadowMap(
 		const VKPtr<VKCommandBuffer>& commandBuffer,
 		const PointLight::RenderData& light,
 		const std::vector<ModelRenderer::RenderData>& models,
-		int uniformIndex);
+		int uniformIndex
+	);
 };

@@ -9,11 +9,11 @@ class PointLight : public LightBase
 public:
 	struct RenderData
 	{
-		Transform&          transform;
-		float               intensity;
-		glm::vec3           color;
-		bool                castShadows;
-		uint32_t            shadowMapResolution;
+		Transform& transform;
+		float intensity;
+		glm::vec3 color;
+		bool castShadows;
+		uint32_t shadowMapResolution;
 	};
 
 	explicit PointLight(Entity& entity);

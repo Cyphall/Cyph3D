@@ -26,7 +26,6 @@ public:
 	explicit BloomPass(glm::uvec2 size);
 
 private:
-
 	// common
 
 	VKPtr<VKImage> _workImage;

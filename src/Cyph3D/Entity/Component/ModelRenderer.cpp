@@ -17,7 +17,7 @@
 const char* ModelRenderer::identifier = "ModelRenderer";
 
 ModelRenderer::ModelRenderer(Entity& entity):
-Component(entity)
+	Component(entity)
 {
 	setMaterial("materials/internal/Default Material/Default Material.c3dmaterial");
 	setMesh("meshes/internal/Default Mesh/Default Mesh.obj");
@@ -28,9 +28,12 @@ void ModelRenderer::setMaterial(std::optional<std::string_view> path)
 	if (path)
 	{
 		_material = Engine::getAssetManager().loadMaterial(path.value());
-		_materialChangedConnection = _material->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_materialChangedConnection = _material->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{
@@ -51,9 +54,12 @@ void ModelRenderer::setMesh(std::optional<std::string_view> path)
 	if (path)
 	{
 		_mesh = Engine::getAssetManager().loadMesh(*path);
-		_meshChangedConnection = _mesh->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_meshChangedConnection = _mesh->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{
@@ -114,17 +120,17 @@ void ModelRenderer::deserialize(const ObjectSerialization& serialization)
 {
 	switch (serialization.version)
 	{
-		case 1:
-			deserializeFromVersion1(serialization.data);
-			break;
-		case 2:
-			deserializeFromVersion2(serialization.data);
-			break;
-		case 3:
-			deserializeFromVersion3(serialization.data);
-			break;
-		default:
-			throw;
+	case 1:
+		deserializeFromVersion1(serialization.data);
+		break;
+	case 2:
+		deserializeFromVersion2(serialization.data);
+		break;
+	case 3:
+		deserializeFromVersion3(serialization.data);
+		break;
+	default:
+		throw;
 	}
 }
 

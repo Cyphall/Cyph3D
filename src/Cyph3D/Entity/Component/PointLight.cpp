@@ -15,7 +15,6 @@ const char* const PointLight::identifier = "PointLight";
 PointLight::PointLight(Entity& entity):
 	LightBase(entity)
 {
-
 }
 
 void PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
@@ -151,14 +150,14 @@ void PointLight::deserialize(const ObjectSerialization& serialization)
 {
 	switch (serialization.version)
 	{
-		case 1:
-			deserializeFromVersion1(serialization.data);
-			break;
-		case 2:
-			deserializeFromVersion2(serialization.data);
-			break;
-		default:
-			throw;
+	case 1:
+		deserializeFromVersion1(serialization.data);
+		break;
+	case 2:
+		deserializeFromVersion2(serialization.data);
+		break;
+	default:
+		throw;
 	}
 }
 

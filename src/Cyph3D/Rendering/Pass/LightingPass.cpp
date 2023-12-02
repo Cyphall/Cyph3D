@@ -96,7 +96,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal);
+		vk::ImageLayout::eColorAttachmentOptimal
+	);
 
 	VKRenderingInfo renderingInfo(_size);
 
@@ -195,10 +196,13 @@ void LightingPass::createUniformBuffers()
 	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	directionalLightsUniformsBufferInfo.setName("Directional lights uniform buffer");
 
-	_directionalLightsUniforms = VKDynamic<VKResizableBuffer<DirectionalLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<DirectionalLightUniforms>::create(context, directionalLightsUniformsBufferInfo);
-	});
+	_directionalLightsUniforms = VKDynamic<VKResizableBuffer<DirectionalLightUniforms>>(
+		Engine::getVKContext(),
+		[&](VKContext& context, int index)
+		{
+			return VKResizableBuffer<DirectionalLightUniforms>::create(context, directionalLightsUniformsBufferInfo);
+		}
+	);
 
 	VKResizableBufferInfo pointLightsUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
 	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -206,10 +210,13 @@ void LightingPass::createUniformBuffers()
 	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	pointLightsUniformsBufferInfo.setName("Point lights uniform buffer");
 
-	_pointLightsUniforms = VKDynamic<VKResizableBuffer<PointLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<PointLightUniforms>::create(context, pointLightsUniformsBufferInfo);
-	});
+	_pointLightsUniforms = VKDynamic<VKResizableBuffer<PointLightUniforms>>(
+		Engine::getVKContext(),
+		[&](VKContext& context, int index)
+		{
+			return VKResizableBuffer<PointLightUniforms>::create(context, pointLightsUniformsBufferInfo);
+		}
+	);
 
 	VKResizableBufferInfo objectUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
 	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -217,10 +224,13 @@ void LightingPass::createUniformBuffers()
 	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	objectUniformsBufferInfo.setName("Objects uniform buffer");
 
-	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<ObjectUniforms>::create(context, objectUniformsBufferInfo);
-	});
+	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(
+		Engine::getVKContext(),
+		[&](VKContext& context, int index)
+		{
+			return VKResizableBuffer<ObjectUniforms>::create(context, objectUniformsBufferInfo);
+		}
+	);
 }
 
 void LightingPass::createSamplers()
@@ -315,7 +325,8 @@ void LightingPass::createPipeline()
 		"resources/shaders/internal/lighting/lighting.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise);
+		vk::FrontFace::eCounterClockwise
+	);
 
 	info.setFragmentShader("resources/shaders/internal/lighting/lighting.frag");
 
@@ -340,7 +351,8 @@ void LightingPass::createImage()
 		_size,
 		1,
 		1,
-		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
 	imageInfo.setName("Multisampled raw render image");
@@ -362,10 +374,13 @@ void LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCou
 		VKDescriptorSetInfo info(_directionalLightDescriptorSetLayout);
 		info.setVariableSizeAllocatedCount(tentativeCount);
 
-		_directionalLightDescriptorSet = VKDynamic<VKDescriptorSet>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKDescriptorSet::create(context, info);
-		});
+		_directionalLightDescriptorSet = VKDynamic<VKDescriptorSet>(
+			Engine::getVKContext(),
+			[&](VKContext& context, int index)
+			{
+				return VKDescriptorSet::create(context, info);
+			}
+		);
 	}
 
 	if (!_pointLightDescriptorSet || _pointLightDescriptorSet->getInfo().getVariableSizeAllocatedCount() < pointLightShadowsCount)
@@ -380,9 +395,12 @@ void LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCou
 		VKDescriptorSetInfo info(_pointLightDescriptorSetLayout);
 		info.setVariableSizeAllocatedCount(tentativeCount);
 
-		_pointLightDescriptorSet = VKDynamic<VKDescriptorSet>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKDescriptorSet::create(context, info);
-		});
+		_pointLightDescriptorSet = VKDynamic<VKDescriptorSet>(
+			Engine::getVKContext(),
+			[&](VKContext& context, int index)
+			{
+				return VKDescriptorSet::create(context, info);
+			}
+		);
 	}
 }

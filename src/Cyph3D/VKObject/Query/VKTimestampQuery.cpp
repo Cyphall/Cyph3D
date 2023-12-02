@@ -30,12 +30,15 @@ double VKTimestampQuery::getElapsedTime() const
 	if (!_isBeginInserted || !_isEndInserted)
 		throw;
 
+	// clang-format off
 	std::array<uint64_t, 2> timestamps = _context.getDevice().getQueryPoolResult<std::array<uint64_t, 2>>(
 		_queryPool,
 		0,
 		2,
 		sizeof(uint64_t),
-		vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait).value;
+		vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait
+	).value;
+	// clang-format on
 
 	double timestampDiff = timestamps[1] - timestamps[0];
 	return static_cast<double>(timestampDiff) * static_cast<double>(_context.getProperties().limits.timestampPeriod) / 1000000.0;

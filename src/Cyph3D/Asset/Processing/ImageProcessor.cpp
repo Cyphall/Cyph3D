@@ -14,11 +14,11 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
-#include <magic_enum.hpp>
-#include <vulkan/vulkan_format_traits.hpp>
 #include <array>
 #include <filesystem>
 #include <half.hpp>
+#include <magic_enum.hpp>
+#include <vulkan/vulkan_format_traits.hpp>
 
 struct PushConstantData
 {
@@ -144,7 +144,8 @@ ImageProcessor::ImageProcessor()
 
 	VKComputePipelineInfo computePipelineInfo(
 		_pipelineLayout,
-		"resources/shaders/internal/asset processing/gen mipmap.comp");
+		"resources/shaders/internal/asset processing/gen mipmap.comp"
+	);
 
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
 }
@@ -187,24 +188,24 @@ ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const
 	StbImage::BitDepthFlags supportedBitDepth;
 	switch (type)
 	{
-		case ImageType::ColorSrgb:
-			requiredChannels = StbImage::Channels::eRedGreenBlueAlpha;
-			supportedBitDepth = StbImage::BitDepthFlags::e8;
-			break;
-		case ImageType::NormalMap:
-			requiredChannels = StbImage::Channels::eRedGreenBlue;
-			supportedBitDepth = StbImage::BitDepthFlags::e8;
-			break;
-		case ImageType::Grayscale:
-			requiredChannels = StbImage::Channels::eGrey;
-			supportedBitDepth = StbImage::BitDepthFlags::e8;
-			break;
-		case ImageType::Skybox:
-			requiredChannels = StbImage::Channels::eRedGreenBlueAlpha;
-			supportedBitDepth = StbImage::BitDepthFlags::e8 | StbImage::BitDepthFlags::e32;
-			break;
-		default:
-			throw;
+	case ImageType::ColorSrgb:
+		requiredChannels = StbImage::Channels::eRedGreenBlueAlpha;
+		supportedBitDepth = StbImage::BitDepthFlags::e8;
+		break;
+	case ImageType::NormalMap:
+		requiredChannels = StbImage::Channels::eRedGreenBlue;
+		supportedBitDepth = StbImage::BitDepthFlags::e8;
+		break;
+	case ImageType::Grayscale:
+		requiredChannels = StbImage::Channels::eGrey;
+		supportedBitDepth = StbImage::BitDepthFlags::e8;
+		break;
+	case ImageType::Skybox:
+		requiredChannels = StbImage::Channels::eRedGreenBlueAlpha;
+		supportedBitDepth = StbImage::BitDepthFlags::e8 | StbImage::BitDepthFlags::e32;
+		break;
+	default:
+		throw;
 	}
 
 	StbImage image(input, requiredChannels, supportedBitDepth);
@@ -219,61 +220,61 @@ ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const
 	vk::Format compressionFormat;
 	switch (type)
 	{
-		case ImageType::ColorSrgb:
-			switch (image.getBitsPerChannel())
-			{
-				case 8:
-					mipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
-					isMipmapGenFormatSrgb = true;
-					compressionFormat = vk::Format::eBc7SrgbBlock;
-					break;
-				default:
-					throw;
-			}
-			break;
-		case ImageType::NormalMap:
-			switch (image.getBitsPerChannel())
-			{
-				case 8:
-					mipmapGenFormat = vk::Format::eR8G8Unorm;
-					isMipmapGenFormatSrgb = false;
-					compressionFormat = vk::Format::eBc5UnormBlock;
-					break;
-				default:
-					throw;
-			}
-			break;
-		case ImageType::Grayscale:
-			switch (image.getBitsPerChannel())
-			{
-				case 8:
-					mipmapGenFormat = vk::Format::eR8Unorm;
-					isMipmapGenFormatSrgb = false;
-					compressionFormat = vk::Format::eBc4UnormBlock;
-					break;
-				default:
-					throw;
-			}
-			break;
-		case ImageType::Skybox:
-			switch (image.getBitsPerChannel())
-			{
-				case 8:
-					mipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
-					isMipmapGenFormatSrgb = true;
-					compressionFormat = vk::Format::eBc7SrgbBlock;
-					break;
-				case 32:
-					mipmapGenFormat = vk::Format::eR16G16B16A16Sfloat;
-					isMipmapGenFormatSrgb = false;
-					compressionFormat = vk::Format::eBc6HUfloatBlock;
-					break;
-				default:
-					throw;
-			}
+	case ImageType::ColorSrgb:
+		switch (image.getBitsPerChannel())
+		{
+		case 8:
+			mipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
+			isMipmapGenFormatSrgb = true;
+			compressionFormat = vk::Format::eBc7SrgbBlock;
 			break;
 		default:
 			throw;
+		}
+		break;
+	case ImageType::NormalMap:
+		switch (image.getBitsPerChannel())
+		{
+		case 8:
+			mipmapGenFormat = vk::Format::eR8G8Unorm;
+			isMipmapGenFormatSrgb = false;
+			compressionFormat = vk::Format::eBc5UnormBlock;
+			break;
+		default:
+			throw;
+		}
+		break;
+	case ImageType::Grayscale:
+		switch (image.getBitsPerChannel())
+		{
+		case 8:
+			mipmapGenFormat = vk::Format::eR8Unorm;
+			isMipmapGenFormatSrgb = false;
+			compressionFormat = vk::Format::eBc4UnormBlock;
+			break;
+		default:
+			throw;
+		}
+		break;
+	case ImageType::Skybox:
+		switch (image.getBitsPerChannel())
+		{
+		case 8:
+			mipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
+			isMipmapGenFormatSrgb = true;
+			compressionFormat = vk::Format::eBc7SrgbBlock;
+			break;
+		case 32:
+			mipmapGenFormat = vk::Format::eR16G16B16A16Sfloat;
+			isMipmapGenFormatSrgb = false;
+			compressionFormat = vk::Format::eBc6HUfloatBlock;
+			break;
+		default:
+			throw;
+		}
+		break;
+	default:
+		throw;
 	}
 
 	std::vector<std::byte> convertedData;
@@ -297,7 +298,7 @@ ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const
 
 	if (compressionFormat != vk::Format::eUndefined)
 	{
-		imageData = compressTexture(imageData,	compressionFormat);
+		imageData = compressTexture(imageData, compressionFormat);
 	}
 
 	writeProcessedImage(output, imageData);
@@ -313,7 +314,8 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		size,
 		1,
 		VKImage::calcMaxMipLevels(size),
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage);
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 	VKPtr<VKImage> texture = VKImage::create(Engine::getVKContext(), imageInfo);
@@ -340,7 +342,8 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
-		vk::ImageLayout::eTransferDstOptimal);
+		vk::ImageLayout::eTransferDstOptimal
+	);
 
 	workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, 0, texture, 0, 0);
 
@@ -370,7 +373,8 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageRead,
-		vk::ImageLayout::eGeneral);
+		vk::ImageLayout::eGeneral
+	);
 
 	for (int i = 1; i < texture->getInfo().getLevels(); i++)
 	{
@@ -382,7 +386,8 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::ImageLayout::eGeneral);
+			vk::ImageLayout::eGeneral
+		);
 
 		workerData.computeCommandBuffer->pushDescriptor(
 			0,
@@ -390,8 +395,9 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 			texture,
 			vk::ImageViewType::e2D,
 			{0, 0},
-			{i-1, i-1},
-			texture->getInfo().getFormat());
+			{i - 1, i - 1},
+			texture->getInfo().getFormat()
+		);
 
 		workerData.computeCommandBuffer->pushDescriptor(
 			0,
@@ -400,7 +406,8 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 			vk::ImageViewType::e2D,
 			{0, 0},
 			{i, i},
-			texture->getInfo().getFormat());
+			texture->getInfo().getFormat()
+		);
 
 		glm::uvec2 dstSize = texture->getSize(i);
 		workerData.computeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
@@ -413,7 +420,8 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 			vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral);
+			vk::ImageLayout::eGeneral
+		);
 	}
 	workerData.computeCommandBuffer->end();
 
@@ -436,7 +444,8 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferRead,
-			vk::ImageLayout::eTransferSrcOptimal);
+			vk::ImageLayout::eTransferSrcOptimal
+		);
 
 		workerData.transferCommandBuffer->copyImageToBuffer(texture, 0, i, stagingBuffer, bufferOffset);
 		bufferOffset += texture->getLevelByteSize(i);

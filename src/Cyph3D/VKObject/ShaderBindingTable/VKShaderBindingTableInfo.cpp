@@ -3,7 +3,6 @@
 VKShaderBindingTableInfo::VKShaderBindingTableInfo(const std::array<std::byte, 32>& raygenGroupHandle):
 	VKShaderBindingTableInfo(raygenGroupHandle, nullptr, 0)
 {
-
 }
 
 const std::vector<std::byte>& VKShaderBindingTableInfo::getRaygenRecord() const

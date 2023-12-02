@@ -173,9 +173,12 @@ void MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 	if (path)
 	{
 		_albedoTexture = _manager.loadTexture(path.value(), ImageType::ColorSrgb);
-		_albedoTextureChangedConnection = _albedoTexture->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_albedoTextureChangedConnection = _albedoTexture->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{
@@ -196,9 +199,12 @@ void MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 	if (path)
 	{
 		_normalTexture = _manager.loadTexture(*path, ImageType::NormalMap);
-		_normalTextureChangedConnection = _normalTexture->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_normalTextureChangedConnection = _normalTexture->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{
@@ -219,9 +225,12 @@ void MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
 	if (path)
 	{
 		_roughnessTexture = _manager.loadTexture(*path, ImageType::Grayscale);
-		_roughnessTextureChangedConnection = _roughnessTexture->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_roughnessTextureChangedConnection = _roughnessTexture->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{
@@ -242,9 +251,12 @@ void MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
 	if (path)
 	{
 		_metalnessTexture = _manager.loadTexture(*path, ImageType::Grayscale);
-		_metalnessTextureChangedConnection = _metalnessTexture->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_metalnessTextureChangedConnection = _metalnessTexture->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{
@@ -265,9 +277,12 @@ void MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
 	if (path)
 	{
 		_displacementTexture = _manager.loadTexture(*path, ImageType::Grayscale);
-		_displacementTextureChangedConnection = _displacementTexture->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_displacementTextureChangedConnection = _displacementTexture->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{
@@ -288,9 +303,12 @@ void MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
 	if (path)
 	{
 		_emissiveTexture = _manager.loadTexture(*path, ImageType::Grayscale);
-		_emissiveTextureChangedConnection = _emissiveTexture->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_emissiveTextureChangedConnection = _emissiveTexture->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{
@@ -534,7 +552,7 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		setAlbedoValue({
 			jsonValue.at(0).get<float>(),
 			jsonValue.at(1).get<float>(),
-			jsonValue.at(2).get<float>()
+			jsonValue.at(2).get<float>(),
 		});
 	}
 
@@ -639,10 +657,10 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setAlbedoValue({
-			               jsonValue.at(0).get<float>(),
-			               jsonValue.at(1).get<float>(),
-			               jsonValue.at(2).get<float>()
-		               });
+			jsonValue.at(0).get<float>(),
+			jsonValue.at(1).get<float>(),
+			jsonValue.at(2).get<float>(),
+		});
 	}
 
 	{
@@ -744,10 +762,10 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setAlbedoValue({
-						   jsonValue.at(0).get<float>(),
-						   jsonValue.at(1).get<float>(),
-						   jsonValue.at(2).get<float>()
-					   });
+			jsonValue.at(0).get<float>(),
+			jsonValue.at(1).get<float>(),
+			jsonValue.at(2).get<float>(),
+		});
 	}
 
 	{
@@ -957,19 +975,19 @@ void MaterialAsset::reload()
 
 	switch (version)
 	{
-		case 1:
-			deserializeFromVersion1(jsonRoot);
-			break;
-		case 2:
-			deserializeFromVersion2(jsonRoot);
-			break;
-		case 3:
-			deserializeFromVersion3(jsonRoot);
-			break;
-		case 4:
-			deserializeFromVersion4(jsonRoot);
-			break;
-		default:
-			throw;
+	case 1:
+		deserializeFromVersion1(jsonRoot);
+		break;
+	case 2:
+		deserializeFromVersion2(jsonRoot);
+		break;
+	case 3:
+		deserializeFromVersion3(jsonRoot);
+		break;
+	case 4:
+		deserializeFromVersion4(jsonRoot);
+		break;
+	default:
+		throw;
 	}
 }

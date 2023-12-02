@@ -34,7 +34,8 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal);
+		vk::ImageLayout::eColorAttachmentOptimal
+	);
 
 	VKRenderingInfo renderingInfo(_size);
 
@@ -108,7 +109,8 @@ void SkyboxPass::createPipeline()
 		"resources/shaders/internal/skybox/skybox.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise);
+		vk::FrontFace::eCounterClockwise
+	);
 
 	info.setFragmentShader("resources/shaders/internal/skybox/skybox.frag");
 
@@ -131,7 +133,8 @@ void SkyboxPass::createImages()
 			_size,
 			1,
 			1,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
+		);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.setName("Resolved raw render image");
 
@@ -142,47 +145,47 @@ void SkyboxPass::createImages()
 void SkyboxPass::createBuffer()
 {
 	std::vector<SkyboxPass::VertexData> vertices = {
-		{{-1.0f,  1.0f, -1.0f}},
+		{{-1.0f, 1.0f, -1.0f}},
 		{{-1.0f, -1.0f, -1.0f}},
-		{{ 1.0f, -1.0f, -1.0f}},
-		{{ 1.0f, -1.0f, -1.0f}},
-		{{ 1.0f,  1.0f, -1.0f}},
-		{{-1.0f,  1.0f, -1.0f}},
+		{{1.0f, -1.0f, -1.0f}},
+		{{1.0f, -1.0f, -1.0f}},
+		{{1.0f, 1.0f, -1.0f}},
+		{{-1.0f, 1.0f, -1.0f}},
 
-		{{-1.0f, -1.0f,  1.0f}},
+		{{-1.0f, -1.0f, 1.0f}},
 		{{-1.0f, -1.0f, -1.0f}},
-		{{-1.0f,  1.0f, -1.0f}},
-		{{-1.0f,  1.0f, -1.0f}},
-		{{-1.0f,  1.0f,  1.0f}},
-		{{-1.0f, -1.0f,  1.0f}},
+		{{-1.0f, 1.0f, -1.0f}},
+		{{-1.0f, 1.0f, -1.0f}},
+		{{-1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, 1.0f}},
 
-		{{ 1.0f, -1.0f, -1.0f}},
-		{{ 1.0f, -1.0f,  1.0f}},
-		{{ 1.0f,  1.0f,  1.0f}},
-		{{ 1.0f,  1.0f,  1.0f}},
-		{{ 1.0f,  1.0f, -1.0f}},
-		{{ 1.0f, -1.0f, -1.0f}},
+		{{1.0f, -1.0f, -1.0f}},
+		{{1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+		{{1.0f, 1.0f, -1.0f}},
+		{{1.0f, -1.0f, -1.0f}},
 
-		{{-1.0f, -1.0f,  1.0f}},
-		{{-1.0f,  1.0f,  1.0f}},
-		{{ 1.0f,  1.0f,  1.0f}},
-		{{ 1.0f,  1.0f,  1.0f}},
-		{{ 1.0f, -1.0f,  1.0f}},
-		{{-1.0f, -1.0f,  1.0f}},
+		{{-1.0f, -1.0f, 1.0f}},
+		{{-1.0f, 1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+		{{1.0f, -1.0f, 1.0f}},
+		{{-1.0f, -1.0f, 1.0f}},
 
-		{{-1.0f,  1.0f, -1.0f}},
-		{{ 1.0f,  1.0f, -1.0f}},
-		{{ 1.0f,  1.0f,  1.0f}},
-		{{ 1.0f,  1.0f,  1.0f}},
-		{{-1.0f,  1.0f,  1.0f}},
-		{{-1.0f,  1.0f, -1.0f}},
+		{{-1.0f, 1.0f, -1.0f}},
+		{{1.0f, 1.0f, -1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, 1.0f, 1.0f}},
+		{{-1.0f, 1.0f, -1.0f}},
 
 		{{-1.0f, -1.0f, -1.0f}},
-		{{-1.0f, -1.0f,  1.0f}},
-		{{ 1.0f, -1.0f, -1.0f}},
-		{{ 1.0f, -1.0f, -1.0f}},
-		{{-1.0f, -1.0f,  1.0f}},
-		{{ 1.0f, -1.0f,  1.0f}}
+		{{-1.0f, -1.0f, 1.0f}},
+		{{1.0f, -1.0f, -1.0f}},
+		{{1.0f, -1.0f, -1.0f}},
+		{{-1.0f, -1.0f, 1.0f}},
+		{{1.0f, -1.0f, 1.0f}}
 	};
 
 	VKBufferInfo vertexBufferInfo(vertices.size(), vk::BufferUsageFlagBits::eVertexBuffer);

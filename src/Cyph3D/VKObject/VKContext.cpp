@@ -5,13 +5,13 @@
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
 
-#include <GLFW/glfw3.h>
-#include <vulkan/vulkan_hash.hpp>
 #include <fstream>
+#include <GLFW/glfw3.h>
 #include <memory>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
+#include <vulkan/vulkan_hash.hpp>
 
 static constexpr uint32_t VULKAN_VERSION = VK_API_VERSION_1_3;
 
@@ -41,18 +41,18 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSev
 
 	switch (messageSeverity)
 	{
-		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
-			Logger::error(messageData->pMessage, "Vulkan");
-			break;
-		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
-			Logger::warning(messageData->pMessage, "Vulkan");
-			break;
-		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
-			Logger::info(messageData->pMessage, "Vulkan");
-			break;
-		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
-			Logger::debug(messageData->pMessage, "Vulkan");
-			break;
+	case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
+		Logger::error(messageData->pMessage, "Vulkan");
+		break;
+	case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
+		Logger::warning(messageData->pMessage, "Vulkan");
+		break;
+	case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
+		Logger::info(messageData->pMessage, "Vulkan");
+		break;
+	case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
+		Logger::debug(messageData->pMessage, "Vulkan");
+		break;
 	}
 
 	return false;
@@ -215,7 +215,8 @@ PhysicalDeviceInfo getPhysicalDeviceInfo(
 	vk::PhysicalDevice physicalDevice,
 	const std::vector<const char*>& requiredDeviceLayers,
 	const std::vector<const char*>& requiredDeviceCoreExtensions,
-	const std::vector<const char*>& requiredDeviceRayTracingExtensions)
+	const std::vector<const char*>& requiredDeviceRayTracingExtensions
+)
 {
 	PhysicalDeviceInfo physicalDeviceInfo;
 	physicalDeviceInfo.handle = physicalDevice;
@@ -399,8 +400,10 @@ VKContext::VKContext(int concurrentFrameCount):
 VKContext::~VKContext()
 {
 	_mainQueue->handleCompletedSubmits();
-	if (_computeQueue) _computeQueue->handleCompletedSubmits();
-	if (_transferQueue) _transferQueue->handleCompletedSubmits();
+	if (_computeQueue)
+		_computeQueue->handleCompletedSubmits();
+	if (_transferQueue)
+		_transferQueue->handleCompletedSubmits();
 	_helperData.reset();
 	_vmaAllocator.destroy();
 	_device.destroy();
@@ -422,8 +425,10 @@ void VKContext::onNewFrame()
 {
 	_currentConcurrentFrame = (_currentConcurrentFrame + 1) % _concurrentFrameCount;
 	_mainQueue->handleCompletedSubmits();
-	if (_computeQueue) _computeQueue->handleCompletedSubmits();
-	if (_transferQueue) _transferQueue->handleCompletedSubmits();
+	if (_computeQueue)
+		_computeQueue->handleCompletedSubmits();
+	if (_transferQueue)
+		_transferQueue->handleCompletedSubmits();
 	_vmaAllocator.setCurrentFrameIndex(_currentConcurrentFrame);
 }
 
@@ -588,10 +593,13 @@ std::vector<VKContext::QueueFamilyInfo> VKContext::parseQueues()
 		}
 	}
 
-	std::ranges::sort(queueFamilyInfos, [](const QueueFamilyInfo& a, const QueueFamilyInfo& b)
-	{
-		return a.usageCount < b.usageCount;
-	});
+	std::ranges::sort(
+		queueFamilyInfos,
+		[](const QueueFamilyInfo& a, const QueueFamilyInfo& b)
+		{
+			return a.usageCount < b.usageCount;
+		}
+	);
 
 	return queueFamilyInfos;
 }
@@ -767,8 +775,11 @@ void VKContext::createImmediateCommandBuffer()
 
 void VKContext::createDefaultCommandBuffer()
 {
-	_helperData->defaultCommandBuffer = VKDynamic<VKCommandBuffer>(*this, [](VKContext& context, int index)
-	{
-		return VKCommandBuffer::create(context, context.getMainQueue());
-	});
+	_helperData->defaultCommandBuffer = VKDynamic<VKCommandBuffer>(
+		*this,
+		[](VKContext& context, int index)
+		{
+			return VKCommandBuffer::create(context, context.getMainQueue());
+		}
+	);
 }

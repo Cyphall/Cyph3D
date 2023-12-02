@@ -3,7 +3,6 @@
 VKDescriptorSetInfo::VKDescriptorSetInfo(const VKPtr<VKDescriptorSetLayout>& layout):
 	_layout(layout)
 {
-
 }
 
 const uint32_t& VKDescriptorSetInfo::getVariableSizeAllocatedCount() const

@@ -32,7 +32,8 @@ vk::DeviceSize VKAccelerationStructureCompactedSizeQuery::getCompactedSize() con
 		0,
 		1,
 		sizeof(vk::DeviceSize),
-		vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait);
+		vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait
+	);
 
 	return data;
 }
@@ -44,7 +45,8 @@ bool VKAccelerationStructureCompactedSizeQuery::tryGetCompactedSize(vk::DeviceSi
 		0,
 		1,
 		sizeof(vk::DeviceSize),
-		vk::QueryResultFlagBits::e64);
+		vk::QueryResultFlagBits::e64
+	);
 
 	if (result == vk::Result::eSuccess)
 	{

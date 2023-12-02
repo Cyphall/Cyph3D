@@ -7,13 +7,13 @@
 #include <GLFW/glfw3.h>
 
 #undef APIENTRY
-#include <ShObjIdl_core.h>
-#include <ShlObj_core.h>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
 #include <fstream>
 #include <ios>
+#include <ShlObj_core.h>
+#include <ShObjIdl_core.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
@@ -66,10 +66,12 @@ std::optional<std::filesystem::path> FileHelper::fileDialogOpen(const std::vecto
 
 	IFileOpenDialog* pfd;
 
-	HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog,
+	HRESULT hr = CoCreateInstance(
+		CLSID_FileOpenDialog,
 		nullptr,
 		CLSCTX_INPROC_SERVER,
-		IID_PPV_ARGS(&pfd));
+		IID_PPV_ARGS(&pfd)
+	);
 
 	if (SUCCEEDED(hr))
 	{
@@ -128,10 +130,12 @@ std::optional<std::filesystem::path> FileHelper::fileDialogSave(const std::vecto
 
 	IFileSaveDialog* pfd;
 
-	HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog,
+	HRESULT hr = CoCreateInstance(
+		CLSID_FileSaveDialog,
 		nullptr,
 		CLSCTX_INPROC_SERVER,
-		IID_PPV_ARGS(&pfd));
+		IID_PPV_ARGS(&pfd)
+	);
 
 	if (SUCCEEDED(hr))
 	{

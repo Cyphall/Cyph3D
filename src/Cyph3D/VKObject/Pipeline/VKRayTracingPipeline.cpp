@@ -10,7 +10,8 @@ VKPtr<VKRayTracingPipeline> VKRayTracingPipeline::create(VKContext& context, VKR
 }
 
 VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipelineInfo& info):
-	VKPipeline(context), _info(info)
+	VKPipeline(context),
+	_info(info)
 {
 	if (!_context.isRayTracingSupported())
 	{
@@ -109,21 +110,27 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipel
 		_pipeline,
 		0,
 		_info.getRaygenGroupsInfos().size(),
-		_raygenGroupsHandles.size() * 32, _raygenGroupsHandles.data());
+		_raygenGroupsHandles.size() * 32,
+		_raygenGroupsHandles.data()
+	);
 
 	_triangleHitGroupsHandles.resize(_info.getTriangleHitGroupsInfos().size());
 	_context.getDevice().getRayTracingShaderGroupHandlesKHR(
 		_pipeline,
 		_info.getRaygenGroupsInfos().size(),
 		_info.getTriangleHitGroupsInfos().size(),
-		_triangleHitGroupsHandles.size() * 32, _triangleHitGroupsHandles.data());
+		_triangleHitGroupsHandles.size() * 32,
+		_triangleHitGroupsHandles.data()
+	);
 
 	_missGroupsHandles.resize(_info.getMissGroupsInfos().size());
 	_context.getDevice().getRayTracingShaderGroupHandlesKHR(
 		_pipeline,
 		_info.getRaygenGroupsInfos().size() + _info.getTriangleHitGroupsInfos().size(),
 		_info.getMissGroupsInfos().size(),
-		_missGroupsHandles.size() * 32, _missGroupsHandles.data());
+		_missGroupsHandles.size() * 32,
+		_missGroupsHandles.data()
+	);
 }
 
 VKRayTracingPipeline::~VKRayTracingPipeline()

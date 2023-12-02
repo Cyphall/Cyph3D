@@ -3,7 +3,6 @@
 PerfStep::PerfStep(std::string_view name):
 	_name(name)
 {
-
 }
 
 const std::string& PerfStep::getName() const

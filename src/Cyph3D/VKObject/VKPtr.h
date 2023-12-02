@@ -50,7 +50,8 @@ public:
 	}
 
 	explicit VKPtr(T* pointer):
-		_pointer(pointer), _controlBlock(new ControlBlock(pointer))
+		_pointer(pointer),
+		_controlBlock(new ControlBlock(pointer))
 	{}
 
 	VKPtr(const VKPtr& other)
@@ -72,24 +73,24 @@ public:
 		}
 
 		return copyAssignFrom(other); // NOLINT(misc-unconventional-assign-operator)
-	};
+	}
 
 	template<typename TOther, typename std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
 	VKPtr& operator=(const VKPtr<TOther>& other)
 	{
 		return copyAssignFrom(other); // NOLINT(misc-unconventional-assign-operator)
-	};
+	}
 
 	VKPtr(VKPtr&& other) noexcept
 	{
 		moveConstructFrom(std::forward<VKPtr>(other));
-	};
+	}
 
 	template<typename TOther, typename std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
 	VKPtr(VKPtr<TOther>&& other) noexcept // NOLINT(google-explicit-constructor)
 	{
 		moveConstructFrom(std::forward<VKPtr<TOther>>(other));
-	};
+	}
 
 	VKPtr& operator=(VKPtr&& other) noexcept
 	{
@@ -98,13 +99,13 @@ public:
 			return *this;
 		}
 		return moveAssignFrom(std::forward<VKPtr>(other)); // NOLINT(misc-unconventional-assign-operator)
-	};
+	}
 
 	template<typename TOther, typename std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
 	VKPtr& operator=(VKPtr<TOther>&& other) noexcept
 	{
 		return moveAssignFrom(std::forward<VKPtr<TOther>>(other)); // NOLINT(misc-unconventional-assign-operator)
-	};
+	}
 
 	T* operator->() const
 	{
@@ -141,7 +142,6 @@ private:
 		explicit ControlBlock(T* pointer):
 			_pointer(pointer)
 		{
-
 		}
 
 		~ControlBlock() override

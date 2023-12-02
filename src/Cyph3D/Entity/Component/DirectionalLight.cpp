@@ -15,7 +15,6 @@ const char* const DirectionalLight::identifier = "DirectionalLight";
 DirectionalLight::DirectionalLight(Entity& entity):
 	LightBase(entity)
 {
-
 }
 
 void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
@@ -151,14 +150,14 @@ void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 {
 	switch (serialization.version)
 	{
-		case 1:
-			deserializeFromVersion1(serialization.data);
-			break;
-		case 2:
-			deserializeFromVersion2(serialization.data);
-			break;
-		default:
-			throw;
+	case 1:
+		deserializeFromVersion1(serialization.data);
+		break;
+	case 2:
+		deserializeFromVersion2(serialization.data);
+		break;
+	default:
+		throw;
 	}
 }
 

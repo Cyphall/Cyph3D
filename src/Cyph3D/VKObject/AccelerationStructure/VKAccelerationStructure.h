@@ -15,7 +15,8 @@ public:
 		VKContext& context,
 		vk::AccelerationStructureTypeKHR type,
 		vk::DeviceSize size,
-		const VKPtr<VKBufferBase>& backingBuffer);
+		const VKPtr<VKBufferBase>& backingBuffer
+	);
 
 	~VKAccelerationStructure() override;
 
@@ -27,11 +28,13 @@ public:
 
 	static vk::AccelerationStructureBuildSizesInfoKHR getBottomLevelBuildSizesInfo(
 		VKContext& context,
-		const VKBottomLevelAccelerationStructureBuildInfo& buildInfo);
+		const VKBottomLevelAccelerationStructureBuildInfo& buildInfo
+	);
 
 	static vk::AccelerationStructureBuildSizesInfoKHR getTopLevelBuildSizesInfo(
 		VKContext& context,
-		const VKTopLevelAccelerationStructureBuildInfo& buildInfo);
+		const VKTopLevelAccelerationStructureBuildInfo& buildInfo
+	);
 
 protected:
 	friend class VKCommandBuffer;
@@ -40,7 +43,8 @@ protected:
 		VKContext& context,
 		vk::AccelerationStructureTypeKHR type,
 		vk::DeviceSize size,
-		const VKPtr<VKBufferBase>& backingBuffer);
+		const VKPtr<VKBufferBase>& backingBuffer
+	);
 
 	vk::AccelerationStructureTypeKHR _type;
 	VKPtr<VKBufferBase> _accelerationStructureBackingBuffer;

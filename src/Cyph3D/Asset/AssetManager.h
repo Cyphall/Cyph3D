@@ -38,7 +38,7 @@ public:
 
 	void onNewFrame();
 
-	template <typename TTask, typename... TArgs>
+	template<typename TTask, typename... TArgs>
 	void addThreadPoolTask(TTask&& task, TArgs&&... args)
 	{
 		_threadPool.push_task(std::forward<TTask>(task), std::forward<TArgs>(args)...);

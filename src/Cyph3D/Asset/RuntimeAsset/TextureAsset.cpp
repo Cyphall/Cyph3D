@@ -8,8 +8,8 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
-#include <magic_enum.hpp>
 #include <format>
+#include <magic_enum.hpp>
 
 TextureAsset::TextureAsset(AssetManager& manager, const TextureAssetSignature& signature):
 	GPUAsset(manager, signature)
@@ -41,14 +41,15 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		imageData.size,
 		1,
 		imageData.levels.size(),
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setName(_signature.path);
 
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 
 	// create staging buffer
-	VKBufferInfo bufferInfo(_image->getLayerByteSize(),vk::BufferUsageFlagBits::eTransferSrc);
+	VKBufferInfo bufferInfo(_image->getLayerByteSize(), vk::BufferUsageFlagBits::eTransferSrc);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
@@ -73,7 +74,8 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
-		vk::ImageLayout::eTransferDstOptimal);
+		vk::ImageLayout::eTransferDstOptimal
+	);
 
 	vk::DeviceSize bufferOffset = 0;
 	for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
@@ -88,7 +90,8 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::AccessFlagBits2::eTransferWrite,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	workerData.transferCommandBuffer->end();
 

@@ -14,9 +14,10 @@ class RenderPass
 {
 public:
 	RenderPass(glm::uvec2 size, const char* name):
-		_size(size), _renderPassPerf(name), _name(name)
+		_size(size),
+		_renderPassPerf(name),
+		_name(name)
 	{
-
 	}
 
 	virtual ~RenderPass() = default;

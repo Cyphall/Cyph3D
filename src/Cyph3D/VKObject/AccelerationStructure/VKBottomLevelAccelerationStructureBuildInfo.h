@@ -3,8 +3,8 @@
 #include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
-#include <vulkan/vulkan.hpp>
 #include <vector>
+#include <vulkan/vulkan.hpp>
 
 class VKBufferBase;
 

@@ -10,25 +10,29 @@
 
 glm::vec3 Camera::getOrientation() const
 {
-	if (_orientationChanged) recalculateOrientation();
+	if (_orientationChanged)
+		recalculateOrientation();
 	return _orientation;
 }
 
 glm::vec3 Camera::getSideOrientation() const
 {
-	if (_orientationChanged) recalculateOrientation();
+	if (_orientationChanged)
+		recalculateOrientation();
 	return _sideOrientation;
 }
 
 glm::mat4 Camera::getView() const
 {
-	if (_viewChanged) recalculateView();
+	if (_viewChanged)
+		recalculateView();
 	return _view;
 }
 
 glm::mat4 Camera::getProjection() const
 {
-	if (_projectionChanged) recalculateProjection();
+	if (_projectionChanged)
+		recalculateProjection();
 	return _projection;
 }
 
@@ -95,10 +99,11 @@ void Camera::setHorizontalFov(float hfov, float referenceAspectRatio)
 }
 
 Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
-	_position(position), _sphericalCoords(sphericalCoords)
+	_position(position),
+	_sphericalCoords(sphericalCoords)
 {
-	setHorizontalFov(80.0f, 16.0f/9.0f);
-	setAspectRatio(16.0f/9.0f);
+	setHorizontalFov(80.0f, 16.0f / 9.0f);
+	setAspectRatio(16.0f / 9.0f);
 }
 
 bool Camera::update(glm::vec2 mousePosDelta)
@@ -176,7 +181,6 @@ void Camera::recalculateView() const
 	_viewChanged = false;
 }
 
-
 void Camera::recalculateProjection() const
 {
 	_projection = glm::perspective(_verticalFov, _aspectRatio, NEAR_DISTANCE, FAR_DISTANCE);
@@ -198,7 +202,8 @@ void Camera::setAspectRatio(float aspectRatio)
 
 const std::array<glm::vec3, 4>& Camera::getCornerRays() const
 {
-	if (_cornerRaysChanged) recalculateCornerRays();
+	if (_cornerRaysChanged)
+		recalculateCornerRays();
 	return _cornerRays;
 }
 

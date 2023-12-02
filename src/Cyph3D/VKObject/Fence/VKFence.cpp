@@ -23,12 +23,12 @@ bool VKFence::wait(uint64_t timeout) const
 	vk::Result result = _context.getDevice().waitForFences(_fence, true, timeout);
 	switch (result)
 	{
-		case vk::Result::eSuccess:
-			return true;
-		case vk::Result::eTimeout:
-			return false;
-		default:
-			throw;
+	case vk::Result::eSuccess:
+		return true;
+	case vk::Result::eTimeout:
+		return false;
+	default:
+		throw;
 	}
 }
 
@@ -37,12 +37,12 @@ bool VKFence::isSignaled() const
 	vk::Result status = _context.getDevice().getFenceStatus(_fence);
 	switch (status)
 	{
-		case vk::Result::eSuccess:
-			return true;
-		case vk::Result::eNotReady:
-			return false;
-		default:
-			throw;
+	case vk::Result::eSuccess:
+		return true;
+	case vk::Result::eNotReady:
+		return false;
+	default:
+		throw;
 	}
 }
 

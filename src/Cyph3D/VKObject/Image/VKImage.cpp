@@ -4,8 +4,8 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 
-#include <vulkan/vulkan_format_traits.hpp>
 #include <set>
+#include <vulkan/vulkan_format_traits.hpp>
 
 VKPtr<VKImage> VKImage::create(VKContext& context, const VKImageInfo& info)
 {
@@ -94,7 +94,7 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 	_sizes[0] = _info.getSize();
 	for (uint32_t i = 1; i < levels; i++)
 	{
-		_sizes[i] = glm::max(_sizes[i-1] / 2u, glm::uvec2(1, 1));
+		_sizes[i] = glm::max(_sizes[i - 1] / 2u, glm::uvec2(1, 1));
 	}
 }
 
@@ -201,7 +201,7 @@ vk::ImageView VKImage::getView(vk::ImageViewType type, glm::uvec2 layerRange, gl
 		imageViewCreateInfo.subresourceRange.baseMipLevel = levelRange.x;
 		imageViewCreateInfo.subresourceRange.levelCount = levelRange.y - levelRange.x + 1;
 
-		it = _views.try_emplace(viewInfo,  _context.getDevice().createImageView(imageViewCreateInfo)).first;
+		it = _views.try_emplace(viewInfo, _context.getDevice().createImageView(imageViewCreateInfo)).first;
 	}
 
 	return it->second;

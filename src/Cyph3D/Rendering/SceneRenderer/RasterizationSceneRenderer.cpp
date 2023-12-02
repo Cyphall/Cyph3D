@@ -15,7 +15,6 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	_bloomPass(size),
 	_toneMappingPass(size)
 {
-
 }
 
 const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
@@ -41,7 +40,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
-		vk::ImageLayout::eDepthAttachmentOptimal);
+		vk::ImageLayout::eDepthAttachmentOptimal
+	);
 
 	for (const DirectionalShadowMapInfo& info : shadowMapPassOutput.directionalShadowMapInfos)
 	{
@@ -51,7 +51,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 			vk::PipelineStageFlagBits2::eFragmentShader,
 			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal);
+			vk::ImageLayout::eReadOnlyOptimal
+		);
 	}
 
 	for (const PointShadowMapInfo& info : shadowMapPassOutput.pointShadowMapInfos)
@@ -62,7 +63,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 			vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 			vk::PipelineStageFlagBits2::eFragmentShader,
 			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal);
+			vk::ImageLayout::eReadOnlyOptimal
+		);
 	}
 
 	LightingPassInput lightingPassInput{
@@ -81,7 +83,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentRead,
-		vk::ImageLayout::eColorAttachmentOptimal);
+		vk::ImageLayout::eColorAttachmentOptimal
+	);
 
 	SkyboxPassInput skyboxPassInput{
 		.camera = camera,
@@ -97,7 +100,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	ExposurePassInput exposurePassInput{
 		.inputImage = skyboxPassOutput.rawRenderImage,
@@ -112,7 +116,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	BloomPassInput bloomPassInput{
 		.inputImage = exposurePassOutput.outputImage
@@ -126,7 +131,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	ToneMappingPassInput toneMappingPassInput{
 		.inputImage = bloomPassOutput.outputImage
@@ -140,7 +146,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	return toneMappingPassOutput.outputImage;
 }

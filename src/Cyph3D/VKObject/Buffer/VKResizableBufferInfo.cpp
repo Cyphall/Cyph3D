@@ -3,7 +3,6 @@
 VKResizableBufferInfo::VKResizableBufferInfo(vk::BufferUsageFlags usage):
 	_usage(usage)
 {
-
 }
 
 const vk::BufferUsageFlags& VKResizableBufferInfo::getUsage() const

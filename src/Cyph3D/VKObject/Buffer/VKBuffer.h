@@ -5,9 +5,9 @@
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-#include <vk_mem_alloc.hpp>
-#include <stdexcept>
 #include <set>
+#include <stdexcept>
+#include <vk_mem_alloc.hpp>
 
 template<typename T>
 class VKBuffer : public VKBufferBase

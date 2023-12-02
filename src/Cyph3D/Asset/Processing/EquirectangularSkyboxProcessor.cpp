@@ -15,12 +15,12 @@
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
-#include <magic_enum.hpp>
-#include <vulkan/vulkan_format_traits.hpp>
 #include <array>
 #include <filesystem>
-#include <half.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <half.hpp>
+#include <magic_enum.hpp>
+#include <vulkan/vulkan_format_traits.hpp>
 
 struct MipmapPushConstantData
 {
@@ -145,7 +145,8 @@ EquirectangularSkyboxProcessor::EquirectangularSkyboxProcessor()
 
 		VKComputePipelineInfo computePipelineInfo(
 			_cubemapPipelineLayout,
-			"resources/shaders/internal/asset processing/gen cubemap.comp");
+			"resources/shaders/internal/asset processing/gen cubemap.comp"
+		);
 
 		_cubemapPipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
 
@@ -185,7 +186,8 @@ EquirectangularSkyboxProcessor::EquirectangularSkyboxProcessor()
 
 		VKComputePipelineInfo computePipelineInfo(
 			_mipmapPipelineLayout,
-			"resources/shaders/internal/asset processing/gen mipmap.comp");
+			"resources/shaders/internal/asset processing/gen mipmap.comp"
+		);
 
 		_mipmapPipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
 	}
@@ -240,18 +242,18 @@ EquirectangularSkyboxData EquirectangularSkyboxProcessor::processEquirectangular
 	vk::Format compressionFormat;
 	switch (image.getBitsPerChannel())
 	{
-		case 8:
-			cubemapAndMipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
-			isMipmapGenFormatSrgb = true;
-			compressionFormat = vk::Format::eBc7SrgbBlock;
-			break;
-		case 32:
-			cubemapAndMipmapGenFormat = vk::Format::eR16G16B16A16Sfloat;
-			isMipmapGenFormatSrgb = false;
-			compressionFormat = vk::Format::eBc6HUfloatBlock;
-			break;
-		default:
-			throw;
+	case 8:
+		cubemapAndMipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
+		isMipmapGenFormatSrgb = true;
+		compressionFormat = vk::Format::eBc7SrgbBlock;
+		break;
+	case 32:
+		cubemapAndMipmapGenFormat = vk::Format::eR16G16B16A16Sfloat;
+		isMipmapGenFormatSrgb = false;
+		compressionFormat = vk::Format::eBc6HUfloatBlock;
+		break;
+	default:
+		throw;
 	}
 
 	std::vector<std::byte> convertedData;
@@ -270,7 +272,7 @@ EquirectangularSkyboxData EquirectangularSkyboxProcessor::processEquirectangular
 
 	if (compressionFormat != vk::Format::eUndefined)
 	{
-		imageData = compressTexture(imageData,	compressionFormat);
+		imageData = compressTexture(imageData, compressionFormat);
 	}
 
 	writeProcessedEquirectangularSkybox(output, imageData);
@@ -297,7 +299,8 @@ static VKPtr<VKImage> uploadEquirectangularImage(AssetManagerWorkerData& workerD
 		size,
 		1,
 		1,
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled);
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 	VKPtr<VKImage> image = VKImage::create(Engine::getVKContext(), imageInfo);
@@ -311,7 +314,8 @@ static VKPtr<VKImage> uploadEquirectangularImage(AssetManagerWorkerData& workerD
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
-		vk::ImageLayout::eTransferDstOptimal);
+		vk::ImageLayout::eTransferDstOptimal
+	);
 
 	workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, 0, image, 0, 0);
 
@@ -334,18 +338,19 @@ VKPtr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetManagerWorke
 		cubemapSize,
 		6,
 		VKImage::calcMaxMipLevels(cubemapSize),
-		vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage);
+		vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage
+	);
 	cubemapTextureInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 	VKPtr<VKImage> cubemapTexture = VKImage::create(Engine::getVKContext(), cubemapTextureInfo);
 
 	std::array<glm::mat4, 6> views = {
-		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3( 1,  0,  0), glm::vec3(0, 1,  0)),
-		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(-1,  0,  0), glm::vec3(0, 1,  0)),
-		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3( 0,  1,  0), glm::vec3(0, 0,  1)),
-		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3( 0, -1,  0), glm::vec3(0, 0, -1)),
-		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3( 0,  0, -1), glm::vec3(0, 1,  0)),
-		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3( 0,  0,  1), glm::vec3(0, 1,  0))
+		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(0, 1, 0)),
+		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(-1, 0, 0), glm::vec3(0, 1, 0)),
+		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)),
+		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec3(0, 0, -1)),
+		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)),
+		glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1), glm::vec3(0, 1, 0))
 	};
 
 	glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 10.0f);
@@ -359,7 +364,8 @@ VKPtr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetManagerWorke
 		vk::AccessFlagBits2::eTransferWrite,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	workerData.computeCommandBuffer->imageMemoryBarrier(
 		cubemapTexture,
@@ -367,7 +373,8 @@ VKPtr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetManagerWorke
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::ImageLayout::eGeneral);
+		vk::ImageLayout::eGeneral
+	);
 
 	workerData.computeCommandBuffer->bindPipeline(_cubemapPipeline);
 
@@ -382,7 +389,8 @@ VKPtr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetManagerWorke
 			vk::ImageViewType::e2D,
 			{i, i},
 			{0, 0},
-			cubemapTexture->getInfo().getFormat());
+			cubemapTexture->getInfo().getFormat()
+		);
 
 		workerData.computeCommandBuffer->pushConstants(CubemapPushConstantData{
 			.viewProjectionInv = glm::inverse(projection * views[i])
@@ -421,7 +429,8 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageRead,
-		vk::ImageLayout::eGeneral);
+		vk::ImageLayout::eGeneral
+	);
 
 	for (int level = 1; level < cubemapTexture->getInfo().getLevels(); level++)
 	{
@@ -433,7 +442,8 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::ImageLayout::eGeneral);
+			vk::ImageLayout::eGeneral
+		);
 
 		for (int face = 0; face < 6; face++)
 		{
@@ -443,8 +453,9 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 				cubemapTexture,
 				vk::ImageViewType::e2D,
 				{face, face},
-				{level-1, level-1},
-				cubemapTexture->getInfo().getFormat());
+				{level - 1, level - 1},
+				cubemapTexture->getInfo().getFormat()
+			);
 
 			workerData.computeCommandBuffer->pushDescriptor(
 				0,
@@ -453,7 +464,8 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 				vk::ImageViewType::e2D,
 				{face, face},
 				{level, level},
-				cubemapTexture->getInfo().getFormat());
+				cubemapTexture->getInfo().getFormat()
+			);
 
 			glm::uvec2 dstSize = cubemapTexture->getSize(level);
 			workerData.computeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
@@ -467,7 +479,8 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 			vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral);
+			vk::ImageLayout::eGeneral
+		);
 	}
 
 	workerData.computeCommandBuffer->imageMemoryBarrier(
@@ -476,7 +489,8 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 		vk::AccessFlagBits2::eShaderStorageRead,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferRead,
-		vk::ImageLayout::eTransferSrcOptimal);
+		vk::ImageLayout::eTransferSrcOptimal
+	);
 
 	workerData.computeCommandBuffer->end();
 

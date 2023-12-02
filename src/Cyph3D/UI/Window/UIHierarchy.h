@@ -1,7 +1,7 @@
 #pragma once
 
-#include <imgui.h>
 #include <functional>
+#include <imgui.h>
 
 class Transform;
 class Entity;

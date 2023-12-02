@@ -17,14 +17,14 @@
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 
-#include <glm/gtc/type_ptr.hpp>
 #include <format>
+#include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
 
 std::atomic_uint64_t Scene::_changeVersion = 0;
 
 Scene::Scene():
-_root(Transform::createSceneRoot())
+	_root(Transform::createSceneRoot())
 {
 	_changeVersion++;
 }
@@ -56,9 +56,12 @@ Entity& Scene::createEntity(Transform& parent)
 {
 	EntityContainer& container = _entities.emplace_back();
 	container.entity = std::make_unique<Entity>(parent, *this);
-	container.entityChangedConnection = container.entity->getChangedSignal().connect([](){
-		_changeVersion++;
-	});
+	container.entityChangedConnection = container.entity->getChangedSignal().connect(
+		[]()
+		{
+			_changeVersion++;
+		}
+	);
 
 	_changeVersion++;
 
@@ -67,9 +70,13 @@ Entity& Scene::createEntity(Transform& parent)
 
 EntityIterator Scene::findEntity(Entity& entity)
 {
-	return std::find_if(begin(), end(), [&](const Entity& e){
-		return &e == &entity;
-	});
+	return std::find_if(
+		begin(), end(),
+		[&](const Entity& e)
+		{
+			return &e == &entity;
+		}
+	);
 }
 
 EntityIterator Scene::removeEntity(EntityIterator where)
@@ -122,9 +129,12 @@ void Scene::setSkybox(std::optional<std::string_view> path)
 	if (path)
 	{
 		_skybox = Engine::getAssetManager().loadSkybox(*path);
-		_skyboxChangedConnection = _skybox->getChangedSignal().connect([](){
-			_changeVersion++;
-		});
+		_skyboxChangedConnection = _skybox->getChangedSignal().connect(
+			[]()
+			{
+				_changeVersion++;
+			}
+		);
 	}
 	else
 	{

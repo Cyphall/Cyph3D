@@ -29,7 +29,8 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::ImageLayout::eDepthAttachmentOptimal);
+		vk::ImageLayout::eDepthAttachmentOptimal
+	);
 
 	VKRenderingInfo renderingInfo(_size);
 
@@ -98,7 +99,8 @@ void ZPrepass::createPipeline()
 		"resources/shaders/internal/z-prepass/z-prepass.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise);
+		vk::FrontFace::eCounterClockwise
+	);
 
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
@@ -117,7 +119,8 @@ void ZPrepass::createImage()
 		_size,
 		1,
 		1,
-		vk::ImageUsageFlagBits::eDepthStencilAttachment);
+		vk::ImageUsageFlagBits::eDepthStencilAttachment
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
 	imageInfo.setName("Depth image");

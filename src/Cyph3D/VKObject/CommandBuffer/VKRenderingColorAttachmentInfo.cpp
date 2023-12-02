@@ -5,7 +5,6 @@
 VKRenderingColorAttachmentInfo::VKRenderingColorAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
 	_imageInfo(image, type, layerRange, levelRange, format)
 {
-
 }
 
 const VKRenderingColorAttachmentInfo::ImageInfo& VKRenderingColorAttachmentInfo::getImageInfo() const
@@ -21,7 +20,8 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk
 		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
 		{0, image->getInfo().getLayers() - 1},
 		{0, image->getInfo().getLevels() - 1},
-		image->getInfo().getFormat());
+		image->getInfo().getFormat()
+	);
 }
 
 VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
@@ -59,7 +59,6 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(g
 
 	return *this;
 }
-
 
 VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(glm::ivec4 clearValue)
 {

@@ -163,9 +163,10 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 			Engine::getVKContext(),
 			vk::AccelerationStructureTypeKHR::eBottomLevel,
 			buildSizesInfo.accelerationStructureSize,
-			temporaryBackingBuffer);
+			temporaryBackingBuffer
+		);
 
-		VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize,vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
+		VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
 		scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
 
@@ -179,7 +180,8 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 			vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
 			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
-			vk::AccessFlagBits2::eAccelerationStructureReadKHR);
+			vk::AccessFlagBits2::eAccelerationStructureReadKHR
+		);
 		workerData.computeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
 		workerData.computeCommandBuffer->end();
 
@@ -200,7 +202,8 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 			Engine::getVKContext(),
 			vk::AccelerationStructureTypeKHR::eBottomLevel,
 			compactedSize,
-			backingBuffer);
+			backingBuffer
+		);
 
 		workerData.computeCommandBuffer->begin();
 		workerData.computeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);

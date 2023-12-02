@@ -2,8 +2,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <sigslot/signal.hpp>
 #include <memory>
+#include <sigslot/signal.hpp>
 #include <vector>
 
 class Entity;
@@ -114,4 +114,3 @@ private:
 	void recalculateWorldCache() const;
 	void recalculateLocalCache() const;
 };
-

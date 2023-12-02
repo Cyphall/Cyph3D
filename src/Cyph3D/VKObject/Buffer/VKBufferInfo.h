@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
 #include <optional>
+#include <vulkan/vulkan.hpp>
 
 class VKBufferInfo
 {

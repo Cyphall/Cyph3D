@@ -27,8 +27,8 @@ struct std::hash<MeshAssetSignature>
 	std::size_t operator()(const MeshAssetSignature& key) const
 	{
 		return HashBuilder()
-			.hash(key.path)
-			.get();
+		    .hash(key.path)
+		    .get();
 	}
 };
 

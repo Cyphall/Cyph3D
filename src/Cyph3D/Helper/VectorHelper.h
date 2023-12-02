@@ -9,8 +9,8 @@ public:
 	static void removeAll(std::vector<T>& vector, const T& item)
 	{
 		vector.erase(
-				std::remove(vector.begin(), vector.end(), item),
-				vector.end()
+			std::remove(vector.begin(), vector.end(), item),
+			vector.end()
 		);
 	}
 

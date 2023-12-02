@@ -1,7 +1,7 @@
 #include "EntityConstIterator.h"
 
 EntityConstIterator::EntityConstIterator(std::vector<Scene::EntityContainer>::const_iterator it):
-_it(it)
+	_it(it)
 {}
 
 EntityConstIterator& EntityConstIterator::operator++()

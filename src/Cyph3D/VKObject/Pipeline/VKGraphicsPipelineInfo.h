@@ -6,9 +6,9 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineViewport.h"
 #include "Cyph3D/VKObject/VKPtr.h"
 
-#include <vulkan/vulkan.hpp>
 #include <filesystem>
 #include <optional>
+#include <vulkan/vulkan.hpp>
 
 class VKPipelineLayout;
 
@@ -20,7 +20,8 @@ public:
 		const std::filesystem::path& vertexShader,
 		vk::PrimitiveTopology primitiveTopology,
 		vk::CullModeFlags cullMode,
-		vk::FrontFace frontFace);
+		vk::FrontFace frontFace
+	);
 
 	const VKPtr<VKPipelineLayout>& getPipelineLayout() const;
 

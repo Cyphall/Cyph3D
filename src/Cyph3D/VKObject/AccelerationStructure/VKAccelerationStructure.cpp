@@ -6,7 +6,8 @@ VKPtr<VKAccelerationStructure> VKAccelerationStructure::create(
 	VKContext& context,
 	vk::AccelerationStructureTypeKHR type,
 	vk::DeviceSize size,
-	const VKPtr<VKBufferBase>& backingBuffer)
+	const VKPtr<VKBufferBase>& backingBuffer
+)
 {
 	return VKPtr<VKAccelerationStructure>(new VKAccelerationStructure(context, type, size, backingBuffer));
 }
@@ -15,8 +16,10 @@ VKAccelerationStructure::VKAccelerationStructure(
 	VKContext& context,
 	vk::AccelerationStructureTypeKHR type,
 	vk::DeviceSize size,
-	const VKPtr<VKBufferBase>& backingBuffer):
-	VKObject(context), _type(type)
+	const VKPtr<VKBufferBase>& backingBuffer
+):
+	VKObject(context),
+	_type(type)
 {
 	if (!_context.isRayTracingSupported())
 	{
@@ -93,7 +96,8 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getBottomLev
 	return context.getDevice().getAccelerationStructureBuildSizesKHR(
 		vk::AccelerationStructureBuildTypeKHR::eDevice,
 		buildGeometryInfo,
-		primitiveCount);
+		primitiveCount
+	);
 }
 
 vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getTopLevelBuildSizesInfo(VKContext& context, const VKTopLevelAccelerationStructureBuildInfo& buildInfo)
@@ -120,5 +124,6 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getTopLevelB
 	return context.getDevice().getAccelerationStructureBuildSizesKHR(
 		vk::AccelerationStructureBuildTypeKHR::eDevice,
 		buildGeometryInfo,
-		primitiveCount);
+		primitiveCount
+	);
 }

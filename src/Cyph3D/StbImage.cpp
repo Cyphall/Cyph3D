@@ -4,9 +4,9 @@
 #include <string>
 
 StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepthFlags acceptedBitDepths):
-_data8bit(nullptr, stbi_image_free),
-_data16bit(nullptr, stbi_image_free),
-_data32bit(nullptr, stbi_image_free)
+	_data8bit(nullptr, stbi_image_free),
+	_data16bit(nullptr, stbi_image_free),
+	_data32bit(nullptr, stbi_image_free)
 {
 	std::string pathStr = path.generic_string();
 
@@ -46,12 +46,12 @@ const std::byte* StbImage::getPtr() const
 {
 	switch (_bitPerChannel)
 	{
-		case 8:
-			return reinterpret_cast<std::byte*>(_data8bit.get());
-		case 16:
-			return reinterpret_cast<std::byte*>(_data16bit.get());
-		case 32:
-			return reinterpret_cast<std::byte*>(_data32bit.get());
+	case 8:
+		return reinterpret_cast<std::byte*>(_data8bit.get());
+	case 16:
+		return reinterpret_cast<std::byte*>(_data16bit.get());
+	case 32:
+		return reinterpret_cast<std::byte*>(_data32bit.get());
 	}
 
 	return nullptr;

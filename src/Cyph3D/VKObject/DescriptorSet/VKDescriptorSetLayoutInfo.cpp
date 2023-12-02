@@ -3,7 +3,6 @@
 VKDescriptorSetLayoutInfo::VKDescriptorSetLayoutInfo(bool pushable):
 	_pushable(pushable)
 {
-
 }
 
 const bool& VKDescriptorSetLayoutInfo::isPushable() const

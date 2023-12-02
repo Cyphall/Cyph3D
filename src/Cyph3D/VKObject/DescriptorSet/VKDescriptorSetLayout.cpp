@@ -9,7 +9,8 @@ VKPtr<VKDescriptorSetLayout> VKDescriptorSetLayout::create(VKContext& context, c
 }
 
 VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescriptorSetLayoutInfo& info):
-	VKObject(context), _info(info)
+	VKObject(context),
+	_info(info)
 {
 	std::vector<vk::DescriptorSetLayoutBinding> vkBindings;
 	vkBindings.reserve(_info.getBindingInfos().size());

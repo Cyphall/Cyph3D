@@ -3,7 +3,6 @@
 VKRayTracingPipelineInfo::VKRayTracingPipelineInfo(const VKPtr<VKPipelineLayout>& pipelineLayout):
 	_pipelineLayout(pipelineLayout)
 {
-
 }
 
 const VKPtr<VKPipelineLayout>& VKRayTracingPipelineInfo::getPipelineLayout() const

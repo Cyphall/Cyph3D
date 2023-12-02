@@ -5,14 +5,14 @@ VKGraphicsPipelineInfo::VKGraphicsPipelineInfo(
 	const std::filesystem::path& vertexShader,
 	vk::PrimitiveTopology primitiveTopology,
 	vk::CullModeFlags cullMode,
-	vk::FrontFace frontFace):
+	vk::FrontFace frontFace
+):
 	_pipelineLayout(pipelineLayout),
 	_vertexShader(vertexShader),
 	_primitiveTopology(primitiveTopology),
 	_cullMode(cullMode),
 	_frontFace(frontFace)
 {
-
 }
 
 const VKPtr<VKPipelineLayout>& VKGraphicsPipelineInfo::getPipelineLayout() const

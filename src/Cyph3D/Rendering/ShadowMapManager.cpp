@@ -15,7 +15,8 @@ VKPtr<VKImage> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolutio
 			glm::uvec2(resolution),
 			1,
 			1,
-			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
+			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled
+		);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.setName("Directional light shadow map");
 
@@ -37,7 +38,8 @@ VKPtr<VKImage> ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
 			glm::uvec2(resolution),
 			6,
 			1,
-			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
+			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled
+		);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.enableCubeCompatibility();
 		imageInfo.setName("Point light shadow map");

@@ -28,7 +28,8 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal);
+		vk::ImageLayout::eColorAttachmentOptimal
+	);
 
 	VKRenderingInfo renderingInfo(_size);
 
@@ -97,7 +98,8 @@ void ExposurePass::createPipeline()
 		"resources/shaders/internal/fullscreen quad.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise);
+		vk::FrontFace::eCounterClockwise
+	);
 
 	info.setFragmentShader("resources/shaders/internal/post-processing/exposure/exposure.frag");
 
@@ -136,7 +138,8 @@ void ExposurePass::createImage()
 		_size,
 		1,
 		1,
-		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
+		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setName("Exposure output image");
 

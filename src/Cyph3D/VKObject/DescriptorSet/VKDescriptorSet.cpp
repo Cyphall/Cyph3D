@@ -15,7 +15,8 @@ VKPtr<VKDescriptorSet> VKDescriptorSet::create(VKContext& context, const VKDescr
 }
 
 VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& info):
-	VKObject(context), _info(info)
+	VKObject(context),
+	_info(info)
 {
 	vk::DescriptorSetVariableDescriptorCountAllocateInfo descriptorSetVariableDescriptorCountAllocateInfo;
 	descriptorSetVariableDescriptorCountAllocateInfo.descriptorSetCount = 0;
@@ -42,7 +43,6 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 		}
 		else
 		{
-
 			_boundObjects[i].resize(bindingInfo.count);
 		}
 
@@ -180,7 +180,8 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 			{0, image->getInfo().getLayers() - 1},
 			{0, image->getInfo().getLevels() - 1},
 			image->getInfo().getFormat(),
-			arrayIndex);
+			arrayIndex
+		);
 	}
 	else
 	{
@@ -232,7 +233,8 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 			{0, image->getInfo().getLevels() - 1},
 			image->getInfo().getFormat(),
 			sampler,
-			arrayIndex);
+			arrayIndex
+		);
 	}
 	else
 	{

@@ -32,7 +32,8 @@ static glm::mat4 calcDirectionalShadowMapView(const DirectionalLight::RenderData
 	return glm::lookAt(
 		{0, 0, 0},
 		light.transform.getDown(),
-		light.transform.getForward());
+		light.transform.getForward()
+	);
 }
 
 static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(const glm::mat4& view, const std::vector<ModelRenderer::RenderData>& models)
@@ -47,7 +48,8 @@ static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(co
 		auto [boundingBoxMin_SMS, boundingBoxMax_SMS] = MathHelper::transformBoundingBox(
 			modelView,
 			model.mesh.getBoundingBoxMin(),
-			model.mesh.getBoundingBoxMax());
+			model.mesh.getBoundingBoxMax()
+		);
 
 		min = glm::min(min, boundingBoxMin_SMS);
 		max = glm::max(max, boundingBoxMax_SMS);
@@ -64,7 +66,8 @@ static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(co
 	glm::mat4 projection = glm::ortho(
 		center.x - size.x / 2, center.x + size.x / 2,
 		center.y + size.y / 2, center.y - size.y / 2,
-		-center.z - size.z / 2, -center.z + size.z / 2);
+		-center.z - size.z / 2, -center.z + size.z / 2
+	);
 
 	return {projection, size.x, size.z};
 }
@@ -155,7 +158,6 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 
 void ShadowMapPass::onResize()
 {
-
 }
 
 void ShadowMapPass::createDescriptorSetLayout()
@@ -174,10 +176,13 @@ void ShadowMapPass::createBuffer()
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	bufferInfo.setName("Point light shadow generation uniform buffer");
 
-	_pointLightUniformBuffer = VKDynamic<VKResizableBuffer<PointLightUniforms>>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKResizableBuffer<PointLightUniforms>::create(context, bufferInfo);
-	});
+	_pointLightUniformBuffer = VKDynamic<VKResizableBuffer<PointLightUniforms>>(
+		Engine::getVKContext(),
+		[&](VKContext& context, int index)
+		{
+			return VKResizableBuffer<PointLightUniforms>::create(context, bufferInfo);
+		}
+	);
 }
 
 void ShadowMapPass::createPipelineLayouts()
@@ -206,7 +211,8 @@ void ShadowMapPass::createPipelines()
 			"resources/shaders/internal/shadow mapping/directional light.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
-			vk::FrontFace::eCounterClockwise);
+			vk::FrontFace::eCounterClockwise
+		);
 
 		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
 		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
@@ -222,7 +228,8 @@ void ShadowMapPass::createPipelines()
 			"resources/shaders/internal/shadow mapping/point light.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
-			vk::FrontFace::eCounterClockwise);
+			vk::FrontFace::eCounterClockwise
+		);
 
 		info.setFragmentShader("resources/shaders/internal/shadow mapping/point light.frag");
 
@@ -238,7 +245,8 @@ void ShadowMapPass::createPipelines()
 void ShadowMapPass::renderDirectionalShadowMap(
 	const VKPtr<VKCommandBuffer>& commandBuffer,
 	const DirectionalLight::RenderData& light,
-	const std::vector<ModelRenderer::RenderData>& models)
+	const std::vector<ModelRenderer::RenderData>& models
+)
 {
 	VKPtr<VKImage> shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
 
@@ -248,7 +256,8 @@ void ShadowMapPass::renderDirectionalShadowMap(
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::ImageLayout::eDepthAttachmentOptimal);
+		vk::ImageLayout::eDepthAttachmentOptimal
+	);
 
 	VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
 
@@ -311,7 +320,8 @@ void ShadowMapPass::renderPointShadowMap(
 	const VKPtr<VKCommandBuffer>& commandBuffer,
 	const PointLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models,
-	int uniformIndex)
+	int uniformIndex
+)
 {
 	VKPtr<VKImage> shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
 
@@ -321,7 +331,8 @@ void ShadowMapPass::renderPointShadowMap(
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::ImageLayout::eDepthAttachmentOptimal);
+		vk::ImageLayout::eDepthAttachmentOptimal
+	);
 
 	std::array<glm::mat4, 6> views = calcPointShadowMapView(light);
 
@@ -329,12 +340,14 @@ void ShadowMapPass::renderPointShadowMap(
 	{
 		VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
 
-		renderingInfo.setDepthAttachment(
-			shadowMap,
-			vk::ImageViewType::e2D,
-			{i, i},
-			{0, 0},
-			shadowMap->getInfo().getFormat())
+		renderingInfo
+			.setDepthAttachment(
+				shadowMap,
+				vk::ImageViewType::e2D,
+				{i, i},
+				{0, 0},
+				shadowMap->getInfo().getFormat()
+			)
 			.setLoadOpClear(std::numeric_limits<float>::max())
 			.setStoreOpStore();
 

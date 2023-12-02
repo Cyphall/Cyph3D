@@ -26,7 +26,8 @@ NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::ImageLayout::eGeneral);
+		vk::ImageLayout::eGeneral
+	);
 
 	VKRenderingInfo renderingInfo(_size);
 
@@ -80,7 +81,8 @@ void NormalizationPass::createPipeline()
 {
 	VKComputePipelineInfo info(
 		_pipelineLayout,
-		"resources/shaders/internal/post-processing/normalization/normalization.comp");
+		"resources/shaders/internal/post-processing/normalization/normalization.comp"
+	);
 
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), info);
 }
@@ -92,7 +94,8 @@ void NormalizationPass::createImage()
 		_size,
 		1,
 		1,
-		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled);
+		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setName("Normalization output image");
 

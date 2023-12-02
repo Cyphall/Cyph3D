@@ -14,7 +14,6 @@ PathTracingSceneRenderer::PathTracingSceneRenderer(glm::uvec2 size):
 	_bloomPass(size),
 	_toneMappingPass(size)
 {
-
 }
 
 void PathTracingSceneRenderer::setSampleCountPerRender(uint32_t count)
@@ -42,7 +41,8 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 			vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral);
+			vk::ImageLayout::eGeneral
+		);
 	}
 
 	NormalizationPassInput normalizationPassInput{
@@ -59,7 +59,8 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	ExposurePassInput exposurePassInput{
 		.inputImage = normalizationPassOutput.outputImage,
@@ -74,7 +75,8 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	BloomPassInput bloomPassInput{
 		.inputImage = exposurePassOutput.outputImage
@@ -88,7 +90,8 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	ToneMappingPassInput toneMappingPassInput{
 		.inputImage = bloomPassOutput.outputImage
@@ -102,7 +105,8 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eFragmentShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	return toneMappingPassOutput.outputImage;
 }

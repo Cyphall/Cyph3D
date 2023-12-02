@@ -18,11 +18,15 @@
 std::map<std::string, std::function<Component&(Entity&)>> Entity::_componentFactories;
 
 Entity::Entity(Transform& parent, Scene& scene):
-_transform(this, &parent), _scene(scene)
+	_transform(this, &parent),
+	_scene(scene)
 {
-	_transformChangedConnection = _transform.getChangedSignal().connect([this](){
-		_changed();
-	});
+	_transformChangedConnection = _transform.getChangedSignal().connect(
+		[this]()
+		{
+			_changed();
+		}
+	);
 }
 
 ComponentIterator Entity::begin()
@@ -241,11 +245,31 @@ void Entity::onDrawUi()
 
 void Entity::initComponentFactories()
 {
-	_componentFactories[ModelRenderer::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ModelRenderer>();};
-	_componentFactories["ShapeRenderer"] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<ModelRenderer>();}; // for compatibility
-	_componentFactories[Animator::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<Animator>();};
-	_componentFactories[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<PointLight>();};
-	_componentFactories[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {return entity.addComponent<DirectionalLight>();};
+	_componentFactories[ModelRenderer::identifier] = [](Entity& entity) -> decltype(auto)
+	{
+		return entity.addComponent<ModelRenderer>();
+	};
+
+	// for backwards compatibility
+	_componentFactories["ShapeRenderer"] = [](Entity& entity) -> decltype(auto)
+	{
+		return entity.addComponent<ModelRenderer>();
+	};
+
+	_componentFactories[Animator::identifier] = [](Entity& entity) -> decltype(auto)
+	{
+		return entity.addComponent<Animator>();
+	};
+
+	_componentFactories[PointLight::identifier] = [](Entity& entity) -> decltype(auto)
+	{
+		return entity.addComponent<PointLight>();
+	};
+
+	_componentFactories[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto)
+	{
+		return entity.addComponent<DirectionalLight>();
+	};
 }
 
 Component& Entity::addComponentByIdentifier(const std::string& identifier)

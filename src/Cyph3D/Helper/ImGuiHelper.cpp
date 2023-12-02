@@ -3,8 +3,8 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Window.h"
 
-#include <imgui_internal.h>
 #include <format>
+#include <imgui_internal.h>
 #include <stack>
 
 bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const char* label, const char* dragDropId, std::optional<std::string_view>& result)
@@ -19,7 +19,7 @@ bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const ch
 	ImGui::BeginGroup();
 
 	const char* assetPath = currentAssetPath != nullptr ? currentAssetPath->c_str() : "None";
-	size_t assetPathSize = currentAssetPath != nullptr ? currentAssetPath->size()+1 : 5;
+	size_t assetPathSize = currentAssetPath != nullptr ? currentAssetPath->size() + 1 : 5;
 
 	ImGui::SetNextItemWidth(textboxWidth);
 	// Field is read-only anyway, we can safely remove the const from assetName
@@ -112,8 +112,6 @@ void ImGuiHelper::EndGroupPanel()
 	const float textPadding = 6.0f;
 
 	ImGui::EndGroup();
-
-//	drawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(0, 255, 0, 20));
 
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	window->ContentRegionRect.Max.x += style.WindowPadding.x;

@@ -4,9 +4,9 @@
 #include "Cyph3D/Scene/Transform.h"
 #include "Cyph3D/UI/IInspectable.h"
 
+#include <memory>
 #include <nlohmann/json.hpp>
 #include <sigslot/signal.hpp>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -39,9 +39,12 @@ public:
 	{
 		ComponentContainer& container = _components.emplace_back();
 		container.component = std::make_unique<T>(*this);
-		container.componentChangedConnection = container.component->getChangedSignal().connect([this](){
-			_changed();
-		});
+		container.componentChangedConnection = container.component->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 
 		_changed();
 

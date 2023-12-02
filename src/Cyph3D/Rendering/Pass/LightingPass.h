@@ -37,22 +37,22 @@ public:
 private:
 	struct DirectionalLightUniforms
 	{
-		GLSL_vec3  fragToLightDirection;
+		GLSL_vec3 fragToLightDirection;
 		GLSL_float intensity;
-		GLSL_vec3  color;
-		GLSL_bool  castShadows;
-		GLSL_mat4  lightViewProjection;
-		GLSL_uint  textureIndex;
+		GLSL_vec3 color;
+		GLSL_bool castShadows;
+		GLSL_mat4 lightViewProjection;
+		GLSL_uint textureIndex;
 		GLSL_float shadowMapTexelWorldSize;
 	};
 
 	struct PointLightUniforms
 	{
-		GLSL_vec3  pos;
+		GLSL_vec3 pos;
 		GLSL_float intensity;
-		GLSL_vec3  color;
-		GLSL_bool  castShadows;
-		GLSL_uint  textureIndex;
+		GLSL_vec3 color;
+		GLSL_bool castShadows;
+		GLSL_uint textureIndex;
 		GLSL_float maxTexelSizeAtUnitDistance;
 	};
 

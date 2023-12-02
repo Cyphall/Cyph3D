@@ -26,8 +26,8 @@ struct std::hash<SkyboxAssetSignature>
 	std::size_t operator()(const SkyboxAssetSignature& key) const
 	{
 		return HashBuilder()
-			.hash(key.path)
-			.get();
+		    .hash(key.path)
+		    .get();
 	}
 };
 

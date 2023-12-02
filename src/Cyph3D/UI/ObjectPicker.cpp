@@ -27,7 +27,6 @@ ObjectPicker::ObjectPicker()
 
 ObjectPicker::~ObjectPicker()
 {
-
 }
 
 Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos)
@@ -50,7 +49,8 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
-				vk::ImageLayout::eColorAttachmentOptimal);
+				vk::ImageLayout::eColorAttachmentOptimal
+			);
 
 			commandBuffer->imageMemoryBarrier(
 				_depthImage,
@@ -58,7 +58,8 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-				vk::ImageLayout::eDepthAttachmentOptimal);
+				vk::ImageLayout::eDepthAttachmentOptimal
+			);
 
 			VKRenderingInfo renderingInfo(_currentSize);
 
@@ -115,10 +116,12 @@ Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& rend
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferRead,
-				vk::ImageLayout::eTransferSrcOptimal);
+				vk::ImageLayout::eTransferSrcOptimal
+			);
 
 			commandBuffer->copyPixelToBuffer(_objectIndexImage, 0, 0, clickPos, _readbackBuffer, 0);
-		});
+		}
+	);
 
 	int objectIndex = *_readbackBuffer->getHostPointer();
 
@@ -149,7 +152,8 @@ void ObjectPicker::createPipeline()
 		"resources/shaders/internal/object picker/object picker.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise);
+		vk::FrontFace::eCounterClockwise
+	);
 
 	info.setFragmentShader("resources/shaders/internal/object picker/object picker.frag");
 
@@ -181,7 +185,8 @@ void ObjectPicker::createImage()
 			_currentSize,
 			1,
 			1,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc);
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc
+		);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 		_objectIndexImage = VKImage::create(Engine::getVKContext(), imageInfo);
@@ -193,7 +198,8 @@ void ObjectPicker::createImage()
 			_currentSize,
 			1,
 			1,
-			vk::ImageUsageFlagBits::eDepthStencilAttachment);
+			vk::ImageUsageFlagBits::eDepthStencilAttachment
+		);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 		_depthImage = VKImage::create(Engine::getVKContext(), imageInfo);

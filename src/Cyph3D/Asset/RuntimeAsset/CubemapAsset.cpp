@@ -8,8 +8,8 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
-#include <magic_enum.hpp>
 #include <format>
+#include <magic_enum.hpp>
 
 CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature):
 	GPUAsset(manager, signature)
@@ -82,14 +82,16 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 	else
 	{
-		Logger::info(std::format("Uploading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
-		                         _signature.xposPath,
-		                         _signature.xnegPath,
-		                         _signature.yposPath,
-		                         _signature.ynegPath,
-		                         _signature.zposPath,
-		                         _signature.znegPath,
-		                         magic_enum::enum_name(_signature.type)));
+		Logger::info(std::format(
+			"Uploading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
+			_signature.xposPath,
+			_signature.xnegPath,
+			_signature.yposPath,
+			_signature.ynegPath,
+			_signature.zposPath,
+			_signature.znegPath,
+			magic_enum::enum_name(_signature.type)
+		));
 	}
 
 	// create cubemap
@@ -98,7 +100,8 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		size,
 		6,
 		faces[0].size(),
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.enableCubeCompatibility();
 
@@ -108,13 +111,15 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 	else
 	{
-		imageInfo.setName(std::format("{}|{}|{}|{}|{}|{}",
-		                              _signature.xposPath,
-		                              _signature.xnegPath,
-		                              _signature.yposPath,
-		                              _signature.ynegPath,
-		                              _signature.zposPath,
-		                              _signature.znegPath));
+		imageInfo.setName(std::format(
+			"{}|{}|{}|{}|{}|{}",
+			_signature.xposPath,
+			_signature.xnegPath,
+			_signature.yposPath,
+			_signature.ynegPath,
+			_signature.zposPath,
+			_signature.znegPath
+		));
 	}
 
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);
@@ -148,7 +153,8 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
-		vk::ImageLayout::eTransferDstOptimal);
+		vk::ImageLayout::eTransferDstOptimal
+	);
 
 	vk::DeviceSize bufferOffset = 0;
 	for (uint32_t face = 0; face < 6; face++)
@@ -166,7 +172,8 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::AccessFlagBits2::eTransferWrite,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
-		vk::ImageLayout::eReadOnlyOptimal);
+		vk::ImageLayout::eReadOnlyOptimal
+	);
 
 	workerData.transferCommandBuffer->end();
 
@@ -187,13 +194,15 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 	else
 	{
-		Logger::info(std::format("Cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})] uploaded succesfully",
-		                         _signature.xposPath,
-		                         _signature.xnegPath,
-		                         _signature.yposPath,
-		                         _signature.ynegPath,
-		                         _signature.zposPath,
-		                         _signature.znegPath,
-		                         magic_enum::enum_name(_signature.type)));
+		Logger::info(std::format(
+			"Cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})] uploaded succesfully",
+			_signature.xposPath,
+			_signature.xnegPath,
+			_signature.yposPath,
+			_signature.ynegPath,
+			_signature.zposPath,
+			_signature.znegPath,
+			magic_enum::enum_name(_signature.type)
+		));
 	}
 }

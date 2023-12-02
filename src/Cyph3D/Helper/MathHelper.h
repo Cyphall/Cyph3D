@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <cstdint>
+#include <glm/glm.hpp>
 
 class MathHelper
 {
@@ -12,5 +12,4 @@ public:
 
 	static glm::vec3 srgbToLinear(glm::vec3 color);
 	static glm::vec3 linearToSrgb(glm::vec3 color);
-
 };

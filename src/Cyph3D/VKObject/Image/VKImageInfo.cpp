@@ -1,7 +1,11 @@
 #include "VKImageInfo.h"
 
 VKImageInfo::VKImageInfo(vk::Format format, const glm::uvec2& size, uint32_t layers, uint32_t levels, vk::ImageUsageFlags usage):
-	_format(format), _size(size), _layers(layers), _levels(levels), _usage(usage)
+	_format(format),
+	_size(size),
+	_layers(layers),
+	_levels(levels),
+	_usage(usage)
 {
 	_compatibleViewFormats.push_back(format);
 }

@@ -57,5 +57,6 @@ private:
 		const VKPtr<VKCommandBuffer>& commandBuffer,
 		const VKPtr<VKResizableBuffer<ImDrawVert>>& vertexBuffer,
 		const VKPtr<VKResizableBuffer<ImDrawIdx>>& indexBuffer,
-		glm::uvec2 viewportSize);
+		glm::uvec2 viewportSize
+	);
 };

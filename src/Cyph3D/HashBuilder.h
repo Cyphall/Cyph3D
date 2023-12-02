@@ -10,7 +10,7 @@ public:
 	template<typename T>
 	HashBuilder& hash(const T& data)
 	{
-		_value = std::rotl(_value, std::numeric_limits<size_t>::digits/3) ^ distribute(std::hash<T>{}(data));
+		_value = std::rotl(_value, std::numeric_limits<size_t>::digits / 3) ^ distribute(std::hash<T>{}(data));
 		return *this;
 	}
 
@@ -23,7 +23,7 @@ private:
 	template<typename T>
 	inline static T xorshift(const T& n, int i)
 	{
-		return n^(n>>i);
+		return n ^ (n >> i);
 	}
 
 	inline static uint64_t distribute(const uint64_t& n)

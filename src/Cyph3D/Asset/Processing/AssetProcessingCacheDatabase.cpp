@@ -2,10 +2,10 @@
 
 #include "Cyph3D/Helper/FileHelper.h"
 
-#include <SQLiteCpp/Database.h>
 #include <crossguid/guid.hpp>
-#include <sqlite3.h>
 #include <filesystem>
+#include <sqlite3.h>
+#include <SQLiteCpp/Database.h>
 
 static xg::Guid columnToGuid(const SQLite::Column& column)
 {
@@ -36,7 +36,8 @@ AssetProcessingCacheDatabase::AssetProcessingCacheDatabase()
 		"	lastWriteTime BIGINT NOT NULL,\n"
 		"	type INT NOT NULL,\n"
 		"	UNIQUE(path, lastWriteTime, type)\n"
-		") WITHOUT ROWID;");
+		") WITHOUT ROWID;"
+	);
 
 	_database->exec(
 		"CREATE TABLE IF NOT EXISTS Mesh\n"
@@ -45,7 +46,8 @@ AssetProcessingCacheDatabase::AssetProcessingCacheDatabase()
 		"	path TEXT NOT NULL,\n"
 		"	lastWriteTime BIGINT NOT NULL,\n"
 		"	UNIQUE(path, lastWriteTime)\n"
-		") WITHOUT ROWID;");
+		") WITHOUT ROWID;"
+	);
 
 	_database->exec(
 		"CREATE TABLE IF NOT EXISTS EquirectangularSkybox\n"
@@ -54,7 +56,8 @@ AssetProcessingCacheDatabase::AssetProcessingCacheDatabase()
 		"	path TEXT NOT NULL,\n"
 		"	lastWriteTime BIGINT NOT NULL,\n"
 		"	UNIQUE(path, lastWriteTime)\n"
-		") WITHOUT ROWID;");
+		") WITHOUT ROWID;"
+	);
 }
 
 AssetProcessingCacheDatabase::~AssetProcessingCacheDatabase()
@@ -64,9 +67,11 @@ std::string AssetProcessingCacheDatabase::getImageCachePath(std::string_view pat
 {
 	int64_t currentLastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
 
-	SQLite::Statement selectQuery(*_database,
+	SQLite::Statement selectQuery(
+		*_database,
 		"SELECT guid, lastWriteTime FROM Image\n"
-		"WHERE path=? AND type=?;");
+		"WHERE path=? AND type=?;"
+	);
 
 	selectQuery.bind(1, path.data(), path.size());
 	selectQuery.bind(2, static_cast<uint32_t>(type));
@@ -84,9 +89,11 @@ std::string AssetProcessingCacheDatabase::getImageCachePath(std::string_view pat
 		guid = xg::newGuid();
 		lastWriteTime = currentLastWriteTime;
 
-		SQLite::Statement insertQuery(*_database,
+		SQLite::Statement insertQuery(
+			*_database,
 			"INSERT INTO Image\n"
-			"VALUES(?, ?, ?, ?);");
+			"VALUES(?, ?, ?, ?);"
+		);
 
 		insertQuery.bind(1, guid.bytes().data(), guid.bytes().size());
 		insertQuery.bind(2, path.data(), path.size());
@@ -102,10 +109,12 @@ std::string AssetProcessingCacheDatabase::getImageCachePath(std::string_view pat
 	{
 		std::filesystem::remove(FileHelper::getCacheAssetDirectoryPath() / cachePath);
 
-		SQLite::Statement updateQuery(*_database,
+		SQLite::Statement updateQuery(
+			*_database,
 			"UPDATE Image\n"
 			"SET lastWriteTime=?\n"
-			"WHERE guid=?;");
+			"WHERE guid=?;"
+		);
 
 		updateQuery.bind(1, currentLastWriteTime);
 		updateQuery.bind(2, guid.bytes().data(), guid.bytes().size());
@@ -120,9 +129,11 @@ std::string AssetProcessingCacheDatabase::getMeshCachePath(std::string_view path
 {
 	int64_t currentLastWriteTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::filesystem::last_write_time(FileHelper::getAssetDirectoryPath() / path).time_since_epoch()).count();
 
-	SQLite::Statement selectQuery(*_database,
+	SQLite::Statement selectQuery(
+		*_database,
 		"SELECT guid, lastWriteTime FROM Mesh\n"
-		"WHERE path=?;");
+		"WHERE path=?;"
+	);
 
 	selectQuery.bind(1, path.data(), path.size());
 
@@ -139,9 +150,11 @@ std::string AssetProcessingCacheDatabase::getMeshCachePath(std::string_view path
 		guid = xg::newGuid();
 		lastWriteTime = currentLastWriteTime;
 
-		SQLite::Statement insertQuery(*_database,
+		SQLite::Statement insertQuery(
+			*_database,
 			"INSERT INTO Mesh\n"
-			"VALUES(?, ?, ?);");
+			"VALUES(?, ?, ?);"
+		);
 
 		insertQuery.bind(1, guid.bytes().data(), guid.bytes().size());
 		insertQuery.bind(2, path.data(), path.size());
@@ -156,10 +169,12 @@ std::string AssetProcessingCacheDatabase::getMeshCachePath(std::string_view path
 	{
 		std::filesystem::remove(FileHelper::getCacheAssetDirectoryPath() / cachePath);
 
-		SQLite::Statement updateQuery(*_database,
+		SQLite::Statement updateQuery(
+			*_database,
 			"UPDATE Mesh\n"
 			"SET lastWriteTime=?\n"
-			"WHERE guid=?;");
+			"WHERE guid=?;"
+		);
 
 		updateQuery.bind(1, currentLastWriteTime);
 		updateQuery.bind(2, guid.bytes().data(), guid.bytes().size());

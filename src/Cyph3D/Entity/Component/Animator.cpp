@@ -11,7 +11,7 @@
 const char* Animator::identifier = "Animator";
 
 Animator::Animator(Entity& entity):
-Component(entity)
+	Component(entity)
 {}
 
 glm::vec3 Animator::getVelocity() const
@@ -79,11 +79,11 @@ void Animator::deserialize(const ObjectSerialization& serialization)
 {
 	switch (serialization.version)
 	{
-		case 1:
-			deserializeFromVersion1(serialization.data);
-			break;
-		default:
-			throw;
+	case 1:
+		deserializeFromVersion1(serialization.data);
+		break;
+	default:
+		throw;
 	}
 }
 

@@ -6,15 +6,17 @@
 
 GpuPerfCounter::GpuPerfCounter()
 {
-	_query = VKDynamic<VKTimestampQuery>(Engine::getVKContext(), [&](VKContext& context, int index)
-	{
-		return VKTimestampQuery::create(context);
-	});
+	_query = VKDynamic<VKTimestampQuery>(
+		Engine::getVKContext(),
+		[&](VKContext& context, int index)
+		{
+			return VKTimestampQuery::create(context);
+		}
+	);
 }
 
 GpuPerfCounter::~GpuPerfCounter()
 {
-
 }
 
 void GpuPerfCounter::start(const VKPtr<VKCommandBuffer>& commandBuffer)

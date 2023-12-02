@@ -40,28 +40,32 @@ void Logger::print(std::string_view message, std::string_view context, std::stri
 
 void Logger::error(std::string_view message, std::string_view context)
 {
-	if (_logLevel < LogLevel::ERROR) return;
+	if (_logLevel < LogLevel::ERROR)
+		return;
 
 	print(message, context, "ERROR", {255, 51, 102});
 }
 
 void Logger::warning(std::string_view message, std::string_view context)
 {
-	if (_logLevel < LogLevel::WARNING) return;
+	if (_logLevel < LogLevel::WARNING)
+		return;
 
 	print(message, context, "WARNING", {255, 204, 85});
 }
 
 void Logger::info(std::string_view message, std::string_view context)
 {
-	if (_logLevel < LogLevel::INFO) return;
+	if (_logLevel < LogLevel::INFO)
+		return;
 
 	print(message, context, "INFO", {22, 198, 12});
 }
 
 void Logger::debug(std::string_view message, std::string_view context)
 {
-	if (_logLevel < LogLevel::DEBUG) return;
+	if (_logLevel < LogLevel::DEBUG)
+		return;
 
 	print(message, context, "DEBUG", {160, 160, 160});
 }

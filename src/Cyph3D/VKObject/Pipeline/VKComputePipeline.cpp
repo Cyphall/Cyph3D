@@ -10,7 +10,8 @@ VKPtr<VKComputePipeline> VKComputePipeline::create(VKContext& context, VKCompute
 }
 
 VKComputePipeline::VKComputePipeline(VKContext& context, VKComputePipelineInfo& info):
-	VKPipeline(context), _info(info)
+	VKPipeline(context),
+	_info(info)
 {
 	VKPtr<VKShader> shader = VKShader::create(_context, _info.getComputeShader());
 

@@ -11,9 +11,9 @@ const vk::Format SceneRenderer::POINT_SHADOW_MAP_DEPTH_FORMAT = vk::Format::eD32
 const vk::Format SceneRenderer::FINAL_COLOR_FORMAT = vk::Format::eA2B10G10R10UnormPack32;
 
 SceneRenderer::SceneRenderer(std::string_view name, glm::uvec2 size):
-	_size(size), _renderPerf(name)
+	_size(size),
+	_renderPerf(name)
 {
-
 }
 
 glm::uvec2 SceneRenderer::getSize() const

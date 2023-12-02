@@ -27,9 +27,9 @@ struct std::hash<TextureAssetSignature>
 	std::size_t operator()(const TextureAssetSignature& key) const
 	{
 		return HashBuilder()
-			.hash(key.path)
-			.hash(key.type)
-			.get();
+		    .hash(key.path)
+		    .hash(key.type)
+		    .get();
 	}
 };
 

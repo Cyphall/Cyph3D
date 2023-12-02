@@ -3,7 +3,6 @@
 VKPipeline::VKPipeline(VKContext& context):
 	VKObject(context)
 {
-
 }
 
 const vk::Pipeline& VKPipeline::getHandle()

@@ -11,7 +11,8 @@ VKPtr<VKGraphicsPipeline> VKGraphicsPipeline::create(VKContext& context, VKGraph
 }
 
 VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInfo& info):
-	VKPipeline(context), _info(info)
+	VKPipeline(context),
+	_info(info)
 {
 	std::vector<VKPtr<VKShader>> shaders;
 	std::vector<vk::PipelineShaderStageCreateInfo> shadersCreateInfos;
@@ -121,12 +122,12 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 		if (colorAttachmentInfo.blending.has_value())
 		{
 			blending.blendEnable = true;
-			blending.srcColorBlendFactor =  colorAttachmentInfo.blending->srcColorBlendFactor;
-			blending.dstColorBlendFactor =  colorAttachmentInfo.blending->dstColorBlendFactor;
-			blending.colorBlendOp =  colorAttachmentInfo.blending->colorBlendOp;
-			blending.srcAlphaBlendFactor =  colorAttachmentInfo.blending->srcAlphaBlendFactor;
-			blending.dstAlphaBlendFactor =  colorAttachmentInfo.blending->dstAlphaBlendFactor;
-			blending.alphaBlendOp =  colorAttachmentInfo.blending->alphaBlendOp;
+			blending.srcColorBlendFactor = colorAttachmentInfo.blending->srcColorBlendFactor;
+			blending.dstColorBlendFactor = colorAttachmentInfo.blending->dstColorBlendFactor;
+			blending.colorBlendOp = colorAttachmentInfo.blending->colorBlendOp;
+			blending.srcAlphaBlendFactor = colorAttachmentInfo.blending->srcAlphaBlendFactor;
+			blending.dstAlphaBlendFactor = colorAttachmentInfo.blending->dstAlphaBlendFactor;
+			blending.alphaBlendOp = colorAttachmentInfo.blending->alphaBlendOp;
 			blending.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 		}
 		else

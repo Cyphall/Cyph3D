@@ -1,8 +1,8 @@
 #include "ImageCompressor.h"
 
-#include <vulkan/vulkan_format_traits.hpp>
-#include <ispc_texcomp.h>
 #include <half.hpp>
+#include <ispc_texcomp.h>
+#include <vulkan/vulkan_format_traits.hpp>
 
 static void compressImageBC4(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
 {
@@ -69,7 +69,7 @@ static void compressImageBC7(const std::vector<std::byte>& uncompressedImage, co
 bool ImageCompressor::tryCompressImage(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, vk::Format compressedFormat, std::vector<std::byte>& compressedImage)
 {
 	if (uncompressedImageSize.x % vk::blockExtent(compressedFormat)[0] != 0 ||
-		uncompressedImageSize.y % vk::blockExtent(compressedFormat)[1] != 0)
+	    uncompressedImageSize.y % vk::blockExtent(compressedFormat)[1] != 0)
 	{
 		return false;
 	}
@@ -83,20 +83,20 @@ bool ImageCompressor::tryCompressImage(const std::vector<std::byte>& uncompresse
 
 	switch (compressedFormat)
 	{
-		case vk::Format::eBc4UnormBlock:
-			compressImageBC4(uncompressedImage, uncompressedImageSize, compressedImage);
-			break;
-		case vk::Format::eBc5UnormBlock:
-			compressImageBC5(uncompressedImage, uncompressedImageSize, compressedImage);
-			break;
-		case vk::Format::eBc6HUfloatBlock:
-			compressImageBC6(uncompressedImage, uncompressedImageSize, compressedImage);
-			break;
-		case vk::Format::eBc7SrgbBlock:
-			compressImageBC7(uncompressedImage, uncompressedImageSize, compressedImage);
-			break;
-		default:
-			return false;
+	case vk::Format::eBc4UnormBlock:
+		compressImageBC4(uncompressedImage, uncompressedImageSize, compressedImage);
+		break;
+	case vk::Format::eBc5UnormBlock:
+		compressImageBC5(uncompressedImage, uncompressedImageSize, compressedImage);
+		break;
+	case vk::Format::eBc6HUfloatBlock:
+		compressImageBC6(uncompressedImage, uncompressedImageSize, compressedImage);
+		break;
+	case vk::Format::eBc7SrgbBlock:
+		compressImageBC7(uncompressedImage, uncompressedImageSize, compressedImage);
+		break;
+	default:
+		return false;
 	}
 
 	return true;

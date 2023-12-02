@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <fstream>
+#include <glm/glm.hpp>
 #include <mutex>
 
 class ILoggerColor;

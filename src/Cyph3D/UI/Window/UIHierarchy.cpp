@@ -16,7 +16,7 @@ void UIHierarchy::show()
 {
 	if (ImGui::Begin("Hierarchy", nullptr))
 	{
-		//Hierarchy tree creation
+		// Hierarchy tree creation
 		addRootToTree();
 
 		// Main context menu to add elements to the scene
@@ -101,7 +101,7 @@ void UIHierarchy::addRootToTree()
 {
 	bool open = ImGui::TreeNodeEx(Engine::getScene().getName().c_str(), BASE_FLAGS | ImGuiTreeNodeFlags_Framed);
 
-	//Make root a dragdrop target for hierarchy change
+	// Make root a dragdrop target for hierarchy change
 	if (ImGui::BeginDragDropTarget())
 	{
 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HierarchyOrderChange");
@@ -120,7 +120,7 @@ void UIHierarchy::addRootToTree()
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 14 * Engine::getWindow().getPixelScale());
-		//Add root children
+		// Add root children
 		for (Transform* child : Engine::getScene().getRoot().getChildren())
 		{
 			addObjectToTree(child);
@@ -145,13 +145,13 @@ void UIHierarchy::addObjectToTree(Transform* transform)
 
 	bool open = ImGui::TreeNodeEx(transform, flags, "%s", transform->getOwner()->getName().c_str());
 
-	//Select the item on click
+	// Select the item on click
 	if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
 	{
 		UIInspector::setSelected(transform->getOwner());
 	}
 
-	//Make the item a drag drop source and target for hierarchy change
+	// Make the item a drag drop source and target for hierarchy change
 	if (ImGui::BeginDragDropSource())
 	{
 		ImGui::Text("%s", transform->getOwner()->getName().c_str());
@@ -173,7 +173,7 @@ void UIHierarchy::addObjectToTree(Transform* transform)
 		ImGui::EndDragDropTarget();
 	}
 
-	//Draw item children if the item is opened
+	// Draw item children if the item is opened
 	if (open)
 	{
 		for (Transform* child : transform->getChildren())

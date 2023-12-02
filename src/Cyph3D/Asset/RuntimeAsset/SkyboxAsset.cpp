@@ -62,96 +62,96 @@ void SkyboxAsset::onDrawUi()
 
 	switch (_layout)
 	{
-		case Layout::Cubemap:
-			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+	case Layout::Cubemap:
+		ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+		{
+			ImGuiHelper::BeginGroupPanel("Positive X");
+
+			std::optional<std::string_view> newPath;
+			if (ImGuiHelper::AssetInputWidget(getXposPath(), "Image", "asset_image", newPath))
 			{
-				ImGuiHelper::BeginGroupPanel("Positive X");
-
-				std::optional<std::string_view> newPath;
-				if (ImGuiHelper::AssetInputWidget(getXposPath(), "Image", "asset_image", newPath))
-				{
-					setXposPath(newPath);
-				}
-
-				ImGuiHelper::EndGroupPanel();
+				setXposPath(newPath);
 			}
-			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+
+			ImGuiHelper::EndGroupPanel();
+		}
+		ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+		{
+			ImGuiHelper::BeginGroupPanel("Negative X");
+
+			std::optional<std::string_view> newPath;
+			if (ImGuiHelper::AssetInputWidget(getXnegPath(), "Image", "asset_image", newPath))
 			{
-				ImGuiHelper::BeginGroupPanel("Negative X");
-
-				std::optional<std::string_view> newPath;
-				if (ImGuiHelper::AssetInputWidget(getXnegPath(), "Image", "asset_image", newPath))
-				{
-					setXnegPath(newPath);
-				}
-
-				ImGuiHelper::EndGroupPanel();
+				setXnegPath(newPath);
 			}
-			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+
+			ImGuiHelper::EndGroupPanel();
+		}
+		ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+		{
+			ImGuiHelper::BeginGroupPanel("Positive Y");
+
+			std::optional<std::string_view> newPath;
+			if (ImGuiHelper::AssetInputWidget(getYposPath(), "Image", "asset_image", newPath))
 			{
-				ImGuiHelper::BeginGroupPanel("Positive Y");
-
-				std::optional<std::string_view> newPath;
-				if (ImGuiHelper::AssetInputWidget(getYposPath(), "Image", "asset_image", newPath))
-				{
-					setYposPath(newPath);
-				}
-
-				ImGuiHelper::EndGroupPanel();
+				setYposPath(newPath);
 			}
-			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+
+			ImGuiHelper::EndGroupPanel();
+		}
+		ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+		{
+			ImGuiHelper::BeginGroupPanel("Negative Y");
+
+			std::optional<std::string_view> newPath;
+			if (ImGuiHelper::AssetInputWidget(getYnegPath(), "Image", "asset_image", newPath))
 			{
-				ImGuiHelper::BeginGroupPanel("Negative Y");
-
-				std::optional<std::string_view> newPath;
-				if (ImGuiHelper::AssetInputWidget(getYnegPath(), "Image", "asset_image", newPath))
-				{
-					setYnegPath(newPath);
-				}
-
-				ImGuiHelper::EndGroupPanel();
+				setYnegPath(newPath);
 			}
-			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+
+			ImGuiHelper::EndGroupPanel();
+		}
+		ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+		{
+			ImGuiHelper::BeginGroupPanel("Positive Z");
+
+			std::optional<std::string_view> newPath;
+			if (ImGuiHelper::AssetInputWidget(getZposPath(), "Image", "asset_image", newPath))
 			{
-				ImGuiHelper::BeginGroupPanel("Positive Z");
-
-				std::optional<std::string_view> newPath;
-				if (ImGuiHelper::AssetInputWidget(getZposPath(), "Image", "asset_image", newPath))
-				{
-					setZposPath(newPath);
-				}
-
-				ImGuiHelper::EndGroupPanel();
+				setZposPath(newPath);
 			}
-			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+
+			ImGuiHelper::EndGroupPanel();
+		}
+		ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+		{
+			ImGuiHelper::BeginGroupPanel("Negative Z");
+
+			std::optional<std::string_view> newPath;
+			if (ImGuiHelper::AssetInputWidget(getZnegPath(), "Image", "asset_image", newPath))
 			{
-				ImGuiHelper::BeginGroupPanel("Negative Z");
-
-				std::optional<std::string_view> newPath;
-				if (ImGuiHelper::AssetInputWidget(getZnegPath(), "Image", "asset_image", newPath))
-				{
-					setZnegPath(newPath);
-				}
-
-				ImGuiHelper::EndGroupPanel();
+				setZnegPath(newPath);
 			}
-			break;
-		case Layout::Equirectangular:
-			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+
+			ImGuiHelper::EndGroupPanel();
+		}
+		break;
+	case Layout::Equirectangular:
+		ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
+		{
+			ImGuiHelper::BeginGroupPanel("Equirectangular");
+
+			std::optional<std::string_view> newPath;
+			if (ImGuiHelper::AssetInputWidget(getEquirectangularPath(), "Image", "asset_image", newPath))
 			{
-				ImGuiHelper::BeginGroupPanel("Equirectangular");
-
-				std::optional<std::string_view> newPath;
-				if (ImGuiHelper::AssetInputWidget(getEquirectangularPath(), "Image", "asset_image", newPath))
-				{
-					setEquirectangularPath(newPath);
-				}
-
-				ImGuiHelper::EndGroupPanel();
+				setEquirectangularPath(newPath);
 			}
-			break;
-		default:
-			throw;
+
+			ImGuiHelper::EndGroupPanel();
+		}
+		break;
+	default:
+		throw;
 	}
 }
 
@@ -477,14 +477,14 @@ void SkyboxAsset::save() const
 
 	switch (_layout)
 	{
-		case Layout::Cubemap:
-			jsonRoot["layout"] = "cubemap";
-			break;
-		case Layout::Equirectangular:
-			jsonRoot["layout"] = "equirectangular";
-			break;
-		default:
-			throw;
+	case Layout::Cubemap:
+		jsonRoot["layout"] = "cubemap";
+		break;
+	case Layout::Equirectangular:
+		jsonRoot["layout"] = "equirectangular";
+		break;
+	default:
+		throw;
 	}
 
 	{
@@ -591,17 +591,17 @@ void SkyboxAsset::reload()
 
 	switch (version)
 	{
-		case 1:
-			deserializeFromVersion1(jsonRoot);
-			break;
-		case 2:
-			deserializeFromVersion2(jsonRoot);
-			break;
-		case 3:
-			deserializeFromVersion3(jsonRoot);
-			break;
-		default:
-			throw;
+	case 1:
+		deserializeFromVersion1(jsonRoot);
+		break;
+	case 2:
+		deserializeFromVersion2(jsonRoot);
+		break;
+	case 3:
+		deserializeFromVersion3(jsonRoot);
+		break;
+	default:
+		throw;
 	}
 }
 
@@ -618,16 +618,22 @@ void SkyboxAsset::onChanged()
 			_zposPath.value(),
 			ImageType::Skybox
 		);
-		_cubemapChangedConnection = _cubemap->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_cubemapChangedConnection = _cubemap->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else if (_layout == Layout::Equirectangular && _equirectangularPath)
 	{
 		_cubemap = _manager.loadCubemap(_equirectangularPath.value());
-		_cubemapChangedConnection = _cubemap->getChangedSignal().connect([this](){
-			_changed();
-		});
+		_cubemapChangedConnection = _cubemap->getChangedSignal().connect(
+			[this]()
+			{
+				_changed();
+			}
+		);
 	}
 	else
 	{

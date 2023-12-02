@@ -84,7 +84,7 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 
 	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
 	{
-		std::memcpy(&meshData.indices[i*3], mesh->mFaces[i].mIndices, 3 * sizeof(uint32_t));
+		std::memcpy(&meshData.indices[i * 3], mesh->mFaces[i].mIndices, 3 * sizeof(uint32_t));
 	}
 
 	writeProcessedMesh(output, meshData);

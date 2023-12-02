@@ -22,7 +22,6 @@ VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::For
 
 VKSwapchainImage::~VKSwapchainImage()
 {
-
 }
 
 VKSwapchain& VKSwapchainImage::getSwapchain() const

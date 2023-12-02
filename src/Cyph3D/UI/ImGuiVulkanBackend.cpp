@@ -211,7 +211,8 @@ void ImGuiVulkanBackend::createPipeline()
 		"resources/shaders/internal/imgui/imgui.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eNone,
-		vk::FrontFace::eCounterClockwise);
+		vk::FrontFace::eCounterClockwise
+	);
 
 	info.setFragmentShader("resources/shaders/internal/imgui/imgui.frag");
 
@@ -258,7 +259,8 @@ void ImGuiVulkanBackend::createFontsTexture()
 		glm::uvec2(width, height),
 		1,
 		1,
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst
+	);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setName("ImGui fonts texture");
 	imageInfo.setSwizzle({vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eOne, vk::ComponentSwizzle::eR});
@@ -274,7 +276,8 @@ void ImGuiVulkanBackend::createFontsTexture()
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
-				vk::ImageLayout::eTransferDstOptimal);
+				vk::ImageLayout::eTransferDstOptimal
+			);
 
 			commandBuffer->copyBufferToImage(stagingBuffer, 0, _fontsTexture, 0, 0);
 
@@ -284,7 +287,8 @@ void ImGuiVulkanBackend::createFontsTexture()
 				vk::AccessFlagBits2::eTransferWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
 				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal);
+				vk::ImageLayout::eReadOnlyOptimal
+			);
 		}
 	);
 
@@ -300,10 +304,13 @@ void ImGuiVulkanBackend::createBuffers()
 		info.addPreferredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		info.setName("ImGui vertex buffer");
 
-		_vertexBuffer = VKDynamic<VKResizableBuffer<ImDrawVert>>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKResizableBuffer<ImDrawVert>::create(context, info);
-		});
+		_vertexBuffer = VKDynamic<VKResizableBuffer<ImDrawVert>>(
+			Engine::getVKContext(),
+			[&](VKContext& context, int index)
+			{
+				return VKResizableBuffer<ImDrawVert>::create(context, info);
+			}
+		);
 	}
 
 	{
@@ -313,10 +320,13 @@ void ImGuiVulkanBackend::createBuffers()
 		info.addPreferredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		info.setName("ImGui index buffer");
 
-		_indexBuffer = VKDynamic<VKResizableBuffer<ImDrawIdx>>(Engine::getVKContext(), [&](VKContext& context, int index)
-		{
-			return VKResizableBuffer<ImDrawIdx>::create(context, info);
-		});
+		_indexBuffer = VKDynamic<VKResizableBuffer<ImDrawIdx>>(
+			Engine::getVKContext(),
+			[&](VKContext& context, int index)
+			{
+				return VKResizableBuffer<ImDrawIdx>::create(context, info);
+			}
+		);
 	}
 }
 
@@ -325,7 +335,8 @@ void ImGuiVulkanBackend::setupRenderState(
 	const VKPtr<VKCommandBuffer>& commandBuffer,
 	const VKPtr<VKResizableBuffer<ImDrawVert>>& vertexBuffer,
 	const VKPtr<VKResizableBuffer<ImDrawIdx>>& indexBuffer,
-	glm::uvec2 viewportSize)
+	glm::uvec2 viewportSize
+)
 {
 	commandBuffer->bindPipeline(_pipeline);
 

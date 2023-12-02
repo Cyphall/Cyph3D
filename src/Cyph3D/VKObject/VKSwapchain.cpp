@@ -5,12 +5,11 @@
 #include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Queue/VKQueue.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <set>
-
-#include "Queue/VKQueue.h"
 
 struct SwapChainSupportDetails
 {
@@ -154,7 +153,8 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 			createInfo.imageFormat,
 			glm::uvec2(createInfo.imageExtent.width, createInfo.imageExtent.height),
 			*this,
-			i));
+			i
+		));
 	}
 }
 

@@ -3,9 +3,9 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetInfo.h"
 #include "Cyph3D/VKObject/VKObject.h"
 
-#include <vulkan/vulkan.hpp>
-#include <vector>
 #include <glm/glm.hpp>
+#include <vector>
+#include <vulkan/vulkan.hpp>
 
 class VKDescriptorSetLayout;
 class VKBufferBase;

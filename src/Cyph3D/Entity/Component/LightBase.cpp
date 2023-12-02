@@ -3,7 +3,7 @@
 #include "Cyph3D/Helper/MathHelper.h"
 
 LightBase::LightBase(Entity& entity):
-Component(entity)
+	Component(entity)
 {
 	setSrgbColor(glm::vec3(1));
 }

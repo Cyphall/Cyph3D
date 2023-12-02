@@ -31,9 +31,9 @@ public:
 
 protected:
 	explicit RuntimeAsset(AssetManager& manager, const TSignature& signature):
-		_manager(manager), _signature(signature)
+		_manager(manager),
+		_signature(signature)
 	{
-
 	}
 
 	void checkLoaded() const

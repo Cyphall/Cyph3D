@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Cyph3D/Asset/Processing/AssetProcessingCacheDatabase.h"
+#include "Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.h"
 #include "Cyph3D/Asset/Processing/ImageProcessor.h"
 #include "Cyph3D/Asset/Processing/MeshProcessor.h"
-#include "Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.h"
 
 struct AssetManagerWorkerData;
 

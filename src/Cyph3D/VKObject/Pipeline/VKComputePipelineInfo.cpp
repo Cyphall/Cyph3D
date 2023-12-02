@@ -1,9 +1,9 @@
 #include "VKComputePipelineInfo.h"
 
 VKComputePipelineInfo::VKComputePipelineInfo(const VKPtr<VKPipelineLayout>& pipelineLayout, const std::filesystem::path& computeShader):
-	_pipelineLayout(pipelineLayout), _computeShader(computeShader)
+	_pipelineLayout(pipelineLayout),
+	_computeShader(computeShader)
 {
-
 }
 
 const VKPtr<VKPipelineLayout>& VKComputePipelineInfo::getPipelineLayout() const

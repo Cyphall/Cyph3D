@@ -1,7 +1,7 @@
 #include "ComponentConstIterator.h"
 
 ComponentConstIterator::ComponentConstIterator(std::vector<Entity::ComponentContainer>::const_iterator it):
-_it(it)
+	_it(it)
 {}
 
 ComponentConstIterator& ComponentConstIterator::operator++()

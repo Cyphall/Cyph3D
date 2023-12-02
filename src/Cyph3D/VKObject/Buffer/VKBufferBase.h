@@ -21,6 +21,5 @@ protected:
 	explicit VKBufferBase(VKContext& context):
 		VKObject(context)
 	{
-
 	}
 };

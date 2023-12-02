@@ -152,5 +152,6 @@ void UIMisc::displayFrametime()
 		overlay.c_str(),
 		0.0f,
 		1000.0f / 30.0f,
-		{0, (ImGui::GetFontSize() + style.FramePadding.y * 2.0f) * 3.0f});
+		{0, (ImGui::GetFontSize() + style.FramePadding.y * 2.0f) * 3.0f}
+	);
 }

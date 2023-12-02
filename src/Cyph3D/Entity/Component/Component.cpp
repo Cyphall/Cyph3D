@@ -3,7 +3,7 @@
 #include "Cyph3D/Entity/Entity.h"
 
 Component::Component(Entity& entity):
-_entity(entity)
+	_entity(entity)
 {}
 
 Entity& Component::getEntity() const

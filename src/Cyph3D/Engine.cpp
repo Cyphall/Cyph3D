@@ -16,8 +16,8 @@
 #include "Cyph3D/VKObject/VKSwapchain.h"
 #include "Cyph3D/Window.h"
 
-#include <GLFW/glfw3.h>
 #include <format>
+#include <GLFW/glfw3.h>
 #include <stdexcept>
 
 std::unique_ptr<VKContext> Engine::_vkContext;
@@ -37,9 +37,12 @@ void Engine::init()
 
 	glfwInit();
 
-	glfwSetErrorCallback([](int code, const char* message) {
-		Logger::error(message, "GLFW");
-	});
+	glfwSetErrorCallback(
+		[](int code, const char* message)
+		{
+			Logger::error(message, "GLFW");
+		}
+	);
 
 	_vkContext = VKContext::create(2);
 

@@ -12,12 +12,12 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/Window.h"
 
+#include <chrono>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 #include <magic_enum.hpp>
 #include <stb_image_write.h>
-#include <chrono>
 
 enum class RenderToFileStatus
 {
@@ -116,12 +116,12 @@ void UIViewport::show()
 			{
 				switch (_sceneRendererType)
 				{
-					case RendererType::Rasterization:
-						_sceneRenderer = std::make_unique<RasterizationSceneRenderer>(viewportSize);
-						break;
-					case RendererType::PathTracing:
-						_sceneRenderer = std::make_unique<PathTracingSceneRenderer>(viewportSize);
-						break;
+				case RendererType::Rasterization:
+					_sceneRenderer = std::make_unique<RasterizationSceneRenderer>(viewportSize);
+					break;
+				case RendererType::PathTracing:
+					_sceneRenderer = std::make_unique<PathTracingSceneRenderer>(viewportSize);
+					break;
 				}
 			}
 
@@ -158,10 +158,12 @@ void UIViewport::show()
 
 				_renderToFileData->renderer->setSampleCountPerRender(thisBatchSamples);
 
-				Engine::getVKContext().executeImmediate([&](const VKPtr<VKCommandBuffer>& commandBuffer)
-				{
-					_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
-				});
+				Engine::getVKContext().executeImmediate(
+					[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+					{
+						_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
+					}
+				);
 
 				_renderToFileData->renderedSamples += thisBatchSamples;
 
@@ -184,18 +186,21 @@ void UIViewport::show()
 
 					VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
 
-					Engine::getVKContext().executeImmediate([&](const VKPtr<VKCommandBuffer>& commandBuffer)
-					{
-						commandBuffer->imageMemoryBarrier(
-							_renderToFileData->lastRenderedTexture,
-							vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-							vk::AccessFlagBits2::eColorAttachmentWrite,
-							vk::PipelineStageFlagBits2::eCopy,
-							vk::AccessFlagBits2::eTransferRead,
-							vk::ImageLayout::eTransferSrcOptimal);
+					Engine::getVKContext().executeImmediate(
+						[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+						{
+							commandBuffer->imageMemoryBarrier(
+								_renderToFileData->lastRenderedTexture,
+								vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+								vk::AccessFlagBits2::eColorAttachmentWrite,
+								vk::PipelineStageFlagBits2::eCopy,
+								vk::AccessFlagBits2::eTransferRead,
+								vk::ImageLayout::eTransferSrcOptimal
+							);
 
-						commandBuffer->copyImageToBuffer(_renderToFileData->lastRenderedTexture, 0, 0, stagingBuffer, 0);
-					});
+							commandBuffer->copyImageToBuffer(_renderToFileData->lastRenderedTexture, 0, 0, stagingBuffer, 0);
+						}
+					);
 
 					glm::ivec2 textureSize = _renderToFileData->lastRenderedTexture->getSize(0);
 
@@ -233,10 +238,11 @@ void UIViewport::show()
 			}
 
 			ImGui::Image(
-				static_cast<ImTextureID>(const_cast<VKPtr<VKImage>*>(&_lastViewportImage)),
+				&_lastViewportImage,
 				glm::vec2(_lastViewportImage->getSize(0)),
 				ImVec2(0, 0),
-				ImVec2(1, 1));
+				ImVec2(1, 1)
+			);
 
 			if (!_renderToFileData)
 			{
@@ -319,7 +325,8 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 		glm::value_ptr(projection),
 		_gizmoMode,
 		_gizmoSpace,
-		glm::value_ptr(localToWorld));
+		glm::value_ptr(localToWorld)
+	);
 
 	ImGui::PopClipRect();
 
@@ -460,6 +467,7 @@ bool UIViewport::isFullscreen()
 
 void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 {
+	// clang-format off
 	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
 		FileDialogFilter{
 			.fileTypeDisplayName = L"PNG Image",
@@ -470,6 +478,7 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 			.fileTypeExtensions = L"*.jpg"
 		}
 	}, ".", "render");
+	// clang-format on
 
 	if (!filePath)
 	{

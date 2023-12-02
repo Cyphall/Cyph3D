@@ -6,8 +6,8 @@
 #include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
-#include <nlohmann/json_fwd.hpp>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <optional>
 #include <string>
 
@@ -27,8 +27,8 @@ struct std::hash<MaterialAssetSignature>
 	std::size_t operator()(const MaterialAssetSignature& key) const
 	{
 		return HashBuilder()
-			.hash(key.path)
-			.get();
+		    .hash(key.path)
+		    .get();
 	}
 };
 

@@ -38,7 +38,8 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 
 	VKBufferInfo bufferInfo(
 		missSBTOffset + _missSBTSize,
-		vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
+		vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR
+	);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
@@ -82,7 +83,6 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 
 VKShaderBindingTable::~VKShaderBindingTable()
 {
-
 }
 
 const VKShaderBindingTableInfo& VKShaderBindingTable::getInfo() const

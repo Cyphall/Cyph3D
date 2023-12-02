@@ -7,8 +7,8 @@
 #include "Cyph3D/UI/Window/UIInspector.h"
 #include "Cyph3D/Window.h"
 
-#include <imgui_internal.h>
 #include <algorithm>
+#include <imgui_internal.h>
 #include <set>
 
 enum class EntryType
@@ -80,7 +80,11 @@ public:
 					std::transform(
 						extension.begin(), extension.end(),
 						extension.begin(),
-						[](char c){ return std::tolower(c); });
+						[](char c)
+						{
+							return std::tolower(c);
+						}
+					);
 
 					if (extension == ".png" || extension == ".jpg" || extension == ".hdr")
 					{
@@ -111,7 +115,8 @@ public:
 				_entries.emplace(std::make_unique<Entry>(
 					entry.path(),
 					entryType,
-					this));
+					this
+				));
 			}
 		}
 	}
@@ -211,12 +216,10 @@ UIAssetBrowser::UIAssetBrowser(ImFont* bigFont):
 	_size1(250.0f * Engine::getWindow().getPixelScale()),
 	_previousWidth(_size1)
 {
-
 }
 
 UIAssetBrowser::~UIAssetBrowser()
 {
-
 }
 
 void UIAssetBrowser::draw()
@@ -284,7 +287,7 @@ void UIAssetBrowser::draw()
 
 		ImGui::SetNextItemWidth(-FLT_MIN);
 		// Field is read-only anyway, we can safely remove the const
-		ImGui::InputText("###current_directory", const_cast<char*>(_currentDirectory->displayAssetPath().c_str()), _currentDirectory->displayAssetPath().size()+1, ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputText("###current_directory", const_cast<char*>(_currentDirectory->displayAssetPath().c_str()), _currentDirectory->displayAssetPath().size() + 1, ImGuiInputTextFlags_ReadOnly);
 
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
@@ -395,13 +398,13 @@ void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 	const char* name = &directory == _root.get() ? "resources" : directory.name().c_str();
 	bool opened = ImGui::TreeNodeEx(directory.displayAssetPath().c_str(), flags, "\uF07B %s", name);
 
-	//Select the item on click
+	// Select the item on click
 	if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
 	{
 		_currentDirectory = &directory;
 	}
 
-	//Draw item children if the item is opened
+	// Draw item children if the item is opened
 	if (opened)
 	{
 		if (anyDirectory)
@@ -446,17 +449,17 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 		{
 			switch (entry.type())
 			{
-				case EntryType::Scene:
-					Scene::load(entry.assetPath());
-					break;
-				case EntryType::Directory:
-					_task = [this, &entry]()
-					{
-						this->_currentDirectory = &entry;
-					};
-					break;
-				default:
-					break;
+			case EntryType::Scene:
+				Scene::load(entry.assetPath());
+				break;
+			case EntryType::Directory:
+				_task = [this, &entry]()
+				{
+					this->_currentDirectory = &entry;
+				};
+				break;
+			default:
+				break;
 			}
 		}
 		else // simple click
@@ -464,14 +467,14 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 			_selectedEntry = &entry;
 			switch (entry.type())
 			{
-				case EntryType::Material:
-					UIInspector::setSelected(Engine::getAssetManager().loadMaterial(entry.assetPath()));
-					break;
-				case EntryType::Skybox:
-					UIInspector::setSelected(Engine::getAssetManager().loadSkybox(entry.assetPath()));
-					break;
-				default:
-					break;
+			case EntryType::Material:
+				UIInspector::setSelected(Engine::getAssetManager().loadMaterial(entry.assetPath()));
+				break;
+			case EntryType::Skybox:
+				UIInspector::setSelected(Engine::getAssetManager().loadSkybox(entry.assetPath()));
+				break;
+			default:
+				break;
 			}
 		}
 	}
@@ -522,36 +525,36 @@ void UIAssetBrowser::drawRightPanelEntries()
 		const char* dragDropId;
 		switch (entry->type())
 		{
-			case EntryType::Directory:
-				icon = "\uF07B";
-				dragDropId = nullptr;
-				break;
-			case EntryType::Unknown:
-				icon = "\uF15B";
-				dragDropId = nullptr;
-				break;
-			case EntryType::Image:
-				icon = "\uF03E";
-				dragDropId = "asset_image";
-				break;
-			case EntryType::Mesh:
-				icon = "\uF1B2";
-				dragDropId = "asset_mesh";
-				break;
-			case EntryType::Material:
-				icon = "\uF43C";
-				dragDropId = "asset_material";
-				break;
-			case EntryType::Skybox:
-				icon = "\uE209";
-				dragDropId = "asset_skybox";
-				break;
-			case EntryType::Scene:
-				icon = "\uE52f";
-				dragDropId = nullptr;
-				break;
-			default:
-				throw;
+		case EntryType::Directory:
+			icon = "\uF07B";
+			dragDropId = nullptr;
+			break;
+		case EntryType::Unknown:
+			icon = "\uF15B";
+			dragDropId = nullptr;
+			break;
+		case EntryType::Image:
+			icon = "\uF03E";
+			dragDropId = "asset_image";
+			break;
+		case EntryType::Mesh:
+			icon = "\uF1B2";
+			dragDropId = "asset_mesh";
+			break;
+		case EntryType::Material:
+			icon = "\uF43C";
+			dragDropId = "asset_material";
+			break;
+		case EntryType::Skybox:
+			icon = "\uE209";
+			dragDropId = "asset_skybox";
+			break;
+		case EntryType::Scene:
+			icon = "\uE52f";
+			dragDropId = nullptr;
+			break;
+		default:
+			throw;
 		}
 
 		drawRightPanelEntry(*entry, icon, usedWidth);

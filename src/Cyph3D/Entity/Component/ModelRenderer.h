@@ -2,11 +2,11 @@
 
 #include "Cyph3D/Entity/Component/Component.h"
 
-#include <glm/glm.hpp>
-#include <nlohmann/json_fwd.hpp>
 #include <functional>
+#include <glm/glm.hpp>
 #include <map>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <optional>
 #include <string>
 
@@ -18,11 +18,11 @@ class ModelRenderer : public Component
 public:
 	struct RenderData
 	{
-		Transform&     transform;
+		Transform& transform;
 		MaterialAsset& material;
-		MeshAsset&     mesh;
-		bool           contributeShadows;
-		Entity&        owner;
+		MeshAsset& mesh;
+		bool contributeShadows;
+		Entity& owner;
 	};
 
 	explicit ModelRenderer(Entity& entity);

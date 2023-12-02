@@ -1,7 +1,7 @@
 #include "ThreadHelper.h"
 
-#include <windows.h>
 #include <vector>
+#include <windows.h>
 
 int ThreadHelper::getPhysicalCoreCount()
 {

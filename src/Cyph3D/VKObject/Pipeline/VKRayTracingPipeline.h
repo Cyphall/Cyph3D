@@ -3,8 +3,8 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipelineInfo.h"
 
-#include <vulkan/vulkan.hpp>
 #include <array>
+#include <vulkan/vulkan.hpp>
 
 class VKRayTracingPipeline : public VKPipeline
 {

@@ -8,7 +8,8 @@
 #include "Cyph3D/VKObject/VKSwapchain.h"
 
 VKQueue::VKQueue(VKContext& context, uint32_t queueFamily, uint32_t queueIndex):
-	VKObject(context), _queueFamily(queueFamily)
+	VKObject(context),
+	_queueFamily(queueFamily)
 {
 	_queue = _context.getDevice().getQueue(queueFamily, queueIndex);
 }
@@ -100,8 +101,11 @@ void VKQueue::handleCompletedSubmits()
 {
 	std::scoped_lock lock(_mutex);
 
-	std::erase_if(_submitRecords, [](VKQueue::SubmitRecord& submitRecord)
-	{
-		return submitRecord.commandBuffer->getStatusFence()->isSignaled();
-	});
+	std::erase_if(
+		_submitRecords,
+		[](VKQueue::SubmitRecord& submitRecord)
+		{
+			return submitRecord.commandBuffer->getStatusFence()->isSignaled();
+		}
+	);
 }

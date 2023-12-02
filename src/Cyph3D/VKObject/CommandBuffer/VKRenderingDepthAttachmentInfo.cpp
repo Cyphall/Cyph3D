@@ -5,7 +5,6 @@
 VKRenderingDepthAttachmentInfo::VKRenderingDepthAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
 	_imageInfo(image, type, layerRange, levelRange, format)
 {
-
 }
 
 const VKRenderingDepthAttachmentInfo::ImageInfo& VKRenderingDepthAttachmentInfo::getImageInfo() const
@@ -21,7 +20,8 @@ VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk
 		image->getInfo().isCubeCompatible() ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
 		{0, image->getInfo().getLayers() - 1},
 		{0, image->getInfo().getLevels() - 1},
-		image->getInfo().getFormat());
+		image->getInfo().getFormat()
+	);
 }
 
 VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)

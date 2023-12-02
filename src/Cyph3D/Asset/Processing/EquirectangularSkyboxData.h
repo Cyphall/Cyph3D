@@ -1,10 +1,10 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <vulkan/vulkan.hpp>
-#include <cstddef>
-#include <vector>
 #include <array>
+#include <cstddef>
+#include <glm/glm.hpp>
+#include <vector>
+#include <vulkan/vulkan.hpp>
 
 struct EquirectangularSkyboxData
 {

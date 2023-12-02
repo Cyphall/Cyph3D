@@ -137,7 +137,8 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 		srcAccessMask,
 		dstStageMask,
 		dstAccessMask,
-		newImageLayout);
+		newImageLayout
+	);
 }
 
 void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
@@ -301,7 +302,8 @@ void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescrip
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorSet->getHandle(),
-		{});
+		{}
+	);
 
 	_usedObjects.emplace_back(descriptorSet);
 }
@@ -316,7 +318,8 @@ void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescrip
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorSet->getHandle(),
-		dynamicOffset);
+		dynamicOffset
+	);
 
 	_usedObjects.emplace_back(descriptorSet);
 }
@@ -358,7 +361,8 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
-		descriptorWrite);
+		descriptorWrite
+	);
 }
 
 void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
@@ -385,7 +389,8 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
-		descriptorWrite);
+		descriptorWrite
+	);
 
 	_usedObjects.emplace_back(sampler);
 }
@@ -400,7 +405,8 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		{0, image->getInfo().getLayers() - 1},
 		{0, image->getInfo().getLevels() - 1},
 		image->getInfo().getFormat(),
-		arrayIndex);
+		arrayIndex
+	);
 }
 
 void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
@@ -430,7 +436,8 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
-		descriptorWrite);
+		descriptorWrite
+	);
 
 	_usedObjects.emplace_back(image);
 }
@@ -446,7 +453,8 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		{0, image->getInfo().getLevels() - 1},
 		image->getInfo().getFormat(),
 		sampler,
-		arrayIndex);
+		arrayIndex
+	);
 }
 
 void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
@@ -477,7 +485,8 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
-		descriptorWrite);
+		descriptorWrite
+	);
 
 	_usedObjects.emplace_back(image);
 	_usedObjects.emplace_back(sampler);
@@ -509,7 +518,8 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
-		descriptorWrite);
+		descriptorWrite
+	);
 
 	_usedObjects.emplace_back(accelerationStructure);
 }
@@ -532,14 +542,14 @@ void VKCommandBuffer::bindIndexBuffer(const VKPtr<VKBufferBase>& indexBuffer)
 	vk::IndexType indexType;
 	switch (indexBuffer->getStride())
 	{
-		case 2:
-			indexType = vk::IndexType::eUint16;
-			break;
-		case 4:
-			indexType = vk::IndexType::eUint32;
-			break;
-		default:
-			throw;
+	case 2:
+		indexType = vk::IndexType::eUint16;
+		break;
+	case 4:
+		indexType = vk::IndexType::eUint32;
+		break;
+	default:
+		throw;
 	}
 
 	_commandBuffer.bindIndexBuffer(indexBuffer->getHandle(), 0, indexType);
@@ -855,7 +865,8 @@ void VKCommandBuffer::queryAccelerationStructureCompactedSize(const VKPtr<VKAcce
 		accelerationStructure->getHandle(),
 		vk::QueryType::eAccelerationStructureCompactedSizeKHR,
 		accelerationStructureCompactedSizeQuery->getHandle(),
-		0);
+		0
+	);
 
 	_usedObjects.emplace_back(accelerationStructure);
 	_usedObjects.emplace_back(accelerationStructureCompactedSizeQuery);
@@ -1032,7 +1043,8 @@ void VKCommandBuffer::traceRays(const VKPtr<VKShaderBindingTable>& sbt, glm::uve
 		callRegion,
 		size.x,
 		size.y,
-		1);
+		1
+	);
 
 	_usedObjects.emplace_back(sbt);
 }

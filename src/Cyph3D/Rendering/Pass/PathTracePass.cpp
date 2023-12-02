@@ -51,7 +51,8 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 			vk::AccessFlagBits2::eShaderStorageRead,
 			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral);
+			vk::ImageLayout::eGeneral
+		);
 	}
 
 	bool recreateDescriptorSet = false;
@@ -142,7 +143,8 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 		Engine::getVKContext(),
 		vk::AccelerationStructureTypeKHR::eTopLevel,
 		buildSizesInfo.accelerationStructureSize,
-		backingBuffer);
+		backingBuffer
+	);
 
 	VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
 	scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -163,7 +165,8 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 		vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eAccelerationStructureReadKHR);
+		vk::AccessFlagBits2::eAccelerationStructureReadKHR
+	);
 }
 
 void PathTracePass::setupSBT(const PathTracePassInput& input)
@@ -260,7 +263,8 @@ void PathTracePass::createImage()
 			_size,
 			1,
 			1,
-			vk::ImageUsageFlagBits::eStorage);
+			vk::ImageUsageFlagBits::eStorage
+		);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.setName("Raw render image");
 

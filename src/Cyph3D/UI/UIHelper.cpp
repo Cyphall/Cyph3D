@@ -16,10 +16,10 @@
 #include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/Window.h"
 
-#include <ImGuizmo.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_internal.h>
+#include <ImGuizmo.h>
 
 ImGuiContext* UIHelper::_context = nullptr;
 
@@ -93,7 +93,8 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal);
+		vk::ImageLayout::eColorAttachmentOptimal
+	);
 
 	_vulkanBackend->renderDrawData(ImGui::GetDrawData(), commandBuffer, destImage);
 
@@ -103,7 +104,8 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
-		vk::ImageLayout::ePresentSrcKHR);
+		vk::ImageLayout::ePresentSrcKHR
+	);
 
 	commandBuffer->end();
 
@@ -112,7 +114,8 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 		Engine::getVKContext().getMainQueue().submit(
 			commandBuffer,
 			{imageAvailableSemaphore},
-			{_presentSemaphore, _nextSubmitSemaphore});
+			{_presentSemaphore, _nextSubmitSemaphore}
+		);
 
 		_firstFrame = false;
 	}
@@ -121,7 +124,8 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 		Engine::getVKContext().getMainQueue().submit(
 			commandBuffer,
 			{imageAvailableSemaphore, _nextSubmitSemaphore},
-			{_presentSemaphore, _nextSubmitSemaphore});
+			{_presentSemaphore, _nextSubmitSemaphore}
+		);
 	}
 
 	return _presentSemaphore;
@@ -255,7 +259,8 @@ void UIHelper::initFonts()
 		0xF021, 0xF021,
 		0xF062, 0xF062,
 		0xF07B, 0xF07B,
-		0};
+		0
+	};
 	io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 14.0f * pixelScale, &config, smallIconRange);
 
 	io.Fonts->Build();
@@ -268,6 +273,7 @@ void UIHelper::initFonts()
 		0xF15B, 0xF15B,
 		0xF1B2, 0xF1B2,
 		0xF43C, 0xF43C,
-		0};
+		0
+	};
 	_bigFont = io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 48.0f * pixelScale, nullptr, largeIconRange);
 }

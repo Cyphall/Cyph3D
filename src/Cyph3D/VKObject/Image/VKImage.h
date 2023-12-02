@@ -6,9 +6,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
+#include <unordered_map>
 #include <vk_mem_alloc.hpp>
 #include <vulkan/vulkan.hpp>
-#include <unordered_map>
 
 class VKImage : public VKObject
 {
@@ -53,11 +53,11 @@ private:
 		std::size_t operator()(const VKImage::ViewInfo& key) const
 		{
 			return HashBuilder()
-				.hash(key.type)
-				.hash(key.layerRange)
-				.hash(key.levelRange)
-				.hash(key.format)
-				.get();
+			    .hash(key.type)
+			    .hash(key.layerRange)
+			    .hash(key.levelRange)
+			    .hash(key.format)
+			    .get();
 		}
 	};
 

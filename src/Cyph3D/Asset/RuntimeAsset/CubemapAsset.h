@@ -33,15 +33,15 @@ struct std::hash<CubemapAssetSignature>
 	std::size_t operator()(const CubemapAssetSignature& key) const
 	{
 		return HashBuilder()
-			.hash(key.xposPath)
-			.hash(key.xnegPath)
-			.hash(key.yposPath)
-			.hash(key.ynegPath)
-			.hash(key.zposPath)
-			.hash(key.znegPath)
-			.hash(key.equirectangularPath)
-			.hash(key.type)
-			.get();
+		    .hash(key.xposPath)
+		    .hash(key.xnegPath)
+		    .hash(key.yposPath)
+		    .hash(key.ynegPath)
+		    .hash(key.zposPath)
+		    .hash(key.znegPath)
+		    .hash(key.equirectangularPath)
+		    .hash(key.type)
+		    .get();
 	}
 };
 
