@@ -10,7 +10,7 @@
 class VKRayTracingPipeline : public VKPipeline
 {
 public:
-	static VKPtr<VKRayTracingPipeline> create(VKContext& context, VKRayTracingPipelineInfo& info);
+	static VKPtr<VKRayTracingPipeline> create(VKContext& context, const VKRayTracingPipelineInfo& info);
 
 	~VKRayTracingPipeline() override;
 
@@ -29,7 +29,7 @@ public:
 	const VKPtr<VKPipelineLayout>& getPipelineLayout() const override;
 
 private:
-	VKRayTracingPipeline(VKContext& context, VKRayTracingPipelineInfo& info);
+	VKRayTracingPipeline(VKContext& context, const VKRayTracingPipelineInfo& info);
 
 	VKRayTracingPipelineInfo _info;
 

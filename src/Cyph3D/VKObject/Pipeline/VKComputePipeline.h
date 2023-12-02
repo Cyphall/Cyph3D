@@ -9,7 +9,7 @@
 class VKComputePipeline : public VKPipeline
 {
 public:
-	static VKPtr<VKComputePipeline> create(VKContext& context, VKComputePipelineInfo& info);
+	static VKPtr<VKComputePipeline> create(VKContext& context, const VKComputePipelineInfo& info);
 
 	~VKComputePipeline() override;
 
@@ -19,7 +19,7 @@ public:
 	const VKPtr<VKPipelineLayout>& getPipelineLayout() const override;
 
 private:
-	VKComputePipeline(VKContext& context, VKComputePipelineInfo& info);
+	VKComputePipeline(VKContext& context, const VKComputePipelineInfo& info);
 
 	VKComputePipelineInfo _info;
 };

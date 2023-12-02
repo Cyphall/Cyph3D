@@ -3,6 +3,8 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 
+#include <ranges>
+
 VKPtr<VKImage> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
 {
 	ShadowMapContainer& container = _directionalShadowMaps[resolution];
@@ -52,7 +54,7 @@ VKPtr<VKImage> ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
 
 void ShadowMapManager::resetDirectionalShadowMapAllocations()
 {
-	for (auto& [resolution, container] : _directionalShadowMaps)
+	for (ShadowMapContainer& container : _directionalShadowMaps | std::views::values)
 	{
 		container.allocatedShadowMaps = 0;
 	}
@@ -60,7 +62,7 @@ void ShadowMapManager::resetDirectionalShadowMapAllocations()
 
 void ShadowMapManager::resetPointShadowMapAllocations()
 {
-	for (auto& [resolution, container] : _pointShadowMaps)
+	for (ShadowMapContainer& container : _pointShadowMaps | std::views::values)
 	{
 		container.allocatedShadowMaps = 0;
 	}

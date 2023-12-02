@@ -33,5 +33,5 @@ private:
 	float _size2 = 0;
 	float _previousWidth = 0;
 
-	std::function<void(void)> _task;
+	std::function<void()> _task;
 };

@@ -327,7 +327,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
 
 	// copy texture data to staging buffer
-	std::copy(data.data(), data.data() + texture->getLevelByteSize(0), stagingBuffer->getHostPointer());
+	std::copy_n(data.data(), texture->getLevelByteSize(0), stagingBuffer->getHostPointer());
 
 	// upload staging buffer to texture
 	workerData.transferCommandBuffer->begin();

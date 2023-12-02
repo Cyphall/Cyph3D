@@ -15,8 +15,8 @@
 
 #include <glm/gtc/matrix_inverse.hpp>
 
-static const float POINT_SHADOW_MAP_NEAR = 0.01f;
-static const float POINT_SHADOW_MAP_FAR = 100.0f;
+static constexpr float POINT_SHADOW_MAP_NEAR = 0.01f;
+static constexpr float POINT_SHADOW_MAP_FAR = 100.0f;
 
 static const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []()
 {

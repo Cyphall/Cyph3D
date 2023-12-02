@@ -64,7 +64,7 @@ Entity& Scene::createEntity(Transform& parent)
 	return *container.entity;
 }
 
-EntityIterator Scene::findEntity(Entity& entity)
+EntityIterator Scene::findEntity(const Entity& entity)
 {
 	return std::find_if(
 		begin(), end(),
@@ -298,7 +298,7 @@ void Scene::save(const std::filesystem::path& path)
 	JsonHelper::saveJsonToFile(jsonRoot, path.generic_string());
 }
 
-nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const
+nlohmann::ordered_json Scene::serializeEntity(const Entity& entity)
 {
 	nlohmann::ordered_json jsonData = entity.serialize().toJson();
 

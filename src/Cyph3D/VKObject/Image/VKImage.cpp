@@ -4,6 +4,7 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 
+#include <ranges>
 #include <set>
 #include <vulkan/vulkan_format_traits.hpp>
 
@@ -87,7 +88,7 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 	for (uint32_t i = 0; i < layers; i++)
 	{
 		_currentLayouts[i].resize(levels);
-		std::fill(_currentLayouts[i].begin(), _currentLayouts[i].end(), vk::ImageLayout::eUndefined);
+		std::ranges::fill(_currentLayouts[i], vk::ImageLayout::eUndefined);
 	}
 
 	_sizes.resize(levels);
@@ -105,7 +106,7 @@ VKImage::~VKImage()
 		_context.getVmaAllocator().destroyImage(_handle, _imageAlloc);
 	}
 
-	for (auto& [viewInfo, view] : _views)
+	for (vk::ImageView view : _views | std::views::values)
 	{
 		_context.getDevice().destroyImageView(view);
 	}

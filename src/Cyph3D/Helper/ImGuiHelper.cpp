@@ -45,8 +45,7 @@ bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const ch
 
 	if (ImGui::BeginDragDropTarget())
 	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(dragDropId);
-		if (payload)
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(dragDropId))
 		{
 			result = *(*static_cast<const std::string**>(payload->Data));
 			assetChanged = true;
@@ -108,7 +107,7 @@ void ImGuiHelper::EndGroupPanel()
 	GroupPanelInfo groupPanelInfo = groupPanelInfoStack.top();
 	groupPanelInfoStack.pop();
 
-	const float textPadding = 6.0f;
+	constexpr float textPadding = 6.0f;
 
 	ImGui::EndGroup();
 

@@ -42,7 +42,7 @@ ImGuiVulkanBackend::~ImGuiVulkanBackend()
 	io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
 }
 
-void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImage>& outputImage)
+void ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImage>& outputImage)
 {
 	glm::uvec2 framebufferSize = outputImage->getSize(0);
 
@@ -55,8 +55,8 @@ void ImGuiVulkanBackend::renderDrawData(ImDrawData* drawData, const VKPtr<VKComm
 	{
 		const ImDrawList* cmdList = drawData->CmdLists[i];
 
-		std::copy(cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Data + cmdList->VtxBuffer.Size, vertexBufferPtr);
-		std::copy(cmdList->IdxBuffer.Data, cmdList->IdxBuffer.Data + cmdList->IdxBuffer.Size, indexBufferPtr);
+		std::copy_n(cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size, vertexBufferPtr);
+		std::copy_n(cmdList->IdxBuffer.Data, cmdList->IdxBuffer.Size, indexBufferPtr);
 
 		vertexBufferPtr += cmdList->VtxBuffer.Size;
 		indexBufferPtr += cmdList->IdxBuffer.Size;
@@ -252,7 +252,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 
 	VKPtr<VKBuffer<uint8_t>> stagingBuffer = VKBuffer<uint8_t>::create(Engine::getVKContext(), bufferInfo);
 
-	std::copy(data, data + dataSize, stagingBuffer->getHostPointer());
+	std::copy_n(data, dataSize, stagingBuffer->getHostPointer());
 
 	VKImageInfo imageInfo(
 		vk::Format::eR8Unorm,
@@ -331,7 +331,7 @@ void ImGuiVulkanBackend::createBuffers()
 }
 
 void ImGuiVulkanBackend::setupRenderState(
-	ImDrawData* drawData,
+	const ImDrawData* drawData,
 	const VKPtr<VKCommandBuffer>& commandBuffer,
 	const VKPtr<VKResizableBuffer<ImDrawVert>>& vertexBuffer,
 	const VKPtr<VKResizableBuffer<ImDrawIdx>>& indexBuffer,

@@ -23,7 +23,7 @@ public:
 	ObjectPicker();
 	~ObjectPicker();
 
-	Entity* getPickedEntity(Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos);
+	Entity* getPickedEntity(const Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos);
 
 private:
 	struct PushConstantData

@@ -9,7 +9,7 @@
 class VKGraphicsPipeline : public VKPipeline
 {
 public:
-	static VKPtr<VKGraphicsPipeline> create(VKContext& context, VKGraphicsPipelineInfo& info);
+	static VKPtr<VKGraphicsPipeline> create(VKContext& context, const VKGraphicsPipelineInfo& info);
 
 	~VKGraphicsPipeline() override;
 
@@ -19,7 +19,7 @@ public:
 	const VKPtr<VKPipelineLayout>& getPipelineLayout() const override;
 
 private:
-	VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInfo& info);
+	VKGraphicsPipeline(VKContext& context, const VKGraphicsPipelineInfo& info);
 
 	VKGraphicsPipelineInfo _info;
 };

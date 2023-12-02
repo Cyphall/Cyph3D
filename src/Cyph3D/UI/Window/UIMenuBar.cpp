@@ -12,10 +12,10 @@ bool UIMenuBar::_showDemoWindow = false;
 
 void UIMenuBar::show()
 {
-	bool showPathOutsideError = false;
-
 	if (ImGui::BeginMainMenuBar())
 	{
+		bool showPathOutsideError = false;
+
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::MenuItem("New Scene"))

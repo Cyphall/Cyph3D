@@ -146,8 +146,7 @@ void UIViewport::show()
 				window.setCursorPos(_lockedCursorPos);
 			}
 
-			PathTracingSceneRenderer* pathTracingSceneRenderer = dynamic_cast<PathTracingSceneRenderer*>(_sceneRenderer.get());
-			if (pathTracingSceneRenderer)
+			if (PathTracingSceneRenderer* pathTracingSceneRenderer = dynamic_cast<PathTracingSceneRenderer*>(_sceneRenderer.get()))
 			{
 				pathTracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
 			}

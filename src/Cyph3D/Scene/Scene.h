@@ -23,7 +23,7 @@ public:
 	void onPreRender(RenderRegistry& renderRegistry, Camera& camera);
 
 	Entity& createEntity(Transform& parent);
-	EntityIterator findEntity(Entity& entity);
+	EntityIterator findEntity(const Entity& entity);
 	EntityIterator removeEntity(EntityIterator where);
 
 	EntityIterator begin();
@@ -65,7 +65,7 @@ private:
 	static std::atomic_uint64_t _changeVersion;
 
 	static void deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene);
-	nlohmann::ordered_json serializeEntity(const Entity& entity) const;
+	static nlohmann::ordered_json serializeEntity(const Entity& entity);
 
 	friend class EntityIterator;
 	friend class EntityConstIterator;

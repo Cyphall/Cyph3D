@@ -46,7 +46,7 @@ static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDev
 
 	for (const vk::SurfaceFormatKHR& preferredSurfaceFormat : preferredSurfaceFormats)
 	{
-		if (std::find(supportedSurfaceFormats.begin(), supportedSurfaceFormats.end(), preferredSurfaceFormat) != supportedSurfaceFormats.end())
+		if (std::ranges::find(supportedSurfaceFormats, preferredSurfaceFormat) != supportedSurfaceFormats.end())
 		{
 			return preferredSurfaceFormat;
 		}

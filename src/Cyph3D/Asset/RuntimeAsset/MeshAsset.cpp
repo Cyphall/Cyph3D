@@ -98,7 +98,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		_positionVertexBuffer = VKBuffer<PositionVertexData>::create(Engine::getVKContext(), positionVertexBufferInfo);
 
-		std::copy(meshData.positionVertices.begin(), meshData.positionVertices.end(), _positionVertexBuffer->getHostPointer());
+		std::ranges::copy(meshData.positionVertices, _positionVertexBuffer->getHostPointer());
 	}
 
 	{
@@ -118,7 +118,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		_fullVertexBuffer = VKBuffer<FullVertexData>::create(Engine::getVKContext(), fullVertexBufferInfo);
 
-		std::copy(meshData.fullVertices.begin(), meshData.fullVertices.end(), _fullVertexBuffer->getHostPointer());
+		std::ranges::copy(meshData.fullVertices, _fullVertexBuffer->getHostPointer());
 	}
 
 	{
@@ -138,7 +138,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		_indexBuffer = VKBuffer<uint32_t>::create(Engine::getVKContext(), indexBufferInfo);
 
-		std::copy(meshData.indices.begin(), meshData.indices.end(), _indexBuffer->getHostPointer());
+		std::ranges::copy(meshData.indices, _indexBuffer->getHostPointer());
 	}
 
 	if (Engine::getVKContext().isRayTracingSupported())

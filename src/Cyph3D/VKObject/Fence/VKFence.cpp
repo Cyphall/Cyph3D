@@ -20,8 +20,7 @@ VKFence::~VKFence()
 
 bool VKFence::wait(uint64_t timeout) const
 {
-	vk::Result result = _context.getDevice().waitForFences(_fence, true, timeout);
-	switch (result)
+	switch (_context.getDevice().waitForFences(_fence, true, timeout))
 	{
 	case vk::Result::eSuccess:
 		return true;
@@ -34,8 +33,7 @@ bool VKFence::wait(uint64_t timeout) const
 
 bool VKFence::isSignaled() const
 {
-	vk::Result status = _context.getDevice().getFenceStatus(_fence);
-	switch (status)
+	switch (_context.getDevice().getFenceStatus(_fence))
 	{
 	case vk::Result::eSuccess:
 		return true;

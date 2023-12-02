@@ -63,10 +63,10 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 	commandBuffer->getStatusFence()->reset();
 	_queue.submit2(submitInfo, commandBuffer->getStatusFence()->getHandle());
 
-	VKQueue::SubmitRecord& submitRecord = _submitRecords.emplace_back();
+	SubmitRecord& submitRecord = _submitRecords.emplace_back();
 	submitRecord.commandBuffer = commandBuffer;
-	std::copy(waitSemaphores.begin(), waitSemaphores.end(), std::back_inserter(submitRecord.waitSemaphores));
-	std::copy(signalSemaphores.begin(), signalSemaphores.end(), std::back_inserter(submitRecord.signalSemaphores));
+	std::ranges::copy(waitSemaphores, std::back_inserter(submitRecord.waitSemaphores));
+	std::ranges::copy(signalSemaphores, std::back_inserter(submitRecord.signalSemaphores));
 }
 
 bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores)
@@ -103,7 +103,7 @@ void VKQueue::handleCompletedSubmits()
 
 	std::erase_if(
 		_submitRecords,
-		[](VKQueue::SubmitRecord& submitRecord)
+		[](SubmitRecord& submitRecord)
 		{
 			return submitRecord.commandBuffer->getStatusFence()->isSignaled();
 		}

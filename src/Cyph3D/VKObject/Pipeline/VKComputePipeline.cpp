@@ -4,12 +4,12 @@
 #include "Cyph3D/VKObject/Shader/VKShader.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKComputePipeline> VKComputePipeline::create(VKContext& context, VKComputePipelineInfo& info)
+VKPtr<VKComputePipeline> VKComputePipeline::create(VKContext& context, const VKComputePipelineInfo& info)
 {
 	return VKPtr<VKComputePipeline>(new VKComputePipeline(context, info));
 }
 
-VKComputePipeline::VKComputePipeline(VKContext& context, VKComputePipelineInfo& info):
+VKComputePipeline::VKComputePipeline(VKContext& context, const VKComputePipelineInfo& info):
 	VKPipeline(context),
 	_info(info)
 {

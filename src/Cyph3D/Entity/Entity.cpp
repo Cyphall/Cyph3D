@@ -18,8 +18,8 @@
 std::map<std::string, std::function<Component&(Entity&)>> Entity::_componentFactories;
 
 Entity::Entity(Transform& parent, Scene& scene):
-	_transform(this, &parent),
-	_scene(scene)
+	_scene(scene),
+	_transform(this, &parent)
 {
 	_transformChangedConnection = _transform.getChangedSignal().connect(
 		[this]()

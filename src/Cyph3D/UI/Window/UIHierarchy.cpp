@@ -10,7 +10,7 @@
 
 #include <imgui.h>
 
-std::function<void(void)> UIHierarchy::_task;
+std::function<void()> UIHierarchy::_task;
 
 void UIHierarchy::show()
 {
@@ -104,8 +104,7 @@ void UIHierarchy::addRootToTree()
 	// Make root a dragdrop target for hierarchy change
 	if (ImGui::BeginDragDropTarget())
 	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HierarchyOrderChange");
-		if (payload)
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HierarchyOrderChange"))
 		{
 			Transform* dropped = *static_cast<Transform**>(payload->Data);
 			_task = [dropped]()
@@ -161,8 +160,7 @@ void UIHierarchy::addObjectToTree(Transform* transform)
 	}
 	if (ImGui::BeginDragDropTarget())
 	{
-		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HierarchyOrderChange");
-		if (payload)
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HierarchyOrderChange"))
 		{
 			Transform* dropped = *static_cast<Transform**>(payload->Data);
 			_task = [dropped, transform]()

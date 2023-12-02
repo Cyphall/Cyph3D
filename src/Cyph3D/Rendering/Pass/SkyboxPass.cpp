@@ -196,5 +196,5 @@ void SkyboxPass::createBuffer()
 
 	_vertexBuffer = VKBuffer<VertexData>::create(Engine::getVKContext(), vertexBufferInfo);
 
-	std::copy(vertices.begin(), vertices.end(), _vertexBuffer->getHostPointer());
+	std::ranges::copy(vertices, _vertexBuffer->getHostPointer());
 }

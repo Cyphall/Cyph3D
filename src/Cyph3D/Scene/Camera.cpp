@@ -108,7 +108,7 @@ Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
 
 bool Camera::update(glm::vec2 mousePosDelta)
 {
-	float ratio = (float)Engine::getTimer().deltaTime() * _speed;
+	float ratio = static_cast<float>(Engine::getTimer().deltaTime()) * _speed;
 
 	bool changed = false;
 

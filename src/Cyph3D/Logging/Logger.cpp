@@ -12,7 +12,7 @@ std::mutex Logger::_mtx;
 std::unique_ptr<ILoggerColor> Logger::_loggerColor = std::make_unique<Win32LoggerColor>();
 std::ofstream Logger::_logFile = FileHelper::openFileForWriting("Cyph3D.log");
 
-static const glm::u8vec3 DEFAULT_LOG_COLOR = {224, 224, 224};
+static constexpr glm::u8vec3 DEFAULT_LOG_COLOR = {224, 224, 224};
 
 void Logger::print(std::string_view message, std::string_view context, std::string_view prefix, glm::u8vec3 prefixColor)
 {

@@ -4,12 +4,12 @@
 #include "Cyph3D/VKObject/Shader/VKShader.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKRayTracingPipeline> VKRayTracingPipeline::create(VKContext& context, VKRayTracingPipelineInfo& info)
+VKPtr<VKRayTracingPipeline> VKRayTracingPipeline::create(VKContext& context, const VKRayTracingPipelineInfo& info)
 {
 	return VKPtr<VKRayTracingPipeline>(new VKRayTracingPipeline(context, info));
 }
 
-VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, VKRayTracingPipelineInfo& info):
+VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracingPipelineInfo& info):
 	VKPipeline(context),
 	_info(info)
 {

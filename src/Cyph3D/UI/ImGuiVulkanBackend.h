@@ -21,7 +21,7 @@ public:
 	ImGuiVulkanBackend();
 	~ImGuiVulkanBackend();
 
-	void renderDrawData(ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImage>& outputImage);
+	void renderDrawData(const ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImage>& outputImage);
 
 private:
 	struct PushConstantData
@@ -52,7 +52,7 @@ private:
 	void createBuffers();
 
 	void setupRenderState(
-		ImDrawData* drawData,
+		const ImDrawData* drawData,
 		const VKPtr<VKCommandBuffer>& commandBuffer,
 		const VKPtr<VKResizableBuffer<ImDrawVert>>& vertexBuffer,
 		const VKPtr<VKResizableBuffer<ImDrawIdx>>& indexBuffer,

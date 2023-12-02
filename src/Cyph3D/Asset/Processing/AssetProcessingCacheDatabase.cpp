@@ -16,7 +16,7 @@ static xg::Guid columnToGuid(const SQLite::Column& column)
 
 	std::array<uint8_t, 16> guidBytes{};
 	const uint8_t* blob = static_cast<const uint8_t*>(column.getBlob());
-	std::copy(blob, blob + 16, guidBytes.begin());
+	std::copy_n(blob, guidBytes.size(), guidBytes.data());
 
 	return xg::Guid(guidBytes);
 }

@@ -27,7 +27,7 @@ ObjectPicker::ObjectPicker()
 
 ObjectPicker::~ObjectPicker() = default;
 
-Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos)
+Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos)
 {
 	if (viewportSize.x * viewportSize.y == 0)
 		return nullptr;

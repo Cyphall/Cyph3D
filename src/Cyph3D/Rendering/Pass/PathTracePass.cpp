@@ -25,7 +25,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>
 
-static const uint32_t FIXED_POINT_DECIMALS = 3;
+static constexpr uint32_t FIXED_POINT_DECIMALS = 3;
 
 PathTracePass::PathTracePass(const glm::uvec2& size):
 	RenderPass(size, "Path trace pass")

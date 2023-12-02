@@ -77,8 +77,8 @@ public:
 				else
 				{
 					std::string extension = entry.path().extension().generic_string();
-					std::transform(
-						extension.begin(), extension.end(),
+					std::ranges::transform(
+						extension,
 						extension.begin(),
 						[](char c)
 						{
@@ -174,8 +174,8 @@ public:
 		if (ImGui::CalcTextSize(string.c_str()).x > maxWidth)
 		{
 			std::vector<char> buffer(string.size() + 3, 0);
-			std::fill(buffer.begin(), buffer.begin() + 3, '.');
-			std::copy(string.begin(), string.end(), buffer.begin() + 3);
+			std::fill_n(buffer.data(), 3, '.');
+			std::ranges::copy(string, buffer.data() + 3);
 
 			int min = 0;
 			int max = buffer.size();
