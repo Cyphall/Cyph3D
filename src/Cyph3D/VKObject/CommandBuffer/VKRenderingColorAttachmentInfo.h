@@ -44,7 +44,7 @@ public:
 private:
 	ImageInfo _imageInfo;
 	vk::ResolveModeFlagBits _resolveMode = vk::ResolveModeFlagBits::eNone;
-	ImageInfo _resolveImageInfo;
+	ImageInfo _resolveImageInfo{};
 	vk::AttachmentLoadOp _loadOp = vk::AttachmentLoadOp::eDontCare;
 	vk::ClearValue _clearValue;
 	vk::AttachmentStoreOp _storeOp = vk::AttachmentStoreOp::eDontCare;

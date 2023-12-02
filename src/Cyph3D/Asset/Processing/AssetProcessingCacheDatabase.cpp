@@ -60,8 +60,7 @@ AssetProcessingCacheDatabase::AssetProcessingCacheDatabase()
 	);
 }
 
-AssetProcessingCacheDatabase::~AssetProcessingCacheDatabase()
-{}
+AssetProcessingCacheDatabase::~AssetProcessingCacheDatabase() = default;
 
 std::string AssetProcessingCacheDatabase::getImageCachePath(std::string_view path, ImageType type)
 {

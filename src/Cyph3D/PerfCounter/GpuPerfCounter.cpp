@@ -15,9 +15,7 @@ GpuPerfCounter::GpuPerfCounter()
 	);
 }
 
-GpuPerfCounter::~GpuPerfCounter()
-{
-}
+GpuPerfCounter::~GpuPerfCounter() = default;
 
 void GpuPerfCounter::start(const VKPtr<VKCommandBuffer>& commandBuffer)
 {

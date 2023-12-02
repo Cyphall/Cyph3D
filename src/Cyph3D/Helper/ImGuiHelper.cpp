@@ -13,7 +13,6 @@ bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const ch
 
 	bool assetChanged = false;
 
-	float remainingWidth = ImGui::GetContentRegionAvail().x;
 	float textboxWidth = ImGui::CalcItemWidth() - ImGui::GetFrameHeight();
 
 	ImGui::BeginGroup();

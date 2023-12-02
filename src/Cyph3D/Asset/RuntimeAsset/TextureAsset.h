@@ -24,7 +24,7 @@ struct TextureAssetSignature
 template<>
 struct std::hash<TextureAssetSignature>
 {
-	std::size_t operator()(const TextureAssetSignature& key) const
+	std::size_t operator()(const TextureAssetSignature& key) const noexcept
 	{
 		return HashBuilder()
 		    .hash(key.path)

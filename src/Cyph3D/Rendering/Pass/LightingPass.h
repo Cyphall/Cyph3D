@@ -6,7 +6,7 @@
 #include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/VKObject/VKPtr.h"
 
-struct RenderRegistry;
+class RenderRegistry;
 class Camera;
 class VKPipelineLayout;
 class VKGraphicsPipeline;

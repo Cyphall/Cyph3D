@@ -15,8 +15,7 @@ SkyboxAsset::SkyboxAsset(AssetManager& manager, const SkyboxAssetSignature& sign
 	reload();
 }
 
-SkyboxAsset::~SkyboxAsset()
-{}
+SkyboxAsset::~SkyboxAsset() = default;
 
 bool SkyboxAsset::isLoaded() const
 {
@@ -48,7 +47,7 @@ void SkyboxAsset::onDrawUi()
 	{
 		for (Layout layout : magic_enum::enum_values<Layout>())
 		{
-			bool isSelected = (layout == _layout);
+			bool isSelected = layout == _layout;
 			if (ImGui::Selectable(magic_enum::enum_name(layout).data(), isSelected))
 			{
 				setLayout(layout);

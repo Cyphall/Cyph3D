@@ -8,7 +8,7 @@ class Camera
 public:
 	explicit Camera(glm::vec3 position = glm::vec3(0), glm::vec2 sphericalCoords = glm::vec2(0));
 
-	bool update(glm::vec2 mousePos);
+	bool update(glm::vec2 mousePosDelta);
 
 	glm::mat4 getView() const;
 

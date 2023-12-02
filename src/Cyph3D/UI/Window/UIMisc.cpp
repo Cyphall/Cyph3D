@@ -114,7 +114,7 @@ void UIMisc::displayPerfStep(const PerfStep& perfStep)
 	{
 		if (ImGui::TreeNodeEx(perfStep.getName().c_str(), 0, "%s: %.3fms", perfStep.getName().c_str(), perfStep.getDuration()))
 		{
-			for (const PerfStep& perfSubstep : perfStep.getSubsteps())
+			for (const std::reference_wrapper<const PerfStep>& perfSubstep : perfStep.getSubsteps())
 			{
 				displayPerfStep(perfSubstep);
 			}

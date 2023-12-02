@@ -24,7 +24,7 @@ struct MeshAssetSignature
 template<>
 struct std::hash<MeshAssetSignature>
 {
-	std::size_t operator()(const MeshAssetSignature& key) const
+	std::size_t operator()(const MeshAssetSignature& key) const noexcept
 	{
 		return HashBuilder()
 		    .hash(key.path)
@@ -61,8 +61,8 @@ private:
 	VKPtr<VKBuffer<uint32_t>> _indexBuffer;
 	VKPtr<VKAccelerationStructure> _accelerationStructure;
 
-	glm::vec3 _boundingBoxMin;
-	glm::vec3 _boundingBoxMax;
+	glm::vec3 _boundingBoxMin = {0, 0, 0};
+	glm::vec3 _boundingBoxMax = {0, 0, 0};
 
 	static MeshAsset* _defaultMesh;
 	static MeshAsset* _missingMesh;

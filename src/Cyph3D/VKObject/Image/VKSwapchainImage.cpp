@@ -20,9 +20,7 @@ VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::For
 	_image = VKImage::create(_context, info);
 }
 
-VKSwapchainImage::~VKSwapchainImage()
-{
-}
+VKSwapchainImage::~VKSwapchainImage() = default;
 
 VKSwapchain& VKSwapchainImage::getSwapchain() const
 {

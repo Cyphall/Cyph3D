@@ -20,6 +20,6 @@ public:
 
 private:
 	std::string _name;
-	double _duration; // in ms
+	double _duration = 0.0; // in ms
 	std::vector<std::reference_wrapper<const PerfStep>> _substeps;
 };

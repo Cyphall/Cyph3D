@@ -52,9 +52,9 @@ const std::byte* StbImage::getPtr() const
 		return reinterpret_cast<std::byte*>(_data16bit.get());
 	case 32:
 		return reinterpret_cast<std::byte*>(_data32bit.get());
+	default:
+		throw;
 	}
-
-	return nullptr;
 }
 
 uint32_t StbImage::getBitsPerChannel() const

@@ -22,7 +22,7 @@ protected:
 
 		void decrement()
 		{
-			if (--(_refCount) == 0)
+			if (--_refCount == 0)
 			{
 				delete this;
 			}
@@ -59,7 +59,7 @@ public:
 		copyConstructFrom(other);
 	}
 
-	template<typename TOther, typename std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
+	template<typename TOther, std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
 	VKPtr(const VKPtr<TOther>& other) // NOLINT(google-explicit-constructor)
 	{
 		copyConstructFrom(other);
@@ -75,7 +75,7 @@ public:
 		return copyAssignFrom(other); // NOLINT(misc-unconventional-assign-operator)
 	}
 
-	template<typename TOther, typename std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
+	template<typename TOther, std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
 	VKPtr& operator=(const VKPtr<TOther>& other)
 	{
 		return copyAssignFrom(other); // NOLINT(misc-unconventional-assign-operator)
@@ -86,7 +86,7 @@ public:
 		moveConstructFrom(std::forward<VKPtr>(other));
 	}
 
-	template<typename TOther, typename std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
+	template<typename TOther, std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
 	VKPtr(VKPtr<TOther>&& other) noexcept // NOLINT(google-explicit-constructor)
 	{
 		moveConstructFrom(std::forward<VKPtr<TOther>>(other));
@@ -101,7 +101,7 @@ public:
 		return moveAssignFrom(std::forward<VKPtr>(other)); // NOLINT(misc-unconventional-assign-operator)
 	}
 
-	template<typename TOther, typename std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
+	template<typename TOther, std::enable_if_t<std::is_convertible_v<TOther*, T*>>* = nullptr>
 	VKPtr& operator=(VKPtr<TOther>&& other) noexcept
 	{
 		return moveAssignFrom(std::forward<VKPtr<TOther>>(other)); // NOLINT(misc-unconventional-assign-operator)

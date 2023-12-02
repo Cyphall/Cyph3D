@@ -9,9 +9,9 @@ template<typename T>
 class VKResizableBuffer : public VKObject
 {
 public:
-	static VKPtr<VKResizableBuffer<T>> create(VKContext& context, const VKResizableBufferInfo& info)
+	static VKPtr<VKResizableBuffer> create(VKContext& context, const VKResizableBufferInfo& info)
 	{
-		return VKPtr<VKResizableBuffer<T>>(new VKResizableBuffer<T>(context, info));
+		return VKPtr<VKResizableBuffer>(new VKResizableBuffer(context, info));
 	}
 
 	T* getHostPointer()

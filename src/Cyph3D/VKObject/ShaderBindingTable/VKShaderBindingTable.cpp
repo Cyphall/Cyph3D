@@ -81,9 +81,7 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 	}
 }
 
-VKShaderBindingTable::~VKShaderBindingTable()
-{
-}
+VKShaderBindingTable::~VKShaderBindingTable() = default;
 
 const VKShaderBindingTableInfo& VKShaderBindingTable::getInfo() const
 {

@@ -36,7 +36,7 @@ ImGuiVulkanBackend::~ImGuiVulkanBackend()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
-	io.Fonts->SetTexID(static_cast<ImTextureID>(nullptr));
+	io.Fonts->SetTexID(nullptr);
 
 	io.BackendRendererName = nullptr;
 	io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
@@ -292,7 +292,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 		}
 	);
 
-	io.Fonts->SetTexID(static_cast<ImTextureID>(&_fontsTexture));
+	io.Fonts->SetTexID(&_fontsTexture);
 }
 
 void ImGuiVulkanBackend::createBuffers()

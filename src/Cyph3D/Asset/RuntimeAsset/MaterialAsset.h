@@ -24,7 +24,7 @@ struct MaterialAssetSignature
 template<>
 struct std::hash<MaterialAssetSignature>
 {
-	std::size_t operator()(const MaterialAssetSignature& key) const
+	std::size_t operator()(const MaterialAssetSignature& key) const noexcept
 	{
 		return HashBuilder()
 		    .hash(key.path)

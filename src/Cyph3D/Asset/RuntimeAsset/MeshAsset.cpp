@@ -21,8 +21,7 @@ MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature)
 	_manager.addThreadPoolTask(&MeshAsset::load_async, this);
 }
 
-MeshAsset::~MeshAsset()
-{}
+MeshAsset::~MeshAsset() = default;
 
 const VKPtr<VKBuffer<PositionVertexData>>& MeshAsset::getPositionVertexBuffer() const
 {

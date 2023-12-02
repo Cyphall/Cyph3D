@@ -16,7 +16,7 @@ public:
 	static void show();
 
 	static Camera& getCamera();
-	static void setCamera(Camera camera);
+	static void setCamera(const Camera& camera);
 
 	static bool isFullscreen();
 

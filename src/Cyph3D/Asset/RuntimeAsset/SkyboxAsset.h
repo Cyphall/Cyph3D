@@ -23,7 +23,7 @@ struct SkyboxAssetSignature
 template<>
 struct std::hash<SkyboxAssetSignature>
 {
-	std::size_t operator()(const SkyboxAssetSignature& key) const
+	std::size_t operator()(const SkyboxAssetSignature& key) const noexcept
 	{
 		return HashBuilder()
 		    .hash(key.path)

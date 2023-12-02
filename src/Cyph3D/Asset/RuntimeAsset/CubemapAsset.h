@@ -30,7 +30,7 @@ struct CubemapAssetSignature
 template<>
 struct std::hash<CubemapAssetSignature>
 {
-	std::size_t operator()(const CubemapAssetSignature& key) const
+	std::size_t operator()(const CubemapAssetSignature& key) const noexcept
 	{
 		return HashBuilder()
 		    .hash(key.xposPath)

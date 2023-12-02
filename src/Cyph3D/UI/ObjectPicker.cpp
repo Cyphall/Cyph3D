@@ -25,9 +25,7 @@ ObjectPicker::ObjectPicker()
 	createBuffer();
 }
 
-ObjectPicker::~ObjectPicker()
-{
-}
+ObjectPicker::~ObjectPicker() = default;
 
 Entity* ObjectPicker::getPickedEntity(Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos)
 {

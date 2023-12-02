@@ -13,9 +13,9 @@ template<typename T>
 class VKBuffer : public VKBufferBase
 {
 public:
-	static VKPtr<VKBuffer<T>> create(VKContext& context, const VKBufferInfo& info)
+	static VKPtr<VKBuffer> create(VKContext& context, const VKBufferInfo& info)
 	{
-		return VKPtr<VKBuffer<T>>(new VKBuffer<T>(context, info));
+		return VKPtr<VKBuffer>(new VKBuffer(context, info));
 	}
 
 	~VKBuffer() override

@@ -218,9 +218,7 @@ UIAssetBrowser::UIAssetBrowser(ImFont* bigFont):
 {
 }
 
-UIAssetBrowser::~UIAssetBrowser()
-{
-}
+UIAssetBrowser::~UIAssetBrowser() = default;
 
 void UIAssetBrowser::draw()
 {

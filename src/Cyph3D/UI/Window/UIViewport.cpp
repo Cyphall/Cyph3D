@@ -292,7 +292,7 @@ Camera& UIViewport::getCamera()
 	return _camera;
 }
 
-void UIViewport::setCamera(Camera camera)
+void UIViewport::setCamera(const Camera& camera)
 {
 	_camera = camera;
 	_camera.setAspectRatio(static_cast<float>(_previousViewportSize.x) / static_cast<float>(_previousViewportSize.y));
@@ -402,7 +402,7 @@ void UIViewport::drawHeader()
 				continue;
 			}
 
-			const bool is_selected = (sceneRendererType == _sceneRendererType);
+			const bool is_selected = sceneRendererType == _sceneRendererType;
 			if (ImGui::Selectable(magic_enum::enum_name(sceneRendererType).data(), is_selected))
 			{
 				_sceneRenderer.reset();

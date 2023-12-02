@@ -20,8 +20,7 @@ MaterialAsset::MaterialAsset(AssetManager& manager, const MaterialAssetSignature
 	reload();
 }
 
-MaterialAsset::~MaterialAsset()
-{}
+MaterialAsset::~MaterialAsset() = default;
 
 bool MaterialAsset::isLoaded() const
 {

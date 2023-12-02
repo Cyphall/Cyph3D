@@ -41,7 +41,7 @@ double VKTimestampQuery::getElapsedTime() const
 	// clang-format on
 
 	double timestampDiff = timestamps[1] - timestamps[0];
-	return static_cast<double>(timestampDiff) * static_cast<double>(_context.getProperties().limits.timestampPeriod) / 1000000.0;
+	return timestampDiff * static_cast<double>(_context.getProperties().limits.timestampPeriod) / 1000000.0;
 }
 
 const vk::QueryPool& VKTimestampQuery::getHandle()
