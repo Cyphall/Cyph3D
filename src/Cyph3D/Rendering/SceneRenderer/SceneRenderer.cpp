@@ -1,6 +1,5 @@
 #include "SceneRenderer.h"
 
-#include "Cyph3D/Engine.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 const vk::Format SceneRenderer::DEPTH_FORMAT = vk::Format::eD32Sfloat;

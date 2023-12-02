@@ -2,7 +2,6 @@
 
 #include <imgui.h>
 #include <optional>
-#include <string_view>
 
 class ImGuiHelper
 {

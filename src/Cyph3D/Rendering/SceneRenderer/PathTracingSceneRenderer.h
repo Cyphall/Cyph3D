@@ -6,7 +6,6 @@
 #include "Cyph3D/Rendering/Pass/PathTracePass.h"
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
-#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 
 class PathTracingSceneRenderer : public SceneRenderer
 {

@@ -3,6 +3,7 @@
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.h"
 #include "Cyph3D/VKObject/VKObject.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <vulkan/vulkan.hpp>
 

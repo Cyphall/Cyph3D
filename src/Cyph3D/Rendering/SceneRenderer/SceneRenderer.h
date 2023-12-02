@@ -6,8 +6,6 @@
 #include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
-#include <string>
-#include <string_view>
 
 class Scene;
 class Camera;

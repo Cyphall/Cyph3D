@@ -7,7 +7,6 @@
 #include <GLFW/glfw3.h>
 
 #undef APIENTRY
-#include <cstdlib>
 #include <filesystem>
 #include <format>
 #include <fstream>

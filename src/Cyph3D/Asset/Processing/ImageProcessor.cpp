@@ -14,11 +14,9 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
-#include <array>
 #include <filesystem>
 #include <half.hpp>
 #include <magic_enum.hpp>
-#include <vulkan/vulkan_format_traits.hpp>
 
 struct PushConstantData
 {

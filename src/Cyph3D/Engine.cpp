@@ -8,7 +8,6 @@
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/UIHelper.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
-#include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
@@ -18,7 +17,6 @@
 
 #include <format>
 #include <GLFW/glfw3.h>
-#include <stdexcept>
 
 std::unique_ptr<VKContext> Engine::_vkContext;
 std::unique_ptr<Window> Engine::_window;

@@ -4,9 +4,9 @@
 #include "Cyph3D/VKObject/Buffer/VKBufferInfo.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <set>
-#include <stdexcept>
 #include <vk_mem_alloc.hpp>
 
 template<typename T>

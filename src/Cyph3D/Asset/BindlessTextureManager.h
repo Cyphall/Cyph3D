@@ -6,7 +6,6 @@
 #include <mutex>
 #include <stack>
 #include <vector>
-#include <vulkan/vulkan.hpp>
 
 class VKImage;
 class VKDescriptorSetLayout;

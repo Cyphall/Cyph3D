@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <memory>
 #include <vector>

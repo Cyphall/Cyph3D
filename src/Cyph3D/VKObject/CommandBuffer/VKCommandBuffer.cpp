@@ -18,7 +18,6 @@
 #include "Cyph3D/VKObject/Query/VKTimestampQuery.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
-#include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
 #include "Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h"
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"

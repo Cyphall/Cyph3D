@@ -6,8 +6,6 @@
 #include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
-#include <string>
-#include <unordered_map>
 
 template<typename TInput, typename TOutput>
 class RenderPass

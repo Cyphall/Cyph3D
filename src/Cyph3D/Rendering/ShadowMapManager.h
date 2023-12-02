@@ -2,7 +2,6 @@
 
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-#include <array>
 #include <unordered_map>
 #include <vector>
 

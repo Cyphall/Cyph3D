@@ -4,7 +4,6 @@
 #include "Cyph3D/Asset/Processing/EquirectangularSkyboxData.h"
 
 #include <filesystem>
-#include <string_view>
 
 class VKDescriptorSetLayout;
 class VKPipelineLayout;

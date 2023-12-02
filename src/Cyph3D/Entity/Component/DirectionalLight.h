@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Entity/Component/LightBase.h"
 
-#include <memory>
 #include <nlohmann/json_fwd.hpp>
 
 class DirectionalLight : public LightBase

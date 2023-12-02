@@ -2,8 +2,8 @@
 
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/VKObject.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
-#include <unordered_map>
 #include <vulkan/vulkan.hpp>
 
 class VKDescriptorSetLayout : public VKObject

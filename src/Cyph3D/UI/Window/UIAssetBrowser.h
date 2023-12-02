@@ -1,11 +1,8 @@
 #pragma once
 
-#include <filesystem>
 #include <functional>
-#include <glm/glm.hpp>
 #include <imgui.h>
 #include <memory>
-#include <string>
 
 class UIAssetBrowser
 {

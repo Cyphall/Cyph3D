@@ -1,6 +1,5 @@
 #include "PointLight.h"
 
-#include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"

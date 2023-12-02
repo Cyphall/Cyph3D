@@ -1,9 +1,6 @@
 #include "VKHelper.h"
 
-#include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
-#include "Cyph3D/VKObject/VKContext.h"
 
 size_t VKHelper::alignUp(size_t size, size_t alignment)
 {

@@ -11,7 +11,6 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
-#include <imgui_stdlib.h>
 
 glm::ivec2 UIMisc::_resolution(1920, 1080);
 uint32_t UIMisc::_renderSampleCount = 1024;

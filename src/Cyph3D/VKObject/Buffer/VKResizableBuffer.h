@@ -3,6 +3,7 @@
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBufferInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Cyph3D/VKObject/VKPtr.h"
 
 template<typename T>
 class VKResizableBuffer : public VKObject

@@ -11,7 +11,6 @@
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
-#include <vulkan/vulkan_hash.hpp>
 
 static constexpr uint32_t VULKAN_VERSION = VK_API_VERSION_1_3;
 

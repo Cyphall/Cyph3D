@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
-
 class VKContext;
 
 class VKObject

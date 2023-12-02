@@ -1,7 +1,6 @@
 #include "UIHelper.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/ImGuiVulkanBackend.h"
 #include "Cyph3D/UI/Window/UIAssetBrowser.h"
 #include "Cyph3D/UI/Window/UIHierarchy.h"

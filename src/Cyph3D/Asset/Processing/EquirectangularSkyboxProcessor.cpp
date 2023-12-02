@@ -19,8 +19,6 @@
 #include <filesystem>
 #include <glm/gtc/matrix_transform.hpp>
 #include <half.hpp>
-#include <magic_enum.hpp>
-#include <vulkan/vulkan_format_traits.hpp>
 
 struct MipmapPushConstantData
 {

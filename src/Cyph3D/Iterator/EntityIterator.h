@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Scene/Scene.h"
 
-#include <memory>
 #include <vector>
 
 class Entity;

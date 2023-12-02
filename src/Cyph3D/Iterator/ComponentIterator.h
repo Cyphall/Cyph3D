@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Entity/Entity.h"
 
-#include <memory>
 #include <vector>
 
 class Component;

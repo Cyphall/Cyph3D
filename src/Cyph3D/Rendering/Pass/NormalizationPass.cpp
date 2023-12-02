@@ -7,7 +7,6 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Pipeline/VKComputePipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
-#include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
 NormalizationPass::NormalizationPass(glm::uvec2 size):
 	RenderPass(size, "Normalization pass")

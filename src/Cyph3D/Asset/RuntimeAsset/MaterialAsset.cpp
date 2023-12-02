@@ -5,10 +5,7 @@
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Helper/ImGuiHelper.h"
 #include "Cyph3D/Helper/JsonHelper.h"
-#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
-#include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/Window.h"
 
 #include <glm/gtc/type_ptr.hpp>

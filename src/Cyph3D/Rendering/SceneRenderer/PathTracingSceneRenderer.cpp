@@ -1,6 +1,5 @@
 #include "PathTracingSceneRenderer.h"
 
-#include "Cyph3D/Engine.h"
 #include "Cyph3D/Rendering/Pass/BloomPass.h"
 #include "Cyph3D/Rendering/Pass/ExposurePass.h"
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"

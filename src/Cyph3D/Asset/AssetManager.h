@@ -4,7 +4,6 @@
 #include "Cyph3D/Asset/BindlessTextureManager.h"
 #include "Cyph3D/Asset/Processing/AssetProcessor.h"
 #include "Cyph3D/Asset/Processing/ImageData.h"
-#include "Cyph3D/Asset/Processing/MeshData.h"
 #include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"

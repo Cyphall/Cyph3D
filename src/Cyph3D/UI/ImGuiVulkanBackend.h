@@ -5,7 +5,6 @@
 
 #include <glm/glm.hpp>
 #include <imgui.h>
-#include <memory>
 
 class VKCommandBuffer;
 class VKDescriptorSetLayout;

@@ -2,10 +2,6 @@
 
 #include "Cyph3D/Entity/Component/Component.h"
 
-#include <functional>
-#include <glm/glm.hpp>
-#include <map>
-#include <memory>
 #include <nlohmann/json_fwd.hpp>
 #include <optional>
 #include <string>
