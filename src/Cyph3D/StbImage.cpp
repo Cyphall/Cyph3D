@@ -9,15 +9,15 @@ _data16bit(nullptr, stbi_image_free),
 _data32bit(nullptr, stbi_image_free)
 {
 	std::string pathStr = path.generic_string();
-	
+
 	int width;
 	int height;
 	int channelCount;
-	
+
 	bool is32Bit = stbi_is_hdr(pathStr.c_str());
 	bool is16Bit = stbi_is_16_bit(pathStr.c_str());
 	bool is8Bit = !is32Bit && !is16Bit;
-	
+
 	if ((acceptedBitDepths & BitDepthFlags::e32) == BitDepthFlags::e32 && is32Bit)
 	{
 		_bitPerChannel = 32;
@@ -37,7 +37,7 @@ _data32bit(nullptr, stbi_image_free)
 	{
 		throw;
 	}
-	
+
 	_size = {width, height};
 	_channelCount = desiredChannels == Channels::eAny ? channelCount : static_cast<int>(desiredChannels);
 }
@@ -53,7 +53,7 @@ const std::byte* StbImage::getPtr() const
 		case 32:
 			return reinterpret_cast<std::byte*>(_data32bit.get());
 	}
-	
+
 	return nullptr;
 }
 

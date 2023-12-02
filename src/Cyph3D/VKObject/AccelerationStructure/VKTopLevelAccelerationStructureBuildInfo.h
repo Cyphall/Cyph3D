@@ -16,6 +16,6 @@ struct VKTopLevelAccelerationStructureBuildInfo
 		uint32_t recordIndex;
 		VKPtr<VKAccelerationStructure> accelerationStructure;
 	};
-	
+
 	std::vector<InstanceInfo> instancesInfos;
 };

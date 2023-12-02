@@ -37,7 +37,7 @@ void ModelRenderer::setMaterial(std::optional<std::string_view> path)
 		_material = nullptr;
 		_materialChangedConnection = {};
 	}
-	
+
 	_changed();
 }
 
@@ -60,7 +60,7 @@ void ModelRenderer::setMesh(std::optional<std::string_view> path)
 		_mesh = nullptr;
 		_meshChangedConnection = {};
 	}
-	
+
 	_changed();
 }
 
@@ -77,7 +77,7 @@ bool ModelRenderer::getContributeShadows() const
 void ModelRenderer::setContributeShadows(bool contributeShadows)
 {
 	_contributeShadows = contributeShadows;
-	
+
 	_changed();
 }
 
@@ -86,7 +86,7 @@ ObjectSerialization ModelRenderer::serialize() const
 	ObjectSerialization serialization;
 	serialization.version = 3;
 	serialization.identifier = getIdentifier();
-	
+
 	if (_material)
 	{
 		serialization.data["material"] = _material->getSignature().path;
@@ -95,7 +95,7 @@ ObjectSerialization ModelRenderer::serialize() const
 	{
 		serialization.data["material"] = nullptr;
 	}
-	
+
 	if (_mesh)
 	{
 		serialization.data["mesh"] = _mesh->getSignature().path;
@@ -104,9 +104,9 @@ ObjectSerialization ModelRenderer::serialize() const
 	{
 		serialization.data["mesh"] = nullptr;
 	}
-	
+
 	serialization.data["contribute_shadows"] = getContributeShadows();
-	
+
 	return serialization;
 }
 
@@ -143,7 +143,7 @@ void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 	{
 		material = _material;
 	}
-	
+
 	MeshAsset* mesh;
 	if (!_mesh)
 	{
@@ -157,7 +157,7 @@ void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 	{
 		mesh = _mesh;
 	}
-	
+
 	if (material->isLoaded() && mesh->isLoaded())
 	{
 		RenderData data{
@@ -167,7 +167,7 @@ void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 			.contributeShadows = getContributeShadows(),
 			.owner = getEntity()
 		};
-		
+
 		renderRegistry.addRenderRequest(data);
 	}
 }
@@ -179,13 +179,13 @@ void ModelRenderer::onDrawUi()
 	{
 		setMaterial(newMaterialPath);
 	}
-	
+
 	std::optional<std::string_view> newMeshPath;
 	if (ImGuiHelper::AssetInputWidget(_mesh ? &_mesh->getSignature().path : nullptr, "Mesh", "asset_mesh", newMeshPath))
 	{
 		setMesh(newMeshPath);
 	}
-	
+
 	bool contributeShadows = getContributeShadows();
 	if (ImGui::Checkbox("Contribute Shadows", &contributeShadows))
 	{
@@ -226,9 +226,9 @@ void ModelRenderer::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 	{
 		setMaterial(std::nullopt);
 	}
-	
+
 	ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(jsonRoot["shape"]);
-	
+
 	if (shapeSerialization.identifier == "MeshShape")
 	{
 		const nlohmann::ordered_json& jsonMeshPath = shapeSerialization.data["model"];
@@ -251,7 +251,7 @@ void ModelRenderer::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 	{
 		setMesh("meshes/sphere.obj");
 	}
-	
+
 	setContributeShadows(jsonRoot["contribute_shadows"].get<bool>());
 }
 
@@ -266,9 +266,9 @@ void ModelRenderer::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 	{
 		setMaterial(std::nullopt);
 	}
-	
+
 	ObjectSerialization shapeSerialization = ObjectSerialization::fromJson(jsonRoot["shape"]);
-	
+
 	if (shapeSerialization.identifier == "MeshShape")
 	{
 		const nlohmann::ordered_json& jsonMeshPath = shapeSerialization.data["model"];
@@ -289,7 +289,7 @@ void ModelRenderer::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 	{
 		setMesh("meshes/sphere.obj");
 	}
-	
+
 	setContributeShadows(jsonRoot["contribute_shadows"].get<bool>());
 }
 
@@ -304,7 +304,7 @@ void ModelRenderer::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 	{
 		setMaterial(std::nullopt);
 	}
-	
+
 	const nlohmann::ordered_json& jsonMesh = jsonRoot["mesh"];
 	if (!jsonMesh.is_null())
 	{
@@ -314,6 +314,6 @@ void ModelRenderer::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 	{
 		setMesh(std::nullopt);
 	}
-	
+
 	setContributeShadows(jsonRoot["contribute_shadows"].get<bool>());
 }

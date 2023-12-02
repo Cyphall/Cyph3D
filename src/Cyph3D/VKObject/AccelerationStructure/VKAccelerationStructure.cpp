@@ -22,7 +22,7 @@ VKAccelerationStructure::VKAccelerationStructure(
 	{
 		throw;
 	}
-	
+
 	vk::AccelerationStructureCreateInfoKHR accelerationStructureCreateInfo;
 	accelerationStructureCreateInfo.createFlags = {};
 	accelerationStructureCreateInfo.buffer = backingBuffer->getHandle();
@@ -30,14 +30,14 @@ VKAccelerationStructure::VKAccelerationStructure(
 	accelerationStructureCreateInfo.size = size;
 	accelerationStructureCreateInfo.type = type;
 	accelerationStructureCreateInfo.deviceAddress = 0;
-	
+
 	_accelerationStructure = _context.getDevice().createAccelerationStructureKHR(accelerationStructureCreateInfo);
-	
+
 	vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo;
 	accelerationStructureDeviceAddressInfo.accelerationStructure = _accelerationStructure;
-	
+
 	_accelerationStructureAddress = _context.getDevice().getAccelerationStructureAddressKHR(accelerationStructureDeviceAddressInfo);
-	
+
 	_accelerationStructureBackingBuffer = backingBuffer;
 }
 
@@ -77,9 +77,9 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getBottomLev
 	geometry.geometry.triangles.indexData = VK_NULL_HANDLE;
 	geometry.geometry.triangles.transformData = VK_NULL_HANDLE;
 	geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
-	
+
 	uint32_t primitiveCount = buildInfo.indexBuffer->getSize() / 3;
-	
+
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
 	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace | vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction;
@@ -89,7 +89,7 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getBottomLev
 	buildGeometryInfo.geometryCount = 1;
 	buildGeometryInfo.pGeometries = &geometry;
 	buildGeometryInfo.scratchData = VK_NULL_HANDLE;
-	
+
 	return context.getDevice().getAccelerationStructureBuildSizesKHR(
 		vk::AccelerationStructureBuildTypeKHR::eDevice,
 		buildGeometryInfo,
@@ -104,9 +104,9 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getTopLevelB
 	geometry.geometry.instances.arrayOfPointers = false;
 	geometry.geometry.instances.data = VK_NULL_HANDLE;
 	geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
-	
+
 	uint32_t primitiveCount = buildInfo.instancesInfos.size();
-	
+
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eTopLevel;
 	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
@@ -116,7 +116,7 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getTopLevelB
 	buildGeometryInfo.geometryCount = 1;
 	buildGeometryInfo.pGeometries = &geometry;
 	buildGeometryInfo.scratchData = VK_NULL_HANDLE;
-	
+
 	return context.getDevice().getAccelerationStructureBuildSizesKHR(
 		vk::AccelerationStructureBuildTypeKHR::eDevice,
 		buildGeometryInfo,

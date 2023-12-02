@@ -41,10 +41,10 @@ public:
 	const VKPtr<VKBuffer<FullVertexData>>& getFullVertexBuffer() const;
 	const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const;
 	const VKPtr<VKAccelerationStructure>& getAccelerationStructure() const;
-	
+
 	const glm::vec3& getBoundingBoxMin() const;
 	const glm::vec3& getBoundingBoxMax() const;
-	
+
 	static void initDefaultAndMissing();
 	static MeshAsset* getDefaultMesh();
 	static MeshAsset* getMissingMesh();
@@ -55,15 +55,15 @@ private:
 	MeshAsset(AssetManager& manager, const MeshAssetSignature& signature);
 
 	void load_async(AssetManagerWorkerData& workerData);
-	
+
 	VKPtr<VKBuffer<PositionVertexData>> _positionVertexBuffer;
 	VKPtr<VKBuffer<FullVertexData>> _fullVertexBuffer;
 	VKPtr<VKBuffer<uint32_t>> _indexBuffer;
 	VKPtr<VKAccelerationStructure> _accelerationStructure;
-	
+
 	glm::vec3 _boundingBoxMin;
 	glm::vec3 _boundingBoxMax;
-	
+
 	static MeshAsset* _defaultMesh;
 	static MeshAsset* _missingMesh;
 };

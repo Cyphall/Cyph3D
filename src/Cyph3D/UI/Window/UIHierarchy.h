@@ -13,9 +13,9 @@ public:
 
 private:
 	static constexpr ImGuiTreeNodeFlags BASE_FLAGS = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding;
-	
+
 	static std::function<void(void)> _task;
-	
+
 	static void addRootToTree();
 	static void addObjectToTree(Transform* transform);
 };

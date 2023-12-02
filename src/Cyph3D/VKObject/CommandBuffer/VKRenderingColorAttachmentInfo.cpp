@@ -28,7 +28,7 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk
 {
 	_resolveMode = mode;
 	_resolveImageInfo = {image, type, layerRange, levelRange, format};
-	
+
 	return *this;
 }
 
@@ -45,7 +45,7 @@ const VKRenderingColorAttachmentInfo::ImageInfo& VKRenderingColorAttachmentInfo:
 VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpLoad()
 {
 	_loadOp = vk::AttachmentLoadOp::eLoad;
-	
+
 	return *this;
 }
 
@@ -56,7 +56,7 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(g
 	_clearValue.color.float32[1] = clearValue.g;
 	_clearValue.color.float32[2] = clearValue.b;
 	_clearValue.color.float32[3] = clearValue.a;
-	
+
 	return *this;
 }
 
@@ -68,7 +68,7 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(g
 	_clearValue.color.int32[1] = clearValue.g;
 	_clearValue.color.int32[2] = clearValue.b;
 	_clearValue.color.int32[3] = clearValue.a;
-	
+
 	return *this;
 }
 
@@ -79,14 +79,14 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(g
 	_clearValue.color.uint32[1] = clearValue.g;
 	_clearValue.color.uint32[2] = clearValue.b;
 	_clearValue.color.uint32[3] = clearValue.a;
-	
+
 	return *this;
 }
 
 VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpDontCare()
 {
 	_loadOp = vk::AttachmentLoadOp::eDontCare;
-	
+
 	return *this;
 }
 
@@ -103,21 +103,21 @@ const vk::ClearValue& VKRenderingColorAttachmentInfo::getClearValue() const
 VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setStoreOpStore()
 {
 	_storeOp = vk::AttachmentStoreOp::eStore;
-	
+
 	return *this;
 }
 
 VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setStoreOpDontCare()
 {
 	_storeOp = vk::AttachmentStoreOp::eDontCare;
-	
+
 	return *this;
 }
 
 VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setStoreOpNone()
 {
 	_storeOp = vk::AttachmentStoreOp::eNone;
-	
+
 	return *this;
 }
 

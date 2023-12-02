@@ -59,9 +59,9 @@ Entity& Scene::createEntity(Transform& parent)
 	container.entityChangedConnection = container.entity->getChangedSignal().connect([](){
 		_changeVersion++;
 	});
-	
+
 	_changeVersion++;
-	
+
 	return *container.entity;
 }
 
@@ -84,11 +84,11 @@ EntityIterator Scene::removeEntity(EntityIterator where)
 		}
 		removeEntity(it);
 	}
-	
+
 	EntityIterator newIt = EntityIterator(_entities.erase(where.getUnderlyingIterator()));
-	
+
 	_changeVersion++;
-	
+
 	return newIt;
 }
 
@@ -131,7 +131,7 @@ void Scene::setSkybox(std::optional<std::string_view> path)
 		_skybox = nullptr;
 		_skyboxChangedConnection = {};
 	}
-	
+
 	_changeVersion++;
 }
 
@@ -148,7 +148,7 @@ float Scene::getSkyboxRotation() const
 void Scene::setSkyboxRotation(float rotation)
 {
 	_skyboxRotation = rotation;
-	
+
 	_changeVersion++;
 }
 
@@ -157,14 +157,14 @@ void Scene::load(const std::filesystem::path& path)
 	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / path);
 
 	int version = jsonRoot["version"].get<int>();
-	
+
 	std::unique_ptr<Scene> scene = std::make_unique<Scene>();
-	
+
 	scene->setName(path.filename().replace_extension().generic_string());
 
 	Camera camera;
 	const nlohmann::ordered_json& jsonCamera = jsonRoot["camera"];
-	
+
 	const nlohmann::ordered_json& jsonCameraPosition = jsonCamera["position"];
 	glm::vec3 cameraPosition = {
 		jsonCameraPosition.at(0).get<float>(),
@@ -172,7 +172,7 @@ void Scene::load(const std::filesystem::path& path)
 		jsonCameraPosition.at(2).get<float>()
 	};
 	camera.setPosition(cameraPosition);
-	
+
 	const nlohmann::ordered_json& jsonCameraSphericalCoords = jsonCamera["spherical_coords"];
 	glm::vec2 cameraSphericalCoords = {
 		jsonCameraSphericalCoords.at(0).get<float>(),
@@ -185,7 +185,7 @@ void Scene::load(const std::filesystem::path& path)
 	camera.setSphericalCoords(cameraSphericalCoords);
 
 	camera.setExposure(jsonCamera["exposure"].get<float>());
-	
+
 	UIViewport::setCamera(camera);
 
 	if (version <= 1)
@@ -215,7 +215,7 @@ void Scene::load(const std::filesystem::path& path)
 		if (!jsonSkybox.is_null())
 		{
 			scene->setSkybox(jsonSkybox["name"].get<std::string>());
-			
+
 			scene->setSkyboxRotation(jsonSkybox["rotation"].get<float>());
 		}
 	}
@@ -226,7 +226,7 @@ void Scene::load(const std::filesystem::path& path)
 		{
 			scene->setSkybox(jsonSkyboxPath.get<std::string>());
 		}
-		
+
 		scene->setSkyboxRotation(jsonRoot["skybox_rotation"].get<float>());
 	}
 
@@ -234,17 +234,17 @@ void Scene::load(const std::filesystem::path& path)
 	{
 		deserializeEntity(value, scene->getRoot(), version, *scene);
 	}
-	
+
 	Engine::setScene(std::move(scene));
 }
 
 void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene)
 {
 	ObjectSerialization serialization = ObjectSerialization::fromJson(json);
-	
+
 	Entity& entity = scene.createEntity(parent);
 	entity.deserialize(serialization);
-	
+
 	for (const nlohmann::ordered_json& child : json["children"])
 	{
 		deserializeEntity(child, entity.getTransform(), version, scene);
@@ -254,11 +254,11 @@ void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& par
 void Scene::save(const std::filesystem::path& path)
 {
 	_name = path.filename().replace_extension().generic_string();
-	
+
 	nlohmann::ordered_json jsonRoot;
-	
+
 	jsonRoot["version"] = 4;
-	
+
 	const Camera& camera = UIViewport::getCamera();
 	nlohmann::ordered_json jsonCamera;
 	glm::vec3 cameraPosition = camera.getPosition();
@@ -266,9 +266,9 @@ void Scene::save(const std::filesystem::path& path)
 	glm::vec2 cameraRotation = camera.getSphericalCoords();
 	jsonCamera["spherical_coords"] = {cameraRotation.x, cameraRotation.y};
 	jsonCamera["exposure"] = camera.getExposure();
-	
+
 	jsonRoot["camera"] = jsonCamera;
-	
+
 	if (_skybox)
 	{
 		jsonRoot["skybox"] = _skybox->getSignature().path;
@@ -277,25 +277,25 @@ void Scene::save(const std::filesystem::path& path)
 	{
 		jsonRoot["skybox"] = nullptr;
 	}
-	
+
 	jsonRoot["skybox_rotation"] = getSkyboxRotation();
-	
+
 	std::vector<nlohmann::ordered_json> entities;
 	entities.reserve(_root->getChildren().size());
 	for (Transform* child : _root->getChildren())
 	{
 		entities.push_back(serializeEntity(*child->getOwner()));
 	}
-	
+
 	jsonRoot["entities"] = entities;
-	
+
 	JsonHelper::saveJsonToFile(jsonRoot, path.generic_string());
 }
 
 nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const
 {
 	nlohmann::ordered_json jsonData = entity.serialize().toJson();
-	
+
 	const Transform& transform = entity.getTransform();
 	std::vector<nlohmann::ordered_json> children;
 	children.reserve(transform.getChildren().size());
@@ -304,7 +304,7 @@ nlohmann::ordered_json Scene::serializeEntity(const Entity& entity) const
 		children.push_back(serializeEntity(*child->getOwner()));
 	}
 	jsonData["children"] = children;
-	
+
 	return jsonData;
 }
 
@@ -316,7 +316,7 @@ const std::string& Scene::getName() const
 void Scene::setName(const std::string& name)
 {
 	_name = name;
-	
+
 	_changeVersion++;
 }
 

@@ -23,17 +23,17 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 	else
 	{
 		vk::ImageCreateFlags flags = {};
-		
+
 		if (_info.getCompatibleViewFormats().size() > 1)
 		{
 			flags |= vk::ImageCreateFlagBits::eMutableFormat;
 		}
-		
+
 		if (_info.isCubeCompatible())
 		{
 			flags |= vk::ImageCreateFlagBits::eCubeCompatible;
 		}
-		
+
 		vk::ImageFormatListCreateInfo viewFormatsCreateInfo;
 		viewFormatsCreateInfo.viewFormatCount = _info.getCompatibleViewFormats().size();
 		viewFormatsCreateInfo.pViewFormats = _info.getCompatibleViewFormats().data();
@@ -45,7 +45,7 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		};
 
 		std::vector<uint32_t> queuesVec(queues.begin(), queues.end());
-		
+
 		vk::ImageCreateInfo createInfo;
 		createInfo.imageType = vk::ImageType::e2D;
 		createInfo.extent = vk::Extent3D(_info.getSize().x, _info.getSize().y, 1);
@@ -61,35 +61,35 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		createInfo.samples = _info.getSampleCount();
 		createInfo.flags = flags;
 		createInfo.pNext = &viewFormatsCreateInfo;
-		
+
 		vma::AllocationCreateInfo allocationCreateInfo;
 		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
 		allocationCreateInfo.requiredFlags = _info.getRequiredMemoryProperties();
 		allocationCreateInfo.preferredFlags = _info.getPreferredMemoryProperties();
-		
+
 		std::tie(_handle, _imageAlloc) = _context.getVmaAllocator().createImage(createInfo, allocationCreateInfo);
-		
+
 		if (_info.hasName())
 		{
 			vk::DebugUtilsObjectNameInfoEXT objectNameInfo;
 			objectNameInfo.objectType = vk::ObjectType::eImage;
 			objectNameInfo.objectHandle = reinterpret_cast<uintptr_t>(static_cast<VkImage>(_handle));
 			objectNameInfo.pObjectName = _info.getName().c_str();
-			
+
 			_context.getDevice().setDebugUtilsObjectNameEXT(objectNameInfo);
 		}
 	}
-	
+
 	uint32_t layers = _info.getLayers();
 	uint32_t levels = _info.getLevels();
-	
+
 	_currentLayouts.resize(layers);
 	for (uint32_t i = 0; i < layers; i++)
 	{
 		_currentLayouts[i].resize(levels);
 		std::fill(_currentLayouts[i].begin(), _currentLayouts[i].end(), vk::ImageLayout::eUndefined);
 	}
-	
+
 	_sizes.resize(levels);
 	_sizes[0] = _info.getSize();
 	for (uint32_t i = 1; i < levels; i++)
@@ -104,7 +104,7 @@ VKImage::~VKImage()
 	{
 		_context.getVmaAllocator().destroyImage(_handle, _imageAlloc);
 	}
-	
+
 	for (auto& [viewInfo, view] : _views)
 	{
 		_context.getDevice().destroyImageView(view);
@@ -155,7 +155,7 @@ vk::DeviceSize VKImage::getPixelByteSize() const
 	{
 		throw;
 	}
-	
+
 	vk::Format format = _info.getFormat();
 	return vk::blockSize(format) / vk::texelsPerBlock(format);
 }
@@ -173,7 +173,7 @@ vk::ImageView VKImage::getView(vk::ImageViewType type, glm::uvec2 layerRange, gl
 		.levelRange = levelRange,
 		.format = format
 	};
-	
+
 	auto it = _views.find(viewInfo);
 	if (it == _views.end())
 	{
@@ -200,10 +200,10 @@ vk::ImageView VKImage::getView(vk::ImageViewType type, glm::uvec2 layerRange, gl
 		imageViewCreateInfo.subresourceRange.layerCount = layerRange.y - layerRange.x + 1;
 		imageViewCreateInfo.subresourceRange.baseMipLevel = levelRange.x;
 		imageViewCreateInfo.subresourceRange.levelCount = levelRange.y - levelRange.x + 1;
-		
+
 		it = _views.try_emplace(viewInfo,  _context.getDevice().createImageView(imageViewCreateInfo)).first;
 	}
-	
+
 	return it->second;
 }
 

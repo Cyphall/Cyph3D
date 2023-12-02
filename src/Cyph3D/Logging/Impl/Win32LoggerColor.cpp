@@ -23,10 +23,10 @@ void Win32LoggerColor::resetColor()
 Win32LoggerColor::Win32LoggerColor()
 {
 	_consoleHandle = static_cast<void*>(GetStdHandle(STD_OUTPUT_HANDLE));
-	
+
 	DWORD mode;
 	GetConsoleMode(static_cast<HANDLE>(_consoleHandle), &mode);
-	
+
 	mode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	SetConsoleMode(static_cast<HANDLE>(_consoleHandle), mode);
 }

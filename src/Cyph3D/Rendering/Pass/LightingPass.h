@@ -45,7 +45,7 @@ private:
 		GLSL_uint  textureIndex;
 		GLSL_float shadowMapTexelWorldSize;
 	};
-	
+
 	struct PointLightUniforms
 	{
 		GLSL_vec3  pos;
@@ -55,7 +55,7 @@ private:
 		GLSL_uint  textureIndex;
 		GLSL_float maxTexelSizeAtUnitDistance;
 	};
-	
+
 	struct ObjectUniforms
 	{
 		GLSL_mat4 normalMatrix;
@@ -73,44 +73,44 @@ private:
 		GLSL_float displacementScale;
 		GLSL_float emissiveScale;
 	};
-	
+
 	struct PushConstantData
 	{
 		GLSL_vec3 viewPos;
 		GLSL_uint frameIndex;
 	};
-	
+
 	VKDynamic<VKResizableBuffer<DirectionalLightUniforms>> _directionalLightsUniforms;
 	VKDynamic<VKResizableBuffer<PointLightUniforms>> _pointLightsUniforms;
-	
+
 	VKDynamic<VKResizableBuffer<ObjectUniforms>> _objectUniforms;
-	
+
 	VKPtr<VKSampler> _directionalLightSampler;
 	VKPtr<VKSampler> _pointLightSampler;
-	
+
 	VKPtr<VKDescriptorSetLayout> _directionalLightDescriptorSetLayout;
 	VKDynamic<VKDescriptorSet> _directionalLightDescriptorSet;
 	VKPtr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
 	VKDynamic<VKDescriptorSet> _pointLightDescriptorSet;
-	
+
 	VKPtr<VKDescriptorSetLayout> _objectDescriptorSetLayout;
-	
+
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
-	
+
 	VKPtr<VKImage> _multisampledRawRenderImage;
-	
+
 	uint32_t _frameIndex = 0;
-	
+
 	LightingPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input) override;
 	void onResize() override;
-	
+
 	void createUniformBuffers();
 	void createSamplers();
 	void createDescriptorSetLayouts();
 	void createPipelineLayout();
 	void createPipeline();
 	void createImage();
-	
+
 	void descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount);
 };

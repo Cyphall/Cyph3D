@@ -18,12 +18,12 @@ public:
 	RuntimeAsset& operator=(RuntimeAsset&& other) = delete;
 
 	virtual bool isLoaded() const = 0;
-	
+
 	const TSignature& getSignature() const
 	{
 		return _signature;
 	}
-	
+
 	sigslot::signal<>& getChangedSignal()
 	{
 		return _changed;
@@ -35,7 +35,7 @@ protected:
 	{
 
 	}
-	
+
 	void checkLoaded() const
 	{
 #if defined(_DEBUG)
@@ -45,9 +45,9 @@ protected:
 		}
 #endif
 	}
-	
+
 	AssetManager& _manager;
 	TSignature _signature;
-	
+
 	sigslot::signal<> _changed;
 };

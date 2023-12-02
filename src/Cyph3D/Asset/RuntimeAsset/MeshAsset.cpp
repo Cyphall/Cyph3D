@@ -79,9 +79,9 @@ MeshAsset* MeshAsset::getMissingMesh()
 void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 {
 	MeshData meshData = _manager.getAssetProcessor().readMeshData(workerData, _signature.path);
-	
+
 	Logger::info(std::format("Uploading mesh [{}]...", _signature.path));
-	
+
 	{
 		vk::BufferUsageFlags positionVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
 		vk::DeviceAddress positionVertexBufferAlignment = 1;
@@ -96,12 +96,12 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 		positionVertexBufferInfo.setRequiredAlignment(positionVertexBufferAlignment);
 		positionVertexBufferInfo.setName(std::format("{}.PositionVertexBuffer", _signature.path));
-		
+
 		_positionVertexBuffer = VKBuffer<PositionVertexData>::create(Engine::getVKContext(), positionVertexBufferInfo);
-		
+
 		std::copy(meshData.positionVertices.begin(), meshData.positionVertices.end(), _positionVertexBuffer->getHostPointer());
 	}
-	
+
 	{
 		vk::BufferUsageFlags fullVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
 		vk::DeviceAddress fullVertexBufferAlignment = 1;
@@ -116,12 +116,12 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 		fullVertexBufferInfo.setRequiredAlignment(fullVertexBufferAlignment);
 		fullVertexBufferInfo.setName(std::format("{}.FullVertexBuffer", _signature.path));
-		
+
 		_fullVertexBuffer = VKBuffer<FullVertexData>::create(Engine::getVKContext(), fullVertexBufferInfo);
-		
+
 		std::copy(meshData.fullVertices.begin(), meshData.fullVertices.end(), _fullVertexBuffer->getHostPointer());
 	}
-	
+
 	{
 		vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer;
 		vk::DeviceAddress indexBufferAlignment = 1;
@@ -136,12 +136,12 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 		indexBufferInfo.setRequiredAlignment(indexBufferAlignment);
 		indexBufferInfo.setName(std::format("{}.IndexBuffer", _signature.path));
-		
+
 		_indexBuffer = VKBuffer<uint32_t>::create(Engine::getVKContext(), indexBufferInfo);
-		
+
 		std::copy(meshData.indices.begin(), meshData.indices.end(), _indexBuffer->getHostPointer());
 	}
-	
+
 	if (Engine::getVKContext().isRayTracingSupported())
 	{
 		VKBottomLevelAccelerationStructureBuildInfo buildInfo{
@@ -151,28 +151,28 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 			.indexBuffer = _indexBuffer,
 			.indexType = vk::IndexType::eUint32
 		};
-		
+
 		vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
-		
+
 		VKBufferInfo temporaryBackingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
 		temporaryBackingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		
+
 		VKPtr<VKBuffer<std::byte>> temporaryBackingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), temporaryBackingBufferInfo);
-		
+
 		VKPtr<VKAccelerationStructure> temporaryAccelerationStructure = VKAccelerationStructure::create(
 			Engine::getVKContext(),
 			vk::AccelerationStructureTypeKHR::eBottomLevel,
 			buildSizesInfo.accelerationStructureSize,
 			temporaryBackingBuffer);
-		
+
 		VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize,vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
 		scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
-		
+
 		VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
-		
+
 		VKPtr<VKAccelerationStructureCompactedSizeQuery> compactedSizeQuery = VKAccelerationStructureCompactedSizeQuery::create(Engine::getVKContext());
-		
+
 		workerData.computeCommandBuffer->begin();
 		workerData.computeCommandBuffer->buildBottomLevelAccelerationStructure(temporaryAccelerationStructure, scratchBuffer, buildInfo);
 		workerData.computeCommandBuffer->memoryBarrier(
@@ -182,39 +182,39 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR);
 		workerData.computeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
 		workerData.computeCommandBuffer->end();
-		
+
 		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
-		
+
 		workerData.computeCommandBuffer->waitExecution();
 		workerData.computeCommandBuffer->reset();
-		
+
 		vk::DeviceSize compactedSize = compactedSizeQuery->getCompactedSize();
-		
+
 		VKBufferInfo backingBufferInfo(compactedSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
 		backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		backingBufferInfo.setName(std::format("{}.AccelerationStructureBuffer", _signature.path));
-		
+
 		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
-		
+
 		_accelerationStructure = VKAccelerationStructure::create(
 			Engine::getVKContext(),
 			vk::AccelerationStructureTypeKHR::eBottomLevel,
 			compactedSize,
 			backingBuffer);
-		
+
 		workerData.computeCommandBuffer->begin();
 		workerData.computeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);
 		workerData.computeCommandBuffer->end();
-		
+
 		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
-		
+
 		workerData.computeCommandBuffer->waitExecution();
 		workerData.computeCommandBuffer->reset();
 	}
-	
+
 	_boundingBoxMin = meshData.boundingBoxMin;
 	_boundingBoxMax = meshData.boundingBoxMax;
-	
+
 	_changed();
 
 	_loaded = true;

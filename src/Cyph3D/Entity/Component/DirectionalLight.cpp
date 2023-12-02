@@ -27,7 +27,7 @@ void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camer
 		.castShadows = getCastShadows(),
 		.shadowMapResolution = getResolution()
 	};
-	
+
 	renderRegistry.addRenderRequest(data);
 }
 
@@ -38,25 +38,25 @@ void DirectionalLight::onDrawUi()
 	{
 		setSrgbColor(imGuiSrgbColor);
 	}
-	
+
 	float intensity = getIntensity();
 	if (ImGui::DragFloat("Intensity", &intensity, 0.01f, 0.0f, std::numeric_limits<float>::max(), "%.3f", ImGuiSliderFlags_AlwaysClamp))
 	{
 		setIntensity(intensity);
 	}
-	
+
 	float angularDiameter = getAngularDiameter();
 	if (ImGui::DragFloat("Angular Diameter", &angularDiameter, 0.01f, 0.0f, 180.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
 	{
 		setAngularDiameter(angularDiameter);
 	}
-	
+
 	bool castShadows = getCastShadows();
 	if (ImGui::Checkbox("Cast Shadows", &castShadows))
 	{
 		setCastShadows(castShadows);
 	}
-	
+
 	std::array<const char*, 8> resolutions = {"64", "128", "256", "512", "1024", "2048", "4096", "8192"};
 	int currIndex = glm::log2(getResolution() / 64);
 	if (ImGui::BeginCombo("Shadow Resolution", resolutions[currIndex]))
@@ -69,13 +69,13 @@ void DirectionalLight::onDrawUi()
 				currIndex = i;
 				setResolution(64 * glm::pow(2, i));
 			}
-			
+
 			if (selected)
 			{
 				ImGui::SetItemDefaultFocus();
 			}
 		}
-		
+
 		ImGui::EndCombo();
 	}
 }
@@ -93,7 +93,7 @@ bool DirectionalLight::getCastShadows() const
 void DirectionalLight::setCastShadows(bool value)
 {
 	_castShadows = value;
-	
+
 	_changed();
 }
 
@@ -105,7 +105,7 @@ uint32_t DirectionalLight::getResolution() const
 void DirectionalLight::setResolution(uint32_t value)
 {
 	_resolution = value;
-	
+
 	_changed();
 }
 
@@ -117,7 +117,7 @@ float DirectionalLight::getAngularDiameter() const
 void DirectionalLight::setAngularDiameter(float value)
 {
 	_angularDiameter = value;
-	
+
 	_changed();
 }
 
@@ -136,14 +136,14 @@ ObjectSerialization DirectionalLight::serialize() const
 	ObjectSerialization serialization;
 	serialization.version = 2;
 	serialization.identifier = getIdentifier();
-	
+
 	glm::vec3 color = getSrgbColor();
 	serialization.data["color"] = {color.r, color.g, color.b};
 	serialization.data["intensity"] = getIntensity();
 	serialization.data["cast_shadows"] = getCastShadows();
 	serialization.data["shadow_resolution"] = getResolution();
 	serialization.data["angular_diameter"] = getAngularDiameter();
-	
+
 	return serialization;
 }
 

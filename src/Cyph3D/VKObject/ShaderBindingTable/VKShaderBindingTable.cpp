@@ -12,30 +12,30 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 	_info(info)
 {
 	// calculate buffer size
-	
+
 	// raygen sbt
-	
+
 	uint64_t raygenSBTOffset = VKHelper::alignUp(0, context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
 	_raygenSBTStride = VKHelper::alignUp(_info.getRaygenRecord().size(), context.getRayTracingPipelineProperties().shaderGroupHandleAlignment);
 	_raygenSBTSize = _raygenSBTStride;
-	
+
 	// triangle hit sbt
-	
+
 	uint64_t triangleHitSBTOffset = VKHelper::alignUp(raygenSBTOffset + _raygenSBTSize, context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
 	_triangleHitSBTStride = VKHelper::alignUp(_info.getMaxTriangleHitRecordSize(), context.getRayTracingPipelineProperties().shaderGroupHandleAlignment);
 	for (const std::vector<std::vector<std::byte>>& recordGroup : _info.getTriangleHitRecords())
 	{
 		_triangleHitSBTSize += _triangleHitSBTStride * recordGroup.size();
 	}
-	
+
 	// miss sbt
-	
+
 	uint64_t missSBTOffset = VKHelper::alignUp(triangleHitSBTOffset + _triangleHitSBTSize, context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
 	_missSBTStride = VKHelper::alignUp(_info.getMaxMissRecordSize(), context.getRayTracingPipelineProperties().shaderGroupHandleAlignment);
 	_missSBTSize += _missSBTStride * _info.getMissRecords().size();
-	
+
 	// create buffer
-	
+
 	VKBufferInfo bufferInfo(
 		missSBTOffset + _missSBTSize,
 		vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eShaderBindingTableKHR);
@@ -44,22 +44,22 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	bufferInfo.setRequiredAlignment(_context.getRayTracingPipelineProperties().shaderGroupBaseAlignment);
 	bufferInfo.setName("SBT buffer");
-	
+
 	_buffer = VKBuffer<std::byte>::create(context, bufferInfo);
-	
+
 	_raygenSBTAddress = _buffer->getDeviceAddress() + raygenSBTOffset;
 	_triangleHitSBTAddress = _buffer->getDeviceAddress() + triangleHitSBTOffset;
 	_missSBTAddress = _buffer->getDeviceAddress() + missSBTOffset;
-	
+
 	// copy data to buffer
-	
+
 	// raygen sbt
-	
+
 	std::byte* raygenBufferPtr = _buffer->getHostPointer() + raygenSBTOffset;
 	std::memcpy(raygenBufferPtr, _info.getRaygenRecord().data(), _info.getRaygenRecord().size());
-	
+
 	// triangle hit sbt
-	
+
 	std::byte* triangleHitBufferPtr = _buffer->getHostPointer() + triangleHitSBTOffset;
 	for (const std::vector<std::vector<std::byte>>& recordGroup : _info.getTriangleHitRecords())
 	{
@@ -69,9 +69,9 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 			triangleHitBufferPtr += _triangleHitSBTStride;
 		}
 	}
-	
+
 	// miss sbt
-	
+
 	std::byte* missBufferPtr = _buffer->getHostPointer() + missSBTOffset;
 	for (const std::vector<std::byte>& record : _info.getMissRecords())
 	{

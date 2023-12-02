@@ -3,5 +3,5 @@
 VKObject::VKObject(VKContext& context):
 	_context(context)
 {
-	
+
 }

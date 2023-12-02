@@ -71,45 +71,45 @@ void UIViewport::show()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-	
+
 	bool open = ImGui::Begin("Viewport");
-	
+
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
-	
+
 	if (open)
 	{
 		drawHeader();
-		
+
 		if (_showRenderToFilePopup)
 		{
 			ImGui::OpenPopup("Rendering status");
 			_showRenderToFilePopup = false;
 		}
-		
+
 		if (_renderToFileData)
 		{
 			drawRenderToFilePopup();
 		}
-		
+
 		Window& window = Engine::getWindow();
-		
+
 		if (_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Released)
 		{
 			_cameraFocused = false;
 			window.setInputMode(GLFW_CURSOR_NORMAL);
 			window.setCursorPos(_lockedCursorPos);
 		}
-		
+
 		// all of this need to be calculated before calling ImGui::Image()
 		glm::ivec2 viewportStartLocal = glm::vec2(ImGui::GetCursorPos());
 		glm::ivec2 viewportEndLocal = glm::vec2(ImGui::GetWindowContentRegionMax());
-		
+
 		glm::uvec2 viewportSize = glm::max(viewportEndLocal - viewportStartLocal, glm::ivec2(0));
-		
+
 		glm::ivec2 viewportStartGlobal = glm::vec2(ImGui::GetCursorScreenPos());
 		glm::ivec2 viewportEndGlobal = viewportStartGlobal + glm::ivec2(viewportSize);
-		
+
 		if (viewportSize.x > 0 && viewportSize.y > 0)
 		{
 			if (!_sceneRenderer)
@@ -124,55 +124,55 @@ void UIViewport::show()
 						break;
 				}
 			}
-			
+
 			bool cameraChanged = _cameraChanged;
 			_cameraChanged = false;
-			
+
 			if (_previousViewportSize != viewportSize)
 			{
 				if (_sceneRenderer->getSize() != viewportSize)
 				{
 					_sceneRenderer->resize(viewportSize);
 				}
-				
+
 				_camera.setAspectRatio(static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y));
 				cameraChanged = true;
 			}
-			
+
 			if (_cameraFocused)
 			{
 				cameraChanged |= _camera.update(window.getCursorPos() - _lockedCursorPos);
 				window.setCursorPos(_lockedCursorPos);
 			}
-			
+
 			PathTracingSceneRenderer* pathTracingSceneRenderer = dynamic_cast<PathTracingSceneRenderer*>(_sceneRenderer.get());
 			if (pathTracingSceneRenderer)
 			{
 				pathTracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
 			}
-			
+
 			if (_renderToFileData && _renderToFileData->status == RenderToFileStatus::eRendering)
 			{
 				uint32_t remainingSamples = _renderToFileData->totalSamples - _renderToFileData->renderedSamples;
 				uint32_t thisBatchSamples = std::min(remainingSamples, 16u);
-				
+
 				_renderToFileData->renderer->setSampleCountPerRender(thisBatchSamples);
-				
+
 				Engine::getVKContext().executeImmediate([&](const VKPtr<VKCommandBuffer>& commandBuffer)
 				{
 					_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
 				});
-				
+
 				_renderToFileData->renderedSamples += thisBatchSamples;
-				
+
 				_renderToFileData->lastBatchTime = std::chrono::high_resolution_clock::now();
-				
+
 				if (_renderToFileData->renderedSamples == _renderToFileData->totalSamples)
 				{
 					_renderToFileData->status = RenderToFileStatus::eRenderFinished;
 				}
 			}
-			
+
 			if (_renderToFileData && _renderToFileData->status == RenderToFileStatus::eRenderFinished)
 			{
 				if (_renderToFileData->lastRenderedTexture)
@@ -181,9 +181,9 @@ void UIViewport::show()
 					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
-					
+
 					VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
-					
+
 					Engine::getVKContext().executeImmediate([&](const VKPtr<VKCommandBuffer>& commandBuffer)
 					{
 						commandBuffer->imageMemoryBarrier(
@@ -193,12 +193,12 @@ void UIViewport::show()
 							vk::PipelineStageFlagBits2::eCopy,
 							vk::AccessFlagBits2::eTransferRead,
 							vk::ImageLayout::eTransferSrcOptimal);
-						
+
 						commandBuffer->copyImageToBuffer(_renderToFileData->lastRenderedTexture, 0, 0, stagingBuffer, 0);
 					});
-					
+
 					glm::ivec2 textureSize = _renderToFileData->lastRenderedTexture->getSize(0);
-					
+
 					if (_renderToFileData->outputFile.extension() == ".png")
 					{
 						stbi_write_png(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), textureSize.x * 4);
@@ -212,54 +212,54 @@ void UIViewport::show()
 				{
 					Logger::error("Could not save render to file, no rendered image has been created yet");
 				}
-				
+
 				_renderToFileData->status = RenderToFileStatus::eSaveFinished;
 			}
-			
+
 			if (!_renderToFileData)
 			{
 				uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
 				bool sceneChanged = currentSceneChangeVersion != _sceneChangeVersion;
-				
+
 				if (sceneChanged)
 				{
 					_renderRegistry.clear();
 					Engine::getScene().onPreRender(_renderRegistry, _camera);
 				}
-				
+
 				_lastViewportImage = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, sceneChanged, cameraChanged);
-				
+
 				_sceneChangeVersion = currentSceneChangeVersion;
 			}
-			
+
 			ImGui::Image(
 				static_cast<ImTextureID>(const_cast<VKPtr<VKImage>*>(&_lastViewportImage)),
 				glm::vec2(_lastViewportImage->getSize(0)),
 				ImVec2(0, 0),
 				ImVec2(1, 1));
-			
+
 			if (!_renderToFileData)
 			{
 				drawGizmo(viewportStartGlobal, viewportSize);
 			}
-			
+
 			if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
 			{
 				_cameraFocused = true;
 				_lockedCursorPos = window.getCursorPos();
 				window.setInputMode(GLFW_CURSOR_DISABLED);
-				
+
 				_leftClickPressedOnViewport = false;
 			}
-			
+
 			glm::vec2 viewportCursorPos = window.getCursorPos() - glm::vec2(viewportStartGlobal);
-			
+
 			if (!_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
 			{
 				_leftClickPressedOnViewport = true;
 				_leftClickPressPos = viewportCursorPos;
 			}
-			
+
 			if (_leftClickPressedOnViewport && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::Released)
 			{
 				_leftClickPressedOnViewport = false;
@@ -267,16 +267,16 @@ void UIViewport::show()
 				{
 					RenderRegistry renderRegistry;
 					Engine::getScene().onPreRender(renderRegistry, _camera);
-					
+
 					Entity* clickedEntity = _objectPicker->getPickedEntity(_camera, renderRegistry, viewportSize, glm::uvec2(viewportCursorPos));
 					UIInspector::setSelected(clickedEntity);
 				}
 			}
 		}
-		
+
 		_previousViewportSize = viewportSize;
 	}
-	
+
 	ImGui::End();
 }
 
@@ -297,22 +297,22 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 	IInspectable* selected = UIInspector::getSelected();
 	if (selected == nullptr)
 		return;
-	
+
 	Entity* entity = dynamic_cast<Entity*>(selected);
 	if (entity == nullptr)
 		return;
-	
+
 	ImGuizmo::SetRect(viewportStart.x, viewportStart.y, viewportSize.x, viewportSize.y);
-	
+
 	Transform& transform = entity->getTransform();
 	glm::mat4 localToWorld = transform.getLocalToWorldMatrix();
-	
+
 	glm::mat4 view = _camera.getView();
 	glm::mat4 projection = _camera.getProjection();
 	projection[1][1] *= -1;
-	
+
 	ImGui::PushClipRect(viewportStart, viewportStart + viewportSize, false);
-	
+
 	ImGuizmo::SetDrawlist();
 	bool changed = ImGuizmo::Manipulate(
 		glm::value_ptr(view),
@@ -320,19 +320,19 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 		_gizmoMode,
 		_gizmoSpace,
 		glm::value_ptr(localToWorld));
-	
+
 	ImGui::PopClipRect();
-	
+
 	if (changed)
 	{
 		glm::mat4 localToParent = transform.getParent()->getWorldToLocalMatrix() * localToWorld;
-		
+
 		glm::vec3 position;
 		glm::vec3 rotation;
 		glm::vec3 scale;
-		
+
 		ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localToParent), glm::value_ptr(position), glm::value_ptr(rotation), glm::value_ptr(scale));
-		
+
 		transform.setLocalPosition(position);
 		transform.setEulerLocalRotation(rotation);
 		transform.setLocalScale(scale);
@@ -342,30 +342,30 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 void UIViewport::drawHeader()
 {
 	float pixelScale = Engine::getWindow().getPixelScale();
-	
+
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImGui::BeginChild("ViewportHeader", ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2.0f + style.WindowPadding.y * 2.0f), false, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoScrollbar);
-	
+
 	ImGui::GetCurrentWindow()->DC.LayoutType = ImGuiLayoutType_Horizontal;
-	
+
 	// gizmos
 	if (ImGui::Button("T"))
 	{
 		_gizmoMode = ImGuizmo::TRANSLATE;
 	}
-	
+
 	if (ImGui::Button("R"))
 	{
 		_gizmoMode = ImGuizmo::ROTATE;
 	}
-	
+
 	if (ImGui::Button("S"))
 	{
 		_gizmoMode = ImGuizmo::SCALE;
 	}
-	
+
 	ImGui::Dummy({20.0f * pixelScale, 0});
-	
+
 	if (ImGui::Button(_gizmoSpace == ImGuizmo::LOCAL ? "Local" : "World"))
 	{
 		if (_gizmoSpace == ImGuizmo::LOCAL)
@@ -377,13 +377,13 @@ void UIViewport::drawHeader()
 			_gizmoSpace = ImGuizmo::LOCAL;
 		}
 	}
-	
+
 	ImGui::Separator();
-	
+
 	ImGui::Checkbox("Fullscreen", &_fullscreen);
-	
+
 	ImGui::Separator();
-	
+
 	ImGui::SetNextItemWidth(130.0f * pixelScale);
 	if (ImGui::BeginCombo("SceneRenderer", magic_enum::enum_name(_sceneRendererType).data()))
 	{
@@ -393,22 +393,22 @@ void UIViewport::drawHeader()
 			{
 				continue;
 			}
-			
+
 			const bool is_selected = (sceneRendererType == _sceneRendererType);
 			if (ImGui::Selectable(magic_enum::enum_name(sceneRendererType).data(), is_selected))
 			{
 				_sceneRenderer.reset();
 				_sceneRendererType = sceneRendererType;
 			}
-			
+
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
 		}
 		ImGui::EndCombo();
 	}
-	
+
 	ImGui::EndChild();
-	
+
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() - style.ItemSpacing.y);
 }
 
@@ -419,11 +419,11 @@ void UIViewport::drawRenderToFilePopup()
 		int percent = (static_cast<float>(_renderToFileData->renderedSamples) / static_cast<float>(_renderToFileData->totalSamples)) * 100;
 		ImGui::Text("Rendering... %d%%", percent);
 		ImGui::Text("Rendered samples: %u/%u", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
-		
+
 		auto duration = _renderToFileData->lastBatchTime - _renderToFileData->startTime;
 		auto durationRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(duration);
 		ImGui::Text("%s", std::format("Elapsed time: {:%H:%M:%S}", durationRounded).c_str());
-		
+
 		if (_renderToFileData->status == RenderToFileStatus::eRendering)
 		{
 			if (ImGui::Button("Finish now"))
@@ -436,19 +436,19 @@ void UIViewport::drawRenderToFilePopup()
 			bool close = ImGui::Button("Close");
 			ImGui::SameLine();
 			bool openInExplorer = ImGui::Button("Open in Explorer");
-			
+
 			if (openInExplorer)
 			{
 				FileHelper::openExplorerAndSelectEntries(_renderToFileData->outputFile.parent_path(), {_renderToFileData->outputFile});
 			}
-			
+
 			if (openInExplorer || close)
 			{
 				ImGui::CloseCurrentPopup();
 				_renderToFileData.reset();
 			}
 		}
-		
+
 		ImGui::EndPopup();
 	}
 }
@@ -475,9 +475,9 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	{
 		return;
 	}
-	
+
 	_showRenderToFilePopup = true;
-	
+
 	_renderToFileData = std::make_unique<UIViewport::RenderToFileData>();
 	_renderToFileData->renderedSamples = 0;
 	_renderToFileData->totalSamples = sampleCount;

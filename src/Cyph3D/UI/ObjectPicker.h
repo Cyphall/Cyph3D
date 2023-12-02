@@ -23,7 +23,7 @@ class ObjectPicker
 public:
 	ObjectPicker();
 	~ObjectPicker();
-	
+
 	Entity* getPickedEntity(Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos);
 
 private:
@@ -32,20 +32,20 @@ private:
 		GLSL_mat4 mvp;
 		GLSL_int objectIndex;
 	};
-	
+
 	glm::uvec2 _currentSize = {0, 0};
-	
+
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
-	
+
 	VKPtr<VKPipelineLayout> _pipelineLayout;
-	
+
 	VKPtr<VKGraphicsPipeline> _pipeline;
-	
+
 	VKPtr<VKBuffer<int32_t>> _readbackBuffer;
-	
+
 	VKPtr<VKImage> _objectIndexImage;
 	VKPtr<VKImage> _depthImage;
-	
+
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();

@@ -28,36 +28,36 @@ ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& co
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal);
-	
+
 	VKRenderingInfo renderingInfo(_size);
-	
+
 	renderingInfo.addColorAttachment(_outputImage)
 		.setLoadOpDontCare()
 		.setStoreOpStore();
-	
+
 	commandBuffer->beginRendering(renderingInfo);
-	
+
 	commandBuffer->bindPipeline(_pipeline);
-	
+
 	VKPipelineViewport viewport;
 	viewport.offset = {0, 0};
 	viewport.size = _size;
 	viewport.depthRange = {0.0f, 1.0f};
 	commandBuffer->setViewport(viewport);
-	
+
 	VKPipelineScissor scissor;
 	scissor.offset = {0, 0};
 	scissor.size = _size;
 	commandBuffer->setScissor(scissor);
-	
+
 	commandBuffer->pushDescriptor(0, 0, input.inputImage, _inputSampler);
-	
+
 	commandBuffer->draw(3, 0);
-	
+
 	commandBuffer->unbindPipeline();
-	
+
 	commandBuffer->endRendering();
-	
+
 	return {
 		_outputImage
 	};
@@ -72,7 +72,7 @@ void ToneMappingPass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-	
+
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
@@ -80,7 +80,7 @@ void ToneMappingPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_descriptorSetLayout);
-	
+
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
@@ -92,11 +92,11 @@ void ToneMappingPass::createPipeline()
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise);
-	
+
 	info.setFragmentShader("resources/shaders/internal/post-processing/tone mapping/tone mapping.frag");
-	
+
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::FINAL_COLOR_FORMAT);
-	
+
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
@@ -119,7 +119,7 @@ void ToneMappingPass::createSampler()
 	createInfo.maxLod = 1000.0f;
 	createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 	createInfo.unnormalizedCoordinates = false;
-	
+
 	_inputSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 }
 
@@ -133,6 +133,6 @@ void ToneMappingPass::createImage()
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setName("Tone mapping output image");
-	
+
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 }

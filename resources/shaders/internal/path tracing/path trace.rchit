@@ -70,7 +70,7 @@ vec3 calcRandomHemisphereDirectionCosWeighted(vec2 rand)
 {
 	float a = sqrt(rand.x);
 	float b = TWO_PI * rand.y;
-	
+
 	return vec3(
 	a * cos(b),
 	a * sin(b),
@@ -87,12 +87,12 @@ vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 rand)
 {
 	// Section 3.2: transforming the view direction to the hemisphere configuration
 	vec3 Vh = normalize(vec3(alpha2D.x * Ve.x, alpha2D.y * Ve.y, Ve.z));
-	
+
 	// Section 4.1: orthonormal basis (with special case if cross product is zero)
 	float lensq = Vh.x * Vh.x + Vh.y * Vh.y;
 	vec3 T1 = lensq > 0.0 ? vec3(-Vh.y, Vh.x, 0.0) * inversesqrt(lensq) : vec3(1.0, 0.0, 0.0);
 	vec3 T2 = cross(Vh, T1);
-	
+
 	// Section 4.2: parameterization of the projected area
 	float r = sqrt(rand.x);
 	float phi = TWO_PI * rand.y;
@@ -100,10 +100,10 @@ vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 rand)
 	float t2 = r * sin(phi);
 	float s = 0.5 * (1.0 + Vh.z);
 	t2 = mix(sqrt(1.0 - t1 * t1), t2, s);
-	
+
 	// Section 4.3: reprojection onto hemisphere
 	vec3 Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * Vh;
-	
+
 	// Section 3.4: transforming the normal back to the ellipsoid configuration
 	return normalize(vec3(alpha2D.x * Nh.x, alpha2D.y * Nh.y, max(0.0, Nh.z)));
 }
@@ -111,12 +111,12 @@ vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 rand)
 vec4 getRandom()
 {
 	uvec4 v = uvec4(uvec2(gl_LaunchIDEXT.xy), u_batchIndex, hitPayload.randomOffset++);
-	
+
 	v = v * 1664525u + 1013904223u;
 	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
 	v ^= v >> 16u;
 	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
-	
+
 	return clamp(v * (1.0 / float(0xffffffffu)), 0.0, 1.0);
 }
 
@@ -169,97 +169,97 @@ void main()
 {
 	// flip normals if ray hit a back face
 	float normalScale = gl_HitKindEXT == gl_HitKindBackFacingTriangleEXT ? -1 : 1;
-	
+
 	uvec3 indices = u_indexBuffer.indices[gl_PrimitiveID];
-	
+
 	Vertex v1 = u_vertexBuffer.vertices[indices.x];
 	Vertex v2 = u_vertexBuffer.vertices[indices.y];
 	Vertex v3 = u_vertexBuffer.vertices[indices.z];
-	
+
 	vec3 position1 = gl_ObjectToWorldEXT * vec4(v1.position, 1);
 	vec3 position2 = gl_ObjectToWorldEXT * vec4(v2.position, 1);
 	vec3 position3 = gl_ObjectToWorldEXT * vec4(v3.position, 1);
-	
+
 	mat3 normalMatrix = mat3(u_normalMatrix);
-	
+
 	vec3 normal1 = normalize(normalMatrix * v1.normal);
 	vec3 normal2 = normalize(normalMatrix * v2.normal);
 	vec3 normal3 = normalize(normalMatrix * v3.normal);
-	
+
 	vec3 tangent1 = normalize(normalMatrix * v1.tangent);
 	vec3 tangent2 = normalize(normalMatrix * v2.tangent);
 	vec3 tangent3 = normalize(normalMatrix * v3.tangent);
-	
+
 	vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
-	
+
 	vec3 position = interpolateBarycentrics(position1, position2, position3, barycentrics);
 	vec3 normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics)) * normalScale;
 	vec3 tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics)) * normalScale;
 	vec3 bitangent = cross(tangent, normal);
 	vec3 geometryNormal = normalize(cross(position3 - position2, position1 - position2));
-	
+
 	geometryNormal = dot(geometryNormal, hitPayload.rayDirection) < 0.0 ? geometryNormal : -geometryNormal;
-	
+
 	vec2 uv = interpolateBarycentrics(v1.uv, v2.uv, v3.uv, barycentrics);
-	
+
 	vec3 albedo = u_albedoIndex >= 0 ? texture(u_textures[nonuniformEXT(u_albedoIndex)], uv).rgb : u_albedoValue;
 	float roughness = u_roughnessIndex >= 0 ? texture(u_textures[nonuniformEXT(u_roughnessIndex)], uv).r : u_roughnessValue;
 	float metalness = u_metalnessIndex >= 0 ? texture(u_textures[nonuniformEXT(u_metalnessIndex)], uv).r : u_metalnessValue;
 	float emissive = (u_emissiveIndex >= 0 ? texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r : 1.0) * u_emissiveScale;
-	
+
 	vec3 textureNormal = vec3(0);
 	textureNormal.xy = u_normalIndex >= 0 ? texture(u_textures[nonuniformEXT(u_normalIndex)], uv).rg * 2.0 - 1.0 : vec2(0.0, 0.0);
 	textureNormal.z = sqrt(1 - min(dot(textureNormal.xy, textureNormal.xy), 1));
-	
+
 	normal = normalize(mat3(tangent, bitangent, normal) * textureNormal);
 	tangent = normalize(tangent - normal * dot(tangent, normal));
 	bitangent = cross(tangent, normal);
-	
+
 	mat3 tangentToWorld = mat3(tangent, bitangent, normal);
 	mat3 worldToTangent = transpose(tangentToWorld);
-	
-	
+
+
 	hitPayload.light += hitPayload.throughput * albedo * emissive;
-	
-	
+
+
 	hitPayload.hit = true;
-	
+
 	hitPayload.rayPosition = offsetRay(position, geometryNormal);
-	
+
 	vec3 localRayDir = worldToTangent * hitPayload.rayDirection;
 	float alpha = roughness * roughness;
 	vec2 alpha2D = vec2(alpha, alpha);
 	vec4 rand = getRandom();
 	vec3 microfacetNormal = normalize(tangentToWorld * sampleGGXVNDF(-localRayDir, alpha2D, rand.xy));
-	
+
 	float NdotL = max(dot(microfacetNormal, -hitPayload.rayDirection), 0.0);
-	
+
 	vec3 dielectricDiffuseWeight;
 	vec3 dielectricSpecularWeight;
 	if (metalness < 1.0) dielectricBRDF(NdotL, dielectricDiffuseWeight, dielectricSpecularWeight);
-	
+
 	vec3 conductorDiffuseWeight;
 	vec3 conductorSpecularWeight;
 	if (metalness > 0.0) conductorBRDF(albedo, NdotL, conductorDiffuseWeight, conductorSpecularWeight);
-	
+
 	if (rand.z > 0.5)
 	{
 		// next bounce is specular
-		
+
 		hitPayload.rayDirection = reflect(hitPayload.rayDirection, microfacetNormal);
-		
+
 		vec3 dielectric = dielectricSpecularWeight;
 		vec3 conductor  = conductorSpecularWeight;
 		hitPayload.throughput *= mix(dielectric, conductor, metalness);
-		
+
 		hitPayload.throughput *= 2;
 	}
 	else
 	{
 		// next bounce is diffuse
-		
+
 		hitPayload.rayDirection = tangentToWorld * calcRandomHemisphereDirectionCosWeighted(getRandom().xy);
-		
+
 		vec3 dielectric = albedo * dielectricDiffuseWeight;
 		vec3 conductor  = albedo * conductorDiffuseWeight;
 		hitPayload.throughput *= mix(dielectric, conductor, metalness);

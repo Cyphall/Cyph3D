@@ -13,16 +13,16 @@ VKComputePipeline::VKComputePipeline(VKContext& context, VKComputePipelineInfo& 
 	VKPipeline(context), _info(info)
 {
 	VKPtr<VKShader> shader = VKShader::create(_context, _info.getComputeShader());
-	
+
 	vk::PipelineShaderStageCreateInfo createInfo;
 	createInfo.stage = vk::ShaderStageFlagBits::eCompute;
 	createInfo.module = shader->getHandle();
 	createInfo.pName = "main";
-	
+
 	vk::ComputePipelineCreateInfo pipelineCreateInfo;
 	pipelineCreateInfo.stage = createInfo;
 	pipelineCreateInfo.layout = _info.getPipelineLayout()->getHandle();
-	
+
 	_pipeline = _context.getDevice().createComputePipeline(VK_NULL_HANDLE, pipelineCreateInfo).value;
 }
 

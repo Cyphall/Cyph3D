@@ -28,12 +28,12 @@ public:
 
 	Entity(Entity&& other) = delete;
 	Entity& operator=(Entity&& other) = delete;
-	
+
 	ComponentIterator begin();
 	ComponentIterator end();
 	ComponentConstIterator begin() const;
 	ComponentConstIterator end() const;
-	
+
 	template<typename T>
 	T& addComponent()
 	{
@@ -42,33 +42,33 @@ public:
 		container.componentChangedConnection = container.component->getChangedSignal().connect([this](){
 			_changed();
 		});
-		
+
 		_changed();
-		
+
 		return *static_cast<T*>(container.component.get());
 	}
-	
+
 	ComponentIterator removeComponent(ComponentIterator where);
-	
+
 	Transform& getTransform();
 	const Transform& getTransform() const;
-	
+
 	const std::string& getName() const;
 	void setName(const std::string& name);
-	
+
 	void onDrawUi() override;
 	void onUpdate();
 	void onPreRender(RenderRegistry& renderRegistry, Camera& camera);
-	
+
 	Scene& getScene() const;
-	
+
 	void duplicate(Transform& parent) const;
-	
+
 	ObjectSerialization serialize() const;
 	void deserialize(const ObjectSerialization& entitySerialization);
-	
+
 	sigslot::signal<>& getChangedSignal();
-	
+
 	static std::map<std::string, std::function<Component&(Entity&)>>::iterator componentFactories_begin();
 	static std::map<std::string, std::function<Component&(Entity&)>>::iterator componentFactories_end();
 
@@ -78,20 +78,20 @@ private:
 		std::unique_ptr<Component> component;
 		sigslot::scoped_connection componentChangedConnection;
 	};
-	
+
 	std::string _name = "New Entity";
 	std::vector<ComponentContainer> _components;
 	Scene& _scene;
 	Transform _transform;
 	sigslot::scoped_connection _transformChangedConnection;
-	
+
 	sigslot::signal<> _changed;
-	
+
 	Component& addComponentByIdentifier(const std::string& identifier);
-	
+
 	static std::map<std::string, std::function<Component&(Entity&)>> _componentFactories;
 	static void initComponentFactories();
-	
+
 	friend class Engine;
 	friend class ComponentIterator;
 	friend class ComponentConstIterator;

@@ -40,7 +40,7 @@ static bool readProcessedMesh(const std::filesystem::path& path, MeshData& meshD
 	FileHelper::read(file, meshData.fullVertices);
 
 	FileHelper::read(file, meshData.indices);
-	
+
 	FileHelper::read(file, &meshData.boundingBoxMin);
 	FileHelper::read(file, &meshData.boundingBoxMax);
 
@@ -54,12 +54,12 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 	Assimp::Importer importer;
 
 	const aiScene* scene = importer.ReadFile(input.generic_string(), aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_FlipUVs);
-	
+
 	if (scene == nullptr)
 	{
 		throw std::runtime_error(std::format("Unable to load mesh {} from disk", input.generic_string()));
 	}
-	
+
 	aiMesh* mesh = scene->mMeshes[0];
 
 	meshData.positionVertices.resize(mesh->mNumVertices);
@@ -70,12 +70,12 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
 	{
 		std::memcpy(&meshData.positionVertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
-		
+
 		std::memcpy(&meshData.fullVertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
 		std::memcpy(&meshData.fullVertices[i].uv, &mesh->mTextureCoords[0][i], 2 * sizeof(float));
 		std::memcpy(&meshData.fullVertices[i].normal, &mesh->mNormals[i], 3 * sizeof(float));
 		std::memcpy(&meshData.fullVertices[i].tangent, &mesh->mTangents[i], 3 * sizeof(float));
-		
+
 		meshData.boundingBoxMin = glm::min(meshData.boundingBoxMin, meshData.positionVertices[i].position);
 		meshData.boundingBoxMax = glm::max(meshData.boundingBoxMax, meshData.positionVertices[i].position);
 	}

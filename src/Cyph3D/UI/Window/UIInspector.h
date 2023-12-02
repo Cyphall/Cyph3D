@@ -6,7 +6,7 @@ class UIInspector
 {
 public:
 	static void show();
-	
+
 	static IInspectable* getSelected();
 	static void setSelected(IInspectable* selected);
 

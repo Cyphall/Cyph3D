@@ -17,36 +17,36 @@ void Transform::setParent(Transform* parent)
 	if (parent == _parent) return;
 	if (parent == this) throw std::runtime_error("Cannot set Transform's parent to itself");
 	if (parent == nullptr) throw std::runtime_error("Cannot remove Transform's parent, only changing it is allowed");
-	
+
 	glm::vec3 worldPos = getWorldPosition();
 	glm::quat worldRot = getWorldRotation();
 	glm::vec3 worldScale = getWorldScale();
-	
+
 	glm::vec3 parentPos = parent->getWorldPosition();
 	glm::quat parentRot = parent->getWorldRotation();
 	glm::vec3 parentScale = parent->getWorldScale();
-	
+
 	glm::quat parentRotConjugate = glm::conjugate(parentRot);
-	
+
 	glm::vec3 localPos = (parentRotConjugate *
 						  (worldPos - parentPos)) /
 						 parentScale;
 	glm::quat localRot = parentRotConjugate * worldRot;
 	glm::vec3 localScale = glm::conjugate(localRot) * ((localRot * worldScale) / parentScale);
-	
+
 	setLocalPosition(localPos);
 	setLocalRotation(localRot);
 	setLocalScale(localScale);
-	
+
 	if (_parent != nullptr)
 	{
 		VectorHelper::removeAll(_parent->_children, this);
 	}
 	_parent = parent;
 	_parent->_children.push_back(this);
-	
+
 	invalidateWorldCache();
-	
+
 	_changed();
 }
 
@@ -71,7 +71,7 @@ void Transform::invalidateWorldCache() const
 {
 	if (_invalidWorldCache) return;
 	_invalidWorldCache = true;
-	
+
 	for (Transform* child : _children)
 	{
 		child->invalidateWorldCache();
@@ -95,10 +95,10 @@ glm::vec3 Transform::getWorldPosition() const
 void Transform::setLocalPosition(glm::vec3 position)
 {
 	if (position == _localPosition) return;
-	
+
 	_localPosition = position;
 	invalidateLocalCache();
-	
+
 	_changed();
 }
 
@@ -119,10 +119,10 @@ glm::quat Transform::getWorldRotation() const
 void Transform::setLocalRotation(glm::quat rotation)
 {
 	if (rotation == _localRotation) return;
-	
+
 	_localRotation = rotation;
 	invalidateLocalCache();
-	
+
 	_changed();
 }
 
@@ -143,10 +143,10 @@ glm::vec3 Transform::getWorldScale() const
 void Transform::setLocalScale(glm::vec3 scale)
 {
 	if (scale == _localScale) return;
-	
+
 	_localScale = scale;
 	invalidateLocalCache();
-	
+
 	_changed();
 }
 
@@ -171,7 +171,7 @@ const glm::mat4& Transform::getLocalToParentMatrix() const
 	{
 		recalculateLocalCache();
 	}
-	
+
 	return _cachedLocalToParentMatrix;
 }
 
@@ -181,29 +181,29 @@ const glm::mat4& Transform::getParentToLocalMatrix() const
 	{
 		recalculateLocalCache();
 	}
-	
+
 	return _cachedParentToLocalMatrix;
 }
 
 glm::mat4 Transform::calcCustomLocalToWorldMatrix(bool translate, bool rotate, bool scale) const
 {
 	glm::mat4 result = glm::identity<glm::mat4>();
-	
+
 	if (translate)
 	{
 		glm::translate(result, getWorldPosition());
 	}
-	
+
 	if (rotate)
 	{
 		result *= glm::toMat4(getWorldRotation());
 	}
-	
+
 	if (scale)
 	{
 		glm::scale(result, getWorldScale());
 	}
-	
+
 	return result;
 }
 
@@ -215,22 +215,22 @@ glm::mat4 Transform::calcCustomWorldToLocalMatrix(bool translate, bool rotate, b
 glm::mat4 Transform::calcCustomLocalToParentMatrix(bool translate, bool rotate, bool scale) const
 {
 	glm::mat4 result = glm::identity<glm::mat4>();
-	
+
 	if (translate)
 	{
 		glm::translate(result, getLocalPosition());
 	}
-	
+
 	if (rotate)
 	{
 		result *= glm::toMat4(getLocalRotation());
 	}
-	
+
 	if (scale)
 	{
 		glm::scale(result, getLocalScale());
 	}
-	
+
 	return result;
 }
 
@@ -267,7 +267,7 @@ Transform::~Transform()
 {
 	if (_parent != nullptr)
 		VectorHelper::removeAll(_parent->_children, this);
-	
+
 	// We iterate over a copy of _children as child->setParent modify _children, which would cause a vector modification while we iterate over it
 	std::vector<Transform*> children = _children;
 
@@ -328,17 +328,17 @@ void Transform::recalculateWorldCache() const
 	glm::vec3 localPos = getLocalPosition();
 	glm::quat localRot = getLocalRotation();
 	glm::vec3 localScale = getLocalScale();
-	
+
 	glm::mat4 parentLTW;
-	
+
 	glm::vec3 parentPos;
 	glm::quat parentRot;
 	glm::vec3 parentScale;
-	
+
 	if (_parent != nullptr)
 	{
 		parentLTW = _parent->getLocalToWorldMatrix();
-		
+
 		parentPos = _parent->getWorldPosition();
 		parentRot = _parent->getWorldRotation();
 		parentScale = _parent->getWorldScale();
@@ -346,20 +346,20 @@ void Transform::recalculateWorldCache() const
 	else
 	{
 		parentLTW = glm::mat4(1);
-		
+
 		parentPos = glm::vec3(0);
 		parentRot = glm::quat(1, 0, 0, 0);
 		parentScale = glm::vec3(1);
 	}
-	
+
 	_cachedLocalToWorldMatrix = parentLTW * getLocalToParentMatrix();
 	_cachedWorldToLocalMatrix = glm::affineInverse(_cachedLocalToWorldMatrix);
-	
+
 	_cachedWorldPosition = parentPos +
 						   parentRot * (localPos * parentScale);
 	_cachedWorldRotation = parentRot * localRot;
 	_cachedWorldScale = glm::conjugate(localRot) * (parentScale * (localRot * localScale));
-	
+
 	_invalidWorldCache = false;
 }
 
@@ -369,7 +369,7 @@ void Transform::recalculateLocalCache() const
 								 glm::toMat4(_localRotation) *
 								 glm::scale(_localScale);
 	_cachedParentToLocalMatrix = glm::affineInverse(_cachedLocalToParentMatrix);
-	
+
 	_invalidLocalCache = false;
 }
 

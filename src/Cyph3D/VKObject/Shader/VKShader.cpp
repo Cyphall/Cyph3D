@@ -14,12 +14,12 @@ static std::vector<uint32_t> readSPIRV(const std::filesystem::path& filePath)
 	{
 		throw;
 	}
-	
+
 	std::ifstream file = FileHelper::openFileForReading(filePath);
-	
+
 	std::vector<uint32_t> data(size / sizeof(uint32_t));
 	file.read(reinterpret_cast<char*>(data.data()), size);
-	
+
 	return data;
 }
 
@@ -32,11 +32,11 @@ VKShader::VKShader(VKContext& context, const std::filesystem::path& path):
 	VKObject(context)
 {
 	_code = readSPIRV(path);
-	
+
 	vk::ShaderModuleCreateInfo createInfo;
 	createInfo.codeSize = _code.size() * sizeof(uint32_t);
 	createInfo.pCode = _code.data();
-	
+
 	_handle = _context.getDevice().createShaderModule(createInfo);
 }
 

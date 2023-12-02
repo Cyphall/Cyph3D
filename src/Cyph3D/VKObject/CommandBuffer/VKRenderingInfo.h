@@ -9,16 +9,16 @@ class VKRenderingInfo
 {
 public:
 	explicit VKRenderingInfo(glm::uvec2 size);
-	
+
 	const glm::uvec2& getSize() const;
-	
+
 	void setLayers(uint32_t layers);
 	const uint32_t& getLayers() const;
-	
+
 	VKRenderingColorAttachmentInfo& addColorAttachment(const VKPtr<VKImage>& image);
 	VKRenderingColorAttachmentInfo& addColorAttachment(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
 	const std::vector<VKRenderingColorAttachmentInfo>& getColorAttachmentInfos() const;
-	
+
 	VKRenderingDepthAttachmentInfo& setDepthAttachment(const VKPtr<VKImage>& image);
 	VKRenderingDepthAttachmentInfo& setDepthAttachment(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
 	bool hasDepthAttachment() const;

@@ -49,43 +49,43 @@ private:
 	{
 		GLSL_mat4 mvp;
 	};
-	
+
 	struct PointLightUniforms
 	{
 		GLSL_mat4 viewProjection;
 		GLSL_vec3 lightPos;
 	};
-	
+
 	struct PointLightPushConstantData
 	{
 		GLSL_mat4 model;
 	};
-	
+
 	ShadowMapManager _shadowMapManager;
-	
+
 	VKPtr<VKPipelineLayout> _directionalLightPipelineLayout;
 	VKPtr<VKGraphicsPipeline> _directionalLightPipeline;
 	std::vector<DirectionalShadowMapInfo> _directionalShadowMapInfos;
-	
+
 	VKPtr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
 	VKDynamic<VKResizableBuffer<PointLightUniforms>> _pointLightUniformBuffer;
 	VKPtr<VKPipelineLayout> _pointLightPipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pointLightPipeline;
 	std::vector<PointShadowMapInfo> _pointShadowMapInfos;
-	
+
 	ShadowMapPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input) override;
 	void onResize() override;
-	
+
 	void createDescriptorSetLayout();
 	void createBuffer();
 	void createPipelineLayouts();
 	void createPipelines();
-	
+
 	void renderDirectionalShadowMap(
 		const VKPtr<VKCommandBuffer>& commandBuffer,
 		const DirectionalLight::RenderData& light,
 		const std::vector<ModelRenderer::RenderData>& models);
-	
+
 	void renderPointShadowMap(
 		const VKPtr<VKCommandBuffer>& commandBuffer,
 		const PointLight::RenderData& light,

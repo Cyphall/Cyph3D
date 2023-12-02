@@ -36,10 +36,10 @@ AssetManager::AssetManager(int threadCount):
 		createInfo.maxLod = 1000.0f;
 		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 		createInfo.unnormalizedCoordinates = false;
-		
+
 		_textureSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 	}
-	
+
 	{
 		vk::SamplerCreateInfo createInfo;
 		createInfo.flags = {};
@@ -58,7 +58,7 @@ AssetManager::AssetManager(int threadCount):
 		createInfo.maxLod = 1000.0f;
 		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 		createInfo.unnormalizedCoordinates = false;
-		
+
 		_cubemapSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 	}
 }
@@ -94,7 +94,7 @@ TextureAsset* AssetManager::loadTexture(std::string_view path, ImageType type)
 	TextureAssetSignature signature;
 	signature.path = path;
 	signature.type = type;
-	
+
 	auto it = _textures.find(signature);
 	if (it == _textures.end())
 	{
@@ -128,13 +128,13 @@ CubemapAsset* AssetManager::loadCubemap(std::string_view equirectangularPath)
 {
 	CubemapAssetSignature signature;
 	signature.equirectangularPath = equirectangularPath;
-	
+
 	auto it = _cubemaps.find(signature);
 	if (it == _cubemaps.end())
 	{
 		it = _cubemaps.try_emplace(signature, std::unique_ptr<CubemapAsset>(new CubemapAsset(*this, signature))).first;
 	}
-	
+
 	return it->second.get();
 }
 

@@ -15,6 +15,6 @@ int main(int argc, char** argv)
 		system("pause");
 		return EXIT_FAILURE;
 	}
-	
+
 	return EXIT_SUCCESS;
 }

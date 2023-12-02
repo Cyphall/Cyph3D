@@ -10,11 +10,11 @@ class VKShaderBindingTable : public VKObject
 {
 public:
 	static VKPtr<VKShaderBindingTable> create(VKContext& context, const VKShaderBindingTableInfo& info);
-	
+
 	~VKShaderBindingTable() override;
-	
+
 	const VKShaderBindingTableInfo& getInfo() const;
-	
+
 	const vk::DeviceAddress& getRaygenSBTAddress() const;
 	const vk::DeviceSize& getRaygenSBTSize() const;
 	const vk::DeviceSize& getRaygenSBTStride() const;
@@ -27,11 +27,11 @@ public:
 
 private:
 	VKShaderBindingTable(VKContext& context, const VKShaderBindingTableInfo& info);
-	
+
 	VKShaderBindingTableInfo _info;
-	
+
 	VKPtr<VKBuffer<std::byte>> _buffer;
-	
+
 	vk::DeviceAddress _raygenSBTAddress = 0;
 	vk::DeviceSize _raygenSBTSize = 0;
 	vk::DeviceSize _raygenSBTStride = 0;

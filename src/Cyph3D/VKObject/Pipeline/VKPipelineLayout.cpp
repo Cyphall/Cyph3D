@@ -19,11 +19,11 @@ VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInf
 	{
 		descriptorSetLayouts.emplace_back(descriptorSetLayout->getHandle());
 	}
-	
+
 	vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
 	pipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
 	pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
-	
+
 	vk::PushConstantRange pushConstantRange;
 	if (_info.getPushConstantInfo())
 	{
@@ -31,11 +31,11 @@ VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInf
 		{
 			throw;
 		}
-		
+
 		pushConstantRange.stageFlags = _info.getPushConstantInfo()->shaderStages;
 		pushConstantRange.size = _info.getPushConstantInfo()->size;
 		pushConstantRange.offset = 0;
-		
+
 		pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
 		pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
 	}
@@ -44,7 +44,7 @@ VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInf
 		pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 		pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 	}
-	
+
 	_pipelineLayout = _context.getDevice().createPipelineLayout(pipelineLayoutCreateInfo);
 }
 

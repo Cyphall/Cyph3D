@@ -33,19 +33,19 @@ VKCommandBuffer::VKCommandBuffer(VKContext& context, const VKQueue& queue):
 {
 	vk::CommandPoolCreateInfo poolCreateInfo;
 	poolCreateInfo.queueFamilyIndex = queue.getFamily();
-	
+
 	_commandPool = _context.getDevice().createCommandPool(poolCreateInfo);
-	
+
 	vk::CommandBufferAllocateInfo allocateInfo;
 	allocateInfo.commandPool = _commandPool;
 	allocateInfo.level = vk::CommandBufferLevel::ePrimary;
 	allocateInfo.commandBufferCount = 1;
-	
+
 	_commandBuffer = _context.getDevice().allocateCommandBuffers(allocateInfo).front();
-	
+
 	vk::FenceCreateInfo fenceCreateInfo;
 	fenceCreateInfo.flags = vk::FenceCreateFlagBits::eSignaled;
-	
+
 	_statusFence = VKFence::create(_context, fenceCreateInfo);
 }
 
@@ -68,13 +68,13 @@ void VKCommandBuffer::waitExecution() const
 void VKCommandBuffer::begin()
 {
 	waitExecution();
-	
+
 	reset();
-	
+
 	vk::CommandBufferBeginInfo commandBufferBeginInfo;
 	commandBufferBeginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 	commandBufferBeginInfo.pInheritanceInfo = nullptr; // Optional
-	
+
 	_commandBuffer.begin(commandBufferBeginInfo);
 }
 
@@ -97,11 +97,11 @@ void VKCommandBuffer::memoryBarrier(vk::PipelineStageFlags2 srcStageMask, vk::Ac
 	memoryBarrier.srcAccessMask = srcAccessMask;
 	memoryBarrier.dstStageMask = dstStageMask;
 	memoryBarrier.dstAccessMask = dstAccessMask;
-	
+
 	vk::DependencyInfo dependencyInfo;
 	dependencyInfo.memoryBarrierCount = 1;
 	dependencyInfo.pMemoryBarriers = &memoryBarrier;
-	
+
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 }
 
@@ -117,13 +117,13 @@ void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk:
 	bufferMemoryBarrier.buffer = buffer->getHandle();
 	bufferMemoryBarrier.offset = 0;
 	bufferMemoryBarrier.size = VK_WHOLE_SIZE;
-	
+
 	vk::DependencyInfo dependencyInfo;
 	dependencyInfo.bufferMemoryBarrierCount = 1;
 	dependencyInfo.pBufferMemoryBarriers = &bufferMemoryBarrier;
-	
+
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
-	
+
 	_usedObjects.emplace_back(buffer);
 }
 
@@ -143,7 +143,7 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
 {
 	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
-	
+
 	vk::ImageMemoryBarrier2 imageMemoryBarrier;
 	imageMemoryBarrier.srcStageMask = srcStageMask;
 	imageMemoryBarrier.srcAccessMask = srcAccessMask;
@@ -159,15 +159,15 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2
 	imageMemoryBarrier.subresourceRange.layerCount = layerRange.y - layerRange.x + 1;
 	imageMemoryBarrier.subresourceRange.baseMipLevel = levelRange.x;
 	imageMemoryBarrier.subresourceRange.levelCount = levelRange.y - levelRange.x + 1;
-	
+
 	vk::DependencyInfo dependencyInfo;
 	dependencyInfo.imageMemoryBarrierCount = 1;
 	dependencyInfo.pImageMemoryBarriers = &imageMemoryBarrier;
-	
+
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
-	
+
 	image->setLayout(layerRange, levelRange, newImageLayout);
-	
+
 	_usedObjects.emplace_back(image);
 }
 
@@ -175,23 +175,23 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 {
 	if (_boundPipeline != nullptr)
 		throw;
-	
+
 	std::vector<vk::RenderingAttachmentInfo> colorAttachments;
 	colorAttachments.reserve(renderingInfo.getColorAttachmentInfos().size());
 	for (const VKRenderingColorAttachmentInfo& colorAttachmentInfo : renderingInfo.getColorAttachmentInfos())
 	{
 		vk::RenderingAttachmentInfo& colorAttachment = colorAttachments.emplace_back();
-		
+
 		const VKRenderingColorAttachmentInfo::ImageInfo& imageInfo = colorAttachmentInfo.getImageInfo();
 		_usedObjects.emplace_back(imageInfo.image);
 		VKHelper::assertImageViewHasUniqueLayout(imageInfo.image, imageInfo.layerRange, imageInfo.levelRange);
 		colorAttachment.imageView = imageInfo.image->getView(imageInfo.type, imageInfo.layerRange, imageInfo.levelRange, imageInfo.format);
 		colorAttachment.imageLayout = imageInfo.image->getLayout(imageInfo.layerRange.x, imageInfo.levelRange.x);
-		
+
 		if (colorAttachmentInfo.getResolveMode() != vk::ResolveModeFlagBits::eNone)
 		{
 			colorAttachment.resolveMode = colorAttachmentInfo.getResolveMode();
-			
+
 			const VKRenderingColorAttachmentInfo::ImageInfo& resolveImageInfo = colorAttachmentInfo.getResolveImageInfo();
 			_usedObjects.emplace_back(resolveImageInfo.image);
 			VKHelper::assertImageViewHasUniqueLayout(resolveImageInfo.image, resolveImageInfo.layerRange, resolveImageInfo.levelRange);
@@ -204,12 +204,12 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 			colorAttachment.resolveImageView = nullptr;
 			colorAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
 		}
-		
+
 		colorAttachment.loadOp = colorAttachmentInfo.getLoadOp();
 		colorAttachment.storeOp = colorAttachmentInfo.getStoreOp();
 		colorAttachment.clearValue = colorAttachmentInfo.getClearValue();
 	}
-	
+
 	vk::RenderingInfo vkRenderingInfo;
 	vkRenderingInfo.renderArea.offset = vk::Offset2D(0, 0);
 	vkRenderingInfo.renderArea.extent = vk::Extent2D(renderingInfo.getSize().x, renderingInfo.getSize().y);
@@ -218,22 +218,22 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 	vkRenderingInfo.colorAttachmentCount = colorAttachments.size();
 	vkRenderingInfo.pColorAttachments = colorAttachments.data();
 	vkRenderingInfo.pDepthAttachment = nullptr;
-	
+
 	vk::RenderingAttachmentInfo depthAttachment;
 	if (renderingInfo.hasDepthAttachment())
 	{
 		const VKRenderingDepthAttachmentInfo& depthAttachmentInfo = renderingInfo.getDepthAttachmentInfo();
-		
+
 		const VKRenderingDepthAttachmentInfo::ImageInfo& imageInfo = depthAttachmentInfo.getImageInfo();
 		_usedObjects.emplace_back(imageInfo.image);
 		VKHelper::assertImageViewHasUniqueLayout(imageInfo.image, imageInfo.layerRange, imageInfo.levelRange);
 		depthAttachment.imageView = imageInfo.image->getView(imageInfo.type, imageInfo.layerRange, imageInfo.levelRange, imageInfo.format);
 		depthAttachment.imageLayout = imageInfo.image->getLayout(imageInfo.layerRange.x, imageInfo.levelRange.x);
-		
+
 		if (depthAttachmentInfo.getResolveMode() != vk::ResolveModeFlagBits::eNone)
 		{
 			depthAttachment.resolveMode = depthAttachmentInfo.getResolveMode();
-			
+
 			const VKRenderingDepthAttachmentInfo::ImageInfo& resolveImageInfo = depthAttachmentInfo.getResolveImageInfo();
 			_usedObjects.emplace_back(resolveImageInfo.image);
 			VKHelper::assertImageViewHasUniqueLayout(resolveImageInfo.image, resolveImageInfo.layerRange, resolveImageInfo.levelRange);
@@ -246,21 +246,21 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 			depthAttachment.resolveImageView = nullptr;
 			depthAttachment.resolveImageLayout = vk::ImageLayout::eUndefined;
 		}
-		
+
 		depthAttachment.loadOp = depthAttachmentInfo.getLoadOp();
 		depthAttachment.storeOp = depthAttachmentInfo.getStoreOp();
 		depthAttachment.clearValue = depthAttachmentInfo.getClearValue();
-		
-		
+
+
 		vkRenderingInfo.pDepthAttachment = &depthAttachment;
 	}
 	else
 	{
 		vkRenderingInfo.pDepthAttachment = nullptr;
 	}
-	
+
 	vkRenderingInfo.pStencilAttachment = nullptr;
-	
+
 	_commandBuffer.beginRendering(vkRenderingInfo);
 }
 
@@ -268,7 +268,7 @@ void VKCommandBuffer::endRendering()
 {
 	if (_boundPipeline != nullptr)
 		throw;
-	
+
 	_commandBuffer.endRendering();
 }
 
@@ -276,10 +276,10 @@ void VKCommandBuffer::bindPipeline(const VKPtr<VKPipeline>& pipeline)
 {
 	if (_boundPipeline != nullptr)
 		throw;
-	
+
 	_commandBuffer.bindPipeline(pipeline->getPipelineType(), pipeline->getHandle());
 	_boundPipeline = pipeline.get();
-	
+
 	_usedObjects.emplace_back(pipeline);
 }
 
@@ -287,7 +287,7 @@ void VKCommandBuffer::unbindPipeline()
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	_boundPipeline = nullptr;
 }
 
@@ -295,14 +295,14 @@ void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescrip
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	_commandBuffer.bindDescriptorSets(
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorSet->getHandle(),
 		{});
-	
+
 	_usedObjects.emplace_back(descriptorSet);
 }
 
@@ -310,14 +310,14 @@ void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescrip
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	_commandBuffer.bindDescriptorSets(
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorSet->getHandle(),
 		dynamicOffset);
-	
+
 	_usedObjects.emplace_back(descriptorSet);
 }
 
@@ -325,14 +325,14 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	vk::DescriptorBufferInfo bufferInfo;
 	if (size > 0)
 	{
 		bufferInfo.buffer = buffer->getHandle();
 		bufferInfo.offset = offset * buffer->getStride();
 		bufferInfo.range = size * buffer->getStride();
-		
+
 		_usedObjects.emplace_back(buffer);
 	}
 	else
@@ -341,9 +341,9 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		bufferInfo.offset = 0;
 		bufferInfo.range = VK_WHOLE_SIZE;
 	}
-	
+
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
-	
+
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
 	descriptorWrite.dstBinding = bindingIndex;
@@ -353,7 +353,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	descriptorWrite.pImageInfo = nullptr; // Optional
 	descriptorWrite.pBufferInfo = &bufferInfo;
 	descriptorWrite.pTexelBufferView = nullptr; // Optional
-	
+
 	_commandBuffer.pushDescriptorSetKHR(
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
@@ -365,12 +365,12 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	vk::DescriptorImageInfo samplerInfo;
 	samplerInfo.sampler = sampler->getHandle();
-	
+
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
-	
+
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
 	descriptorWrite.dstBinding = bindingIndex;
@@ -380,13 +380,13 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	descriptorWrite.pImageInfo = &samplerInfo;
 	descriptorWrite.pBufferInfo = nullptr;
 	descriptorWrite.pTexelBufferView = nullptr;
-	
+
 	_commandBuffer.pushDescriptorSetKHR(
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorWrite);
-	
+
 	_usedObjects.emplace_back(sampler);
 }
 
@@ -407,15 +407,15 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
-	
+
 	vk::DescriptorImageInfo imageInfo;
 	imageInfo.imageView = image->getView(type, layerRange, levelRange, format);
 	imageInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
-	
+
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
-	
+
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
 	descriptorWrite.dstBinding = bindingIndex;
@@ -425,13 +425,13 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	descriptorWrite.pImageInfo = &imageInfo;
 	descriptorWrite.pBufferInfo = nullptr;
 	descriptorWrite.pTexelBufferView = nullptr;
-	
+
 	_commandBuffer.pushDescriptorSetKHR(
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorWrite);
-	
+
 	_usedObjects.emplace_back(image);
 }
 
@@ -453,16 +453,16 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
-	
+
 	vk::DescriptorImageInfo combinedImageSamplerInfo;
 	combinedImageSamplerInfo.imageView = image->getView(type, layerRange, levelRange, format);
 	combinedImageSamplerInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
 	combinedImageSamplerInfo.sampler = sampler->getHandle();
-	
+
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
-	
+
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
 	descriptorWrite.dstBinding = bindingIndex;
@@ -472,13 +472,13 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	descriptorWrite.pImageInfo = &combinedImageSamplerInfo;
 	descriptorWrite.pBufferInfo = nullptr;
 	descriptorWrite.pTexelBufferView = nullptr;
-	
+
 	_commandBuffer.pushDescriptorSetKHR(
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorWrite);
-	
+
 	_usedObjects.emplace_back(image);
 	_usedObjects.emplace_back(sampler);
 }
@@ -487,13 +487,13 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
-	
+
 	vk::WriteDescriptorSetAccelerationStructureKHR accelerationStructureDescriptorWrite;
 	accelerationStructureDescriptorWrite.accelerationStructureCount = 1;
 	accelerationStructureDescriptorWrite.pAccelerationStructures = &accelerationStructure->getHandle();
-	
+
 	vk::WriteDescriptorSet descriptorWrite;
 	descriptorWrite.dstSet = VK_NULL_HANDLE;
 	descriptorWrite.dstBinding = bindingIndex;
@@ -504,13 +504,13 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	descriptorWrite.pBufferInfo = nullptr;
 	descriptorWrite.pTexelBufferView = nullptr;
 	descriptorWrite.pNext = &accelerationStructureDescriptorWrite;
-	
+
 	_commandBuffer.pushDescriptorSetKHR(
 		_boundPipeline->getPipelineType(),
 		_boundPipeline->getPipelineLayout()->getHandle(),
 		setIndex,
 		descriptorWrite);
-	
+
 	_usedObjects.emplace_back(accelerationStructure);
 }
 
@@ -518,9 +518,9 @@ void VKCommandBuffer::bindVertexBuffer(uint32_t vertexBufferIndex, const VKPtr<V
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	_commandBuffer.bindVertexBuffers(vertexBufferIndex, vertexBuffer->getHandle(), {0});
-	
+
 	_usedObjects.emplace_back(vertexBuffer);
 }
 
@@ -528,7 +528,7 @@ void VKCommandBuffer::bindIndexBuffer(const VKPtr<VKBufferBase>& indexBuffer)
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	vk::IndexType indexType;
 	switch (indexBuffer->getStride())
 	{
@@ -541,9 +541,9 @@ void VKCommandBuffer::bindIndexBuffer(const VKPtr<VKBufferBase>& indexBuffer)
 		default:
 			throw;
 	}
-	
+
 	_commandBuffer.bindIndexBuffer(indexBuffer->getHandle(), 0, indexType);
-	
+
 	_usedObjects.emplace_back(indexBuffer);
 }
 
@@ -562,7 +562,7 @@ void VKCommandBuffer::drawIndirect(const VKPtr<VKBuffer<vk::DrawIndirectCommand>
 	if (drawCommandsBuffer)
 	{
 		_commandBuffer.drawIndirect(drawCommandsBuffer->getHandle(), 0, drawCommandsBuffer->getSize(), sizeof(vk::DrawIndirectCommand));
-		
+
 		_usedObjects.emplace_back(drawCommandsBuffer);
 	}
 }
@@ -572,7 +572,7 @@ void VKCommandBuffer::drawIndexedIndirect(const VKPtr<VKBuffer<vk::DrawIndexedIn
 	if (drawCommandsBuffer)
 	{
 		_commandBuffer.drawIndexedIndirect(drawCommandsBuffer->getHandle(), 0, drawCommandsBuffer->getSize(), sizeof(vk::DrawIndexedIndirectCommand));
-		
+
 		_usedObjects.emplace_back(drawCommandsBuffer);
 	}
 }
@@ -581,9 +581,9 @@ void VKCommandBuffer::copyBufferToImage(const VKPtr<VKBufferBase>& srcBuffer, vk
 {
 	if (srcBuffer->getByteSize() - srcByteOffset < dstImage->getLevelByteSize(dstLevel))
 		throw;
-	
+
 	glm::uvec2 dstSize = dstImage->getSize(dstLevel);
-	
+
 	vk::BufferImageCopy2 copiedRegion;
 	copiedRegion.bufferOffset = srcByteOffset;
 	copiedRegion.bufferRowLength = 0;
@@ -594,16 +594,16 @@ void VKCommandBuffer::copyBufferToImage(const VKPtr<VKBufferBase>& srcBuffer, vk
 	copiedRegion.imageSubresource.layerCount = 1;
 	copiedRegion.imageOffset = vk::Offset3D(0, 0, 0);
 	copiedRegion.imageExtent = vk::Extent3D(dstSize.x, dstSize.y, 1);
-	
+
 	vk::CopyBufferToImageInfo2 copyInfo;
 	copyInfo.srcBuffer = srcBuffer->getHandle();
 	copyInfo.dstImage = dstImage->getHandle();
 	copyInfo.dstImageLayout = dstImage->getLayout(dstLayer, dstLevel);
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
-	
+
 	_commandBuffer.copyBufferToImage2(copyInfo);
-	
+
 	_usedObjects.emplace_back(srcBuffer);
 	_usedObjects.emplace_back(dstImage);
 }
@@ -612,20 +612,20 @@ void VKCommandBuffer::copyBufferToBuffer(const VKPtr<VKBufferBase>& srcBuffer, v
 {
 	if (srcBuffer->getByteSize() - srcByteOffset < size || dstBuffer->getByteSize() - dstByteOffset < size)
 		throw;
-	
+
 	vk::BufferCopy2 copiedRegion;
 	copiedRegion.srcOffset = srcByteOffset;
 	copiedRegion.dstOffset = dstByteOffset;
 	copiedRegion.size = size;
-	
+
 	vk::CopyBufferInfo2 copyInfo;
 	copyInfo.srcBuffer = srcBuffer->getHandle();
 	copyInfo.dstBuffer = dstBuffer->getHandle();
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
-	
+
 	_commandBuffer.copyBuffer2(copyInfo);
-	
+
 	_usedObjects.emplace_back(srcBuffer);
 	_usedObjects.emplace_back(dstBuffer);
 }
@@ -634,9 +634,9 @@ void VKCommandBuffer::copyImageToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 {
 	if (srcImage->getLevelByteSize(srcLevel) > dstBuffer->getByteSize() - dstByteOffset)
 		throw;
-	
+
 	glm::uvec2 srcSize = srcImage->getSize(srcLevel);
-	
+
 	vk::BufferImageCopy2 copiedRegion;
 	copiedRegion.bufferOffset = dstByteOffset;
 	copiedRegion.bufferRowLength = 0;
@@ -647,16 +647,16 @@ void VKCommandBuffer::copyImageToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 	copiedRegion.imageSubresource.layerCount = 1;
 	copiedRegion.imageOffset = vk::Offset3D(0, 0, 0);
 	copiedRegion.imageExtent = vk::Extent3D(srcSize.x, srcSize.y, 1);
-	
+
 	vk::CopyImageToBufferInfo2 copyInfo;
 	copyInfo.srcImage = srcImage->getHandle();
 	copyInfo.srcImageLayout = srcImage->getLayout(srcLayer, srcLevel);
 	copyInfo.dstBuffer = dstBuffer->getHandle();
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
-	
+
 	_commandBuffer.copyImageToBuffer2(copyInfo);
-	
+
 	_usedObjects.emplace_back(srcImage);
 	_usedObjects.emplace_back(dstBuffer);
 }
@@ -665,13 +665,13 @@ void VKCommandBuffer::copyImageToImage(const VKPtr<VKImage>& srcImage, uint32_t 
 {
 	if (srcImage->getLevelByteSize(srcLevel) != dstImage->getLevelByteSize(dstLevel))
 		throw;
-	
+
 	glm::uvec2 srcSize = srcImage->getSize(srcLevel);
 	glm::uvec2 dstSize = dstImage->getSize(dstLevel);
-	
+
 	if (srcSize != dstSize)
 		throw;
-	
+
 	vk::ImageCopy2 copiedRegion;
 	copiedRegion.srcSubresource.aspectMask = VKHelper::getAspect(srcImage->getInfo().getFormat());
 	copiedRegion.srcSubresource.mipLevel = srcLevel;
@@ -684,7 +684,7 @@ void VKCommandBuffer::copyImageToImage(const VKPtr<VKImage>& srcImage, uint32_t 
 	copiedRegion.dstSubresource.layerCount = 1;
 	copiedRegion.dstOffset = vk::Offset3D(0, 0, 0);
 	copiedRegion.extent = vk::Extent3D(srcSize.x, srcSize.y, 1);
-	
+
 	vk::CopyImageInfo2 copyInfo;
 	copyInfo.srcImage = srcImage->getHandle();
 	copyInfo.srcImageLayout = srcImage->getLayout(srcLayer, srcLevel);
@@ -692,9 +692,9 @@ void VKCommandBuffer::copyImageToImage(const VKPtr<VKImage>& srcImage, uint32_t 
 	copyInfo.dstImageLayout = dstImage->getLayout(dstLayer, dstLevel);
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
-	
+
 	_commandBuffer.copyImage2(copyInfo);
-	
+
 	_usedObjects.emplace_back(srcImage);
 	_usedObjects.emplace_back(dstImage);
 }
@@ -703,7 +703,7 @@ void VKCommandBuffer::copyPixelToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 {
 	if (srcImage->getPixelByteSize() > dstBuffer->getByteSize() - dstByteOffset)
 		throw;
-	
+
 	vk::BufferImageCopy2 copiedRegion;
 	copiedRegion.bufferOffset = dstByteOffset;
 	copiedRegion.bufferRowLength = 0;
@@ -714,16 +714,16 @@ void VKCommandBuffer::copyPixelToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 	copiedRegion.imageSubresource.layerCount = 1;
 	copiedRegion.imageOffset = vk::Offset3D(srcPixel.x, srcPixel.y, 0);
 	copiedRegion.imageExtent = vk::Extent3D(1, 1, 1);
-	
+
 	vk::CopyImageToBufferInfo2 copyInfo;
 	copyInfo.srcImage = srcImage->getHandle();
 	copyInfo.srcImageLayout = srcImage->getLayout(srcLayer, srcLevel);
 	copyInfo.dstBuffer = dstBuffer->getHandle();
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
-	
+
 	_commandBuffer.copyImageToBuffer2(copyInfo);
-	
+
 	_usedObjects.emplace_back(srcImage);
 	_usedObjects.emplace_back(dstBuffer);
 }
@@ -751,7 +751,7 @@ void VKCommandBuffer::blitImage(const VKPtr<VKImage>& srcImage, uint32_t srcLaye
 	imageBlit.dstOffsets[1].x = dstImage->getSize(dstLevel).x;
 	imageBlit.dstOffsets[1].y = dstImage->getSize(dstLevel).y;
 	imageBlit.dstOffsets[1].z = 1;
-	
+
 	vk::BlitImageInfo2 info;
 	info.srcImage = srcImage->getHandle();
 	info.srcImageLayout = srcImage->getLayout(srcLayer, srcLevel);
@@ -760,9 +760,9 @@ void VKCommandBuffer::blitImage(const VKPtr<VKImage>& srcImage, uint32_t srcLaye
 	info.regionCount = 1;
 	info.pRegions = &imageBlit;
 	info.filter = vk::Filter::eLinear;
-	
+
 	_commandBuffer.blitImage2(info);
-	
+
 	_usedObjects.emplace_back(srcImage);
 	_usedObjects.emplace_back(dstImage);
 }
@@ -771,10 +771,10 @@ void VKCommandBuffer::dispatch(glm::uvec3 groupCount)
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	if (_boundPipeline->getPipelineType() != vk::PipelineBindPoint::eCompute)
 		throw;
-	
+
 	_commandBuffer.dispatch(groupCount.x, groupCount.y, groupCount.z);
 }
 
@@ -782,10 +782,10 @@ void VKCommandBuffer::setViewport(const VKPipelineViewport& viewport)
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	if (_boundPipeline->getPipelineType() != vk::PipelineBindPoint::eGraphics)
 		throw;
-	
+
 	vk::Viewport vkViewport;
 	vkViewport.x = viewport.offset.x;
 	vkViewport.y = viewport.offset.y;
@@ -793,7 +793,7 @@ void VKCommandBuffer::setViewport(const VKPipelineViewport& viewport)
 	vkViewport.height = viewport.size.y;
 	vkViewport.minDepth = viewport.depthRange.x;
 	vkViewport.maxDepth = viewport.depthRange.y;
-	
+
 	_commandBuffer.setViewport(0, vkViewport);
 }
 
@@ -801,16 +801,16 @@ void VKCommandBuffer::setScissor(const VKPipelineScissor& scissor)
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	if (_boundPipeline->getPipelineType() != vk::PipelineBindPoint::eGraphics)
 		throw;
-	
+
 	vk::Rect2D vkScissor;
 	vkScissor.offset.x = scissor.offset.x;
 	vkScissor.offset.y = scissor.offset.y;
 	vkScissor.extent.width = scissor.size.x;
 	vkScissor.extent.height = scissor.size.y;
-	
+
 	_commandBuffer.setScissor(0, vkScissor);
 }
 
@@ -822,7 +822,7 @@ void VKCommandBuffer::pushDebugGroup(std::string_view name)
 	label.color[1] = 0.0f;
 	label.color[2] = 0.0f;
 	label.color[3] = 0.0f;
-	
+
 	_commandBuffer.beginDebugUtilsLabelEXT(label);
 }
 
@@ -834,18 +834,18 @@ void VKCommandBuffer::popDebugGroup()
 void VKCommandBuffer::beginTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery)
 {
 	_commandBuffer.writeTimestamp2(vk::PipelineStageFlagBits2::eNone, timestampQuery->getHandle(), 0);
-	
+
 	timestampQuery->setIsBeginInserted(true);
-	
+
 	_usedObjects.emplace_back(timestampQuery);
 }
 
 void VKCommandBuffer::endTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery)
 {
 	_commandBuffer.writeTimestamp2(vk::PipelineStageFlagBits2::eAllCommands, timestampQuery->getHandle(), 1);
-	
+
 	timestampQuery->setIsEndInserted(true);
-	
+
 	_usedObjects.emplace_back(timestampQuery);
 }
 
@@ -856,7 +856,7 @@ void VKCommandBuffer::queryAccelerationStructureCompactedSize(const VKPtr<VKAcce
 		vk::QueryType::eAccelerationStructureCompactedSizeKHR,
 		accelerationStructureCompactedSizeQuery->getHandle(),
 		0);
-	
+
 	_usedObjects.emplace_back(accelerationStructure);
 	_usedObjects.emplace_back(accelerationStructureCompactedSizeQuery);
 }
@@ -869,9 +869,9 @@ void VKCommandBuffer::clearColorImage(const VKPtr<VKImage>& image, uint32_t laye
 	range.levelCount = 1;
 	range.baseArrayLayer = layer;
 	range.layerCount = 1;
-	
+
 	_commandBuffer.clearColorImage(image->getHandle(), image->getLayout(layer, level), clearColor, range);
-	
+
 	_usedObjects.emplace_back(image);
 }
 
@@ -881,7 +881,7 @@ void VKCommandBuffer::buildBottomLevelAccelerationStructure(const VKPtr<VKAccele
 	{
 		throw;
 	}
-	
+
 	vk::AccelerationStructureGeometryKHR geometry;
 	geometry.geometryType = vk::GeometryTypeKHR::eTriangles;
 	geometry.geometry.triangles = vk::AccelerationStructureGeometryTrianglesDataKHR();
@@ -893,9 +893,9 @@ void VKCommandBuffer::buildBottomLevelAccelerationStructure(const VKPtr<VKAccele
 	geometry.geometry.triangles.indexData = buildInfo.indexBuffer->getDeviceAddress();
 	geometry.geometry.triangles.transformData = VK_NULL_HANDLE;
 	geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
-	
+
 	uint32_t primitiveCount = buildInfo.indexBuffer->getSize() / 3;
-	
+
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
 	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace | vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction;
@@ -905,19 +905,19 @@ void VKCommandBuffer::buildBottomLevelAccelerationStructure(const VKPtr<VKAccele
 	buildGeometryInfo.geometryCount = 1;
 	buildGeometryInfo.pGeometries = &geometry;
 	buildGeometryInfo.scratchData = scratchBuffer->getDeviceAddress();
-	
+
 	vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo;
 	buildRangeInfo.primitiveCount = primitiveCount;
 	buildRangeInfo.primitiveOffset = 0;
 	buildRangeInfo.firstVertex = 0;
 	buildRangeInfo.transformOffset = 0;
-	
+
 	_commandBuffer.buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
-	
+
 	accelerationStructure->_referencedObjectsInBuild.clear();
 	accelerationStructure->_referencedObjectsInBuild.emplace_back(buildInfo.vertexBuffer);
 	accelerationStructure->_referencedObjectsInBuild.emplace_back(buildInfo.indexBuffer);
-	
+
 	_usedObjects.emplace_back(accelerationStructure);
 	_usedObjects.emplace_back(scratchBuffer);
 }
@@ -928,9 +928,9 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 	{
 		throw;
 	}
-	
+
 	instancesBuffer->resizeSmart(buildInfo.instancesInfos.size());
-	
+
 	vk::AccelerationStructureInstanceKHR* instancesBufferPtr = instancesBuffer->getHostPointer();
 	for (const VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo : buildInfo.instancesInfos)
 	{
@@ -947,20 +947,20 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 		instance.instanceShaderBindingTableRecordOffset = instanceInfo.recordIndex;
 		instance.flags = {};
 		instance.accelerationStructureReference = instanceInfo.accelerationStructure->getDeviceAddress();
-		
+
 		std::memcpy(instancesBufferPtr, &instance, sizeof(vk::AccelerationStructureInstanceKHR));
 		instancesBufferPtr++;
 	}
-	
+
 	vk::AccelerationStructureGeometryKHR geometry;
 	geometry.geometryType = vk::GeometryTypeKHR::eInstances;
 	geometry.geometry.instances = vk::AccelerationStructureGeometryInstancesDataKHR();
 	geometry.geometry.instances.arrayOfPointers = false;
 	geometry.geometry.instances.data = instancesBuffer->getDeviceAddress();
 	geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
-	
+
 	uint32_t primitiveCount = buildInfo.instancesInfos.size();
-	
+
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eTopLevel;
 	buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
@@ -970,22 +970,22 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 	buildGeometryInfo.geometryCount = 1;
 	buildGeometryInfo.pGeometries = &geometry;
 	buildGeometryInfo.scratchData = scratchBuffer->getDeviceAddress();
-	
+
 	vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo;
 	buildRangeInfo.primitiveCount = primitiveCount;
 	buildRangeInfo.primitiveOffset = 0;
 	buildRangeInfo.firstVertex = 0;
 	buildRangeInfo.transformOffset = 0;
-	
+
 	_commandBuffer.buildAccelerationStructuresKHR(buildGeometryInfo, &buildRangeInfo);
-	
+
 	accelerationStructure->_referencedObjectsInBuild.clear();
 	for (const VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo : buildInfo.instancesInfos)
 	{
 		accelerationStructure->_referencedObjectsInBuild.emplace_back(instanceInfo.accelerationStructure);
 	}
 	accelerationStructure->_referencedObjectsInBuild.emplace_back(instancesBuffer);
-	
+
 	_usedObjects.emplace_back(accelerationStructure);
 	_usedObjects.emplace_back(scratchBuffer);
 }
@@ -996,9 +996,9 @@ void VKCommandBuffer::compactAccelerationStructure(const VKPtr<VKAccelerationStr
 	copyAccelerationStructureInfo.src = src->getHandle();
 	copyAccelerationStructureInfo.dst = dst->getHandle();
 	copyAccelerationStructureInfo.mode = vk::CopyAccelerationStructureModeKHR::eCompact;
-	
+
 	_commandBuffer.copyAccelerationStructureKHR(copyAccelerationStructureInfo);
-	
+
 	_usedObjects.emplace_back(src);
 	_usedObjects.emplace_back(dst);
 }
@@ -1009,22 +1009,22 @@ void VKCommandBuffer::traceRays(const VKPtr<VKShaderBindingTable>& sbt, glm::uve
 	raygenRegion.deviceAddress = sbt->getRaygenSBTAddress();
 	raygenRegion.stride = sbt->getRaygenSBTStride();
 	raygenRegion.size = sbt->getRaygenSBTSize();
-	
+
 	vk::StridedDeviceAddressRegionKHR missRegion;
 	missRegion.deviceAddress = sbt->getMissSBTAddress();
 	missRegion.stride = sbt->getMissSBTStride();
 	missRegion.size = sbt->getMissSBTSize();
-	
+
 	vk::StridedDeviceAddressRegionKHR hitRegion;
 	hitRegion.deviceAddress = sbt->getTriangleHitSBTAddress();
 	hitRegion.stride = sbt->getTriangleHitSBTStride();
 	hitRegion.size = sbt->getTriangleHitSBTSize();
-	
+
 	vk::StridedDeviceAddressRegionKHR callRegion;
 	callRegion.deviceAddress = 0;
 	callRegion.stride = 0;
 	callRegion.size = 0;
-	
+
 	_commandBuffer.traceRaysKHR(
 		raygenRegion,
 		missRegion,
@@ -1033,7 +1033,7 @@ void VKCommandBuffer::traceRays(const VKPtr<VKShaderBindingTable>& sbt, glm::uve
 		size.x,
 		size.y,
 		1);
-	
+
 	_usedObjects.emplace_back(sbt);
 }
 
@@ -1041,9 +1041,9 @@ void VKCommandBuffer::pushConstants(const void* data, uint32_t dataSize)
 {
 	if (_boundPipeline == nullptr)
 		throw;
-	
+
 	vk::ShaderStageFlags shaderStages = _boundPipeline->getPipelineLayout()->getInfo().getPushConstantInfo()->shaderStages;
-	
+
 	_commandBuffer.pushConstants(_boundPipeline->getPipelineLayout()->getHandle(), shaderStages, 0, dataSize, data);
 }
 

@@ -12,7 +12,7 @@ class PathTracingSceneRenderer : public SceneRenderer
 {
 public:
 	explicit PathTracingSceneRenderer(glm::uvec2 size);
-	
+
 	void setSampleCountPerRender(uint32_t count);
 
 private:
@@ -21,9 +21,9 @@ private:
 	ExposurePass _exposurePass;
 	BloomPass _bloomPass;
 	ToneMappingPass _toneMappingPass;
-	
+
 	uint32_t _sampleCount = 8;
-	
+
 	const VKPtr<VKImage>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
 	void onResize() override;
 };

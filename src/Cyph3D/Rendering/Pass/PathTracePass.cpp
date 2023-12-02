@@ -42,7 +42,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	{
 		_accumulatedSamples = 0;
 	}
-	
+
 	for (int i = 0; i < 3; i++)
 	{
 		commandBuffer->imageMemoryBarrier(
@@ -53,57 +53,57 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 			vk::AccessFlagBits2::eShaderStorageRead,
 			vk::ImageLayout::eGeneral);
 	}
-	
+
 	bool recreateDescriptorSet = false;
-	
+
 	if (input.sceneChanged)
 	{
 		setupTLAS(commandBuffer, input);
-		
+
 		recreateDescriptorSet = true;
 	}
-	
+
 	if (input.sceneChanged || input.cameraChanged)
 	{
 		setupSBT(input);
-		
+
 		recreateDescriptorSet = true;
 	}
-	
+
 	if (recreateDescriptorSet)
 	{
 		VKDescriptorSetInfo info(_descriptorSetLayout);
-		
+
 		_descriptorSet = VKDescriptorSet::create(Engine::getVKContext(), info);
-		
+
 		_descriptorSet->bindDescriptor(0, _tlas);
 		for (int i = 0; i < 3; i++)
 		{
 			_descriptorSet->bindDescriptor(1, _rawRenderImage[i], i);
 		}
 	}
-	
+
 	commandBuffer->bindPipeline(_pipeline);
-	
+
 	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
 	commandBuffer->bindDescriptorSet(1, _descriptorSet);
-	
+
 	FramePushConstants framePushConstants{
 		.batchIndex = _batchIndex,
 		.sampleCount = input.sampleCount,
 		.resetAccumulation = _accumulatedSamples == 0,
 		.fixedPointDecimals = FIXED_POINT_DECIMALS
 	};
-	
+
 	commandBuffer->pushConstants(framePushConstants);
-	
+
 	commandBuffer->traceRays(_sbt, _size);
-	
+
 	_accumulatedSamples += input.sampleCount;
 	_batchIndex++;
-	
+
 	commandBuffer->unbindPipeline();
-	
+
 	return {
 		.rawRenderImage = _rawRenderImage,
 		.accumulatedSamples = _accumulatedSamples,
@@ -123,41 +123,41 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 	{
 		const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
-		
+
 		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
 		instanceInfo.localToWorld = model.transform.getLocalToWorldMatrix();
 		instanceInfo.customIndex = 0;
 		instanceInfo.recordIndex = i;
 		instanceInfo.accelerationStructure = model.mesh.getAccelerationStructure();
 	}
-	
+
 	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
-	
+
 	VKBufferInfo backingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
 	backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	backingBufferInfo.setName("TLAS buffer");
 	VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
-	
+
 	_tlas = VKAccelerationStructure::create(
 		Engine::getVKContext(),
 		vk::AccelerationStructureTypeKHR::eTopLevel,
 		buildSizesInfo.accelerationStructureSize,
 		backingBuffer);
-	
+
 	VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
 	scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
 	VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
-	
+
 	VKResizableBufferInfo instancesBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR);
 	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	instancesBufferInfo.setRequiredAlignment(16);
 	VKPtr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>> instancesBuffer = VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(Engine::getVKContext(), instancesBufferInfo);
-	
+
 	commandBuffer->buildTopLevelAccelerationStructure(_tlas, scratchBuffer, buildInfo, instancesBuffer);
-	
+
 	commandBuffer->bufferMemoryBarrier(
 		backingBuffer,
 		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
@@ -175,13 +175,13 @@ void PathTracePass::setupSBT(const PathTracePassInput& input)
 		.cameraRayBL = input.camera.getCornerRays()[2],
 		.cameraRayBR = input.camera.getCornerRays()[3]
 	};
-	
+
 	VKShaderBindingTableInfo info(_pipeline->getRaygenGroupHandle(0), cameraUniforms);
-	
+
 	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 	{
 		const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
-		
+
 		ObjectUniforms objectUniforms{
 			.normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix())),
 			.vertexBuffer = model.mesh.getFullVertexBuffer()->getDeviceAddress(),
@@ -197,26 +197,26 @@ void PathTracePass::setupSBT(const PathTracePassInput& input)
 			.metalnessValue = model.material.getMetalnessValue(),
 			.emissiveScale = model.material.getEmissiveScale()
 		};
-		
+
 		info.addTriangleHitRecord(i, 0, _pipeline->getTriangleHitGroupHandle(0), objectUniforms);
 	}
-	
+
 	SkyboxAsset* skybox = Engine::getScene().getSkybox();
-	
+
 	if (skybox && skybox->isLoaded())
 	{
 		CubemapSkyboxUniforms cubemapSkyboxUniforms{
 			.skyboxIndex = skybox->getCubemap()->getBindlessIndex(),
 			.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0))
 		};
-		
+
 		info.addMissRecord(_pipeline->getMissGroupHandle(1), cubemapSkyboxUniforms);
 	}
 	else
 	{
 		info.addMissRecord(_pipeline->getMissGroupHandle(0));
 	}
-	
+
 	_sbt = VKShaderBindingTable::create(Engine::getVKContext(), info);
 }
 
@@ -225,7 +225,7 @@ void PathTracePass::createDescriptorSetLayout()
 	VKDescriptorSetLayoutInfo info(false);
 	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR);
 	info.addBinding(vk::DescriptorType::eStorageImage, 3, vk::ShaderStageFlagBits::eRaygenKHR);
-	
+
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
@@ -235,19 +235,19 @@ void PathTracePass::createPipelineLayout()
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_descriptorSetLayout);
 	info.setPushConstantLayout<FramePushConstants>(vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eClosestHitKHR | vk::ShaderStageFlagBits::eMissKHR);
-	
+
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
 void PathTracePass::createPipeline()
 {
 	VKRayTracingPipelineInfo info(_pipelineLayout);
-	
+
 	info.addRaygenGroupsInfos("resources/shaders/internal/path tracing/path trace.rgen");
 	info.addTriangleHitGroupsInfos("resources/shaders/internal/path tracing/path trace.rchit", std::nullopt);
 	info.addMissGroupsInfos("resources/shaders/internal/path tracing/black skybox.rmiss");
 	info.addMissGroupsInfos("resources/shaders/internal/path tracing/cubemap skybox.rmiss");
-	
+
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }
 
@@ -263,9 +263,9 @@ void PathTracePass::createImage()
 			vk::ImageUsageFlagBits::eStorage);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.setName("Raw render image");
-		
+
 		_rawRenderImage[i] = VKImage::create(Engine::getVKContext(), imageInfo);
 	}
-	
+
 	_accumulatedSamples = 0;
 }

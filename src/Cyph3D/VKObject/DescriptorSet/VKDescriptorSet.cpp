@@ -20,58 +20,58 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 	vk::DescriptorSetVariableDescriptorCountAllocateInfo descriptorSetVariableDescriptorCountAllocateInfo;
 	descriptorSetVariableDescriptorCountAllocateInfo.descriptorSetCount = 0;
 	descriptorSetVariableDescriptorCountAllocateInfo.pDescriptorCounts = nullptr;
-	
+
 	_boundObjects.resize(_info.getLayout()->getInfo().getBindingInfos().size());
-	
+
 	std::vector<vk::DescriptorPoolSize> requiredResources;
 	bool anyBindingHasUpdateAfterBind = false;
 	for (uint32_t i = 0; i < _info.getLayout()->getInfo().getBindingInfos().size(); i++)
 	{
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(i);
-		
+
 		vk::DescriptorPoolSize& descriptorPoolSize = requiredResources.emplace_back();
 		descriptorPoolSize.type = bindingInfo.type;
 		descriptorPoolSize.descriptorCount = bindingInfo.count;
-		
+
 		if (bindingInfo.flags & vk::DescriptorBindingFlagBits::eVariableDescriptorCount)
 		{
 			descriptorSetVariableDescriptorCountAllocateInfo.descriptorSetCount = 1;
 			descriptorSetVariableDescriptorCountAllocateInfo.pDescriptorCounts = &_info.getVariableSizeAllocatedCount();
-			
+
 			_boundObjects[i].resize(*descriptorSetVariableDescriptorCountAllocateInfo.pDescriptorCounts);
 		}
 		else
 		{
-			
+
 			_boundObjects[i].resize(bindingInfo.count);
 		}
-		
+
 		if (bindingInfo.flags & vk::DescriptorBindingFlagBits::eUpdateAfterBind)
 		{
 			anyBindingHasUpdateAfterBind = true;
 		}
 	}
-	
+
 	vk::DescriptorPoolCreateInfo poolInfo;
 	poolInfo.poolSizeCount = requiredResources.size();
 	poolInfo.pPoolSizes = requiredResources.data();
 	poolInfo.maxSets = 1;
-	
+
 	if (anyBindingHasUpdateAfterBind)
 	{
 		poolInfo.flags |= vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind;
 	}
-	
+
 	_descriptorPool = _context.getDevice().createDescriptorPool(poolInfo);
-	
+
 	vk::DescriptorSetLayout vkLayout = _info.getLayout()->getHandle();
-	
+
 	vk::DescriptorSetAllocateInfo allocInfo;
 	allocInfo.descriptorPool = _descriptorPool;
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = &vkLayout;
 	allocInfo.pNext = &descriptorSetVariableDescriptorCountAllocateInfo;
-	
+
 	_descriptorSet = _context.getDevice().allocateDescriptorSets(allocInfo).front();
 }
 
@@ -98,9 +98,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBuffer
 		bufferInfo.buffer = buffer->getHandle();
 		bufferInfo.offset = offset * buffer->getStride();
 		bufferInfo.range = size * buffer->getStride();
-		
+
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
-		
+
 		vk::WriteDescriptorSet descriptorWrite;
 		descriptorWrite.dstSet = _descriptorSet;
 		descriptorWrite.dstBinding = bindingIndex;
@@ -110,9 +110,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBuffer
 		descriptorWrite.pImageInfo = nullptr; // Optional
 		descriptorWrite.pBufferInfo = &bufferInfo;
 		descriptorWrite.pTexelBufferView = nullptr; // Optional
-		
+
 		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
-		
+
 		_boundObjects[bindingIndex][arrayIndex] = {buffer};
 	}
 	else
@@ -121,9 +121,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBuffer
 		bufferInfo.buffer = VK_NULL_HANDLE;
 		bufferInfo.offset = 0;
 		bufferInfo.range = VK_WHOLE_SIZE;
-		
+
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
-		
+
 		vk::WriteDescriptorSet descriptorWrite;
 		descriptorWrite.dstSet = _descriptorSet;
 		descriptorWrite.dstBinding = bindingIndex;
@@ -133,9 +133,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBuffer
 		descriptorWrite.pImageInfo = nullptr; // Optional
 		descriptorWrite.pBufferInfo = &bufferInfo;
 		descriptorWrite.pTexelBufferView = nullptr; // Optional
-		
+
 		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
-		
+
 		_boundObjects[bindingIndex][arrayIndex] = {buffer};
 	}
 }
@@ -146,9 +146,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKSample
 	{
 		vk::DescriptorImageInfo samplerInfo;
 		samplerInfo.sampler = sampler->getHandle();
-		
+
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
-		
+
 		vk::WriteDescriptorSet descriptorWrite;
 		descriptorWrite.dstSet = _descriptorSet;
 		descriptorWrite.dstBinding = bindingIndex;
@@ -158,9 +158,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKSample
 		descriptorWrite.pImageInfo = &samplerInfo;
 		descriptorWrite.pBufferInfo = nullptr;
 		descriptorWrite.pTexelBufferView = nullptr;
-		
+
 		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
-		
+
 		_boundObjects[bindingIndex][arrayIndex] = {sampler};
 	}
 	else
@@ -193,13 +193,13 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 	if (image)
 	{
 		VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
-		
+
 		vk::DescriptorImageInfo imageInfo;
 		imageInfo.imageView = image->getView(type, layerRange, levelRange, format);
 		imageInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
-		
+
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
-		
+
 		vk::WriteDescriptorSet descriptorWrite;
 		descriptorWrite.dstSet = _descriptorSet;
 		descriptorWrite.dstBinding = bindingIndex;
@@ -209,9 +209,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 		descriptorWrite.pImageInfo = &imageInfo;
 		descriptorWrite.pBufferInfo = nullptr;
 		descriptorWrite.pTexelBufferView = nullptr;
-		
+
 		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
-		
+
 		_boundObjects[bindingIndex][arrayIndex] = {image};
 	}
 	else
@@ -245,14 +245,14 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 	if (image && sampler)
 	{
 		VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
-		
+
 		vk::DescriptorImageInfo combinedImageSamplerInfo;
 		combinedImageSamplerInfo.imageView = image->getView(type, layerRange, levelRange, format);
 		combinedImageSamplerInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
 		combinedImageSamplerInfo.sampler = sampler->getHandle();
-		
+
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
-		
+
 		vk::WriteDescriptorSet descriptorWrite;
 		descriptorWrite.dstSet = _descriptorSet;
 		descriptorWrite.dstBinding = bindingIndex;
@@ -262,9 +262,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 		descriptorWrite.pImageInfo = &combinedImageSamplerInfo;
 		descriptorWrite.pBufferInfo = nullptr;
 		descriptorWrite.pTexelBufferView = nullptr;
-		
+
 		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
-		
+
 		_boundObjects[bindingIndex][arrayIndex] = {image, sampler};
 	}
 	else
@@ -278,11 +278,11 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKAccele
 	if (accelerationStructure)
 	{
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
-		
+
 		vk::WriteDescriptorSetAccelerationStructureKHR accelerationStructureDescriptorWrite;
 		accelerationStructureDescriptorWrite.accelerationStructureCount = 1;
 		accelerationStructureDescriptorWrite.pAccelerationStructures = &accelerationStructure->getHandle();
-		
+
 		vk::WriteDescriptorSet descriptorWrite;
 		descriptorWrite.dstSet = _descriptorSet;
 		descriptorWrite.dstBinding = bindingIndex;
@@ -293,9 +293,9 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKAccele
 		descriptorWrite.pBufferInfo = nullptr;
 		descriptorWrite.pTexelBufferView = nullptr;
 		descriptorWrite.pNext = &accelerationStructureDescriptorWrite;
-		
+
 		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
-		
+
 		_boundObjects[bindingIndex][arrayIndex] = {accelerationStructure};
 	}
 	else
@@ -314,9 +314,9 @@ void VKDescriptorSet::copyTo(uint32_t srcBindingIndex, uint32_t srcArrayIndex, c
 	copyDescriptorSet.dstBinding = dstBindingIndex;
 	copyDescriptorSet.dstArrayElement = dstArrayIndex;
 	copyDescriptorSet.descriptorCount = count;
-	
+
 	_context.getDevice().updateDescriptorSets({}, copyDescriptorSet);
-	
+
 	for (uint32_t i = 0; i < count; i++)
 	{
 		dst->_boundObjects[dstBindingIndex][dstArrayIndex + i] = _boundObjects[srcBindingIndex][srcArrayIndex + i];

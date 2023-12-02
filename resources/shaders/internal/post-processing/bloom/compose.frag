@@ -19,6 +19,6 @@ void main()
 {
 	vec3 a = textureLod(u_srcATexture, i_texCoords, 0).xyz;
 	vec3 b = textureLod(u_srcBTexture, i_texCoords, 0).xyz;
-	
+
 	o_color = vec4(mix(a, b, u_factor), 1);
 }

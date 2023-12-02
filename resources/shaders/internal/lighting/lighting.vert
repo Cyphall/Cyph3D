@@ -43,6 +43,6 @@ void main()
 
 	o_T = normalize(mat3(u_objectUniforms.normalMatrix) * a_tangent);
 	o_N = normalize(mat3(u_objectUniforms.normalMatrix) * a_normal);
-	
+
 	gl_Position = u_objectUniforms.mvp * vec4(a_position, 1.0);
 }

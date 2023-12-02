@@ -44,13 +44,13 @@ private:
 		GLSL_vec3 cameraRayBL;
 		GLSL_vec3 cameraRayBR;
 	};
-	
+
 	struct CubemapSkyboxUniforms
 	{
 		GLSL_uint skyboxIndex;
 		GLSL_mat4 skyboxRotation;
 	};
-	
+
 	struct ObjectUniforms
 	{
 		GLSL_mat4 normalMatrix;
@@ -67,7 +67,7 @@ private:
 		GLSL_float metalnessValue;
 		GLSL_float emissiveScale;
 	};
-	
+
 	struct FramePushConstants
 	{
 		GLSL_uint batchIndex;
@@ -75,29 +75,29 @@ private:
 		GLSL_bool resetAccumulation;
 		GLSL_uint fixedPointDecimals;
 	};
-	
+
 	VKPtr<VKAccelerationStructure> _tlas;
-	
+
 	VKPtr<VKShaderBindingTable> _sbt;
-	
+
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
-	
+
 	VKPtr<VKDescriptorSet> _descriptorSet;
-	
+
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKRayTracingPipeline> _pipeline;
-	
+
 	std::array<VKPtr<VKImage>, 3> _rawRenderImage;
-	
+
 	uint32_t _batchIndex = 0;
 	uint32_t _accumulatedSamples = 0;
-	
+
 	PathTracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input) override;
 	void onResize() override;
-	
+
 	void setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
 	void setupSBT(const PathTracePassInput& input);
-	
+
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();

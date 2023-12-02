@@ -24,19 +24,19 @@ public:
 
 private:
 	static ImGuiContext* _context;
-	
+
 	static std::unique_ptr<UIAssetBrowser> _assetBrowser;
 	static ImFont* _bigFont;
-	
+
 	static bool _dockingLayoutInitialized;
-	
+
 	static std::unique_ptr<ImGuiVulkanBackend> _vulkanBackend;
-	
+
 	static VKPtr<VKSemaphore> _presentSemaphore;
 	static VKPtr<VKSemaphore> _nextSubmitSemaphore;
-	
+
 	static bool _firstFrame;
-	
+
 	static void initDockingLayout(ImGuiID dockspaceId);
 	static void initStyles();
 	static void initFonts();

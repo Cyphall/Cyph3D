@@ -10,17 +10,17 @@ class VKDescriptorSetLayout : public VKObject
 {
 public:
 	static VKPtr<VKDescriptorSetLayout> create(VKContext& context, const VKDescriptorSetLayoutInfo& info);
-	
+
 	~VKDescriptorSetLayout() override;
-	
+
 	const VKDescriptorSetLayoutInfo& getInfo() const;
-	
+
 	const vk::DescriptorSetLayout& getHandle();
 
 private:
 	VKDescriptorSetLayout(VKContext& context, const VKDescriptorSetLayoutInfo& info);
-	
+
 	VKDescriptorSetLayoutInfo _info;
-	
+
 	vk::DescriptorSetLayout _handle;
 };

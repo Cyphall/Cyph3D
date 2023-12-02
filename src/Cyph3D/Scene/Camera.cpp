@@ -104,9 +104,9 @@ Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
 bool Camera::update(glm::vec2 mousePosDelta)
 {
 	float ratio = (float)Engine::getTimer().deltaTime() * _speed;
-	
+
 	bool changed = false;
-	
+
 	if (Engine::getWindow().getKey(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 	{
 		ratio /= 20;
@@ -115,7 +115,7 @@ bool Camera::update(glm::vec2 mousePosDelta)
 	{
 		ratio *= 5;
 	}
-	
+
 	if (Engine::getWindow().getKey(GLFW_KEY_W) == GLFW_PRESS)
 	{
 		setPosition(getPosition() + getOrientation() * ratio);
@@ -136,24 +136,24 @@ bool Camera::update(glm::vec2 mousePosDelta)
 		setPosition(getPosition() + getSideOrientation() * ratio);
 		changed = true;
 	}
-	
+
 	glm::vec2 sphericalCoords = getSphericalCoords();
 	sphericalCoords.x += mousePosDelta.x / 12.0f;
 	sphericalCoords.y -= mousePosDelta.y / 12.0f;
 	setSphericalCoords(sphericalCoords);
-	
+
 	if (mousePosDelta.x != 0.0f || mousePosDelta.y != 0.0f)
 	{
 		changed = true;
 	}
-	
+
 	return changed;
 }
 
 void Camera::recalculateOrientation() const
 {
 	glm::vec2 sphericalCoordsRadians = glm::radians(_sphericalCoords);
-	
+
 	_orientation = glm::vec3(
 		glm::sin(sphericalCoordsRadians.x) * glm::cos(sphericalCoordsRadians.y),
 		glm::sin(sphericalCoordsRadians.y),
@@ -165,14 +165,14 @@ void Camera::recalculateOrientation() const
 		0,
 		glm::sin(sphericalCoordsRadians.x)
 	);
-	
+
 	_orientationChanged = false;
 }
 
 void Camera::recalculateView() const
 {
 	_view = glm::lookAt(getPosition(), getPosition() + getOrientation(), glm::vec3(0, 1, 0));
-	
+
 	_viewChanged = false;
 }
 
@@ -181,7 +181,7 @@ void Camera::recalculateProjection() const
 {
 	_projection = glm::perspective(_verticalFov, _aspectRatio, NEAR_DISTANCE, FAR_DISTANCE);
 	_projection[1][1] *= -1;
-	
+
 	_projectionChanged = false;
 }
 
@@ -223,12 +223,12 @@ void Camera::recalculateCornerRays() const
 {
 	glm::mat4 projInverse = glm::inverse(getProjection());
 	glm::mat4 viewInverse = glm::affineInverse(getView());
-	
+
 	_cornerRays[0] = glm::vec3(-1, -1, 1); // top left
 	_cornerRays[1] = glm::vec3(1, -1, 1); // top right
 	_cornerRays[2] = glm::vec3(-1, 1, 1); // bottom left
 	_cornerRays[3] = glm::vec3(1, 1, 1); // bottom right
-	
+
 	for (int i = 0; i < 4; i++)
 	{
 		glm::vec4 vec = projInverse * glm::vec4(_cornerRays[i], 1);
@@ -237,7 +237,7 @@ void Camera::recalculateCornerRays() const
 		vec = viewInverse * vec;
 		_cornerRays[i] = glm::normalize(glm::vec3(vec));
 	}
-	
+
 	_cornerRaysChanged = false;
 }
 

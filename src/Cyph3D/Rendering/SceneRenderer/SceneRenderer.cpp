@@ -30,14 +30,14 @@ const VKPtr<VKImage>& SceneRenderer::render(const VKPtr<VKCommandBuffer>& comman
 {
 	_renderPerf.clear();
 	_renderPerf.setDuration(_perfCounter.retrieve());
-	
+
 	_perfCounter.start(commandBuffer);
-	
+
 	const VKPtr<VKImage>& result = onRender(commandBuffer, camera, registry, _firstRender || sceneChanged, _firstRender || cameraChanged);
 	_firstRender = false;
-	
+
 	_perfCounter.stop(commandBuffer);
-	
+
 	return result;
 }
 

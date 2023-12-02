@@ -15,7 +15,7 @@ vec4 toSrgb(vec4 linear)
 	bvec3 cutoff = lessThan(linear.rgb, vec3(0.0031308));
 	vec3 higher = vec3(1.055) * pow(linear.rgb, vec3(1.0/2.4)) - vec3(0.055);
 	vec3 lower = linear.rgb * vec3(12.92);
-	
+
 	return vec4(mix(higher, lower, cutoff), linear.a);
 }
 
@@ -24,19 +24,19 @@ vec4 toLinear(vec4 srgb)
 	bvec3 cutoff = lessThan(srgb.rgb, vec3(0.04045));
 	vec3 higher = pow((srgb.rgb + vec3(0.055)) / vec3(1.055), vec3(2.4));
 	vec3 lower = srgb.rgb/vec3(12.92);
-	
+
 	return vec4(mix(higher, lower, cutoff), srgb.a);
 }
 
 vec4 load(uvec2 pos)
 {
 	vec4 value = imageLoad(u_input, ivec2(pos));
-	
+
 	if (u_srgb)
 	{
 		value = toLinear(value);
 	}
-	
+
 	return value;
 }
 
@@ -51,7 +51,7 @@ vec4 reduce(vec4 a, vec4 b, vec4 c, vec4 d)
 	case 2:
 		return min(min(a, b), min(c, d));
 	}
-	
+
 	return vec4(0);
 }
 
@@ -61,7 +61,7 @@ void store(uvec2 pos, vec4 value)
 	{
 		value = toSrgb(value);
 	}
-	
+
 	imageStore(u_output, ivec2(pos), value);
 }
 
@@ -70,18 +70,18 @@ void main()
 {
 	uvec2 dstSize = imageSize(u_output);
 	uvec2 dstPos = gl_GlobalInvocationID.xy;
-	
+
 	if (any(greaterThanEqual(dstPos, dstSize)))
 	{
 		return;
 	}
-	
+
 	vec4 a = load(dstPos * 2 + uvec2(0, 0));
 	vec4 b = load(dstPos * 2 + uvec2(0, 1));
 	vec4 c = load(dstPos * 2 + uvec2(1, 0));
 	vec4 d = load(dstPos * 2 + uvec2(1, 1));
-	
+
 	vec4 result = reduce(a, b, c, d);
-	
+
 	store(dstPos, result);
 }

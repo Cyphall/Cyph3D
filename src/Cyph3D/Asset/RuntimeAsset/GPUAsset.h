@@ -14,7 +14,7 @@ public:
 	{
 		return _loaded;
 	}
-	
+
 protected:
 	std::atomic_bool _loaded = false;
 };

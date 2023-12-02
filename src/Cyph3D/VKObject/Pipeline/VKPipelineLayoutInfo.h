@@ -16,9 +16,9 @@ public:
 		uint32_t size;
 		vk::ShaderStageFlags shaderStages;
 	};
-	
+
 	void addDescriptorSetLayout(const VKPtr<VKDescriptorSetLayout>& descriptorSetLayout);
-	
+
 	template<typename T>
 	void setPushConstantLayout(vk::ShaderStageFlags shaderStages = vk::ShaderStageFlagBits::eAll)
 	{
@@ -27,12 +27,12 @@ public:
 			.shaderStages = shaderStages
 		};
 	}
-	
+
 	const VKPtr<VKDescriptorSetLayout>& getDescriptorSetLayout(uint32_t setIndex) const;
 	const std::vector<VKPtr<VKDescriptorSetLayout>>& getDescriptorSetLayouts() const;
-	
+
 	const std::optional<PushConstantInfo>& getPushConstantInfo() const;
-	
+
 private:
 	std::vector<VKPtr<VKDescriptorSetLayout>> _descriptorSetsLayouts;
 	std::optional<PushConstantInfo> _pushConstantInfo;

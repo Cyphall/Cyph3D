@@ -48,9 +48,9 @@ ComponentConstIterator Entity::end() const
 ComponentIterator Entity::removeComponent(ComponentIterator where)
 {
 	ComponentIterator newIt = ComponentIterator(_components.erase(where.getUnderlyingIterator()));
-	
+
 	_changed();
-	
+
 	return newIt;
 }
 
@@ -88,50 +88,50 @@ void Entity::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 ObjectSerialization Entity::serialize() const
 {
 	ObjectSerialization entitySerialization;
-	
+
 	entitySerialization.version = 1;
 	entitySerialization.identifier = "Entity";
-	
+
 	entitySerialization.data["name"] = getName();
-	
+
 	const Transform& transform = getTransform();
 	nlohmann::ordered_json transformData;
-	
+
 	glm::vec3 position = transform.getLocalPosition();
 	transformData["position"] = {position.x, position.y, position.z};
 	glm::quat rotation = transform.getLocalRotation();
 	transformData["rotation"] = {rotation.w, rotation.x, rotation.y, rotation.z};
 	glm::vec3 scale = transform.getLocalScale();
 	transformData["scale"] = {scale.x, scale.y, scale.z};
-	
+
 	entitySerialization.data["transform"] = transformData;
-	
+
 	std::vector<nlohmann::ordered_json> jsonComponents;
 	jsonComponents.reserve(_components.size());
 	for (const Component& component : *this)
 	{
 		jsonComponents.emplace_back(component.serialize().toJson());
 	}
-	
+
 	entitySerialization.data["components"] = jsonComponents;
-	
+
 	return entitySerialization;
 }
 
 void Entity::deserialize(const ObjectSerialization& entitySerialization)
 {
 	setName(entitySerialization.data["name"].get<std::string>());
-	
+
 	Transform& transform = getTransform();
 	transform.setLocalPosition(glm::make_vec3(entitySerialization.data["transform"]["position"].get<std::vector<float>>().data()));
 	std::vector<float> quat = entitySerialization.data["transform"]["rotation"].get<std::vector<float>>();
 	transform.setLocalRotation(glm::quat(quat[0], quat[1], quat[2], quat[3]));
 	transform.setLocalScale(glm::make_vec3(entitySerialization.data["transform"]["scale"].get<std::vector<float>>().data()));
-	
+
 	for (const nlohmann::ordered_json& json : entitySerialization.data["components"])
 	{
 		ObjectSerialization componentSerialization = ObjectSerialization::fromJson(json);
-		
+
 		Component& component = addComponentByIdentifier(componentSerialization.identifier);
 		component.deserialize(componentSerialization);
 	}
@@ -150,7 +150,7 @@ const std::string& Entity::getName() const
 void Entity::setName(const std::string& name)
 {
 	_name = name;
-	
+
 	_changed();
 }
 
@@ -158,11 +158,11 @@ void Entity::onDrawUi()
 {
 	ImGui::PushID(this);
 	ImGui::InputText("Name", &_name);
-	
+
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::Spacing();
-	
+
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		glm::vec3 position = _transform.getLocalPosition();
@@ -170,26 +170,26 @@ void Entity::onDrawUi()
 		{
 			_transform.setLocalPosition(position);
 		}
-		
+
 		glm::vec3 rotation = _transform.getEulerLocalRotation();
 		if (ImGui::DragFloat3("Rotation", glm::value_ptr(rotation), 0.01f))
 		{
 			_transform.setEulerLocalRotation(rotation);
 		}
-		
+
 		glm::vec3 scale = _transform.getLocalScale();
 		if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), 0.01f))
 		{
 			_transform.setLocalScale(scale);
 		}
 	}
-	
+
 	for (auto it = begin(); it != end();)
 	{
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
-		
+
 		ImGui::PushID(&(*it));
 
 		bool keep = true;
@@ -197,9 +197,9 @@ void Entity::onDrawUi()
 		{
 			it->onDrawUi();
 		}
-		
+
 		ImGui::PopID();
-		
+
 		if (keep)
 		{
 			it++;
@@ -215,7 +215,7 @@ void Entity::onDrawUi()
 	ImGui::Spacing();
 
 	const char* addComponentText = "Add Component";
-	
+
 	float availableWidth = ImGui::GetContentRegionAvail().x;
 	float wantedButtonWidth = ImGui::CalcTextSize(addComponentText).x + ImGui::GetStyle().FramePadding.x * 2 + 50.0f * Engine::getWindow().getPixelScale();
 	float actualButtonWidth = std::min(wantedButtonWidth, availableWidth);
@@ -235,7 +235,7 @@ void Entity::onDrawUi()
 		}
 		ImGui::EndPopup();
 	}
-	
+
 	ImGui::PopID();
 }
 
@@ -267,18 +267,18 @@ void Entity::duplicate(Transform& parent) const
 {
 	Entity& newEntity = getScene().createEntity(parent);
 	newEntity.setName(getName());
-	
+
 	const Transform& thisTransform = getTransform();
 	Transform& newTransform = newEntity.getTransform();
 	newTransform.setLocalPosition(thisTransform.getLocalPosition());
 	newTransform.setLocalRotation(thisTransform.getLocalRotation());
 	newTransform.setLocalScale(thisTransform.getLocalScale());
-	
+
 	for (const Component& component : *this)
 	{
 		component.duplicate(newEntity);
 	}
-	
+
 	for (Transform* child : getTransform().getChildren())
 	{
 		child->getOwner()->duplicate(newEntity.getTransform());

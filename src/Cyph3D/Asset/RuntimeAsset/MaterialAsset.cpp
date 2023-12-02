@@ -40,31 +40,31 @@ void MaterialAsset::onDrawUi()
 {
 	ImGuiHelper::TextCentered("Material");
 	ImGuiHelper::TextCentered(_signature.path.c_str());
-	
+
 	ImGui::Separator();
-	
+
 	if (ImGui::Button("Reload"))
 	{
 		reload();
 	}
-	
+
 	ImGui::SameLine();
-	
+
 	if (ImGui::Button("Save"))
 	{
 		save();
 	}
-	
+
 	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
 	{
 		ImGuiHelper::BeginGroupPanel("Albedo");
-		
+
 		std::optional<std::string_view> newPath;
 		if (ImGuiHelper::AssetInputWidget(_albedoTexture ? &_albedoTexture->getSignature().path : nullptr, "Image", "asset_image", newPath))
 		{
 			setAlbedoTexture(newPath);
 		}
-		
+
 		if (_albedoTexture == nullptr)
 		{
 			glm::vec3 value = getAlbedoValue();
@@ -73,7 +73,7 @@ void MaterialAsset::onDrawUi()
 				setAlbedoValue(value);
 			}
 		}
-		
+
 		ImGuiHelper::EndGroupPanel();
 	}
 	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
@@ -139,7 +139,7 @@ void MaterialAsset::onDrawUi()
 		{
 			setDisplacementTexture(newPath);
 		}
-		
+
 		float scale = getDisplacementScale();
 		if (ImGui::DragFloat("Scale", &scale, 0.001f, 0.0f, FLT_MAX, "%.3f"))
 		{
@@ -157,7 +157,7 @@ void MaterialAsset::onDrawUi()
 		{
 			setEmissiveTexture(newPath);
 		}
-		
+
 		float scale = getEmissiveScale();
 		if (ImGui::DragFloat("Scale", &scale, 0.01f, 0.0f, FLT_MAX, "%.2f"))
 		{
@@ -182,7 +182,7 @@ void MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 		_albedoTexture = nullptr;
 		_albedoTextureChangedConnection = {};
 	}
-	
+
 	_changed();
 }
 
@@ -205,7 +205,7 @@ void MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 		_normalTexture = nullptr;
 		_normalTextureChangedConnection = {};
 	}
-	
+
 	_changed();
 }
 
@@ -228,7 +228,7 @@ void MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
 		_roughnessTexture = nullptr;
 		_roughnessTextureChangedConnection = {};
 	}
-	
+
 	_changed();
 }
 
@@ -251,7 +251,7 @@ void MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
 		_metalnessTexture = nullptr;
 		_metalnessTextureChangedConnection = {};
 	}
-	
+
 	_changed();
 }
 
@@ -274,7 +274,7 @@ void MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
 		_displacementTexture = nullptr;
 		_displacementTextureChangedConnection = {};
 	}
-	
+
 	_changed();
 }
 
@@ -297,7 +297,7 @@ void MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
 		_emissiveTexture = nullptr;
 		_emissiveTextureChangedConnection = {};
 	}
-	
+
 	_changed();
 }
 
@@ -314,7 +314,7 @@ const glm::vec3& MaterialAsset::getAlbedoValue() const
 void MaterialAsset::setAlbedoValue(const glm::vec3& value)
 {
 	_albedoValue = glm::clamp(value, glm::vec3(0.0f), glm::vec3(1.0f));
-	
+
 	_changed();
 }
 
@@ -326,7 +326,7 @@ const float& MaterialAsset::getRoughnessValue() const
 void MaterialAsset::setRoughnessValue(const float& value)
 {
 	_roughnessValue = glm::clamp(value, 0.0f, 1.0f);
-	
+
 	_changed();
 }
 
@@ -338,7 +338,7 @@ const float& MaterialAsset::getMetalnessValue() const
 void MaterialAsset::setMetalnessValue(const float& value)
 {
 	_metalnessValue = glm::clamp(value, 0.0f, 1.0f);
-	
+
 	_changed();
 }
 
@@ -350,7 +350,7 @@ const float& MaterialAsset::getDisplacementScale() const
 void MaterialAsset::setDisplacementScale(const float& scale)
 {
 	_displacementScale = glm::max(scale, 0.0f);
-	
+
 	_changed();
 }
 
@@ -362,7 +362,7 @@ const float& MaterialAsset::getEmissiveScale() const
 void MaterialAsset::setEmissiveScale(const float& scale)
 {
 	_emissiveScale = glm::max(scale, 0.0f);
-	
+
 	_changed();
 }
 
@@ -496,7 +496,7 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 		{
 			setDisplacementTexture(std::nullopt);
 		}
-		
+
 		setDisplacementScale(0.05f);
 	}
 
@@ -598,7 +598,7 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		{
 			setDisplacementTexture(std::nullopt);
 		}
-		
+
 		setDisplacementScale(0.05f);
 	}
 
@@ -609,13 +609,13 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 		if (!jsonPath.is_null())
 		{
 			setEmissiveTexture(jsonPath.get<std::string>());
-			
+
 			setEmissiveScale(1.0f);
 		}
 		else
 		{
 			setEmissiveTexture(std::nullopt);
-			
+
 			const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 			setEmissiveScale(jsonValue.get<float>());
 		}
@@ -626,7 +626,7 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 {
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("albedo");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -636,7 +636,7 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		{
 			setAlbedoTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setAlbedoValue({
 			               jsonValue.at(0).get<float>(),
@@ -644,10 +644,10 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 			               jsonValue.at(2).get<float>()
 		               });
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("normal");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -658,10 +658,10 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 			setNormalTexture(std::nullopt);
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("roughness");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -671,14 +671,14 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		{
 			setRoughnessTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setRoughnessValue(jsonValue.get<float>());
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("metalness");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -688,14 +688,14 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		{
 			setMetalnessTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setMetalnessValue(jsonValue.get<float>());
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("displacement");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -705,13 +705,13 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		{
 			setDisplacementTexture(std::nullopt);
 		}
-		
+
 		setDisplacementScale(0.05f);
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("emissive");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -721,7 +721,7 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 		{
 			setEmissiveTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("scale");
 		setEmissiveScale(jsonValue.get<float>());
 	}
@@ -731,7 +731,7 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 {
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("albedo");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -741,7 +741,7 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 		{
 			setAlbedoTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setAlbedoValue({
 						   jsonValue.at(0).get<float>(),
@@ -749,10 +749,10 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 						   jsonValue.at(2).get<float>()
 					   });
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("normal");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -763,10 +763,10 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 			setNormalTexture(std::nullopt);
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("roughness");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -776,14 +776,14 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 		{
 			setRoughnessTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setRoughnessValue(jsonValue.get<float>());
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("metalness");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -793,14 +793,14 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 		{
 			setMetalnessTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("value");
 		setMetalnessValue(jsonValue.get<float>());
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("displacement");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -810,14 +810,14 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 		{
 			setDisplacementTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("scale");
 		setDisplacementScale(jsonValue.get<float>());
 	}
-	
+
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("emissive");
-		
+
 		const nlohmann::ordered_json& jsonPath = jsonMap["path"];
 		if (!jsonPath.is_null())
 		{
@@ -827,7 +827,7 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 		{
 			setEmissiveTexture(std::nullopt);
 		}
-		
+
 		const nlohmann::ordered_json& jsonValue = jsonMap.at("scale");
 		setEmissiveScale(jsonValue.get<float>());
 	}
@@ -851,7 +851,7 @@ void MaterialAsset::save() const
 
 		const glm::vec3& value = getAlbedoValue();
 		jsonMap["value"] = {value.x, value.y, value.z};
-		
+
 		jsonRoot["albedo"] = jsonMap;
 	}
 
@@ -913,7 +913,7 @@ void MaterialAsset::save() const
 		{
 			jsonMap["path"] = nullptr;
 		}
-		
+
 		const float& scale = getDisplacementScale();
 		jsonMap["scale"] = scale;
 
@@ -936,7 +936,7 @@ void MaterialAsset::save() const
 
 		jsonRoot["emissive"] = jsonMap;
 	}
-	
+
 	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / _signature.path);
 }
 

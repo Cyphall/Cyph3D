@@ -14,12 +14,12 @@
 enum class EntryType
 {
 	Directory,
-	
+
 	Unknown,
-	
+
 	Image,
 	Mesh,
-	
+
 	Material,
 	Skybox,
 	Scene
@@ -42,7 +42,7 @@ public:
 			}
 		}
 	};
-	
+
 	Entry(const std::filesystem::path& path, EntryType type, Entry* parent):
 		_path(path),
 		_assetPath(std::filesystem::relative(path, FileHelper::getAssetDirectoryPath()).generic_string()),
@@ -69,7 +69,7 @@ public:
 			for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(_path))
 			{
 				EntryType entryType;
-				
+
 				if (entry.is_directory())
 				{
 					entryType = EntryType::Directory;
@@ -81,7 +81,7 @@ public:
 						extension.begin(), extension.end(),
 						extension.begin(),
 						[](char c){ return std::tolower(c); });
-					
+
 					if (extension == ".png" || extension == ".jpg" || extension == ".hdr")
 					{
 						entryType = EntryType::Image;
@@ -128,7 +128,7 @@ public:
 	{
 		return _assetPath;
 	}
-	
+
 	const std::string& displayAssetPath() const
 	{
 		return _displayAssetPath;
@@ -143,12 +143,12 @@ public:
 	{
 		return _name;
 	}
-	
+
 	const EntryType& type() const
 	{
 		return _type;
 	}
-	
+
 	Entry* parent() const
 	{
 		return _parent;
@@ -232,7 +232,7 @@ void UIAssetBrowser::draw()
 		{
 			rescan();
 		}
-		
+
 		ImGui::SetItemTooltip("Refresh");
 
 		float currentWidth = ImGui::GetContentRegionAvail().x;
@@ -256,18 +256,18 @@ void UIAssetBrowser::draw()
 		ImGui::PopStyleVar();
 
 		ImGui::SameLine(0.0f, 2.0f);
-		
+
 		ImGui::BeginGroup();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0, 0});
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
-		
+
 		bool disabled = _currentDirectory == _root.get();
 		if (disabled)
 		{
 			ImGui::BeginDisabled();
 		}
-		
+
 		if (ImGui::Button("\uF062", {ImGui::GetFrameHeight(), ImGui::GetFrameHeight()}))
 		{
 			_currentDirectory = _currentDirectory->parent();
@@ -277,9 +277,9 @@ void UIAssetBrowser::draw()
 		{
 			ImGui::EndDisabled();
 		}
-		
+
 		ImGui::SetItemTooltip("Parent directory");
-		
+
 		ImGui::SameLine();
 
 		ImGui::SetNextItemWidth(-FLT_MIN);
@@ -288,17 +288,17 @@ void UIAssetBrowser::draw()
 
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
-		
+
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
 		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
-		
+
 		drawRightPanelEntries();
-		
+
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
 		{
 			_selectedEntry = nullptr;
 		}
-		
+
 		if (ImGui::BeginPopupContextWindow("create_asset_popup", ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
 		{
 			if (ImGui::MenuItem("Create Material"))
@@ -336,12 +336,12 @@ void UIAssetBrowser::draw()
 void UIAssetBrowser::rescan()
 {
 	_selectedEntry = nullptr;
-	
+
 	std::filesystem::path currentDirectory = _currentDirectory ? _currentDirectory->path() : FileHelper::getAssetDirectoryPath();
-	
+
 	_root.reset();
 	_root = std::make_unique<UIAssetBrowser::Entry>(FileHelper::getAssetDirectoryPath(), EntryType::Directory, nullptr);
-	
+
 	_currentDirectory = _root.get();
 	bool search = true;
 	while (search)
@@ -475,9 +475,9 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 			}
 		}
 	}
-	
+
 	ImGui::SetItemTooltip("%s", entry.name().c_str());
-	
+
 	if (&entry == _selectedEntry)
 	{
 		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, IM_COL32(100, 100, 100, 255));
@@ -486,7 +486,7 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 	{
 		drawList->AddRectFilled(entryOrigin, entryOrigin + entrySize, IM_COL32(80, 80, 80, 255));
 	}
-	
+
 	glm::vec3 iconColor = glm::vec4(style.Colors[ImGuiCol_Text]);
 	iconColor -= 0.5f;
 	iconColor *= 0.7f;
@@ -553,7 +553,7 @@ void UIAssetBrowser::drawRightPanelEntries()
 			default:
 				throw;
 		}
-		
+
 		drawRightPanelEntry(*entry, icon, usedWidth);
 
 		if (dragDropId != nullptr)

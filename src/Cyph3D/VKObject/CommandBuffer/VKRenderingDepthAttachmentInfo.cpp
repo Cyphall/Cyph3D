@@ -5,7 +5,7 @@
 VKRenderingDepthAttachmentInfo::VKRenderingDepthAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
 	_imageInfo(image, type, layerRange, levelRange, format)
 {
-	
+
 }
 
 const VKRenderingDepthAttachmentInfo::ImageInfo& VKRenderingDepthAttachmentInfo::getImageInfo() const
@@ -28,7 +28,7 @@ VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk
 {
 	_resolveMode = mode;
 	_resolveImageInfo = {image, type, layerRange, levelRange, format};
-	
+
 	return *this;
 }
 
@@ -45,7 +45,7 @@ const VKRenderingDepthAttachmentInfo::ImageInfo& VKRenderingDepthAttachmentInfo:
 VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setLoadOpLoad()
 {
 	_loadOp = vk::AttachmentLoadOp::eLoad;
-	
+
 	return *this;
 }
 
@@ -53,14 +53,14 @@ VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setLoadOpClear(f
 {
 	_loadOp = vk::AttachmentLoadOp::eClear;
 	_clearValue.depthStencil.depth = clearValue;
-	
+
 	return *this;
 }
 
 VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setLoadOpDontCare()
 {
 	_loadOp = vk::AttachmentLoadOp::eDontCare;
-	
+
 	return *this;
 }
 
@@ -77,21 +77,21 @@ const vk::ClearValue& VKRenderingDepthAttachmentInfo::getClearValue() const
 VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setStoreOpStore()
 {
 	_storeOp = vk::AttachmentStoreOp::eStore;
-	
+
 	return *this;
 }
 
 VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setStoreOpDontCare()
 {
 	_storeOp = vk::AttachmentStoreOp::eDontCare;
-	
+
 	return *this;
 }
 
 VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setStoreOpNone()
 {
 	_storeOp = vk::AttachmentStoreOp::eNone;
-	
+
 	return *this;
 }
 

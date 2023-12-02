@@ -27,27 +27,27 @@ NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::ImageLayout::eGeneral);
-	
+
 	VKRenderingInfo renderingInfo(_size);
-	
+
 	commandBuffer->bindPipeline(_pipeline);
-	
+
 	for (int i = 0; i < 3; i++)
 	{
 		commandBuffer->pushDescriptor(0, 0, input.inputImage[i], i);
 	}
 	commandBuffer->pushDescriptor(0, 1, _outputImage, 0);
-	
+
 	PushConstantData pushConstantData{
 		.accumulatedSamples = input.accumulatedSamples,
 		.fixedPointDecimals = input.fixedPointDecimals
 	};
 	commandBuffer->pushConstants(pushConstantData);
-	
+
 	commandBuffer->dispatch({(_size.x + 7) / 8, (_size.y + 7) / 8, 1});
-	
+
 	commandBuffer->unbindPipeline();
-	
+
 	return {
 		_outputImage
 	};
@@ -63,7 +63,7 @@ void NormalizationPass::createDescriptorSetLayout()
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eStorageImage, 3);
 	info.addBinding(vk::DescriptorType::eStorageImage, 1);
-	
+
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
@@ -72,7 +72,7 @@ void NormalizationPass::createPipelineLayout()
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_descriptorSetLayout);
 	info.setPushConstantLayout<PushConstantData>();
-	
+
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
@@ -81,7 +81,7 @@ void NormalizationPass::createPipeline()
 	VKComputePipelineInfo info(
 		_pipelineLayout,
 		"resources/shaders/internal/post-processing/normalization/normalization.comp");
-	
+
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), info);
 }
 
@@ -95,6 +95,6 @@ void NormalizationPass::createImage()
 		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setName("Normalization output image");
-	
+
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 }

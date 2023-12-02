@@ -41,9 +41,9 @@ void SkyboxAsset::onDrawUi()
 	{
 		save();
 	}
-	
+
 	ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
-	
+
 	if (ImGui::BeginCombo("Layout", magic_enum::enum_name(_layout).data()))
 	{
 		for (Layout layout : magic_enum::enum_values<Layout>())
@@ -53,7 +53,7 @@ void SkyboxAsset::onDrawUi()
 			{
 				setLayout(layout);
 			}
-			
+
 			if (isSelected)
 				ImGui::SetItemDefaultFocus();
 		}
@@ -66,73 +66,73 @@ void SkyboxAsset::onDrawUi()
 			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
 			{
 				ImGuiHelper::BeginGroupPanel("Positive X");
-				
+
 				std::optional<std::string_view> newPath;
 				if (ImGuiHelper::AssetInputWidget(getXposPath(), "Image", "asset_image", newPath))
 				{
 					setXposPath(newPath);
 				}
-				
+
 				ImGuiHelper::EndGroupPanel();
 			}
 			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
 			{
 				ImGuiHelper::BeginGroupPanel("Negative X");
-				
+
 				std::optional<std::string_view> newPath;
 				if (ImGuiHelper::AssetInputWidget(getXnegPath(), "Image", "asset_image", newPath))
 				{
 					setXnegPath(newPath);
 				}
-				
+
 				ImGuiHelper::EndGroupPanel();
 			}
 			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
 			{
 				ImGuiHelper::BeginGroupPanel("Positive Y");
-				
+
 				std::optional<std::string_view> newPath;
 				if (ImGuiHelper::AssetInputWidget(getYposPath(), "Image", "asset_image", newPath))
 				{
 					setYposPath(newPath);
 				}
-				
+
 				ImGuiHelper::EndGroupPanel();
 			}
 			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
 			{
 				ImGuiHelper::BeginGroupPanel("Negative Y");
-				
+
 				std::optional<std::string_view> newPath;
 				if (ImGuiHelper::AssetInputWidget(getYnegPath(), "Image", "asset_image", newPath))
 				{
 					setYnegPath(newPath);
 				}
-				
+
 				ImGuiHelper::EndGroupPanel();
 			}
 			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
 			{
 				ImGuiHelper::BeginGroupPanel("Positive Z");
-				
+
 				std::optional<std::string_view> newPath;
 				if (ImGuiHelper::AssetInputWidget(getZposPath(), "Image", "asset_image", newPath))
 				{
 					setZposPath(newPath);
 				}
-				
+
 				ImGuiHelper::EndGroupPanel();
 			}
 			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
 			{
 				ImGuiHelper::BeginGroupPanel("Negative Z");
-				
+
 				std::optional<std::string_view> newPath;
 				if (ImGuiHelper::AssetInputWidget(getZnegPath(), "Image", "asset_image", newPath))
 				{
 					setZnegPath(newPath);
 				}
-				
+
 				ImGuiHelper::EndGroupPanel();
 			}
 			break;
@@ -140,13 +140,13 @@ void SkyboxAsset::onDrawUi()
 			ImGui::Dummy({0, 10.0f * Engine::getWindow().getPixelScale()});
 			{
 				ImGuiHelper::BeginGroupPanel("Equirectangular");
-				
+
 				std::optional<std::string_view> newPath;
 				if (ImGuiHelper::AssetInputWidget(getEquirectangularPath(), "Image", "asset_image", newPath))
 				{
 					setEquirectangularPath(newPath);
 				}
-				
+
 				ImGuiHelper::EndGroupPanel();
 			}
 			break;
@@ -164,7 +164,7 @@ void SkyboxAsset::setLayout(const SkyboxAsset::Layout& layout)
 {
 	_layout = layout;
 	onChanged();
-	
+
 	_changed();
 }
 
@@ -177,7 +177,7 @@ void SkyboxAsset::setXposPath(std::optional<std::string_view> path)
 {
 	_xposPath = path;
 	onChanged();
-	
+
 	_changed();
 }
 
@@ -190,7 +190,7 @@ void SkyboxAsset::setXnegPath(std::optional<std::string_view> path)
 {
 	_xnegPath = path;
 	onChanged();
-	
+
 	_changed();
 }
 
@@ -203,7 +203,7 @@ void SkyboxAsset::setYposPath(std::optional<std::string_view> path)
 {
 	_yposPath = path;
 	onChanged();
-	
+
 	_changed();
 }
 
@@ -216,7 +216,7 @@ void SkyboxAsset::setYnegPath(std::optional<std::string_view> path)
 {
 	_ynegPath = path;
 	onChanged();
-	
+
 	_changed();
 }
 
@@ -229,7 +229,7 @@ void SkyboxAsset::setZposPath(std::optional<std::string_view> path)
 {
 	_zposPath = path;
 	onChanged();
-	
+
 	_changed();
 }
 
@@ -242,7 +242,7 @@ void SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
 {
 	_znegPath = path;
 	onChanged();
-	
+
 	_changed();
 }
 
@@ -255,7 +255,7 @@ void SkyboxAsset::setEquirectangularPath(std::optional<std::string_view> path)
 {
 	_equirectangularPath = path;
 	onChanged();
-	
+
 	_changed();
 }
 
@@ -268,7 +268,7 @@ void SkyboxAsset::create(std::string_view path)
 {
 	nlohmann::ordered_json jsonRoot;
 	jsonRoot["version"] = 2;
-	
+
 	jsonRoot["pos_x"] = nullptr;
 	jsonRoot["neg_x"] = nullptr;
 	jsonRoot["pos_y"] = nullptr;
@@ -293,7 +293,7 @@ void SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot
 void SkyboxAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
 {
 	setLayout(Layout::Cubemap);
-	
+
 	{
 		const nlohmann::ordered_json& path = jsonRoot["pos_x"];
 		if (!path.is_null())
@@ -384,7 +384,7 @@ void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot
 			throw;
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& path = jsonRoot["pos_x"];
 		if (!path.is_null())
@@ -396,7 +396,7 @@ void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot
 			setXposPath(std::nullopt);
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& path = jsonRoot["neg_x"];
 		if (!path.is_null())
@@ -408,7 +408,7 @@ void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot
 			setXnegPath(std::nullopt);
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& path = jsonRoot["pos_y"];
 		if (!path.is_null())
@@ -420,7 +420,7 @@ void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot
 			setYposPath(std::nullopt);
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& path = jsonRoot["neg_y"];
 		if (!path.is_null())
@@ -432,7 +432,7 @@ void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot
 			setYnegPath(std::nullopt);
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& path = jsonRoot["pos_z"];
 		if (!path.is_null())
@@ -444,7 +444,7 @@ void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot
 			setZposPath(std::nullopt);
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& path = jsonRoot["neg_z"];
 		if (!path.is_null())
@@ -456,7 +456,7 @@ void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot
 			setZnegPath(std::nullopt);
 		}
 	}
-	
+
 	{
 		const nlohmann::ordered_json& path = jsonRoot["equirectangularPath"];
 		if (!path.is_null())
@@ -474,7 +474,7 @@ void SkyboxAsset::save() const
 {
 	nlohmann::ordered_json jsonRoot;
 	jsonRoot["version"] = 3;
-	
+
 	switch (_layout)
 	{
 		case Layout::Cubemap:
@@ -558,7 +558,7 @@ void SkyboxAsset::save() const
 			jsonRoot["neg_z"] = nullptr;
 		}
 	}
-	
+
 	{
 		const std::string* path = getEquirectangularPath();
 		if (path != nullptr)
@@ -570,7 +570,7 @@ void SkyboxAsset::save() const
 			jsonRoot["equirectangularPath"] = nullptr;
 		}
 	}
-	
+
 	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / _signature.path);
 }
 

@@ -6,7 +6,7 @@ class Win32LoggerColor : public ILoggerColor
 {
 public:
 	Win32LoggerColor();
-	
+
 	void setColor(glm::u8vec3 color) override;
 	void resetColor() override;
 

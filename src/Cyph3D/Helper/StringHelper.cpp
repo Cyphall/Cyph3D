@@ -19,11 +19,11 @@ std::string StringHelper::convert(const std::wstring& wstring)
 	{
 		return {};
 	}
-	
+
 	int requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstring.data(), wstring.size(), nullptr, 0, nullptr, nullptr);
 	std::string string(requiredSize, 0);
 	WideCharToMultiByte(CP_UTF8, 0, wstring.data(), wstring.size(), string.data(), string.size(), nullptr, nullptr);
-	
+
 	return string;
 }
 

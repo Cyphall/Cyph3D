@@ -13,7 +13,7 @@ bool UIMenuBar::_showDemoWindow = false;
 void UIMenuBar::show()
 {
 	bool showPathOutsideError = false;
-	
+
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -23,7 +23,7 @@ void UIMenuBar::show()
 				Engine::setScene(std::make_unique<Scene>());
 				UIViewport::setCamera(Camera());
 			}
-			
+
 			if (ImGui::MenuItem("Open Scene"))
 			{
 				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogOpen({
@@ -32,7 +32,7 @@ void UIMenuBar::show()
 						.fileTypeExtensions = L"*.c3dscene"
 					}
 				}, "resources/scenes");
-				
+
 				if (filePath.has_value())
 				{
 					if (FileHelper::isAssetPath(filePath.value()))
@@ -45,7 +45,7 @@ void UIMenuBar::show()
 					}
 				}
 			}
-			
+
 			if (ImGui::MenuItem("Save Scene"))
 			{
 				Scene& scene = Engine::getScene();
@@ -55,7 +55,7 @@ void UIMenuBar::show()
 						.fileTypeExtensions = L"*.c3dscene"
 					}
 				}, "resources/scenes", scene.getName());
-				
+
 				if (filePath.has_value())
 				{
 					if (FileHelper::isAssetPath(filePath.value()))
@@ -70,11 +70,11 @@ void UIMenuBar::show()
 			}
 			ImGui::EndMenu();
 		}
-		
+
 		if (ImGui::BeginMenu("Debug"))
 		{
 			ImGui::Checkbox("Show ImGui Demo Window", &_showDemoWindow);
-			
+
 			ImGui::EndMenu();
 		}
 
@@ -84,7 +84,7 @@ void UIMenuBar::show()
 		if (ImGui::BeginPopupModal("Error###path_is_outside", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ImGui::Text("The selected path is outside the \"resources\" folder.");
-			
+
 			ImGui::NewLine();
 			ImGui::NewLine();
 
@@ -94,10 +94,10 @@ void UIMenuBar::show()
 
 			ImGui::EndPopup();
 		}
-		
+
 		ImGui::EndMainMenuBar();
 	}
-	
+
 	if (_showDemoWindow)
 		ImGui::ShowDemoWindow();
 }

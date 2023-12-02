@@ -41,12 +41,12 @@ const int MAX_DEPTH = 4;
 vec4 getRandom()
 {
 	uvec4 v = uvec4(uvec2(gl_LaunchIDEXT.xy), u_batchIndex, hitPayload.randomOffset++);
-	
+
 	v = v * 1664525u + 1013904223u;
 	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
 	v ^= v >> 16u;
 	v.x += v.y*v.w; v.y += v.z*v.x; v.z += v.x*v.y; v.w += v.y*v.z;
-	
+
 	return clamp(v * (1.0 / float(0xffffffffu)), 0.0, 1.0);
 }
 
@@ -54,19 +54,19 @@ void main()
 {
 	hitPayload.randomOffset = 0;
 	hitPayload.light = vec3(0);
-	
+
 	for (int s = 0; s < u_sampleCount; s++)
 	{
 		hitPayload.throughput = vec3(1);
 		hitPayload.rayPosition = u_position;
-		
+
 		vec2 PS_rayPos = vec2(gl_LaunchIDEXT.xy) + 0.5 + (getRandom().xy - 0.5);
 		vec2 UVS_rayPos = PS_rayPos / vec2(gl_LaunchSizeEXT.xy);
-		
+
 		vec3 topRayDir = mix(u_rayTL, u_rayTR, UVS_rayPos.x);
 		vec3 bottomRayDir = mix(u_rayBL, u_rayBR, UVS_rayPos.x);
 		hitPayload.rayDirection = normalize(mix(topRayDir, bottomRayDir, UVS_rayPos.y));
-		
+
 		for (int d = 0; d < MAX_DEPTH; d++)
 		{
 			traceRayEXT(
@@ -82,22 +82,22 @@ void main()
 				10000.0,                 // ray max range
 				0                        // payload (location = 0)
 			);
-			
+
 			if (!hitPayload.hit)
 			{
 				break;
 			}
 		}
 	}
-	
+
 	u64vec3 totalLight = u_resetAccumulation ? u64vec3(0) : u64vec3(
 		imageLoad(u_color[0], ivec2(gl_LaunchIDEXT.xy)).r,
 		imageLoad(u_color[1], ivec2(gl_LaunchIDEXT.xy)).r,
 		imageLoad(u_color[2], ivec2(gl_LaunchIDEXT.xy)).r
 	);
-	
+
 	totalLight += u64vec3(max(hitPayload.light * pow(10, u_fixedPointDecimals), vec3(0)));
-	
+
 	imageStore(u_color[0], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLight.r, 0, 0, 0));
 	imageStore(u_color[1], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLight.g, 0, 0, 0));
 	imageStore(u_color[2], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLight.b, 0, 0, 0));

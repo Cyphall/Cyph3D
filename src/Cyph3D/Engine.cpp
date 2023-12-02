@@ -34,7 +34,7 @@ void Engine::init()
 #else
 	Logger::setLogLevel(Logger::LogLevel::INFO);
 #endif
-	
+
 	glfwInit();
 
 	glfwSetErrorCallback([](int code, const char* message) {
@@ -42,24 +42,24 @@ void Engine::init()
 	});
 
 	_vkContext = VKContext::create(2);
-	
+
 	vk::PhysicalDeviceDriverProperties driverProperties;
 	vk::PhysicalDeviceProperties2 properties;
 	properties.pNext = &driverProperties;
 	_vkContext->getPhysicalDevice().getProperties2(&properties);
 	Logger::info(std::format("GPU: {}", static_cast<std::string_view>(properties.properties.deviceName)));
 	Logger::info(std::format("Driver: {} {}", static_cast<std::string_view>(driverProperties.driverName), static_cast<std::string_view>(driverProperties.driverInfo)));
-	
+
 	_window = std::make_unique<Window>();
-	
+
 	_assetManager = std::make_unique<AssetManager>(std::max(ThreadHelper::getPhysicalCoreCount() - 1, 1));
-	
+
 	MaterialAsset::initDefaultAndMissing();
 	MeshAsset::initDefaultAndMissing();
 	Entity::initComponentFactories();
-	
+
 	_scene = std::make_unique<Scene>();
-	
+
 	UIHelper::init();
 	FileHelper::init();
 }
@@ -70,12 +70,12 @@ void Engine::run()
 	{
 		_vkContext->onNewFrame();
 		_assetManager->onNewFrame();
-		
+
 		_vkContext->getDefaultCommandBuffer()->waitExecution();
 		_vkContext->getDefaultCommandBuffer()->reset();
-		
+
 		VKSwapchain::NextImageInfo nextImageInfo = _window->getSwapchain().retrieveNextImage();
-		
+
 		_timer.onNewFrame();
 
 		glfwPollEvents();
@@ -84,18 +84,18 @@ void Engine::run()
 		UIHelper::onNewFrame();
 
 		_scene->onUpdate();
-		
+
 		const VKPtr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.image->getImage(), nextImageInfo.imageAvailableSemaphore);
 		if (!_vkContext->getMainQueue().present(nextImageInfo.image, renderFinishedSemaphore))
 		{
 			glm::uvec2 surfaceSize = _window->getSurfaceSize();
-			
+
 			while (surfaceSize.x * surfaceSize.y == 0)
 			{
 				glfwWaitEvents();
 				surfaceSize = _window->getSurfaceSize();
 			}
-			
+
 			_window->recreateSwapchain();
 		}
 	}
@@ -104,7 +104,7 @@ void Engine::run()
 void Engine::shutdown()
 {
 	_vkContext->getDevice().waitIdle();
-	
+
 	FileHelper::shutdown();
 	UIHelper::shutdown();
 	_scene.reset();

@@ -9,16 +9,16 @@ class VKGraphicsPipeline : public VKPipeline
 {
 public:
 	static VKPtr<VKGraphicsPipeline> create(VKContext& context, VKGraphicsPipelineInfo& info);
-	
+
 	~VKGraphicsPipeline() override;
-	
+
 	const VKGraphicsPipelineInfo& getInfo() const;
-	
+
 	vk::PipelineBindPoint getPipelineType() const override;
 	const VKPtr<VKPipelineLayout>& getPipelineLayout() const override;
-	
+
 private:
 	VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInfo& info);
-	
+
 	VKGraphicsPipelineInfo _info;
 };

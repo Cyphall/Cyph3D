@@ -21,42 +21,42 @@ public:
 		vk::PrimitiveTopology primitiveTopology,
 		vk::CullModeFlags cullMode,
 		vk::FrontFace frontFace);
-	
+
 	const VKPtr<VKPipelineLayout>& getPipelineLayout() const;
-	
+
 	const std::filesystem::path& getVertexShader() const;
-	
+
 	const vk::PrimitiveTopology& getPrimitiveTopology() const;
-	
+
 	const vk::CullModeFlags& getCullMode() const;
-	
+
 	const vk::FrontFace& getFrontFace() const;
-	
+
 	VKPipelineVertexInputLayoutInfo& getVertexInputLayoutInfo();
 	const VKPipelineVertexInputLayoutInfo& getVertexInputLayoutInfo() const;
-	
+
 	VKPipelineAttachmentInfo& getPipelineAttachmentInfo();
 	const VKPipelineAttachmentInfo& getPipelineAttachmentInfo() const;
-	
+
 	bool hasGeometryShader() const;
 	const std::filesystem::path& getGeometryShader() const;
 	void setGeometryShader(const std::filesystem::path& path);
-	
+
 	bool hasFragmentShader() const;
 	const std::filesystem::path& getFragmentShader() const;
 	void setFragmentShader(const std::filesystem::path& path);
-	
+
 	bool hasStaticViewport() const;
 	const VKPipelineViewport& getStaticViewport() const;
 	void setStaticViewport(const VKPipelineViewport& staticViewport);
-	
+
 	bool hasStaticScissor() const;
 	const VKPipelineScissor& getStaticScissor() const;
 	void setStaticScissor(const VKPipelineScissor& staticScissor);
-	
+
 	void setRasterizationSampleCount(vk::SampleCountFlagBits sampleCount);
 	const vk::SampleCountFlagBits& getRasterizationSampleCount() const;
-	
+
 private:
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	std::filesystem::path _vertexShader;

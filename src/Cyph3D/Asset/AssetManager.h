@@ -21,12 +21,12 @@ class AssetManager
 public:
 	explicit AssetManager(int threadCount);
 	~AssetManager();
-	
+
 	const VKPtr<VKSampler>& getTextureSampler();
 	const VKPtr<VKSampler>& getCubemapSampler();
-	
+
 	AssetProcessor& getAssetProcessor();
-	
+
 	BindlessTextureManager& getBindlessTextureManager();
 
 	TextureAsset* loadTexture(std::string_view path, ImageType type);
@@ -46,10 +46,10 @@ public:
 
 private:
 	AssetProcessor _assetProcessor;
-	
+
 	VKPtr<VKSampler> _textureSampler;
 	VKPtr<VKSampler> _cubemapSampler;
-	
+
 	BindlessTextureManager _bindlessTextureManager;
 
 	std::unordered_map<TextureAssetSignature, std::unique_ptr<TextureAsset>> _textures;

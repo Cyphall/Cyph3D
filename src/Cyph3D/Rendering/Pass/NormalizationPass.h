@@ -32,19 +32,19 @@ private:
 		GLSL_uint accumulatedSamples;
 		GLSL_uint fixedPointDecimals;
 	};
-	
+
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
-	
+
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKComputePipeline> _pipeline;
-	
+
 	VKPtr<VKImage> _outputImage;
-	
+
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();
 	void createImage();
-	
+
 	NormalizationPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input) override;
 	void onResize() override;
 };

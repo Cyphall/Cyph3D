@@ -10,17 +10,17 @@
 bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const char* label, const char* dragDropId, std::optional<std::string_view>& result)
 {
 	ImGui::PushID(label);
-	
+
 	bool assetChanged = false;
-	
+
 	float remainingWidth = ImGui::GetContentRegionAvail().x;
 	float textboxWidth = ImGui::CalcItemWidth() - ImGui::GetFrameHeight();
-	
+
 	ImGui::BeginGroup();
 
 	const char* assetPath = currentAssetPath != nullptr ? currentAssetPath->c_str() : "None";
 	size_t assetPathSize = currentAssetPath != nullptr ? currentAssetPath->size()+1 : 5;
-	
+
 	ImGui::SetNextItemWidth(textboxWidth);
 	// Field is read-only anyway, we can safely remove the const from assetName
 	ImGui::InputText(std::format("###{}", label).c_str(), const_cast<char*>(assetPath), assetPathSize, ImGuiInputTextFlags_ReadOnly);
@@ -41,7 +41,7 @@ bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const ch
 	{
 		ImGui::EndDisabled();
 	}
-	
+
 	ImGui::EndGroup();
 
 	if (ImGui::BeginDragDropTarget())
@@ -58,9 +58,9 @@ bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const ch
 	ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
 
 	ImGui::TextUnformatted(label);
-	
+
 	ImGui::PopID();
-	
+
 	return assetChanged;
 }
 
@@ -87,7 +87,7 @@ void ImGuiHelper::BeginGroupPanel(const char* label)
 	}
 
 	ImGuiHelper::MoveCursorPos(glm::vec2(0, groupPanelInfo.labelSize.y / 2.0f));
-	
+
 	groupPanelInfo.initialCursorPos = ImGui::GetCursorScreenPos();
 	groupPanelInfoStack.push(groupPanelInfo);
 
@@ -97,7 +97,7 @@ void ImGuiHelper::BeginGroupPanel(const char* label)
 	window->ContentRegionRect.Max.x -= style.WindowPadding.x;
 	window->WorkRect.Max.x -= style.WindowPadding.x;
 	window->InnerRect.Max.x -= style.WindowPadding.x;
-	
+
 	ImGui::BeginGroup();
 }
 
@@ -105,14 +105,14 @@ void ImGuiHelper::EndGroupPanel()
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
-	
+
 	GroupPanelInfo groupPanelInfo = groupPanelInfoStack.top();
 	groupPanelInfoStack.pop();
-	
+
 	const float textPadding = 6.0f;
-	
+
 	ImGui::EndGroup();
-	
+
 //	drawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(0, 255, 0, 20));
 
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -122,15 +122,15 @@ void ImGuiHelper::EndGroupPanel()
 
 	glm::vec2 labelCenter = groupPanelInfo.initialCursorPos;
 	labelCenter.x += (15.0f + textPadding) * Engine::getWindow().getPixelScale() + groupPanelInfo.labelSize.x / 2.0f;
-	
+
 	glm::vec2 borderTopLeft;
 	borderTopLeft.x = groupPanelInfo.initialCursorPos.x;
 	borderTopLeft.y = groupPanelInfo.initialCursorPos.y;
-	
+
 	glm::vec2 borderBottomRight;
 	borderBottomRight.x = ImGui::GetContentRegionMaxAbs().x;
 	borderBottomRight.y = groupPanelInfo.initialCursorPos.y + ImGui::GetItemRectSize().y + style.WindowPadding.y * 2.0f + groupPanelInfo.labelSize.y / 2.0f;
-	
+
 	drawList->AddRect(borderTopLeft, borderBottomRight, ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Border]), 3.0f);
 
 	if (groupPanelInfo.label != nullptr)

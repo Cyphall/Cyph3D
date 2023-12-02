@@ -64,35 +64,35 @@ public:
 
 	const float& getRoughnessValue() const;
 	void setRoughnessValue(const float& value);
-	
+
 	const float& getMetalnessValue() const;
 	void setMetalnessValue(const float& value);
-	
+
 	const float& getDisplacementScale() const;
 	void setDisplacementScale(const float& scale);
-	
+
 	const float& getEmissiveScale() const;
 	void setEmissiveScale(const float& scale);
-	
+
 	static void initDefaultAndMissing();
 	static MaterialAsset* getDefaultMaterial();
 	static MaterialAsset* getMissingMaterial();
-	
+
 	static void create(std::string_view path);
 
 private:
 	friend class AssetManager;
 
 	MaterialAsset(AssetManager& manager, const MaterialAssetSignature& signature);
-	
+
 	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion4(const nlohmann::ordered_json& jsonRoot);
-	
+
 	void save() const;
 	void reload();
-	
+
 	TextureAsset* _albedoTexture = nullptr;
 	sigslot::scoped_connection _albedoTextureChangedConnection;
 
@@ -114,7 +114,7 @@ private:
 	glm::vec3 _albedoValue{};
 	float _roughnessValue{};
 	float _metalnessValue{};
-	
+
 	float _displacementScale{};
 	float _emissiveScale{};
 

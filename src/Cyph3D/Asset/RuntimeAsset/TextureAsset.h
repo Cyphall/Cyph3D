@@ -37,16 +37,16 @@ class TextureAsset : public GPUAsset<TextureAssetSignature>
 {
 public:
 	~TextureAsset() override;
-	
+
 	const uint32_t& getBindlessIndex() const;
 
 private:
 	friend class AssetManager;
 
 	TextureAsset(AssetManager& manager, const TextureAssetSignature& signature);
-	
+
 	void load_async(AssetManagerWorkerData& workerData);
-	
+
 	VKPtr<VKImage> _image;
 	uint32_t _bindlessIndex;
 };

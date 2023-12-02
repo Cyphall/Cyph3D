@@ -23,6 +23,6 @@ void UIInspector::show()
 			_selected->onDrawUi();
 		}
 	}
-	
+
 	ImGui::End();
 }

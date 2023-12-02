@@ -17,21 +17,21 @@ void main()
 {
 	uvec2 dstSize = imageSize(u_output);
 	uvec2 dstPos = gl_GlobalInvocationID.xy;
-	
+
 	if (any(greaterThanEqual(dstPos, dstSize)))
 	{
 		return;
 	}
-	
+
 	u64vec3 light = u64vec3(
 		imageLoad(u_input[0], ivec2(dstPos)).r,
 		imageLoad(u_input[1], ivec2(dstPos)).r,
 		imageLoad(u_input[2], ivec2(dstPos)).r
 	);
-	
+
 	light /= uint64_t(u_accumulatedSamples);
-	
+
 	vec3 color = vec3(light) / pow(10, u_fixedPointDecimals);
-	
+
 	imageStore(u_output, ivec2(dstPos), vec4(color, 1));
 }

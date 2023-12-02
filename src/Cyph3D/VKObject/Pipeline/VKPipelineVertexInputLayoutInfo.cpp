@@ -24,6 +24,6 @@ vk::PipelineVertexInputStateCreateInfo VKPipelineVertexInputLayoutInfo::get() co
 	description.pVertexBindingDescriptions = _slots.data();
 	description.vertexAttributeDescriptionCount = _attributes.size();
 	description.pVertexAttributeDescriptions = _attributes.data();
-	
+
 	return description;
 }

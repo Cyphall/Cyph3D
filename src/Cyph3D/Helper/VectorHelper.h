@@ -13,7 +13,7 @@ public:
 				vector.end()
 		);
 	}
-	
+
 	template<typename T>
 	static void removeAt(std::vector<T>& vector, int index)
 	{

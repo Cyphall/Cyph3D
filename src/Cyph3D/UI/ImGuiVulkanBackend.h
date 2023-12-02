@@ -21,7 +21,7 @@ class ImGuiVulkanBackend
 public:
 	ImGuiVulkanBackend();
 	~ImGuiVulkanBackend();
-	
+
 	void renderDrawData(ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImage>& outputImage);
 
 private:
@@ -30,28 +30,28 @@ private:
 		alignas(4) glm::vec2 scale;
 		alignas(4) glm::vec2 offset;
 	};
-	
+
 	VKPtr<VKSampler> _textureSampler;
 	VKPtr<VKSampler> _fontsSampler;
-	
+
 	VKPtr<VKDescriptorSetLayout> _imageSamplerDescriptorSetLayout;
-	
+
 	VKPtr<VKPipelineLayout> _pipelineLayout;
-	
+
 	VKPtr<VKGraphicsPipeline> _pipeline;
-	
+
 	VKPtr<VKImage> _fontsTexture;
-	
+
 	VKDynamic<VKResizableBuffer<ImDrawVert>> _vertexBuffer;
 	VKDynamic<VKResizableBuffer<ImDrawIdx>> _indexBuffer;
-	
+
 	void createSamplers();
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();
 	void createFontsTexture();
 	void createBuffers();
-	
+
 	void setupRenderState(
 		ImDrawData* drawData,
 		const VKPtr<VKCommandBuffer>& commandBuffer,

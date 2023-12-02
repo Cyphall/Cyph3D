@@ -15,20 +15,20 @@ public:
 	using value_type = Component;
 	using pointer = value_type*;
 	using reference = value_type&;
-	
+
 	ComponentConstIterator() = default;
-	
+
 	explicit ComponentConstIterator(std::vector<Entity::ComponentContainer>::const_iterator it);
-	
+
 	ComponentConstIterator& operator++();
 	ComponentConstIterator operator++(int);
-	
+
 	bool operator==(const ComponentConstIterator& other) const;
 	bool operator!=(const ComponentConstIterator& other) const;
-	
+
 	const Component& operator*();
 	const Component* operator->();
-	
+
 	std::vector<Entity::ComponentContainer>::const_iterator getUnderlyingIterator();
 
 private:

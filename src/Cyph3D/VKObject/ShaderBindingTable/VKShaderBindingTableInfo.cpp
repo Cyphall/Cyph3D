@@ -54,30 +54,30 @@ void VKShaderBindingTableInfo::addTriangleHitRecord(uint32_t recordIndex, uint32
 	{
 		_triangleHitRecords.resize(recordIndex + 1);
 	}
-	
+
 	std::vector<std::vector<std::byte>>& recordGroup = _triangleHitRecords[recordIndex];
-	
+
 	if (recordGroup.size() <= rayType)
 	{
 		recordGroup.resize(rayType + 1);
 	}
-	
+
 	std::vector<std::byte>& record = recordGroup[rayType];
-	
+
 	record.resize(32 + uniformSize);
 	std::memcpy(record.data(), triangleHitGroupHandle.data(), triangleHitGroupHandle.size());
 	std::memcpy(record.data() + triangleHitGroupHandle.size(), uniformData, uniformSize);
-	
+
 	_maxTrignaleHitRecordSize = std::max(_maxTrignaleHitRecordSize, record.size());
 }
 
 void VKShaderBindingTableInfo::addMissRecord(const std::array<std::byte, 32>& missGroupHandle, const void* uniformData, size_t uniformSize)
 {
 	std::vector<std::byte>& record = _missRecords.emplace_back();
-	
+
 	record.resize(32 + uniformSize);
 	std::memcpy(record.data(), missGroupHandle.data(), missGroupHandle.size());
 	std::memcpy(record.data() + missGroupHandle.size(), uniformData, uniformSize);
-	
+
 	_maxMissRecordSize = std::max(_maxMissRecordSize, record.size());
 }

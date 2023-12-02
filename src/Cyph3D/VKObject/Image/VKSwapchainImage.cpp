@@ -16,7 +16,7 @@ VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::For
 	VKImageInfo info(format, size, 1, 1, {});
 	info.setSwapchainImageHandle(handle);
 	info.setName(std::format("Swapchain image #{}", index));
-	
+
 	_image = VKImage::create(_context, info);
 }
 

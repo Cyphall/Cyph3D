@@ -34,23 +34,23 @@ private:
 	{
 		glm::vec3 position;
 	};
-	
+
 	struct PushConstantData
 	{
 		GLSL_mat4 mvp;
 		GLSL_uint textureIndex;
 	};
-	
+
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
-	
+
 	VKPtr<VKImage> _resolvedRawRenderImage;
-	
+
 	VKPtr<VKBuffer<SkyboxPass::VertexData>> _vertexBuffer;
-	
+
 	SkyboxPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input) override;
 	void onResize() override;
-	
+
 	void createPipelineLayout();
 	void createPipeline();
 	void createImages();

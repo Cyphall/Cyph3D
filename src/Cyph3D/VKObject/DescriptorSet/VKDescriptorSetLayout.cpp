@@ -15,46 +15,46 @@ VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescrip
 	vkBindings.reserve(_info.getBindingInfos().size());
 	std::vector<vk::DescriptorBindingFlags> vkBindingsFlags;
 	vkBindingsFlags.reserve(_info.getBindingInfos().size());
-	
+
 	bool anyBindingHasUpdateAfterBind = false;
 	for (uint32_t i = 0; i < _info.getBindingInfos().size(); i++)
 	{
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getBindingInfo(i);
-		
+
 		vk::DescriptorSetLayoutBinding& vkBinding = vkBindings.emplace_back();
 		vkBinding.binding = i;
 		vkBinding.descriptorType = bindingInfo.type;
 		vkBinding.descriptorCount = bindingInfo.count;
 		vkBinding.stageFlags = bindingInfo.shaderStages;
 		vkBinding.pImmutableSamplers = nullptr;
-		
+
 		vkBindingsFlags.emplace_back(bindingInfo.flags);
-		
+
 		if (bindingInfo.flags & vk::DescriptorBindingFlagBits::eUpdateAfterBind)
 		{
 			anyBindingHasUpdateAfterBind = true;
 		}
 	}
-	
+
 	vk::DescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreateInfo;
 	bindingFlagsCreateInfo.bindingCount = vkBindingsFlags.size();
 	bindingFlagsCreateInfo.pBindingFlags = vkBindingsFlags.data();
-	
+
 	vk::DescriptorSetLayoutCreateInfo createInfo;
 	createInfo.bindingCount = vkBindings.size();
 	createInfo.pBindings = vkBindings.data();
 	createInfo.pNext = &bindingFlagsCreateInfo;
-	
+
 	if (info.isPushable())
 	{
 		createInfo.flags |= vk::DescriptorSetLayoutCreateFlagBits::ePushDescriptorKHR;
 	}
-	
+
 	if (anyBindingHasUpdateAfterBind)
 	{
 		createInfo.flags |= vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool;
 	}
-	
+
 	_handle = _context.getDevice().createDescriptorSetLayout(createInfo);
 }
 

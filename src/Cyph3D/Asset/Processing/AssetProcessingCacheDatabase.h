@@ -19,7 +19,7 @@ public:
 	std::string getImageCachePath(std::string_view path, ImageType type);
 	std::string getMeshCachePath(std::string_view path);
 	std::string getEquirectangularSkyboxCachePath(std::string_view path);
-	
+
 private:
 	std::unique_ptr<SQLite::Database> _database;
 };

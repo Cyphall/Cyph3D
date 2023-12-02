@@ -18,16 +18,16 @@ public:
 		glm::uvec2 levelRange;
 		vk::Format format;
 	};
-	
+
 	VKRenderingColorAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
-	
+
 	const ImageInfo& getImageInfo() const;
-	
+
 	VKRenderingColorAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image);
 	VKRenderingColorAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
 	const vk::ResolveModeFlagBits& getResolveMode() const;
 	const ImageInfo& getResolveImageInfo() const;
-	
+
 	VKRenderingColorAttachmentInfo& setLoadOpLoad();
 	VKRenderingColorAttachmentInfo& setLoadOpClear(glm::vec4 clearValue);
 	VKRenderingColorAttachmentInfo& setLoadOpClear(glm::ivec4 clearValue);
@@ -35,7 +35,7 @@ public:
 	VKRenderingColorAttachmentInfo& setLoadOpDontCare();
 	const vk::AttachmentLoadOp& getLoadOp() const;
 	const vk::ClearValue& getClearValue() const;
-	
+
 	VKRenderingColorAttachmentInfo& setStoreOpStore();
 	VKRenderingColorAttachmentInfo& setStoreOpDontCare();
 	VKRenderingColorAttachmentInfo& setStoreOpNone();

@@ -11,18 +11,18 @@ Window::Window()
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-	
+
 	_glfwWindow = glfwCreateWindow(800, 600, "Cyph3D", nullptr, nullptr);
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
-	
+
 	VKContext& vkContext = Engine::getVKContext();
-	
+
 	VkSurfaceKHR surface;
 	glfwCreateWindowSurface(vkContext.getInstance(), _glfwWindow, nullptr, &surface);
 	_surface = surface;
-	
+
 	_swapchain = VKSwapchain::create(vkContext, _surface);
-	
+
 	_previousFrameMouseButtonsPressed.fill(false);
 	_currentFrameMouseButtonsPressed.fill(false);
 }
@@ -96,7 +96,7 @@ Window::MouseButtonState Window::getMouseButtonState(int button)
 {
 	int previousState = _previousFrameMouseButtonsPressed[button];
 	int currentState = _currentFrameMouseButtonsPressed[button];
-	
+
 	if (previousState == GLFW_RELEASE && currentState == GLFW_PRESS)
 	{
 		return MouseButtonState::Clicked;
@@ -113,7 +113,7 @@ Window::MouseButtonState Window::getMouseButtonState(int button)
 	{
 		return MouseButtonState::None;
 	}
-	
+
 	throw;
 }
 

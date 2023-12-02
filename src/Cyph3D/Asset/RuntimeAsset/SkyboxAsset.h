@@ -39,37 +39,37 @@ public:
 		Cubemap,
 		Equirectangular
 	};
-	
+
 	~SkyboxAsset() override;
 
 	bool isLoaded() const override;
 
 	void onDrawUi() override;
-	
+
 	const Layout& getLayout() const;
 	void setLayout(const Layout& layout);
-	
+
 	const std::string* getXposPath() const;
 	void setXposPath(std::optional<std::string_view> path);
-	
+
 	const std::string* getXnegPath() const;
 	void setXnegPath(std::optional<std::string_view> path);
-	
+
 	const std::string* getYposPath() const;
 	void setYposPath(std::optional<std::string_view> path);
-	
+
 	const std::string* getYnegPath() const;
 	void setYnegPath(std::optional<std::string_view> path);
-	
+
 	const std::string* getZposPath() const;
 	void setZposPath(std::optional<std::string_view> path);
-	
+
 	const std::string* getZnegPath() const;
 	void setZnegPath(std::optional<std::string_view> path);
-	
+
 	const std::string* getEquirectangularPath() const;
 	void setEquirectangularPath(std::optional<std::string_view> path);
-	
+
 	CubemapAsset* getCubemap() const;
 
 	static void create(std::string_view path);
@@ -85,9 +85,9 @@ private:
 
 	void save() const;
 	void reload();
-	
+
 	void onChanged();
-	
+
 	Layout _layout = Layout::Cubemap;
 
 	std::optional<std::string> _xposPath;
@@ -96,9 +96,9 @@ private:
 	std::optional<std::string> _ynegPath;
 	std::optional<std::string> _zposPath;
 	std::optional<std::string> _znegPath;
-	
+
 	std::optional<std::string> _equirectangularPath;
-	
+
 	CubemapAsset* _cubemap = nullptr;
 	sigslot::scoped_connection _cubemapChangedConnection;
 };

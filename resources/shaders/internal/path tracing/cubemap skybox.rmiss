@@ -29,7 +29,7 @@ void main()
 	rayDir *= vec3(1, 1, -1);
 	rayDir = (u_skyboxRotation * vec4(rayDir, 1.0)).xyz;
 	vec3 skyboxColor = texture(u_textures[u_skyboxIndex], rayDir).rgb;
-	
+
 	hitPayload.light += hitPayload.throughput * skyboxColor;
 	hitPayload.hit = false;
 	hitPayload.rayPosition = vec3(0);

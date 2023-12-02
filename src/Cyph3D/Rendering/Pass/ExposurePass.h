@@ -31,22 +31,22 @@ private:
 	{
 		GLSL_float exposure;
 	};
-	
+
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
-	
+
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;
-	
+
 	VKPtr<VKSampler> _inputSampler;
-	
+
 	VKPtr<VKImage> _outputImage;
-	
+
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();
 	void createSampler();
 	void createImage();
-	
+
 	ExposurePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input) override;
 	void onResize() override;
 };

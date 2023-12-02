@@ -15,17 +15,17 @@ vec3 sampleColor(vec2 cubemapUV)
 {
 	vec4 direction4D = u_viewProjectionInv * vec4(cubemapUV * 2.0 - 1.0, 0.5, 1.0);
 	vec3 direction = normalize(direction4D.xyz / direction4D.w);
-	
+
 	vec2 sphericalCoords = vec2(
 		atan(direction.x, -direction.z) + PI,
 		acos(direction.y)
 	);
-	
+
 	vec2 equirectangularUV = vec2(
 		sphericalCoords.x / (PI * 2.0),
 		sphericalCoords.y / PI
 	);
-	
+
 	return textureLod(u_equirectangularTexture, equirectangularUV, 0).xyz;
 }
 
@@ -34,20 +34,20 @@ void main()
 {
 	uvec2 dstSize = imageSize(u_cubemapTexture);
 	uvec2 dstPos = gl_GlobalInvocationID.xy;
-	
+
 	if (any(greaterThanEqual(dstPos, dstSize)))
 	{
 		return;
 	}
-	
+
 	vec3 color = vec3(0);
-	
+
 	color += sampleColor((dstPos + vec2(0.25, 0.25)) / dstSize);
 	color += sampleColor((dstPos + vec2(0.75, 0.25)) / dstSize);
 	color += sampleColor((dstPos + vec2(0.25, 0.75)) / dstSize);
 	color += sampleColor((dstPos + vec2(0.75, 0.75)) / dstSize);
-	
+
 	color *= 0.25;
-	
+
 	imageStore(u_cubemapTexture, ivec2(dstPos), vec4(color, 1.0));
 }

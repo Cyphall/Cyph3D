@@ -14,9 +14,9 @@ VKAccelerationStructureCompactedSizeQuery::VKAccelerationStructureCompactedSizeQ
 	vk::QueryPoolCreateInfo queryPoolCreateInfo;
 	queryPoolCreateInfo.queryType = vk::QueryType::eAccelerationStructureCompactedSizeKHR;
 	queryPoolCreateInfo.queryCount = 1;
-	
+
 	_queryPool = _context.getDevice().createQueryPool(queryPoolCreateInfo);
-	
+
 	_context.getDevice().resetQueryPool(_queryPool, 0, 1);
 }
 
@@ -33,7 +33,7 @@ vk::DeviceSize VKAccelerationStructureCompactedSizeQuery::getCompactedSize() con
 		1,
 		sizeof(vk::DeviceSize),
 		vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWait);
-	
+
 	return data;
 }
 
@@ -45,7 +45,7 @@ bool VKAccelerationStructureCompactedSizeQuery::tryGetCompactedSize(vk::DeviceSi
 		1,
 		sizeof(vk::DeviceSize),
 		vk::QueryResultFlagBits::e64);
-	
+
 	if (result == vk::Result::eSuccess)
 	{
 		compactedSize = data;
@@ -55,7 +55,7 @@ bool VKAccelerationStructureCompactedSizeQuery::tryGetCompactedSize(vk::DeviceSi
 	{
 		return false;
 	}
-	
+
 	throw;
 }
 

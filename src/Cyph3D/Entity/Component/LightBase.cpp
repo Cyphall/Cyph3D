@@ -17,7 +17,7 @@ void LightBase::setLinearColor(glm::vec3 color)
 {
 	_linearColor = color;
 	_srgbColor = MathHelper::linearToSrgb(color);
-	
+
 	_changed();
 }
 
@@ -30,7 +30,7 @@ void LightBase::setSrgbColor(glm::vec3 color)
 {
 	_srgbColor = color;
 	_linearColor = MathHelper::srgbToLinear(color);
-	
+
 	_changed();
 }
 
@@ -42,6 +42,6 @@ float LightBase::getIntensity() const
 void LightBase::setIntensity(float intensity)
 {
 	_intensity = intensity;
-	
+
 	_changed();
 }

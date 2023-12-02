@@ -17,7 +17,7 @@ public:
 	{
 		return VKPtr<VKBuffer<T>>(new VKBuffer<T>(context, info));
 	}
-	
+
 	~VKBuffer() override
 	{
 #if defined(_DEBUG)
@@ -28,37 +28,37 @@ public:
 #endif
 		_context.getVmaAllocator().destroyBuffer(_buffer, _allocation);
 	}
-	
+
 	T* getHostPointer()
 	{
 		return static_cast<T*>(_allocationInfo.pMappedData);
 	}
-	
+
 	const VKBufferInfo& getInfo() const
 	{
 		return _info;
 	}
-	
+
 	const vk::Buffer& getHandle() override
 	{
 		return _buffer;
 	}
-	
+
 	size_t getSize() const override
 	{
 		return _info.getSize();
 	}
-	
+
 	vk::DeviceSize getByteSize() const override
 	{
 		return _info.getSize() * sizeof(T);
 	}
-	
+
 	size_t getStride() const override
 	{
 		return sizeof(T);
 	}
-	
+
 	vk::DeviceAddress getDeviceAddress() const override
 	{
 		return _deviceAddress;
@@ -83,30 +83,30 @@ private:
 		bufferCreateInfo.sharingMode = queuesVec.size() > 1 ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
 		bufferCreateInfo.queueFamilyIndexCount = queuesVec.size();
 		bufferCreateInfo.pQueueFamilyIndices = queuesVec.data();
-		
+
 		vma::AllocationCreateInfo allocationCreateInfo{};
 		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
 		allocationCreateInfo.requiredFlags = _info.getRequiredMemoryProperties();
 		allocationCreateInfo.preferredFlags = _info.getPreferredMemoryProperties();
 		allocationCreateInfo.flags = vma::AllocationCreateFlagBits::eMapped;
-		
+
 		std::tie(_buffer, _allocation) = _context.getVmaAllocator().createBufferWithAlignment(bufferCreateInfo, allocationCreateInfo, _info.getRequiredAlignment(), _allocationInfo);
-		
+
 		if (_info.getUsage() & vk::BufferUsageFlagBits::eShaderDeviceAddress)
 		{
 			vk::BufferDeviceAddressInfo bufferDeviceAddressInfo;
 			bufferDeviceAddressInfo.buffer = _buffer;
-			
+
 			_deviceAddress = _context.getDevice().getBufferAddress(bufferDeviceAddressInfo);
 		}
-		
+
 		if (_info.hasName())
 		{
 			vk::DebugUtilsObjectNameInfoEXT objectNameInfo;
 			objectNameInfo.objectType = vk::ObjectType::eBuffer;
 			objectNameInfo.objectHandle = reinterpret_cast<uintptr_t>(static_cast<VkBuffer>(_buffer));
 			objectNameInfo.pObjectName = _info.getName().c_str();
-			
+
 			_context.getDevice().setDebugUtilsObjectNameEXT(objectNameInfo);
 		}
 
@@ -117,13 +117,13 @@ private:
 		}
 #endif
 	}
-	
+
 	VKBufferInfo _info;
-	
+
 	vk::Buffer _buffer;
-	
+
 	vma::Allocation _allocation;
 	vma::AllocationInfo _allocationInfo;
-	
+
 	vk::DeviceAddress _deviceAddress = 0;
 };

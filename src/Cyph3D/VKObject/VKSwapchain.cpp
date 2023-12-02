@@ -22,11 +22,11 @@ struct SwapChainSupportDetails
 static SwapChainSupportDetails querySwapchainSupport(vk::PhysicalDevice device, vk::SurfaceKHR surface)
 {
 	SwapChainSupportDetails details;
-	
+
 	details.capabilities = device.getSurfaceCapabilitiesKHR(surface);
 	details.formats = device.getSurfaceFormatsKHR(surface);
 	details.presentModes = device.getSurfacePresentModesKHR(surface);
-	
+
 	return details;
 }
 
@@ -42,9 +42,9 @@ static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDev
 			.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear
 		}
 	};
-	
+
 	std::vector<vk::SurfaceFormatKHR> supportedSurfaceFormats = physicalDevice.getSurfaceFormatsKHR(surface);
-	
+
 	for (const vk::SurfaceFormatKHR& preferredSurfaceFormat : preferredSurfaceFormats)
 	{
 		if (std::find(supportedSurfaceFormats.begin(), supportedSurfaceFormats.end(), preferredSurfaceFormat) != supportedSurfaceFormats.end())
@@ -52,9 +52,9 @@ static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDev
 			return preferredSurfaceFormat;
 		}
 	}
-	
+
 	Logger::error("Could not find a preferred surface format", "Vulkan");
-	
+
 	return supportedSurfaceFormats[0];
 }
 
@@ -79,13 +79,13 @@ VKSwapchain::NextImageInfo VKSwapchain::retrieveNextImage()
 {
 	const VKPtr<VKSemaphore>& semaphore = _semaphores[_nextIndex];
 	_nextIndex = (_nextIndex + 1) % _swapchainImages.size();
-	
+
 	auto [result, imageIndex] = _context.getDevice().acquireNextImageKHR(_swapchain, UINT64_MAX, semaphore->getHandle(), VK_NULL_HANDLE);
 	if (result == vk::Result::eSuboptimalKHR)
 	{
 		Logger::warning("Suboptimal swapchain", "Vulkan");
 	}
-	
+
 	return {
 		.image = _swapchainImages[imageIndex],
 		.imageAvailableSemaphore = semaphore
@@ -124,7 +124,7 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 	};
 
 	std::vector<uint32_t> queuesVec(queues.begin(), queues.end());
-	
+
 	vk::SwapchainCreateInfoKHR createInfo;
 	createInfo.surface = surface;
 	createInfo.minImageCount = 3;
@@ -141,9 +141,9 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 	createInfo.presentMode = vk::PresentModeKHR::eFifo;
 	createInfo.clipped = true;
 	createInfo.oldSwapchain = oldSwapchain != nullptr ? oldSwapchain->getHandle() : VK_NULL_HANDLE;
-	
+
 	_swapchain = _context.getDevice().createSwapchainKHR(createInfo);
-	
+
 	std::vector<vk::Image> swapchainImages = _context.getDevice().getSwapchainImagesKHR(_swapchain);
 	_swapchainImages.reserve(swapchainImages.size());
 	for (int i = 0; i < swapchainImages.size(); i++)
@@ -161,7 +161,7 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 void VKSwapchain::createSemaphores()
 {
 	vk::SemaphoreCreateInfo semaphoreCreateInfo;
-	
+
 	_semaphores.reserve(_swapchainImages.size());
 	for (int i = 0; i < _swapchainImages.size(); i++)
 	{

@@ -61,26 +61,26 @@ void UIMisc::show()
 		}
 
 		ImGui::Separator();
-		
+
 		ImGui::Checkbox("Simulate", &_simulationEnabled);
-		
+
 		if (Engine::getVKContext().isRayTracingSupported())
 		{
 			ImGui::Separator();
-			
+
 			ImGui::SliderInt("Viewport Sample Count", &_viewportSampleCount, 1, 256);
-			
+
 			ImGui::Separator();
-			
+
 			ImGui::InputInt2("Render Resolution", glm::value_ptr(_resolution));
-			
+
 			uint32_t step = 1;
 			uint32_t stepFast = 128;
 			if (ImGui::InputScalar("Render Sample Count", ImGuiDataType_U32, &_renderSampleCount, &step, &stepFast, "%u"))
 			{
 				_renderSampleCount = std::max(_renderSampleCount, 1u);
 			}
-			
+
 			if (ImGui::Button("Render to file"))
 			{
 				UIViewport::renderToFile(_resolution, _renderSampleCount);
@@ -95,7 +95,7 @@ void UIMisc::show()
 			displayPerfStep(*perfStep);
 		}
 	}
-	
+
 	ImGui::End();
 }
 

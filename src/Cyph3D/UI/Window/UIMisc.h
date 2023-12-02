@@ -8,7 +8,7 @@ class UIMisc
 {
 public:
 	static void show();
-	
+
 	static bool isSimulationEnabled();
 	static int viewportSampleCount();
 

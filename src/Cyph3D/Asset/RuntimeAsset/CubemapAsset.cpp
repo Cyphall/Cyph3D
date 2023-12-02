@@ -39,7 +39,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		_signature.zposPath,
 		_signature.znegPath,
 	};
-	
+
 	vk::Format format;
 	glm::uvec2 size;
 	std::array<std::vector<std::vector<std::byte>>, 6> faces;
@@ -57,7 +57,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		{
 			ImageData imageData = _manager.getAssetProcessor().readImageData(workerData, paths[i].get(), _signature.type);
 			faces[i] = std::move(imageData.levels);
-			
+
 			if (i == 0)
 			{
 				format = imageData.format;
@@ -75,7 +75,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 			}
 		}
 	}
-	
+
 	if (!_signature.equirectangularPath.empty())
 	{
 		Logger::info(std::format("Uploading cubemap [equirectangular: {}]...", _signature.equirectangularPath));
@@ -91,7 +91,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		                         _signature.znegPath,
 		                         magic_enum::enum_name(_signature.type)));
 	}
-	
+
 	// create cubemap
 	VKImageInfo imageInfo(
 		format,
@@ -101,7 +101,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.enableCubeCompatibility();
-	
+
 	if (!_signature.equirectangularPath.empty())
 	{
 		imageInfo.setName(_signature.equirectangularPath);
@@ -116,17 +116,17 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		                              _signature.zposPath,
 		                              _signature.znegPath));
 	}
-	
+
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);
-	
+
 	// create staging buffer
 	VKBufferInfo bufferInfo(_image->getLayerByteSize() * 6, vk::BufferUsageFlagBits::eTransferSrc);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	
+
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
-	
+
 	// copy face data to staging buffer
 	std::byte* ptr = stagingBuffer->getHostPointer();
 	for (uint32_t face = 0; face < 6; face++)
@@ -138,10 +138,10 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 			ptr += byteSize;
 		}
 	}
-	
+
 	// upload staging buffer to texture
 	workerData.transferCommandBuffer->begin();
-	
+
 	workerData.transferCommandBuffer->imageMemoryBarrier(
 		_image,
 		vk::PipelineStageFlagBits2::eNone,
@@ -149,7 +149,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
 		vk::ImageLayout::eTransferDstOptimal);
-	
+
 	vk::DeviceSize bufferOffset = 0;
 	for (uint32_t face = 0; face < 6; face++)
 	{
@@ -159,7 +159,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 			bufferOffset += _image->getLevelByteSize(i);
 		}
 	}
-	
+
 	workerData.transferCommandBuffer->imageMemoryBarrier(
 		_image,
 		vk::PipelineStageFlagBits2::eCopy,
@@ -167,17 +167,17 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::ImageLayout::eReadOnlyOptimal);
-	
+
 	workerData.transferCommandBuffer->end();
-	
+
 	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
-	
+
 	workerData.transferCommandBuffer->waitExecution();
 	workerData.transferCommandBuffer->reset();
-	
+
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getCubemapSampler());
-	
+
 	_changed();
 
 	_loaded = true;

@@ -13,10 +13,10 @@ public:
 	ImageData readImageData(AssetManagerWorkerData& workerData, std::string_view path, ImageType type);
 	MeshData readMeshData(AssetManagerWorkerData& workerData, std::string_view path);
 	EquirectangularSkyboxData readEquirectangularSkyboxData(AssetManagerWorkerData& workerData, std::string_view path);
-	
+
 private:
 	AssetProcessingCacheDatabase _database;
-	
+
 	ImageProcessor _imageProcessor;
 	MeshProcessor _meshProcessor;
 	EquirectangularSkyboxProcessor _equirectangularSkyboxProcessor;

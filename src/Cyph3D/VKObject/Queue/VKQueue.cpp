@@ -26,7 +26,7 @@ uint32_t VKQueue::getFamily() const
 void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores, vk::ArrayProxy<VKPtr<VKSemaphore>> signalSemaphores)
 {
 	std::scoped_lock lock(_mutex);
-	
+
 	std::vector<vk::SemaphoreSubmitInfo> waitSemaphoreSubmitInfos;
 	for (const VKPtr<VKSemaphore>& waitSemaphore : waitSemaphores)
 	{
@@ -36,11 +36,11 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 		waitSemaphoreSubmitInfo.stageMask = vk::PipelineStageFlagBits2::eAllCommands;
 		waitSemaphoreSubmitInfo.deviceIndex = 0;
 	}
-	
+
 	vk::CommandBufferSubmitInfo commandBufferSubmitInfo;
 	commandBufferSubmitInfo.commandBuffer = commandBuffer->getHandle();
 	commandBufferSubmitInfo.deviceMask = 0;
-	
+
 	std::vector<vk::SemaphoreSubmitInfo> signalSemaphoreSubmitInfos;
 	for (const VKPtr<VKSemaphore>& signalSemaphore : signalSemaphores)
 	{
@@ -50,7 +50,7 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 		signalSemaphoreSubmitInfo.stageMask = vk::PipelineStageFlagBits2::eAllCommands;
 		signalSemaphoreSubmitInfo.deviceIndex = 0;
 	}
-	
+
 	vk::SubmitInfo2 submitInfo;
 	submitInfo.waitSemaphoreInfoCount = waitSemaphoreSubmitInfos.size();
 	submitInfo.pWaitSemaphoreInfos = waitSemaphoreSubmitInfos.data();
@@ -58,10 +58,10 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 	submitInfo.pCommandBufferInfos = &commandBufferSubmitInfo;
 	submitInfo.signalSemaphoreInfoCount = signalSemaphoreSubmitInfos.size();
 	submitInfo.pSignalSemaphoreInfos = signalSemaphoreSubmitInfos.data();
-	
+
 	commandBuffer->getStatusFence()->reset();
 	_queue.submit2(submitInfo, commandBuffer->getStatusFence()->getHandle());
-	
+
 	VKQueue::SubmitRecord& submitRecord = _submitRecords.emplace_back();
 	submitRecord.commandBuffer = commandBuffer;
 	std::copy(waitSemaphores.begin(), waitSemaphores.end(), std::back_inserter(submitRecord.waitSemaphores));
@@ -77,7 +77,7 @@ bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayPr
 	{
 		waitVkSemaphores.push_back(semaphore->getHandle());
 	}
-	
+
 	vk::PresentInfoKHR presentInfo;
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = &swapchainImage->getSwapchain().getHandle();
@@ -85,7 +85,7 @@ bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayPr
 	presentInfo.waitSemaphoreCount = waitVkSemaphores.size();
 	presentInfo.pWaitSemaphores = waitVkSemaphores.data();
 	presentInfo.pResults = nullptr;
-	
+
 	try
 	{
 		return _queue.presentKHR(presentInfo) == vk::Result::eSuccess;
@@ -99,7 +99,7 @@ bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayPr
 void VKQueue::handleCompletedSubmits()
 {
 	std::scoped_lock lock(_mutex);
-	
+
 	std::erase_if(_submitRecords, [](VKQueue::SubmitRecord& submitRecord)
 	{
 		return submitRecord.commandBuffer->getStatusFence()->isSignaled();

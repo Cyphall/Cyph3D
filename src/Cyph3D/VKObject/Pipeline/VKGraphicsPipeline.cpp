@@ -15,46 +15,46 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 {
 	std::vector<VKPtr<VKShader>> shaders;
 	std::vector<vk::PipelineShaderStageCreateInfo> shadersCreateInfos;
-	
+
 	{
 		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getVertexShader()));
-		
+
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eVertex;
 		createInfo.module = shader->getHandle();
 		createInfo.pName = "main";
 	}
-	
+
 	if (_info.hasGeometryShader())
 	{
 		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getGeometryShader()));
-		
+
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eGeometry;
 		createInfo.module = shader->getHandle();
 		createInfo.pName = "main";
 	}
-	
+
 	if (_info.hasFragmentShader())
 	{
 		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getFragmentShader()));
-		
+
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eFragment;
 		createInfo.module = shader->getHandle();
 		createInfo.pName = "main";
 	}
-	
+
 	vk::PipelineVertexInputStateCreateInfo vertexInputState = _info.getVertexInputLayoutInfo().get();
-	
+
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
 	inputAssembly.topology = _info.getPrimitiveTopology();
 	inputAssembly.primitiveRestartEnable = false;
-	
+
 	vk::PipelineViewportStateCreateInfo viewportState;
 	viewportState.viewportCount = 1;
 	viewportState.scissorCount = 1;
-	
+
 	vk::Viewport vkViewport;
 	if (_info.hasStaticViewport())
 	{
@@ -64,14 +64,14 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 		vkViewport.height = _info.getStaticViewport().size.y;
 		vkViewport.minDepth = _info.getStaticViewport().depthRange.x;
 		vkViewport.maxDepth = _info.getStaticViewport().depthRange.y;
-		
+
 		viewportState.pViewports = &vkViewport;
 	}
 	else
 	{
 		viewportState.pViewports = nullptr;
 	}
-	
+
 	vk::Rect2D scissor;
 	if (_info.hasStaticScissor())
 	{
@@ -79,14 +79,14 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 		scissor.offset.y = _info.getStaticScissor().offset.y;
 		scissor.extent.width = _info.getStaticScissor().size.x;
 		scissor.extent.height = _info.getStaticScissor().size.y;
-		
+
 		viewportState.pScissors = &scissor;
 	}
 	else
 	{
 		viewportState.pScissors = nullptr;
 	}
-	
+
 	vk::PipelineRasterizationStateCreateInfo rasterizer;
 	rasterizer.depthClampEnable = false;
 	rasterizer.rasterizerDiscardEnable = false;
@@ -98,7 +98,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 	rasterizer.depthBiasConstantFactor = 0.0f; // Optional
 	rasterizer.depthBiasClamp = 0.0f; // Optional
 	rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
-	
+
 	vk::PipelineMultisampleStateCreateInfo multisampling;
 	multisampling.rasterizationSamples = _info.getRasterizationSampleCount();
 	multisampling.sampleShadingEnable = false;
@@ -106,17 +106,17 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 	multisampling.pSampleMask = nullptr; // Optional
 	multisampling.alphaToCoverageEnable = false; // Optional
 	multisampling.alphaToOneEnable = false; // Optional
-	
+
 	std::vector<vk::Format> colorAttachmentsFormat;
 	std::vector<vk::PipelineColorBlendAttachmentState> colorAttachmentsBlending;
-	
+
 	colorAttachmentsFormat.reserve(_info.getPipelineAttachmentInfo().getColorAttachmentsInfos().size());
 	colorAttachmentsBlending.reserve(_info.getPipelineAttachmentInfo().getColorAttachmentsInfos().size());
-	
+
 	for (const VKPipelineAttachmentInfo::ColorAttachmentInfo& colorAttachmentInfo : _info.getPipelineAttachmentInfo().getColorAttachmentsInfos())
 	{
 		colorAttachmentsFormat.emplace_back(colorAttachmentInfo.format);
-		
+
 		vk::PipelineColorBlendAttachmentState& blending = colorAttachmentsBlending.emplace_back();
 		if (colorAttachmentInfo.blending.has_value())
 		{
@@ -141,7 +141,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 			blending.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 		}
 	}
-	
+
 	vk::PipelineColorBlendStateCreateInfo colorBlending;
 	colorBlending.logicOpEnable = false;
 	colorBlending.logicOp = vk::LogicOp::eCopy; // Optional
@@ -151,14 +151,14 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 	colorBlending.blendConstants[1] = 0.0f; // Optional
 	colorBlending.blendConstants[2] = 0.0f; // Optional
 	colorBlending.blendConstants[3] = 0.0f; // Optional
-	
+
 	vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo;
 	pipelineRenderingCreateInfo.viewMask = 0;
 	pipelineRenderingCreateInfo.colorAttachmentCount = colorAttachmentsFormat.size();
 	pipelineRenderingCreateInfo.pColorAttachmentFormats = colorAttachmentsFormat.data();
 	pipelineRenderingCreateInfo.depthAttachmentFormat = _info.getPipelineAttachmentInfo().hasDepthAttachment() ? _info.getPipelineAttachmentInfo().getDepthAttachmentInfo().format : vk::Format::eUndefined;
 	pipelineRenderingCreateInfo.stencilAttachmentFormat = vk::Format::eUndefined;
-	
+
 	vk::PipelineDepthStencilStateCreateInfo depthState;
 	depthState.depthTestEnable = _info.getPipelineAttachmentInfo().hasDepthAttachment();
 	depthState.depthWriteEnable = _info.getPipelineAttachmentInfo().hasDepthAttachment() ? _info.getPipelineAttachmentInfo().getDepthAttachmentInfo().writeEnabled : false;
@@ -169,7 +169,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 	depthState.stencilTestEnable = false;
 	depthState.front = vk::StencilOpState(); // Optional
 	depthState.back = vk::StencilOpState(); // Optional
-	
+
 	std::vector<vk::DynamicState> dynamicStates;
 	if (!_info.hasStaticViewport())
 	{
@@ -179,11 +179,11 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 	{
 		dynamicStates.push_back(vk::DynamicState::eScissor);
 	}
-	
+
 	vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo;
 	dynamicStateCreateInfo.dynamicStateCount = dynamicStates.size();
 	dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
-	
+
 	vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
 	pipelineCreateInfo.stageCount = shadersCreateInfos.size();
 	pipelineCreateInfo.pStages = shadersCreateInfos.data();
@@ -201,7 +201,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, VKGraphicsPipelineInf
 	pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 	pipelineCreateInfo.basePipelineIndex = -1; // Optional
 	pipelineCreateInfo.pNext = &pipelineRenderingCreateInfo;
-	
+
 	_pipeline = _context.getDevice().createGraphicsPipeline(VK_NULL_HANDLE, pipelineCreateInfo).value;
 }
 

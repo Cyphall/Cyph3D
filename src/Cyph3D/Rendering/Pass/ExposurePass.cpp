@@ -29,40 +29,40 @@ ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal);
-	
+
 	VKRenderingInfo renderingInfo(_size);
-	
+
 	renderingInfo.addColorAttachment(_outputImage)
 		.setLoadOpDontCare()
 		.setStoreOpStore();
-	
+
 	commandBuffer->beginRendering(renderingInfo);
-	
+
 	commandBuffer->bindPipeline(_pipeline);
-	
+
 	VKPipelineViewport viewport;
 	viewport.offset = {0, 0};
 	viewport.size = _size;
 	viewport.depthRange = {0.0f, 1.0f};
 	commandBuffer->setViewport(viewport);
-	
+
 	VKPipelineScissor scissor;
 	scissor.offset = {0, 0};
 	scissor.size = _size;
 	commandBuffer->setScissor(scissor);
-	
+
 	commandBuffer->pushDescriptor(0, 0, input.inputImage, _inputSampler);
-	
+
 	PushConstantData pushConstantData{};
 	pushConstantData.exposure = input.camera.getExposure();
 	commandBuffer->pushConstants(pushConstantData);
-	
+
 	commandBuffer->draw(3, 0);
-	
+
 	commandBuffer->unbindPipeline();
-	
+
 	commandBuffer->endRendering();
-	
+
 	return {
 		_outputImage
 	};
@@ -77,7 +77,7 @@ void ExposurePass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-	
+
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
@@ -86,7 +86,7 @@ void ExposurePass::createPipelineLayout()
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_descriptorSetLayout);
 	info.setPushConstantLayout<PushConstantData>();
-	
+
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
@@ -98,11 +98,11 @@ void ExposurePass::createPipeline()
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise);
-	
+
 	info.setFragmentShader("resources/shaders/internal/post-processing/exposure/exposure.frag");
-	
+
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
-	
+
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
@@ -125,7 +125,7 @@ void ExposurePass::createSampler()
 	createInfo.maxLod = 1000.0f;
 	createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 	createInfo.unnormalizedCoordinates = false;
-	
+
 	_inputSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 }
 
@@ -139,6 +139,6 @@ void ExposurePass::createImage()
 		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	imageInfo.setName("Exposure output image");
-	
+
 	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 }

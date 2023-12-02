@@ -56,9 +56,9 @@ private:
 	friend class AssetManager;
 
 	CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature);
-	
+
 	void load_async(AssetManagerWorkerData& workerData);
-	
+
 	VKPtr<VKImage> _image;
 	uint32_t _bindlessIndex;
 };
