@@ -103,17 +103,14 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 	{
 		vk::BufferUsageFlags fullVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
-		vk::DeviceAddress fullVertexBufferAlignment = 1;
 		if (Engine::getVKContext().isRayTracingSupported())
 		{
-			fullVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
-			fullVertexBufferAlignment = sizeof(float);
+			fullVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress;
 		}
 		VKBufferInfo fullVertexBufferInfo(meshData.fullVertices.size(), fullVertexBufferUsage);
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-		fullVertexBufferInfo.setRequiredAlignment(fullVertexBufferAlignment);
 		fullVertexBufferInfo.setName(std::format("{}.FullVertexBuffer", _signature.path));
 
 		_fullVertexBuffer = VKBuffer<FullVertexData>::create(Engine::getVKContext(), fullVertexBufferInfo);
