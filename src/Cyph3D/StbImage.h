@@ -32,7 +32,7 @@ public:
 	uint32_t getBitsPerPixel() const;
 	uint32_t getChannelCount() const;
 	glm::uvec2 getSize() const;
-	uint64_t getByteSize() const;
+	size_t getByteSize() const;
 	bool isValid() const;
 
 private:

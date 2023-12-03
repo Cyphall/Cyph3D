@@ -243,7 +243,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 	int width, height;
 	io.Fonts->GetTexDataAsAlpha8(&data, &width, &height);
 
-	uint64_t dataSize = width * height;
+	size_t dataSize = width * height;
 
 	VKBufferInfo bufferInfo(dataSize, vk::BufferUsageFlagBits::eTransferSrc);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);

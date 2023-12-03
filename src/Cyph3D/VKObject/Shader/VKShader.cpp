@@ -9,7 +9,7 @@
 
 static std::vector<uint32_t> readSPIRV(const std::filesystem::path& filePath)
 {
-	uint64_t size = std::filesystem::file_size(filePath);
+	size_t size = std::filesystem::file_size(filePath);
 	if (size % sizeof(uint32_t) != 0)
 	{
 		throw;

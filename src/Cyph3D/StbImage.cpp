@@ -77,7 +77,7 @@ glm::uvec2 StbImage::getSize() const
 	return _size;
 }
 
-uint64_t StbImage::getByteSize() const
+size_t StbImage::getByteSize() const
 {
 	return _size.x * _size.y * (getBitsPerPixel() / 8);
 }

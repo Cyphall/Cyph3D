@@ -27,7 +27,7 @@ std::string FileHelper::readAllText(const std::string& path)
 {
 	std::ifstream file = openFileForReading(path);
 
-	uint64_t fileSize = std::filesystem::file_size(path);
+	size_t fileSize = std::filesystem::file_size(path);
 	std::string fileContent(fileSize, '\0');
 
 	file.read(fileContent.data(), fileContent.size());
