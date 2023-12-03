@@ -66,7 +66,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 
 	if (input.sceneChanged || input.cameraChanged)
 	{
-		setupSBT(input);
+		setupSBT(commandBuffer, input);
 
 		recreateDescriptorSet = true;
 	}
@@ -169,7 +169,7 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 	);
 }
 
-void PathTracePass::setupSBT(const PathTracePassInput& input)
+void PathTracePass::setupSBT(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
 {
 	CameraUniforms cameraUniforms{
 		.cameraPosition = input.camera.getPosition(),
@@ -221,6 +221,14 @@ void PathTracePass::setupSBT(const PathTracePassInput& input)
 	}
 
 	_sbt = VKShaderBindingTable::create(Engine::getVKContext(), info);
+
+	commandBuffer->bufferMemoryBarrier(
+		_sbt->getBuffer(),
+		vk::PipelineStageFlagBits2::eHost,
+		vk::AccessFlagBits2::eHostWrite,
+		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+		vk::AccessFlagBits2::eShaderBindingTableReadKHR
+	);
 }
 
 void PathTracePass::createDescriptorSetLayout()

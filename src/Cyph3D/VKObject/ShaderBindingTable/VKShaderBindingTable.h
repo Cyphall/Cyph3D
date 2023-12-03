@@ -16,6 +16,8 @@ public:
 
 	const VKShaderBindingTableInfo& getInfo() const;
 
+	const VKPtr<VKBuffer<std::byte>>& getBuffer() const;
+
 	const vk::DeviceAddress& getRaygenSBTAddress() const;
 	const vk::DeviceSize& getRaygenSBTSize() const;
 	const vk::DeviceSize& getRaygenSBTStride() const;

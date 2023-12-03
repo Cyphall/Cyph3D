@@ -88,6 +88,11 @@ const VKShaderBindingTableInfo& VKShaderBindingTable::getInfo() const
 	return _info;
 }
 
+const VKPtr<VKBuffer<std::byte>>& VKShaderBindingTable::getBuffer() const
+{
+	return _buffer;
+}
+
 const vk::DeviceAddress& VKShaderBindingTable::getRaygenSBTAddress() const
 {
 	return _raygenSBTAddress;

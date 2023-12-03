@@ -95,7 +95,7 @@ private:
 	void onResize() override;
 
 	void setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
-	void setupSBT(const PathTracePassInput& input);
+	void setupSBT(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
 
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
