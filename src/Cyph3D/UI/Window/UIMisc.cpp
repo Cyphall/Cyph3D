@@ -137,8 +137,8 @@ void UIMisc::displayFrametime()
 		_timeUntilOverlayUpdate += 0.5f;
 	}
 
-	_lastFrametimeIndex = (_lastFrametimeIndex + 1) % _frametimes.size();
 	_frametimes[_lastFrametimeIndex] = deltaTime * 1000.0;
+	_lastFrametimeIndex = (_lastFrametimeIndex + 1) % _frametimes.size();
 
 	ImGuiStyle& style = ImGui::GetStyle();
 	std::string overlay = std::format("{:.1f} ms", _overlayFrametime);
