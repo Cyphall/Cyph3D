@@ -59,10 +59,12 @@ namespace VMA_HPP_NAMESPACE {
   };
 }
 namespace VULKAN_HPP_NAMESPACE {
-  template<> struct UniqueHandleTraits<Buffer, VMA_HPP_NAMESPACE::Dispatcher> {
+  template<> class UniqueHandleTraits<Buffer, VMA_HPP_NAMESPACE::Dispatcher> {
+    public:
     using deleter = VMA_HPP_NAMESPACE::Deleter<Buffer, VMA_HPP_NAMESPACE::Allocator>;
   };
-  template<> struct UniqueHandleTraits<Image, VMA_HPP_NAMESPACE::Dispatcher> {
+  template<> class UniqueHandleTraits<Image, VMA_HPP_NAMESPACE::Dispatcher> {
+    public:
     using deleter = VMA_HPP_NAMESPACE::Deleter<Image, VMA_HPP_NAMESPACE::Allocator>;
   };
 }
