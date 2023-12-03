@@ -8,6 +8,7 @@
 static AssetManagerWorkerData threadInit()
 {
 	return {
+		.graphicsCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getMainQueue()),
 		.computeCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getComputeQueue()),
 		.transferCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getTransferQueue())
 	};

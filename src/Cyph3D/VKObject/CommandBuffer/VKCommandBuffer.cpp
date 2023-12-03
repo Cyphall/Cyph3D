@@ -28,10 +28,11 @@ VKPtr<VKCommandBuffer> VKCommandBuffer::create(VKContext& context, const VKQueue
 }
 
 VKCommandBuffer::VKCommandBuffer(VKContext& context, const VKQueue& queue):
-	VKObject(context)
+	VKObject(context),
+	_queueFamily(queue.getFamily())
 {
 	vk::CommandPoolCreateInfo poolCreateInfo;
-	poolCreateInfo.queueFamilyIndex = queue.getFamily();
+	poolCreateInfo.queueFamilyIndex = _queueFamily;
 
 	_commandPool = _context.getDevice().createCommandPool(poolCreateInfo);
 
@@ -167,6 +168,136 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 
 	image->setLayout(layerRange, levelRange, newImageLayout);
+
+	_usedObjects.emplace_back(image);
+}
+
+void VKCommandBuffer::acquireBufferOwnership(const VKPtr<VKBufferBase>& buffer, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
+{
+	vk::BufferMemoryBarrier2 bufferMemoryBarrier;
+	bufferMemoryBarrier.srcStageMask = vk::PipelineStageFlagBits2::eNone;
+	bufferMemoryBarrier.srcAccessMask = vk::AccessFlagBits2::eNone;
+	bufferMemoryBarrier.dstStageMask = dstStageMask;
+	bufferMemoryBarrier.dstAccessMask = dstAccessMask;
+	bufferMemoryBarrier.srcQueueFamilyIndex = previousOwner.getFamily();
+	bufferMemoryBarrier.dstQueueFamilyIndex = _queueFamily;
+	bufferMemoryBarrier.buffer = buffer->getHandle();
+	bufferMemoryBarrier.offset = 0;
+	bufferMemoryBarrier.size = VK_WHOLE_SIZE;
+
+	vk::DependencyInfo dependencyInfo;
+	dependencyInfo.bufferMemoryBarrierCount = 1;
+	dependencyInfo.pBufferMemoryBarriers = &bufferMemoryBarrier;
+
+	_commandBuffer.pipelineBarrier2(dependencyInfo);
+
+	_usedObjects.emplace_back(buffer);
+}
+
+void VKCommandBuffer::releaseBufferOwnership(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner)
+{
+	vk::BufferMemoryBarrier2 bufferMemoryBarrier;
+	bufferMemoryBarrier.srcStageMask = srcStageMask;
+	bufferMemoryBarrier.srcAccessMask = srcAccessMask;
+	bufferMemoryBarrier.dstStageMask = vk::PipelineStageFlagBits2::eNone;
+	bufferMemoryBarrier.dstAccessMask = vk::AccessFlagBits2::eNone;
+	bufferMemoryBarrier.srcQueueFamilyIndex = _queueFamily;
+	bufferMemoryBarrier.dstQueueFamilyIndex = nextOwner.getFamily();
+	bufferMemoryBarrier.buffer = buffer->getHandle();
+	bufferMemoryBarrier.offset = 0;
+	bufferMemoryBarrier.size = VK_WHOLE_SIZE;
+
+	vk::DependencyInfo dependencyInfo;
+	dependencyInfo.bufferMemoryBarrierCount = 1;
+	dependencyInfo.pBufferMemoryBarriers = &bufferMemoryBarrier;
+
+	_commandBuffer.pipelineBarrier2(dependencyInfo);
+
+	_usedObjects.emplace_back(buffer);
+}
+
+void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
+{
+	acquireImageOwnership(
+		image,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		previousOwner,
+		dstStageMask,
+		dstAccessMask,
+		newImageLayout
+	);
+}
+
+void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
+{
+	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+
+	vk::ImageMemoryBarrier2 imageMemoryBarrier;
+	imageMemoryBarrier.srcStageMask = vk::PipelineStageFlagBits2::eNone;
+	imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits2::eNone;
+	imageMemoryBarrier.dstStageMask = dstStageMask;
+	imageMemoryBarrier.dstAccessMask = dstAccessMask;
+	imageMemoryBarrier.oldLayout = image->getLayout(layerRange.x, levelRange.x);
+	imageMemoryBarrier.newLayout = newImageLayout;
+	imageMemoryBarrier.srcQueueFamilyIndex = previousOwner.getFamily();
+	imageMemoryBarrier.dstQueueFamilyIndex = _queueFamily;
+	imageMemoryBarrier.image = image->getHandle();
+	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
+	imageMemoryBarrier.subresourceRange.baseArrayLayer = layerRange.x;
+	imageMemoryBarrier.subresourceRange.layerCount = layerRange.y - layerRange.x + 1;
+	imageMemoryBarrier.subresourceRange.baseMipLevel = levelRange.x;
+	imageMemoryBarrier.subresourceRange.levelCount = levelRange.y - levelRange.x + 1;
+
+	vk::DependencyInfo dependencyInfo;
+	dependencyInfo.imageMemoryBarrierCount = 1;
+	dependencyInfo.pImageMemoryBarriers = &imageMemoryBarrier;
+
+	_commandBuffer.pipelineBarrier2(dependencyInfo);
+
+	image->setLayout(layerRange, levelRange, newImageLayout);
+
+	_usedObjects.emplace_back(image);
+}
+
+void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner, vk::ImageLayout newImageLayout)
+{
+	releaseImageOwnership(
+		image,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1},
+		srcStageMask,
+		srcAccessMask,
+		nextOwner,
+		newImageLayout
+	);
+}
+
+void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner, vk::ImageLayout newImageLayout)
+{
+	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+
+	vk::ImageMemoryBarrier2 imageMemoryBarrier;
+	imageMemoryBarrier.srcStageMask = srcStageMask;
+	imageMemoryBarrier.srcAccessMask = srcAccessMask;
+	imageMemoryBarrier.dstStageMask = vk::PipelineStageFlagBits2::eNone;
+	imageMemoryBarrier.dstAccessMask = vk::AccessFlagBits2::eNone;
+	imageMemoryBarrier.oldLayout = image->getLayout(layerRange.x, levelRange.x);
+	imageMemoryBarrier.newLayout = newImageLayout;
+	imageMemoryBarrier.srcQueueFamilyIndex = _queueFamily;
+	imageMemoryBarrier.dstQueueFamilyIndex = nextOwner.getFamily();
+	imageMemoryBarrier.image = image->getHandle();
+	imageMemoryBarrier.subresourceRange.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
+	imageMemoryBarrier.subresourceRange.baseArrayLayer = layerRange.x;
+	imageMemoryBarrier.subresourceRange.layerCount = layerRange.y - layerRange.x + 1;
+	imageMemoryBarrier.subresourceRange.baseMipLevel = levelRange.x;
+	imageMemoryBarrier.subresourceRange.levelCount = levelRange.y - levelRange.x + 1;
+
+	vk::DependencyInfo dependencyInfo;
+	dependencyInfo.imageMemoryBarrierCount = 1;
+	dependencyInfo.pImageMemoryBarriers = &imageMemoryBarrier;
+
+	_commandBuffer.pipelineBarrier2(dependencyInfo);
 
 	_usedObjects.emplace_back(image);
 }

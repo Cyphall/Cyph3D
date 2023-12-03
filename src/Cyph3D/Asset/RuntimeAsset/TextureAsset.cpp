@@ -86,12 +86,11 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		bufferOffset += _image->getLevelByteSize(i);
 	}
 
-	workerData.transferCommandBuffer->imageMemoryBarrier(
+	workerData.transferCommandBuffer->releaseImageOwnership(
 		_image,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
-		vk::PipelineStageFlagBits2::eNone,
-		vk::AccessFlagBits2::eNone,
+		Engine::getVKContext().getMainQueue(),
 		vk::ImageLayout::eReadOnlyOptimal
 	);
 
@@ -101,6 +100,29 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 
 	workerData.transferCommandBuffer->waitExecution();
 	workerData.transferCommandBuffer->reset();
+
+	workerData.graphicsCommandBuffer->begin();
+
+	vk::PipelineStageFlags2 nextUsageStages = vk::PipelineStageFlagBits2::eFragmentShader;
+	if (Engine::getVKContext().isRayTracingSupported())
+	{
+		nextUsageStages |= vk::PipelineStageFlagBits2::eRayTracingShaderKHR;
+	}
+
+	workerData.graphicsCommandBuffer->acquireImageOwnership(
+		_image,
+		Engine::getVKContext().getTransferQueue(),
+		nextUsageStages,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal
+	);
+
+	workerData.graphicsCommandBuffer->end();
+
+	Engine::getVKContext().getMainQueue().submit(workerData.graphicsCommandBuffer, {}, {});
+
+	workerData.graphicsCommandBuffer->waitExecution();
+	workerData.graphicsCommandBuffer->reset();
 
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getTextureSampler());

@@ -5,11 +5,9 @@
 #include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
 #include "Cyph3D/VKObject/VKContext.h"
-#include "Queue/VKQueue.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <set>
 
 struct SwapChainSupportDetails
 {
@@ -116,14 +114,6 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 	SwapChainSupportDetails swapchainSupport = querySwapchainSupport(_context.getPhysicalDevice(), surface);
 	vk::SurfaceFormatKHR surfaceFormat = findBestSurfaceFormat(_context.getPhysicalDevice(), surface);
 
-	std::set<uint32_t> queues = {
-		_context.getMainQueue().getFamily(),
-		_context.getComputeQueue().getFamily(),
-		_context.getTransferQueue().getFamily()
-	};
-
-	std::vector<uint32_t> queuesVec(queues.begin(), queues.end());
-
 	vk::SwapchainCreateInfoKHR createInfo;
 	createInfo.surface = surface;
 	createInfo.minImageCount = 3;
@@ -132,9 +122,9 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 	createInfo.imageExtent = swapchainSupport.capabilities.currentExtent;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
-	createInfo.imageSharingMode = queuesVec.size() > 1 ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
-	createInfo.queueFamilyIndexCount = queuesVec.size();
-	createInfo.pQueueFamilyIndices = queuesVec.data();
+	createInfo.imageSharingMode = vk::SharingMode::eExclusive;
+	createInfo.queueFamilyIndexCount = 0;
+	createInfo.pQueueFamilyIndices = nullptr;
 	createInfo.preTransform = swapchainSupport.capabilities.currentTransform;
 	createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 	createInfo.presentMode = vk::PresentModeKHR::eFifo;

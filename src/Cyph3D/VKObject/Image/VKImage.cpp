@@ -1,11 +1,9 @@
 #include "VKImage.h"
 
-#include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 
 #include <ranges>
-#include <set>
 #include <vulkan/vulkan_format_traits.hpp>
 
 VKPtr<VKImage> VKImage::create(VKContext& context, const VKImageInfo& info)
@@ -39,14 +37,6 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		viewFormatsCreateInfo.viewFormatCount = _info.getCompatibleViewFormats().size();
 		viewFormatsCreateInfo.pViewFormats = _info.getCompatibleViewFormats().data();
 
-		std::set<uint32_t> queues = {
-			_context.getMainQueue().getFamily(),
-			_context.getComputeQueue().getFamily(),
-			_context.getTransferQueue().getFamily()
-		};
-
-		std::vector<uint32_t> queuesVec(queues.begin(), queues.end());
-
 		vk::ImageCreateInfo createInfo;
 		createInfo.imageType = vk::ImageType::e2D;
 		createInfo.extent = vk::Extent3D(_info.getSize().x, _info.getSize().y, 1);
@@ -56,9 +46,9 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		createInfo.tiling = vk::ImageTiling::eOptimal;
 		createInfo.initialLayout = vk::ImageLayout::eUndefined;
 		createInfo.usage = _info.getUsage();
-		createInfo.sharingMode = queuesVec.size() > 1 ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
-		createInfo.queueFamilyIndexCount = queuesVec.size();
-		createInfo.pQueueFamilyIndices = queuesVec.data();
+		createInfo.sharingMode = vk::SharingMode::eExclusive;
+		createInfo.queueFamilyIndexCount = 0;
+		createInfo.pQueueFamilyIndices = nullptr;
 		createInfo.samples = _info.getSampleCount();
 		createInfo.flags = flags;
 		createInfo.pNext = &viewFormatsCreateInfo;

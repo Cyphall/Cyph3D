@@ -47,6 +47,13 @@ public:
 	void imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout);
 	void imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout);
 
+	void acquireBufferOwnership(const VKPtr<VKBufferBase>& buffer, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask);
+	void releaseBufferOwnership(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner);
+	void acquireImageOwnership(const VKPtr<VKImage>& image, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout);
+	void acquireImageOwnership(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout);
+	void releaseImageOwnership(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner, vk::ImageLayout newImageLayout);
+	void releaseImageOwnership(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner, vk::ImageLayout newImageLayout);
+
 	void beginRendering(const VKRenderingInfo& renderingInfo);
 	void endRendering();
 
@@ -122,6 +129,7 @@ private:
 
 	void pushConstants(const void* data, uint32_t dataSize);
 
+	uint32_t _queueFamily;
 	vk::CommandPool _commandPool;
 	vk::CommandBuffer _commandBuffer;
 

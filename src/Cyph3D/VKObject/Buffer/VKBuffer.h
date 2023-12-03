@@ -2,11 +2,8 @@
 
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
 #include "Cyph3D/VKObject/Buffer/VKBufferInfo.h"
-#include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKContext.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
-#include <set>
 #include <vk_mem_alloc.hpp>
 
 template<typename T>
@@ -69,20 +66,12 @@ private:
 		VKBufferBase(context),
 		_info(info)
 	{
-		std::set<uint32_t> queues = {
-			_context.getMainQueue().getFamily(),
-			_context.getComputeQueue().getFamily(),
-			_context.getTransferQueue().getFamily()
-		};
-
-		std::vector<uint32_t> queuesVec(queues.begin(), queues.end());
-
 		vk::BufferCreateInfo bufferCreateInfo;
 		bufferCreateInfo.size = _info.getSize() * sizeof(T);
 		bufferCreateInfo.usage = _info.getUsage();
-		bufferCreateInfo.sharingMode = queuesVec.size() > 1 ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
-		bufferCreateInfo.queueFamilyIndexCount = queuesVec.size();
-		bufferCreateInfo.pQueueFamilyIndices = queuesVec.data();
+		bufferCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+		bufferCreateInfo.queueFamilyIndexCount = 0;
+		bufferCreateInfo.pQueueFamilyIndices = nullptr;
 
 		vma::AllocationCreateInfo allocationCreateInfo{};
 		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;

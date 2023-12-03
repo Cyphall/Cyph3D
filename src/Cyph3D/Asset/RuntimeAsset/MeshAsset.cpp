@@ -171,14 +171,49 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		VKPtr<VKAccelerationStructureCompactedSizeQuery> compactedSizeQuery = VKAccelerationStructureCompactedSizeQuery::create(Engine::getVKContext());
 
 		workerData.computeCommandBuffer->begin();
+
+		workerData.computeCommandBuffer->bufferMemoryBarrier(
+			_positionVertexBuffer,
+			vk::PipelineStageFlagBits2::eHost,
+			vk::AccessFlagBits2::eHostWrite,
+			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+			vk::AccessFlagBits2::eAccelerationStructureReadKHR
+		);
+
+		workerData.computeCommandBuffer->bufferMemoryBarrier(
+			_indexBuffer,
+			vk::PipelineStageFlagBits2::eHost,
+			vk::AccessFlagBits2::eHostWrite,
+			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+			vk::AccessFlagBits2::eAccelerationStructureReadKHR
+		);
+
 		workerData.computeCommandBuffer->buildBottomLevelAccelerationStructure(temporaryAccelerationStructure, scratchBuffer, buildInfo);
-		workerData.computeCommandBuffer->memoryBarrier(
+
+		workerData.computeCommandBuffer->releaseBufferOwnership(
+			_positionVertexBuffer,
+			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+			vk::AccessFlagBits2::eAccelerationStructureReadKHR,
+			Engine::getVKContext().getMainQueue()
+		);
+
+		workerData.computeCommandBuffer->releaseBufferOwnership(
+			_indexBuffer,
+			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+			vk::AccessFlagBits2::eAccelerationStructureReadKHR,
+			Engine::getVKContext().getMainQueue()
+		);
+
+		workerData.computeCommandBuffer->bufferMemoryBarrier(
+			temporaryBackingBuffer,
 			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 			vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
 			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR
 		);
+
 		workerData.computeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
+
 		workerData.computeCommandBuffer->end();
 
 		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
@@ -202,13 +237,95 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		);
 
 		workerData.computeCommandBuffer->begin();
+
 		workerData.computeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);
+
+		workerData.computeCommandBuffer->releaseBufferOwnership(
+			backingBuffer,
+			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
+			vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
+			Engine::getVKContext().getMainQueue()
+		);
+
 		workerData.computeCommandBuffer->end();
 
 		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
 
 		workerData.computeCommandBuffer->waitExecution();
 		workerData.computeCommandBuffer->reset();
+
+		workerData.graphicsCommandBuffer->begin();
+
+		workerData.graphicsCommandBuffer->acquireBufferOwnership(
+			_positionVertexBuffer,
+			Engine::getVKContext().getComputeQueue(),
+			vk::PipelineStageFlagBits2::eVertexAttributeInput,
+			vk::AccessFlagBits2::eVertexAttributeRead
+		);
+
+		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
+			_fullVertexBuffer,
+			vk::PipelineStageFlagBits2::eHost,
+			vk::AccessFlagBits2::eHostWrite,
+			vk::PipelineStageFlagBits2::eVertexAttributeInput | vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+			vk::AccessFlagBits2::eVertexAttributeRead | vk::AccessFlagBits2::eShaderStorageRead
+		);
+
+		workerData.graphicsCommandBuffer->acquireBufferOwnership(
+			_indexBuffer,
+			Engine::getVKContext().getComputeQueue(),
+			vk::PipelineStageFlagBits2::eIndexInput | vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+			vk::AccessFlagBits2::eIndexRead | vk::AccessFlagBits2::eShaderStorageRead
+		);
+
+		workerData.graphicsCommandBuffer->acquireBufferOwnership(
+			backingBuffer,
+			Engine::getVKContext().getComputeQueue(),
+			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+			vk::AccessFlagBits2::eAccelerationStructureReadKHR
+		);
+
+		workerData.graphicsCommandBuffer->end();
+
+		Engine::getVKContext().getMainQueue().submit(workerData.graphicsCommandBuffer, {}, {});
+
+		workerData.graphicsCommandBuffer->waitExecution();
+		workerData.graphicsCommandBuffer->reset();
+	}
+	else
+	{
+		workerData.graphicsCommandBuffer->begin();
+
+		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
+			_positionVertexBuffer,
+			vk::PipelineStageFlagBits2::eHost,
+			vk::AccessFlagBits2::eHostWrite,
+			vk::PipelineStageFlagBits2::eVertexAttributeInput,
+			vk::AccessFlagBits2::eVertexAttributeRead
+		);
+
+		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
+			_fullVertexBuffer,
+			vk::PipelineStageFlagBits2::eHost,
+			vk::AccessFlagBits2::eHostWrite,
+			vk::PipelineStageFlagBits2::eVertexAttributeInput,
+			vk::AccessFlagBits2::eVertexAttributeRead
+		);
+
+		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
+			_indexBuffer,
+			vk::PipelineStageFlagBits2::eHost,
+			vk::AccessFlagBits2::eHostWrite,
+			vk::PipelineStageFlagBits2::eIndexInput,
+			vk::AccessFlagBits2::eIndexRead
+		);
+
+		workerData.graphicsCommandBuffer->end();
+
+		Engine::getVKContext().getMainQueue().submit(workerData.graphicsCommandBuffer, {}, {});
+
+		workerData.graphicsCommandBuffer->waitExecution();
+		workerData.graphicsCommandBuffer->reset();
 	}
 
 	_boundingBoxMin = meshData.boundingBoxMin;

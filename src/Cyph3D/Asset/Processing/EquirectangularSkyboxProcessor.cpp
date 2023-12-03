@@ -317,6 +317,14 @@ static VKPtr<VKImage> uploadEquirectangularImage(AssetManagerWorkerData& workerD
 
 	workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, 0, image, 0, 0);
 
+	workerData.transferCommandBuffer->releaseImageOwnership(
+		image,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferWrite,
+		Engine::getVKContext().getComputeQueue(),
+		vk::ImageLayout::eReadOnlyOptimal
+	);
+
 	workerData.transferCommandBuffer->end();
 
 	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
@@ -356,10 +364,9 @@ VKPtr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetManagerWorke
 
 	workerData.computeCommandBuffer->begin();
 
-	workerData.computeCommandBuffer->imageMemoryBarrier(
+	workerData.computeCommandBuffer->acquireImageOwnership(
 		equirectangularTexture,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferWrite,
+		Engine::getVKContext().getTransferQueue(),
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderSampledRead,
 		vk::ImageLayout::eReadOnlyOptimal
@@ -367,6 +374,8 @@ VKPtr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetManagerWorke
 
 	workerData.computeCommandBuffer->imageMemoryBarrier(
 		cubemapTexture,
+		{0, 5},
+		{0, 0},
 		vk::PipelineStageFlagBits2::eNone,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
@@ -423,8 +432,8 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 		cubemapTexture,
 		{0, 5},
 		{0, 0},
-		vk::PipelineStageFlagBits2::eNone,
-		vk::AccessFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eComputeShader,
+		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageRead,
 		vk::ImageLayout::eGeneral
@@ -481,12 +490,11 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 		);
 	}
 
-	workerData.computeCommandBuffer->imageMemoryBarrier(
+	workerData.computeCommandBuffer->releaseImageOwnership(
 		cubemapTexture,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageRead,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferRead,
+		Engine::getVKContext().getTransferQueue(),
 		vk::ImageLayout::eTransferSrcOptimal
 	);
 
@@ -509,6 +517,14 @@ static EquirectangularSkyboxData downloadCubemapTexture(AssetManagerWorkerData& 
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), stagingBufferInfo);
 
 	workerData.transferCommandBuffer->begin();
+
+	workerData.transferCommandBuffer->acquireImageOwnership(
+		cubemapTexture,
+		Engine::getVKContext().getComputeQueue(),
+		vk::PipelineStageFlagBits2::eTransfer,
+		vk::AccessFlagBits2::eTransferRead,
+		vk::ImageLayout::eTransferSrcOptimal
+	);
 
 	vk::DeviceSize bufferOffset = 0;
 	for (int face = 0; face < 6; face++)
