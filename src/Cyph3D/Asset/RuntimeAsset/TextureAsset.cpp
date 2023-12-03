@@ -60,9 +60,11 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	std::byte* ptr = stagingBuffer->getHostPointer();
 	for (uint32_t i = 0; i < imageData.levels.size(); i++)
 	{
-		vk::DeviceSize byteSize = _image->getLevelByteSize(i);
-		std::memcpy(ptr, imageData.levels[i].data(), byteSize);
-		ptr += byteSize;
+		if (_image->getLevelByteSize(i) != imageData.levels[i].size())
+			throw;
+
+		std::copy_n(imageData.levels[i].data(), imageData.levels[i].size(), ptr);
+		ptr += imageData.levels[i].size();
 	}
 
 	// upload staging buffer to texture

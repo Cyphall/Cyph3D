@@ -57,7 +57,7 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 	// raygen sbt
 
 	std::byte* raygenBufferPtr = _buffer->getHostPointer() + raygenSBTOffset;
-	std::memcpy(raygenBufferPtr, _info.getRaygenRecord().data(), _info.getRaygenRecord().size());
+	std::copy_n(_info.getRaygenRecord().data(), _info.getRaygenRecord().size(), raygenBufferPtr);
 
 	// triangle hit sbt
 
@@ -66,7 +66,7 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 	{
 		for (const std::vector<std::byte>& record : recordGroup)
 		{
-			std::memcpy(triangleHitBufferPtr, record.data(), record.size());
+			std::copy_n(record.data(), record.size(), triangleHitBufferPtr);
 			triangleHitBufferPtr += _triangleHitSBTStride;
 		}
 	}
@@ -76,7 +76,7 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 	std::byte* missBufferPtr = _buffer->getHostPointer() + missSBTOffset;
 	for (const std::vector<std::byte>& record : _info.getMissRecords())
 	{
-		std::memcpy(missBufferPtr, record.data(), record.size());
+		std::copy_n(record.data(), record.size(), missBufferPtr);
 		missBufferPtr += _missSBTStride;
 	}
 }

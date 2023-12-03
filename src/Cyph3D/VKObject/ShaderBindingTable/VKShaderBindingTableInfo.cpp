@@ -43,7 +43,7 @@ const size_t& VKShaderBindingTableInfo::getMaxMissRecordSize() const
 VKShaderBindingTableInfo::VKShaderBindingTableInfo(const std::array<std::byte, 32>& raygenGroupHandle, const void* uniformData, size_t uniformSize)
 {
 	_raygenRecord.resize(32 + uniformSize);
-	std::memcpy(_raygenRecord.data(), raygenGroupHandle.data(), raygenGroupHandle.size());
+	std::copy_n(raygenGroupHandle.data(), raygenGroupHandle.size(), _raygenRecord.data());
 	std::memcpy(_raygenRecord.data() + raygenGroupHandle.size(), uniformData, uniformSize);
 }
 
@@ -64,7 +64,7 @@ void VKShaderBindingTableInfo::addTriangleHitRecord(uint32_t recordIndex, uint32
 	std::vector<std::byte>& record = recordGroup[rayType];
 
 	record.resize(32 + uniformSize);
-	std::memcpy(record.data(), triangleHitGroupHandle.data(), triangleHitGroupHandle.size());
+	std::copy_n(triangleHitGroupHandle.data(), triangleHitGroupHandle.size(), record.data());
 	std::memcpy(record.data() + triangleHitGroupHandle.size(), uniformData, uniformSize);
 
 	_maxTrignaleHitRecordSize = std::max(_maxTrignaleHitRecordSize, record.size());
@@ -75,7 +75,7 @@ void VKShaderBindingTableInfo::addMissRecord(const std::array<std::byte, 32>& mi
 	std::vector<std::byte>& record = _missRecords.emplace_back();
 
 	record.resize(32 + uniformSize);
-	std::memcpy(record.data(), missGroupHandle.data(), missGroupHandle.size());
+	std::copy_n(missGroupHandle.data(), missGroupHandle.size(), record.data());
 	std::memcpy(record.data() + missGroupHandle.size(), uniformData, uniformSize);
 
 	_maxMissRecordSize = std::max(_maxMissRecordSize, record.size());

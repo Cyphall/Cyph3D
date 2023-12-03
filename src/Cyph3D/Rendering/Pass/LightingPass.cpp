@@ -37,56 +37,52 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 
 	_directionalLightsUniforms->resizeSmart(input.registry.getDirectionalLightRenderRequests().size());
 	uint32_t directionalLightShadowIndex = 0;
-	DirectionalLightUniforms* directionalLightUniformsPtr = _directionalLightsUniforms->getHostPointer();
-	for (const DirectionalLight::RenderData& light : input.registry.getDirectionalLightRenderRequests())
+	for (int i = 0; i < input.registry.getDirectionalLightRenderRequests().size(); i++)
 	{
-		DirectionalLightUniforms uniforms{};
-		uniforms.fragToLightDirection = light.transform.getUp();
-		uniforms.intensity = light.intensity;
-		uniforms.color = light.color;
-		uniforms.castShadows = light.castShadows;
+		const DirectionalLight::RenderData& light = input.registry.getDirectionalLightRenderRequests()[i];
+
+		DirectionalLightUniforms* directionalLightUniformsPtr = _directionalLightsUniforms->getHostPointer() + i;
+		directionalLightUniformsPtr->fragToLightDirection = light.transform.getUp();
+		directionalLightUniformsPtr->intensity = light.intensity;
+		directionalLightUniformsPtr->color = light.color;
+		directionalLightUniformsPtr->castShadows = light.castShadows;
 		if (light.castShadows)
 		{
 			const DirectionalShadowMapInfo& shadowMapInfo = input.directionalShadowMapInfos[directionalLightShadowIndex];
 
-			uniforms.lightViewProjection = shadowMapInfo.viewProjection;
-			uniforms.textureIndex = directionalLightShadowIndex;
-			uniforms.shadowMapTexelWorldSize = shadowMapInfo.worldSize / light.shadowMapResolution;
+			directionalLightUniformsPtr->lightViewProjection = shadowMapInfo.viewProjection;
+			directionalLightUniformsPtr->textureIndex = directionalLightShadowIndex;
+			directionalLightUniformsPtr->shadowMapTexelWorldSize = shadowMapInfo.worldSize / light.shadowMapResolution;
 
 			_directionalLightDescriptorSet->bindDescriptor(1, shadowMapInfo.image, _directionalLightSampler, directionalLightShadowIndex);
 
 			directionalLightShadowIndex++;
 		}
-
-		std::memcpy(directionalLightUniformsPtr, &uniforms, sizeof(DirectionalLightUniforms));
-		directionalLightUniformsPtr++;
 	}
 	_directionalLightDescriptorSet->bindDescriptor(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getDirectionalLightRenderRequests().size());
 
 	_pointLightsUniforms->resizeSmart(input.registry.getPointLightRenderRequests().size());
 	uint32_t pointLightShadowIndex = 0;
-	PointLightUniforms* pointLightUniformsPtr = _pointLightsUniforms->getHostPointer();
-	for (const PointLight::RenderData& light : input.registry.getPointLightRenderRequests())
+	for (int i = 0; i < input.registry.getPointLightRenderRequests().size(); i++)
 	{
-		PointLightUniforms uniforms{};
-		uniforms.pos = light.transform.getWorldPosition();
-		uniforms.intensity = light.intensity;
-		uniforms.color = light.color;
-		uniforms.castShadows = light.castShadows;
+		const PointLight::RenderData& light = input.registry.getPointLightRenderRequests()[i];
+
+		PointLightUniforms* pointLightUniformsPtr = _pointLightsUniforms->getHostPointer() + i;
+		pointLightUniformsPtr->pos = light.transform.getWorldPosition();
+		pointLightUniformsPtr->intensity = light.intensity;
+		pointLightUniformsPtr->color = light.color;
+		pointLightUniformsPtr->castShadows = light.castShadows;
 		if (light.castShadows)
 		{
 			const PointShadowMapInfo& shadowMapInfo = input.pointShadowMapInfos[pointLightShadowIndex];
 
-			uniforms.textureIndex = pointLightShadowIndex;
-			uniforms.maxTexelSizeAtUnitDistance = 2.0f / light.shadowMapResolution;
+			pointLightUniformsPtr->textureIndex = pointLightShadowIndex;
+			pointLightUniformsPtr->maxTexelSizeAtUnitDistance = 2.0f / light.shadowMapResolution;
 
 			_pointLightDescriptorSet->bindDescriptor(1, shadowMapInfo.image, _pointLightSampler, pointLightShadowIndex);
 
 			pointLightShadowIndex++;
 		}
-
-		std::memcpy(pointLightUniformsPtr, &uniforms, sizeof(PointLightUniforms));
-		pointLightUniformsPtr++;
 	}
 	_pointLightDescriptorSet->bindDescriptor(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
 
@@ -136,7 +132,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	glm::mat4 viewProjection = input.camera.getProjection() * input.camera.getView();
 
 	_objectUniforms->resizeSmart(input.registry.getModelRenderRequests().size());
-	ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer();
 	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 	{
 		ModelRenderer::RenderData model = input.registry.getModelRenderRequests()[i];
@@ -147,29 +142,25 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);
 
-		ObjectUniforms uniforms{
-			.normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix())),
-			.model = model.transform.getLocalToWorldMatrix(),
-			.mvp = viewProjection * model.transform.getLocalToWorldMatrix(),
-			.albedoIndex = model.material.getAlbedoTextureBindlessIndex(),
-			.normalIndex = model.material.getNormalTextureBindlessIndex(),
-			.roughnessIndex = model.material.getRoughnessTextureBindlessIndex(),
-			.metalnessIndex = model.material.getMetalnessTextureBindlessIndex(),
-			.displacementIndex = model.material.getDisplacementTextureBindlessIndex(),
-			.emissiveIndex = model.material.getEmissiveTextureBindlessIndex(),
-			.albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue()),
-			.roughnessValue = model.material.getRoughnessValue(),
-			.metalnessValue = model.material.getMetalnessValue(),
-			.displacementScale = model.material.getDisplacementScale(),
-			.emissiveScale = model.material.getEmissiveScale()
-		};
-		std::memcpy(objectUniformsPtr, &uniforms, sizeof(ObjectUniforms));
+		ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer() + i;
+		objectUniformsPtr->normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix()));
+		objectUniformsPtr->model = model.transform.getLocalToWorldMatrix();
+		objectUniformsPtr->mvp = viewProjection * model.transform.getLocalToWorldMatrix();
+		objectUniformsPtr->albedoIndex = model.material.getAlbedoTextureBindlessIndex();
+		objectUniformsPtr->normalIndex = model.material.getNormalTextureBindlessIndex();
+		objectUniformsPtr->roughnessIndex = model.material.getRoughnessTextureBindlessIndex();
+		objectUniformsPtr->metalnessIndex = model.material.getMetalnessTextureBindlessIndex();
+		objectUniformsPtr->displacementIndex = model.material.getDisplacementTextureBindlessIndex();
+		objectUniformsPtr->emissiveIndex = model.material.getEmissiveTextureBindlessIndex();
+		objectUniformsPtr->albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue());
+		objectUniformsPtr->roughnessValue = model.material.getRoughnessValue();
+		objectUniformsPtr->metalnessValue = model.material.getMetalnessValue();
+		objectUniformsPtr->displacementScale = model.material.getDisplacementScale();
+		objectUniformsPtr->emissiveScale = model.material.getEmissiveScale();
 
 		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getCurrent()->getBuffer(), i, 1);
 
 		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
-
-		objectUniformsPtr++;
 	}
 
 	commandBuffer->unbindPipeline();

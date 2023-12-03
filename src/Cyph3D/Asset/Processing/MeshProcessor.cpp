@@ -69,12 +69,12 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 
 	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
 	{
-		std::memcpy(&meshData.positionVertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
+		meshData.positionVertices[i].position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
 
-		std::memcpy(&meshData.fullVertices[i].position, &mesh->mVertices[i], 3 * sizeof(float));
-		std::memcpy(&meshData.fullVertices[i].uv, &mesh->mTextureCoords[0][i], 2 * sizeof(float));
-		std::memcpy(&meshData.fullVertices[i].normal, &mesh->mNormals[i], 3 * sizeof(float));
-		std::memcpy(&meshData.fullVertices[i].tangent, &mesh->mTangents[i], 3 * sizeof(float));
+		meshData.fullVertices[i].position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
+		meshData.fullVertices[i].uv = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
+		meshData.fullVertices[i].normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
+		meshData.fullVertices[i].tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z};
 
 		meshData.boundingBoxMin = glm::min(meshData.boundingBoxMin, meshData.positionVertices[i].position);
 		meshData.boundingBoxMax = glm::max(meshData.boundingBoxMax, meshData.positionVertices[i].position);
@@ -84,7 +84,9 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 
 	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
 	{
-		std::memcpy(&meshData.indices[i * 3], mesh->mFaces[i].mIndices, 3 * sizeof(uint32_t));
+		meshData.indices[i * 3 + 0] = mesh->mFaces[i].mIndices[0];
+		meshData.indices[i * 3 + 1] = mesh->mFaces[i].mIndices[1];
+		meshData.indices[i * 3 + 2] = mesh->mFaces[i].mIndices[2];
 	}
 
 	writeProcessedMesh(output, meshData);

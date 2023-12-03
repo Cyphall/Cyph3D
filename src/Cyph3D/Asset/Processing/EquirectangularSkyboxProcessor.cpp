@@ -289,7 +289,7 @@ static VKPtr<VKImage> uploadEquirectangularImage(AssetManagerWorkerData& workerD
 	VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), stagingBufferInfo);
 
 	// copy texture data to staging buffer
-	std::memcpy(stagingBuffer->getHostPointer(), data.data(), stagingBufferInfo.getSize());
+	std::copy_n(data.data(), data.size(), stagingBuffer->getHostPointer());
 
 	// create equirectangular texture
 	VKImageInfo imageInfo(
@@ -540,9 +540,8 @@ static EquirectangularSkyboxData downloadCubemapTexture(AssetManagerWorkerData& 
 		{
 			equirectangularSkyboxData.faces[face][level].resize(cubemapTexture->getLevelByteSize(level));
 
-			std::memcpy(equirectangularSkyboxData.faces[face][level].data(), ptr, cubemapTexture->getLevelByteSize(level));
-
-			ptr += cubemapTexture->getLevelByteSize(level);
+			std::copy_n(ptr, equirectangularSkyboxData.faces[face][level].size(), equirectangularSkyboxData.faces[face][level].data());
+			ptr += equirectangularSkyboxData.faces[face][level].size();
 		}
 	}
 

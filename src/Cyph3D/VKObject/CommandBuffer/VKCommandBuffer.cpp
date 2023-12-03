@@ -941,25 +941,23 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 
 	instancesBuffer->resizeSmart(buildInfo.instancesInfos.size());
 
-	vk::AccelerationStructureInstanceKHR* instancesBufferPtr = instancesBuffer->getHostPointer();
-	for (const VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo : buildInfo.instancesInfos)
+	for (int i = 0; i < buildInfo.instancesInfos.size(); i++)
 	{
-		vk::AccelerationStructureInstanceKHR instance;
+		const VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos[i];
+
+		vk::AccelerationStructureInstanceKHR* instancesBufferPtr = instancesBuffer->getHostPointer() + i;
 		for (int x = 0; x < 3; x++)
 		{
 			for (int y = 0; y < 4; y++)
 			{
-				instance.transform.matrix[x][y] = instanceInfo.localToWorld[y][x];
+				instancesBufferPtr->transform.matrix[x][y] = instanceInfo.localToWorld[y][x];
 			}
 		}
-		instance.instanceCustomIndex = instanceInfo.customIndex;
-		instance.mask = 0xFF;
-		instance.instanceShaderBindingTableRecordOffset = instanceInfo.recordIndex;
-		instance.flags = {};
-		instance.accelerationStructureReference = instanceInfo.accelerationStructure->getDeviceAddress();
-
-		std::memcpy(instancesBufferPtr, &instance, sizeof(vk::AccelerationStructureInstanceKHR));
-		instancesBufferPtr++;
+		instancesBufferPtr->instanceCustomIndex = instanceInfo.customIndex;
+		instancesBufferPtr->mask = 0xFF;
+		instancesBufferPtr->instanceShaderBindingTableRecordOffset = instanceInfo.recordIndex;
+		instancesBufferPtr->flags = {};
+		instancesBufferPtr->accelerationStructureReference = instanceInfo.accelerationStructure->getDeviceAddress();
 	}
 
 	vk::AccelerationStructureGeometryKHR geometry;

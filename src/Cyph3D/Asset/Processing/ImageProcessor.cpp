@@ -466,8 +466,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	{
 		imageData.levels[i].resize(texture->getLevelByteSize(i));
 
-		std::memcpy(imageData.levels[i].data(), ptr, imageData.levels[i].size());
-
+		std::copy_n(ptr, imageData.levels[i].size(), imageData.levels[i].data());
 		ptr += imageData.levels[i].size();
 	}
 

@@ -368,11 +368,9 @@ void ShadowMapPass::renderPointShadowMap(
 
 		int uniformOffset = uniformIndex * 6 + i;
 
-		PointLightUniforms uniforms{
-			.viewProjection = POINT_SHADOW_MAP_PROJECTION * views[i],
-			.lightPos = light.transform.getWorldPosition()
-		};
-		std::memcpy(_pointLightUniformBuffer->getHostPointer() + uniformOffset, &uniforms, sizeof(PointLightUniforms));
+		PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer() + uniformOffset;
+		pointLightUniformBufferPtr->viewProjection = POINT_SHADOW_MAP_PROJECTION * views[i];
+		pointLightUniformBufferPtr->lightPos = light.transform.getWorldPosition();
 
 		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), uniformOffset, 1);
 

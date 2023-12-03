@@ -138,9 +138,11 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	{
 		for (uint32_t level = 0; level < faces[face].size(); level++)
 		{
-			vk::DeviceSize byteSize = _image->getLevelByteSize(level);
-			std::memcpy(ptr, faces[face][level].data(), byteSize);
-			ptr += byteSize;
+			if (_image->getLevelByteSize(level) != faces[face][level].size())
+				throw;
+
+			std::copy_n(faces[face][level].data(), faces[face][level].size(), ptr);
+			ptr += faces[face][level].size();
 		}
 	}
 
