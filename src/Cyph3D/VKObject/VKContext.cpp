@@ -662,13 +662,9 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	scalarBlockLayoutFeatures.scalarBlockLayout = true;
 	scalarBlockLayoutFeatures.pNext = &shaderImageAtomicInt64Features;
 
-	vk::PhysicalDeviceUniformBufferStandardLayoutFeatures uniformBufferStandardLayoutFeatures;
-	uniformBufferStandardLayoutFeatures.uniformBufferStandardLayout = true;
-	uniformBufferStandardLayoutFeatures.pNext = &scalarBlockLayoutFeatures;
-
 	vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenance1Features;
 	rayTracingMaintenance1Features.rayTracingMaintenance1 = true;
-	rayTracingMaintenance1Features.pNext = &uniformBufferStandardLayoutFeatures;
+	rayTracingMaintenance1Features.pNext = &scalarBlockLayoutFeatures;
 
 	vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;
 	rayTracingPipelineFeatures.rayTracingPipeline = true;
