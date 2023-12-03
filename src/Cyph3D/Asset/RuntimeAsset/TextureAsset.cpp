@@ -127,8 +127,8 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getTextureSampler());
 
-	_changed();
-
 	_loaded = true;
 	Logger::info(std::format("Texture [{} ({})] uploaded succesfully", _signature.path, magic_enum::enum_name(_signature.type)));
+
+	_changed();
 }

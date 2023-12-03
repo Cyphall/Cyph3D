@@ -331,8 +331,8 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	_boundingBoxMin = meshData.boundingBoxMin;
 	_boundingBoxMax = meshData.boundingBoxMax;
 
-	_changed();
-
 	_loaded = true;
 	Logger::info(std::format("Mesh [{}] uploaded succesfully", _signature.path));
+
+	_changed();
 }

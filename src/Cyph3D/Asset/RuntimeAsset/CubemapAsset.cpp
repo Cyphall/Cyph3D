@@ -209,8 +209,6 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getCubemapSampler());
 
-	_changed();
-
 	_loaded = true;
 	if (!_signature.equirectangularPath.empty())
 	{
@@ -229,4 +227,6 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 			magic_enum::enum_name(_signature.type)
 		));
 	}
+
+	_changed();
 }
