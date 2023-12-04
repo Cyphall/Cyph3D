@@ -38,7 +38,7 @@ void Engine::init()
 	glfwSetErrorCallback(
 		[](int code, const char* message)
 		{
-			Logger::error(message, "GLFW");
+			Logger::error(message);
 		}
 	);
 
@@ -48,8 +48,8 @@ void Engine::init()
 	vk::PhysicalDeviceProperties2 properties;
 	properties.pNext = &driverProperties;
 	_vkContext->getPhysicalDevice().getProperties2(&properties);
-	Logger::info(std::format("GPU: {}", static_cast<std::string_view>(properties.properties.deviceName)));
-	Logger::info(std::format("Driver: {} {}", static_cast<std::string_view>(driverProperties.driverName), static_cast<std::string_view>(driverProperties.driverInfo)));
+	Logger::info("GPU: {}", static_cast<std::string_view>(properties.properties.deviceName));
+	Logger::info("Driver: {} {}", static_cast<std::string_view>(driverProperties.driverName), static_cast<std::string_view>(driverProperties.driverInfo));
 
 	_window = std::make_unique<Window>();
 

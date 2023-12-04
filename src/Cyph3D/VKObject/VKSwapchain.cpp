@@ -50,7 +50,7 @@ static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDev
 		}
 	}
 
-	Logger::error("Could not find a preferred surface format", "Vulkan");
+	Logger::error("Could not find a preferred surface format");
 
 	return supportedSurfaceFormats[0];
 }
@@ -80,7 +80,7 @@ VKSwapchain::NextImageInfo VKSwapchain::retrieveNextImage()
 	auto [result, imageIndex] = _context.getDevice().acquireNextImageKHR(_swapchain, UINT64_MAX, semaphore->getHandle(), VK_NULL_HANDLE);
 	if (result == vk::Result::eSuboptimalKHR)
 	{
-		Logger::warning("Suboptimal swapchain", "Vulkan");
+		Logger::warning("Suboptimal swapchain");
 	}
 
 	return {

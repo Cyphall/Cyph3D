@@ -157,24 +157,24 @@ ImageData ImageProcessor::readImageData(AssetManagerWorkerData& workerData, std:
 
 	if (std::filesystem::exists(cacheAbsolutePath))
 	{
-		Logger::info(std::format("Loading image [{} ({})] from cache...", path, magic_enum::enum_name(type)));
+		Logger::info("Loading image [{} ({})] from cache...", path, magic_enum::enum_name(type));
 		if (readProcessedImage(cacheAbsolutePath, imageData))
 		{
-			Logger::info(std::format("Image [{} ({})] loaded from cache succesfully", path, magic_enum::enum_name(type)));
+			Logger::info("Image [{} ({})] loaded from cache succesfully", path, magic_enum::enum_name(type));
 		}
 		else
 		{
-			Logger::warning(std::format("Could not load image [{} ({})] from cache. Reprocessing...", path, magic_enum::enum_name(type)));
+			Logger::warning("Could not load image [{} ({})] from cache. Reprocessing...", path, magic_enum::enum_name(type));
 			std::filesystem::remove(cacheAbsolutePath);
 			imageData = processImage(workerData, absolutePath, cacheAbsolutePath, type);
-			Logger::info(std::format("Image [{} ({})] reprocessed succesfully", path, magic_enum::enum_name(type)));
+			Logger::info("Image [{} ({})] reprocessed succesfully", path, magic_enum::enum_name(type));
 		}
 	}
 	else
 	{
-		Logger::info(std::format("Processing image [{} ({})]", path, magic_enum::enum_name(type)));
+		Logger::info("Processing image [{} ({})]", path, magic_enum::enum_name(type));
 		imageData = processImage(workerData, absolutePath, cacheAbsolutePath, type);
-		Logger::info(std::format("Image [{} ({})] processed succesfully", path, magic_enum::enum_name(type)));
+		Logger::info("Image [{} ({})] processed succesfully", path, magic_enum::enum_name(type));
 	}
 
 	return imageData;

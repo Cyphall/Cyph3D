@@ -79,7 +79,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 {
 	MeshData meshData = _manager.getAssetProcessor().readMeshData(workerData, _signature.path);
 
-	Logger::info(std::format("Uploading mesh [{}]...", _signature.path));
+	Logger::info("Uploading mesh [{}]...", _signature.path);
 
 	{
 		vk::BufferUsageFlags positionVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
@@ -332,7 +332,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	_boundingBoxMax = meshData.boundingBoxMax;
 
 	_loaded = true;
-	Logger::info(std::format("Mesh [{}] uploaded succesfully", _signature.path));
+	Logger::info("Mesh [{}] uploaded succesfully", _signature.path);
 
 	_changed();
 }

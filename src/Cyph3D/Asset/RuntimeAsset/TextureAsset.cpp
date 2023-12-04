@@ -33,7 +33,7 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 {
 	ImageData imageData = _manager.getAssetProcessor().readImageData(workerData, _signature.path, _signature.type);
 
-	Logger::info(std::format("Uploading texture [{} ({})]...", _signature.path, magic_enum::enum_name(_signature.type)));
+	Logger::info("Uploading texture [{} ({})]...", _signature.path, magic_enum::enum_name(_signature.type));
 
 	// create texture
 	VKImageInfo imageInfo(
@@ -128,7 +128,7 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getTextureSampler());
 
 	_loaded = true;
-	Logger::info(std::format("Texture [{} ({})] uploaded succesfully", _signature.path, magic_enum::enum_name(_signature.type)));
+	Logger::info("Texture [{} ({})] uploaded succesfully", _signature.path, magic_enum::enum_name(_signature.type));
 
 	_changed();
 }

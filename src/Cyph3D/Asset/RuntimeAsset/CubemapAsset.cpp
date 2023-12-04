@@ -78,11 +78,11 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 
 	if (!_signature.equirectangularPath.empty())
 	{
-		Logger::info(std::format("Uploading cubemap [equirectangular: {}]...", _signature.equirectangularPath));
+		Logger::info("Uploading cubemap [equirectangular: {}]...", _signature.equirectangularPath);
 	}
 	else
 	{
-		Logger::info(std::format(
+		Logger::info(
 			"Uploading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
 			_signature.xposPath,
 			_signature.xnegPath,
@@ -91,7 +91,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 			_signature.zposPath,
 			_signature.znegPath,
 			magic_enum::enum_name(_signature.type)
-		));
+		);
 	}
 
 	// create cubemap
@@ -212,11 +212,11 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	_loaded = true;
 	if (!_signature.equirectangularPath.empty())
 	{
-		Logger::info(std::format("Cubemap [equirectangular: {}] uploaded succesfully", _signature.equirectangularPath));
+		Logger::info("Cubemap [equirectangular: {}] uploaded succesfully", _signature.equirectangularPath);
 	}
 	else
 	{
-		Logger::info(std::format(
+		Logger::info(
 			"Cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})] uploaded succesfully",
 			_signature.xposPath,
 			_signature.xnegPath,
@@ -225,7 +225,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 			_signature.zposPath,
 			_signature.znegPath,
 			magic_enum::enum_name(_signature.type)
-		));
+		);
 	}
 
 	_changed();

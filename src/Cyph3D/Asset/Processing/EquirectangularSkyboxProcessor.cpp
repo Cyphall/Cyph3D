@@ -200,24 +200,24 @@ EquirectangularSkyboxData EquirectangularSkyboxProcessor::readEquirectangularSky
 
 	if (std::filesystem::exists(cacheAbsolutePath))
 	{
-		Logger::info(std::format("Loading equirectangular skybox [{}] from cache...", path));
+		Logger::info("Loading equirectangular skybox [{}] from cache...", path);
 		if (readProcessedEquirectangularSkybox(cacheAbsolutePath, equirectangularSkyboxData))
 		{
-			Logger::info(std::format("Equirectangular skybox [{}] loaded from cache succesfully", path));
+			Logger::info("Equirectangular skybox [{}] loaded from cache succesfully", path);
 		}
 		else
 		{
-			Logger::warning(std::format("Could not load equirectangular skybox [{}] from cache. Reprocessing...", path));
+			Logger::warning("Could not load equirectangular skybox [{}] from cache. Reprocessing...", path);
 			std::filesystem::remove(cacheAbsolutePath);
 			equirectangularSkyboxData = processEquirectangularSkybox(workerData, absolutePath, cacheAbsolutePath);
-			Logger::info(std::format("Equirectangular skybox [{}] reprocessed succesfully", path));
+			Logger::info("Equirectangular skybox [{}] reprocessed succesfully", path);
 		}
 	}
 	else
 	{
-		Logger::info(std::format("Processing equirectangular skybox [{}]", path));
+		Logger::info("Processing equirectangular skybox [{}]", path);
 		equirectangularSkyboxData = processEquirectangularSkybox(workerData, absolutePath, cacheAbsolutePath);
-		Logger::info(std::format("Equirectangular skybox [{}] processed succesfully", path));
+		Logger::info("Equirectangular skybox [{}] processed succesfully", path);
 	}
 
 	return equirectangularSkyboxData;

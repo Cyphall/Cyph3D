@@ -205,7 +205,7 @@ void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folde
 
 	if (FAILED(result))
 	{
-		Logger::error(std::format("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result)));
+		Logger::error("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result));
 		return;
 	}
 
@@ -219,7 +219,7 @@ void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folde
 
 		if (FAILED(result))
 		{
-			Logger::error(std::format("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result)));
+			Logger::error("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result));
 			return;
 		}
 
@@ -230,7 +230,7 @@ void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folde
 
 	if (FAILED(result))
 	{
-		Logger::error(std::format("Could not open folder in explorer and select entries: {}", std::system_category().message(result)));
+		Logger::error("Could not open folder in explorer and select entries: {}", std::system_category().message(result));
 	}
 }
 
