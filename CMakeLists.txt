@@ -5,6 +5,7 @@ set(VCPKG_TARGET_TRIPLET "x64-windows-static")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 set(CMAKE_ISPC_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/tools/ispc/ispc.exe")
+set(CMAKE_CXX_STANDARD 20)
 
 cmake_policy(SET CMP0091 NEW)
 
@@ -266,8 +267,6 @@ add_executable(Cyph3D
 		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.h
 		src/Cyph3D/Asset/Processing/EquirectangularSkyboxData.h
 )
-
-target_compile_features(Cyph3D PRIVATE cxx_std_20)
 
 target_precompile_headers(Cyph3D PRIVATE <vulkan/vulkan.hpp>)
 
