@@ -116,10 +116,6 @@ add_executable(Cyph3D
 		src/Cyph3D/Logging/Impl/ILoggerColor.h
 		src/Cyph3D/Logging/Impl/Win32LoggerColor.cpp
 		src/Cyph3D/Logging/Impl/Win32LoggerColor.h
-		src/Cyph3D/PerfCounter/GpuPerfCounter.cpp
-		src/Cyph3D/PerfCounter/GpuPerfCounter.h
-		src/Cyph3D/PerfCounter/PerfStep.cpp
-		src/Cyph3D/PerfCounter/PerfStep.h
 		src/Cyph3D/Rendering/RenderRegistry.cpp
 		src/Cyph3D/Rendering/RenderRegistry.h
 		src/Cyph3D/Rendering/ShadowMapManager.cpp
@@ -247,8 +243,6 @@ add_executable(Cyph3D
 		src/Cyph3D/VKObject/Pipeline/VKRayTracingPipelineInfo.h
 		src/Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.cpp
 		src/Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.h
-		src/Cyph3D/VKObject/Query/VKTimestampQuery.cpp
-		src/Cyph3D/VKObject/Query/VKTimestampQuery.h
 		src/Cyph3D/VKObject/Queue/VKQueue.cpp
 		src/Cyph3D/VKObject/Queue/VKQueue.h
 		src/Cyph3D/VKObject/Sampler/VKSampler.cpp

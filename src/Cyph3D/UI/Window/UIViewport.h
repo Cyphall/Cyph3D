@@ -8,7 +8,6 @@
 #include <memory>
 
 class SceneRenderer;
-class PerfStep;
 
 class UIViewport
 {
@@ -21,8 +20,6 @@ public:
 	static bool isFullscreen();
 
 	static void renderToFile(glm::uvec2 resolution, uint32_t sampleCount);
-
-	static const PerfStep* getPreviousFramePerfStep();
 
 	static void init();
 	static void shutdown();

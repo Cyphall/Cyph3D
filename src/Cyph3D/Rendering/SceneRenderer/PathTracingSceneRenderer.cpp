@@ -30,7 +30,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		.cameraChanged = cameraChanged
 	};
 
-	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput, _renderPerf);
+	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput);
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -50,7 +50,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		.fixedPointDecimals = pathTracePassOutput.fixedPointDecimals
 	};
 
-	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput, _renderPerf);
+	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		normalizationPassOutput.outputImage,
@@ -66,7 +66,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		.camera = camera
 	};
 
-	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput, _renderPerf);
+	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		exposurePassOutput.outputImage,
@@ -81,7 +81,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		.inputImage = exposurePassOutput.outputImage
 	};
 
-	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput, _renderPerf);
+	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		bloomPassOutput.outputImage,
@@ -96,7 +96,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 		.inputImage = bloomPassOutput.outputImage
 	};
 
-	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput, _renderPerf);
+	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		toneMappingPassOutput.outputImage,

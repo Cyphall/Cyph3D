@@ -1,12 +1,11 @@
 #pragma once
 
-#include "Cyph3D/PerfCounter/GpuPerfCounter.h"
-#include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 
+class VKCommandBuffer;
 class Scene;
 class Camera;
 class VKImage;
@@ -22,8 +21,6 @@ public:
 
 	glm::uvec2 getSize() const;
 
-	const PerfStep& getRenderPerf();
-
 	static const vk::Format DEPTH_FORMAT;
 	static const vk::Format HDR_COLOR_FORMAT;
 	static const vk::Format ACCUMULATION_FORMAT;
@@ -33,9 +30,6 @@ public:
 
 protected:
 	glm::uvec2 _size;
-
-	PerfStep _renderPerf;
-	GpuPerfCounter _perfCounter;
 
 	bool _firstRender = true;
 

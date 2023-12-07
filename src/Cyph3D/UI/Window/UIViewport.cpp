@@ -499,11 +499,6 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	Engine::getScene().onPreRender(_renderToFileData->registry, _renderToFileData->camera);
 }
 
-const PerfStep* UIViewport::getPreviousFramePerfStep()
-{
-	return _sceneRenderer ? &_sceneRenderer->getRenderPerf() : nullptr;
-}
-
 void UIViewport::init()
 {
 	_objectPicker = std::make_unique<ObjectPicker>();

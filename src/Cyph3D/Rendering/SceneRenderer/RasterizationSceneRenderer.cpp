@@ -22,7 +22,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		.camera = camera
 	};
 
-	ZPrepassOutput zPrepassOutput = _zPrepass.render(commandBuffer, zPrepassInput, _renderPerf);
+	ZPrepassOutput zPrepassOutput = _zPrepass.render(commandBuffer, zPrepassInput);
 
 	ShadowMapPassInput shadowMapPassInput{
 		.registry = registry,
@@ -30,7 +30,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		.cameraChanged = cameraChanged
 	};
 
-	ShadowMapPassOutput shadowMapPassOutput = _shadowMapPass.render(commandBuffer, shadowMapPassInput, _renderPerf);
+	ShadowMapPassOutput shadowMapPassOutput = _shadowMapPass.render(commandBuffer, shadowMapPassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		zPrepassOutput.multisampledDepthImage,
@@ -73,7 +73,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		.pointShadowMapInfos = shadowMapPassOutput.pointShadowMapInfos
 	};
 
-	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput, _renderPerf);
+	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		lightingPassOutput.multisampledRawRenderImage,
@@ -90,7 +90,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		.multisampledDepthImage = zPrepassOutput.multisampledDepthImage
 	};
 
-	SkyboxPassOutput skyboxPassOutput = _skyboxPass.render(commandBuffer, skyboxPassInput, _renderPerf);
+	SkyboxPassOutput skyboxPassOutput = _skyboxPass.render(commandBuffer, skyboxPassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		skyboxPassOutput.rawRenderImage,
@@ -106,7 +106,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		.camera = camera
 	};
 
-	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput, _renderPerf);
+	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		exposurePassOutput.outputImage,
@@ -121,7 +121,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		.inputImage = exposurePassOutput.outputImage
 	};
 
-	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput, _renderPerf);
+	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		bloomPassOutput.outputImage,
@@ -136,7 +136,7 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		.inputImage = bloomPassOutput.outputImage
 	};
 
-	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput, _renderPerf);
+	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput);
 
 	commandBuffer->imageMemoryBarrier(
 		toneMappingPassOutput.outputImage,

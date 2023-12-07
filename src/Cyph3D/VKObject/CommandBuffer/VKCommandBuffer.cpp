@@ -15,7 +15,6 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineScissor.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineViewport.h"
 #include "Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.h"
-#include "Cyph3D/VKObject/Query/VKTimestampQuery.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 #include "Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h"
@@ -969,24 +968,6 @@ void VKCommandBuffer::pushDebugGroup(std::string_view name)
 void VKCommandBuffer::popDebugGroup()
 {
 	_commandBuffer.endDebugUtilsLabelEXT();
-}
-
-void VKCommandBuffer::beginTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery)
-{
-	_commandBuffer.writeTimestamp2(vk::PipelineStageFlagBits2::eNone, timestampQuery->getHandle(), 0);
-
-	timestampQuery->setIsBeginInserted(true);
-
-	_usedObjects.emplace_back(timestampQuery);
-}
-
-void VKCommandBuffer::endTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery)
-{
-	_commandBuffer.writeTimestamp2(vk::PipelineStageFlagBits2::eAllCommands, timestampQuery->getHandle(), 1);
-
-	timestampQuery->setIsEndInserted(true);
-
-	_usedObjects.emplace_back(timestampQuery);
 }
 
 void VKCommandBuffer::queryAccelerationStructureCompactedSize(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKAccelerationStructureCompactedSizeQuery>& accelerationStructureCompactedSizeQuery)

@@ -2,8 +2,6 @@
 
 #include <glm/glm.hpp>
 
-class PerfStep;
-
 class UIMisc
 {
 public:
@@ -23,6 +21,5 @@ private:
 	static float _overlayFrametime;
 	static float _timeUntilOverlayUpdate;
 
-	static void displayPerfStep(const PerfStep& perfStep);
 	static void displayFrametime();
 };

@@ -3,7 +3,6 @@
 #include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/ImGuiHelper.h"
-#include "Cyph3D/PerfCounter/PerfStep.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 #include "Cyph3D/VKObject/VKContext.h"
@@ -85,13 +84,6 @@ void UIMisc::show()
 				UIViewport::renderToFile(_resolution, _renderSampleCount);
 			}
 		}
-
-		ImGui::Separator();
-
-		if (const PerfStep* perfStep = UIViewport::getPreviousFramePerfStep())
-		{
-			displayPerfStep(*perfStep);
-		}
 	}
 
 	ImGui::End();
@@ -105,26 +97,6 @@ bool UIMisc::isSimulationEnabled()
 int UIMisc::viewportSampleCount()
 {
 	return _viewportSampleCount;
-}
-
-void UIMisc::displayPerfStep(const PerfStep& perfStep)
-{
-	if (!perfStep.getSubsteps().empty())
-	{
-		if (ImGui::TreeNodeEx(perfStep.getName().c_str(), 0, "%s: %.3fms", perfStep.getName().c_str(), perfStep.getDuration()))
-		{
-			for (const std::reference_wrapper<const PerfStep>& perfSubstep : perfStep.getSubsteps())
-			{
-				displayPerfStep(perfSubstep);
-			}
-			ImGui::TreePop();
-		}
-	}
-	else
-	{
-		ImGui::TreeNodeEx(perfStep.getName().c_str(), ImGuiTreeNodeFlags_Leaf, "%s: %.3fms", perfStep.getName().c_str(), perfStep.getDuration());
-		ImGui::TreePop();
-	}
 }
 
 void UIMisc::displayFrametime()
