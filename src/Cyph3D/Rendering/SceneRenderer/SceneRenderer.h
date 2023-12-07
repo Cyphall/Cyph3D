@@ -1,14 +1,13 @@
 #pragma once
 
-#include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 
 class VKCommandBuffer;
-class Scene;
 class Camera;
 class VKImage;
+class RenderRegistry;
 
 class SceneRenderer
 {
