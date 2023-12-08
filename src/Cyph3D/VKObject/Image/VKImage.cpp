@@ -193,6 +193,16 @@ vk::ImageView VKImage::getView(vk::ImageViewType type, glm::uvec2 layerRange, gl
 		imageViewCreateInfo.subresourceRange.levelCount = levelRange.y - levelRange.x + 1;
 
 		it = _views.try_emplace(viewInfo, _context.getDevice().createImageView(imageViewCreateInfo)).first;
+
+		if (_info.hasName())
+		{
+			vk::DebugUtilsObjectNameInfoEXT objectNameInfo;
+			objectNameInfo.objectType = vk::ObjectType::eImageView;
+			objectNameInfo.objectHandle = reinterpret_cast<uintptr_t>(static_cast<VkImageView>(it->second));
+			objectNameInfo.pObjectName = _info.getName().c_str();
+
+			_context.getDevice().setDebugUtilsObjectNameEXT(objectNameInfo);
+		}
 	}
 
 	return it->second;
