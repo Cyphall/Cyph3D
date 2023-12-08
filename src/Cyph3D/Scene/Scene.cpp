@@ -190,7 +190,20 @@ void Scene::load(const std::filesystem::path& path)
 	}
 	camera.setSphericalCoords(cameraSphericalCoords);
 
-	camera.setExposure(jsonCamera["exposure"].get<float>());
+	if (version <= 4)
+	{
+		float exposure = 1.0f / std::pow(2.0f, jsonCamera["exposure"].get<float>());
+		camera.setAperture(1.0f);
+		camera.setShutterSpeed({1.2f, 1.0f});
+		camera.setSensitivity(100.0f * (1.0f / exposure));
+	}
+	else
+	{
+		camera.setAperture(jsonCamera["aperture"].get<float>());
+		const nlohmann::ordered_json& jsonCameraShutterSpeed = jsonCamera["shutterSpeed"];
+		camera.setShutterSpeed({jsonCameraShutterSpeed.at(0).get<float>(), jsonCameraShutterSpeed.at(1).get<float>()});
+		camera.setSensitivity(jsonCamera["sensitivity"].get<int>());
+	}
 
 	UIViewport::setCamera(camera);
 
@@ -263,7 +276,7 @@ void Scene::save(const std::filesystem::path& path)
 
 	nlohmann::ordered_json jsonRoot;
 
-	jsonRoot["version"] = 4;
+	jsonRoot["version"] = 5;
 
 	const Camera& camera = UIViewport::getCamera();
 	nlohmann::ordered_json jsonCamera;
@@ -271,7 +284,10 @@ void Scene::save(const std::filesystem::path& path)
 	jsonCamera["position"] = {cameraPosition.x, cameraPosition.y, cameraPosition.z};
 	glm::vec2 cameraRotation = camera.getSphericalCoords();
 	jsonCamera["spherical_coords"] = {cameraRotation.x, cameraRotation.y};
-	jsonCamera["exposure"] = camera.getExposure();
+
+	jsonCamera["aperture"] = camera.getAperture();
+	jsonCamera["shutterSpeed"] = {camera.getShutterSpeed().x, camera.getShutterSpeed().y};
+	jsonCamera["sensitivity"] = camera.getSensitivity();
 
 	jsonRoot["camera"] = jsonCamera;
 

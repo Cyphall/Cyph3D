@@ -79,6 +79,7 @@ layout(push_constant) uniform constants
 {
 	vec3 u_viewPos;
 	uint u_frameIndex;
+	float u_exposure;
 };
 
 /* ------ outputs ------ */
@@ -331,7 +332,7 @@ vec3 F_Schlick(float HdotV, vec3 F0, vec3 F90)
 	return F0 + (F90 - F0) * pow(1.0 - HdotV, 5.0);
 }
 
-vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 viewDir, vec3 albedo, vec3 normal, float roughness, float metalness)
+vec3 brdf(vec3 lightDir, vec3 viewDir, vec3 albedo, vec3 normal, float roughness, float metalness)
 {
 	vec3 halfwayDir = normalize(viewDir + lightDir);
 
@@ -370,11 +371,9 @@ vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 viewDir, vec3 albedo, 
 
 	// combined terms
 	vec3 specularWeight = mix(dielectricSpecularWeight, conductorSpecularWeight, metalness);
-	vec3 diffuseWeight  = mix(dielectricDiffuseWeight,  conductorDiffuseWeight,  metalness);
+	vec3 diffuseWeight  = mix(dielectricDiffuseWeight, conductorDiffuseWeight, metalness);
 
-	vec3 brdf = (diffuseWeight * diffuseBRDF) + (specularWeight * specularBRDF);
-
-	return brdf * radiance * NdotL;
+	return (diffuseWeight * diffuseBRDF) + (specularWeight * specularBRDF);
 }
 
 // Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
@@ -423,7 +422,7 @@ void main()
 	vec3 fragPos = i_fragPos;
 
 	// aka Lo
-	vec3 finalColor = albedo * emissive;
+	vec3 finalColor = albedo * emissive * u_exposure;
 
 	// Directional Light calculation
 	for (int i = 0; i < u_directionalLightUniforms.length(); ++i)
@@ -431,10 +430,13 @@ void main()
 		float shadow = u_directionalLightUniforms[i].castShadows ? isInDirectionalShadow(i, fragPos, geometryNormal) : 0;
 
 		// calculate light parameters
-		vec3 lightDir    = u_directionalLightUniforms[i].fragToLightDirection;
-		vec3 radiance    = u_directionalLightUniforms[i].color * u_directionalLightUniforms[i].intensity;
+		vec3  lightDir = u_directionalLightUniforms[i].fragToLightDirection;
+		vec3  luxes    = u_directionalLightUniforms[i].color * u_directionalLightUniforms[i].intensity;
+		float NdotL    = clamp(dot(normal, lightDir), 0.0, 1.0);
 
-		finalColor += calculateLighting(radiance, lightDir, viewDir, albedo, normal, roughness, metalness) * (1 - shadow);
+		vec3 luminance = brdf(lightDir, viewDir, albedo, normal, roughness, metalness) * luxes * NdotL;
+
+		finalColor += luminance * (1 - shadow) * u_exposure;
 	}
 
 	// Point Light calculation
@@ -443,12 +445,14 @@ void main()
 		float shadow = u_pointLightUniforms[i].castShadows ? isInPointShadow(i, fragPos, geometryNormal) : 0;
 
 		// calculate light parameters
-		vec3  lightDir    = normalize(u_pointLightUniforms[i].pos - fragPos);
-		float distance    = length(u_pointLightUniforms[i].pos - fragPos);
-		float attenuation = 1.0 / (1 + distance * distance);
-		vec3  radiance    = u_pointLightUniforms[i].color * u_pointLightUniforms[i].intensity * attenuation;
+		vec3  lightDir = normalize(u_pointLightUniforms[i].pos - fragPos);
+		vec3  lumens   = u_pointLightUniforms[i].color * u_pointLightUniforms[i].intensity;
+		float distance = length(u_pointLightUniforms[i].pos - fragPos);
+		float NdotL    = clamp(dot(normal, lightDir), 0.0, 1.0);
 
-		finalColor += calculateLighting(radiance, lightDir, viewDir, albedo, normal, roughness, metalness) * (1 - shadow);
+		vec3 luminance = brdf(lightDir, viewDir, albedo, normal, roughness, metalness) * (lumens / (4 * PI * distance * distance)) * NdotL;
+
+		finalColor += luminance * (1 - shadow) * u_exposure;
 	}
 
 	o_color = vec4(finalColor, 1);

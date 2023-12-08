@@ -23,8 +23,16 @@ public:
 	float getSpeed() const;
 	void setSpeed(float speed);
 
-	float getExposure() const;
-	void setExposure(float exposure);
+	float getAperture() const;
+	void setAperture(float aperture);
+	
+	glm::vec2 getShutterSpeed() const;
+	void setShutterSpeed(glm::vec2 shutterSpeed);
+	
+	float getSensitivity() const;
+	void setSensitivity(float sensitivity);
+	
+	float calcExposure() const;
 
 	float getVerticalFov() const;
 	void setVerticalFov(float vfov);
@@ -56,7 +64,10 @@ private:
 	glm::vec2 _sphericalCoords;
 
 	float _speed = 2;
-	float _exposure = 0;
+	
+	float _aperture = 16.0f;
+	glm::vec2 _shutterSpeed = {1, 125};
+	float _sensitivity = 100.0f;
 
 	float _verticalFov;
 	float _aspectRatio;

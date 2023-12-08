@@ -38,6 +38,7 @@ private:
 	{
 		GLSL_mat4 mvp;
 		GLSL_uint textureIndex;
+		GLSL_float exposure;
 	};
 
 	VKPtr<VKPipelineLayout> _pipelineLayout;

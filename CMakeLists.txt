@@ -123,8 +123,6 @@ add_executable(Cyph3D
 		src/Cyph3D/Rendering/VertexData.h
 		src/Cyph3D/Rendering/Pass/BloomPass.cpp
 		src/Cyph3D/Rendering/Pass/BloomPass.h
-		src/Cyph3D/Rendering/Pass/ExposurePass.cpp
-		src/Cyph3D/Rendering/Pass/ExposurePass.h
 		src/Cyph3D/Rendering/Pass/LightingPass.cpp
 		src/Cyph3D/Rendering/Pass/LightingPass.h
 		src/Cyph3D/Rendering/Pass/NormalizationPass.cpp

@@ -34,10 +34,22 @@ void UIMisc::show()
 			UIViewport::getCamera().setSpeed(cameraSpeed);
 		}
 
-		float exposure = UIViewport::getCamera().getExposure();
-		if (ImGui::SliderFloat("Exposure", &exposure, -10, 10))
+		float aperture = UIViewport::getCamera().getAperture();
+		if (ImGui::DragFloat("Aperture", &aperture, 0.05f, 0.95f, 32.0f))
 		{
-			UIViewport::getCamera().setExposure(exposure);
+			UIViewport::getCamera().setAperture(aperture);
+		}
+
+		glm::vec2 shutterSpeed = UIViewport::getCamera().getShutterSpeed();
+		if (ImGui::DragFloat2("Shutter speed", glm::value_ptr(shutterSpeed), 0.1f))
+		{
+			UIViewport::getCamera().setShutterSpeed(shutterSpeed);
+		}
+
+		float sensitivity = UIViewport::getCamera().getSensitivity();
+		if (ImGui::DragFloat("Sensitivity", &sensitivity, 10.0f, 50.0f, 25600.0f))
+		{
+			UIViewport::getCamera().setSensitivity(sensitivity);
 		}
 
 		ImGui::Separator();

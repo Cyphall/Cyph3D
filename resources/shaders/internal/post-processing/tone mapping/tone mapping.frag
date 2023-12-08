@@ -69,7 +69,7 @@ void main()
 {
 	vec3 color = texelFetch(u_colorTexture, ivec2(gl_FragCoord.xy), 0).rgb;
 
-	color = agx(color);
+	//	color = agx(color);
 
 	color = linearToSrgb(color);
 

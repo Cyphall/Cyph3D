@@ -127,6 +127,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	PushConstantData pushConstantData{};
 	pushConstantData.viewPos = input.camera.getPosition();
 	pushConstantData.frameIndex = _frameIndex;
+	pushConstantData.exposure = input.camera.calcExposure();
 	commandBuffer->pushConstants(pushConstantData);
 
 	glm::mat4 viewProjection = input.camera.getProjection() * input.camera.getView();

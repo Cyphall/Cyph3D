@@ -78,6 +78,7 @@ private:
 	{
 		GLSL_vec3 viewPos;
 		GLSL_uint frameIndex;
+		GLSL_float exposure;
 	};
 
 	VKDynamic<VKResizableBuffer<DirectionalLightUniforms>> _directionalLightsUniforms;

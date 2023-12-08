@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/Rendering/Pass/BloomPass.h"
-#include "Cyph3D/Rendering/Pass/ExposurePass.h"
 #include "Cyph3D/Rendering/Pass/NormalizationPass.h"
 #include "Cyph3D/Rendering/Pass/PathTracePass.h"
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
@@ -17,7 +16,6 @@ public:
 private:
 	PathTracePass _pathTracePass;
 	NormalizationPass _normalizationPass;
-	ExposurePass _exposurePass;
 	BloomPass _bloomPass;
 	ToneMappingPass _toneMappingPass;
 

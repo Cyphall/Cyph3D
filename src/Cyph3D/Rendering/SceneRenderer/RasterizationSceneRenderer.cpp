@@ -9,7 +9,6 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	_shadowMapPass(size),
 	_lightingPass(size),
 	_skyboxPass(size),
-	_exposurePass(size),
 	_bloomPass(size),
 	_toneMappingPass(size)
 {
@@ -101,24 +100,8 @@ const VKPtr<VKImage>& RasterizationSceneRenderer::onRender(const VKPtr<VKCommand
 		vk::ImageLayout::eReadOnlyOptimal
 	);
 
-	ExposurePassInput exposurePassInput{
-		.inputImage = skyboxPassOutput.rawRenderImage,
-		.camera = camera
-	};
-
-	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput);
-
-	commandBuffer->imageMemoryBarrier(
-		exposurePassOutput.outputImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
-
 	BloomPassInput bloomPassInput{
-		.inputImage = exposurePassOutput.outputImage
+		.inputImage = skyboxPassOutput.rawRenderImage
 	};
 
 	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput);
@@ -156,7 +139,6 @@ void RasterizationSceneRenderer::onResize()
 	_shadowMapPass.resize(_size);
 	_lightingPass.resize(_size);
 	_skyboxPass.resize(_size);
-	_exposurePass.resize(_size);
 	_bloomPass.resize(_size);
 	_toneMappingPass.resize(_size);
 }

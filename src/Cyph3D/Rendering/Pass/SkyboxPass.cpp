@@ -72,6 +72,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 		                       glm::mat4(glm::mat3(input.camera.getView())) *
 		                       glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
 		pushConstantData.textureIndex = Engine::getScene().getSkybox()->getCubemap()->getBindlessIndex();
+		pushConstantData.exposure = input.camera.calcExposure();
 		commandBuffer->pushConstants(pushConstantData);
 
 		commandBuffer->bindVertexBuffer(0, _vertexBuffer);
@@ -133,7 +134,7 @@ void SkyboxPass::createImages()
 			_size,
 			1,
 			1,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc
 		);
 		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		imageInfo.setName("Resolved raw render image");

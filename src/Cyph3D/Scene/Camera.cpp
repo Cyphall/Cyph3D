@@ -71,14 +71,44 @@ void Camera::setSpeed(float speed)
 	_speed = speed;
 }
 
-float Camera::getExposure() const
+float Camera::getAperture() const
 {
-	return _exposure;
+	return _aperture;
 }
 
-void Camera::setExposure(float exposure)
+void Camera::setAperture(float aperture)
 {
-	_exposure = exposure;
+	_aperture = std::clamp(aperture, 0.95f, 32.0f);
+}
+
+glm::vec2 Camera::getShutterSpeed() const
+{
+	return _shutterSpeed;
+}
+
+void Camera::setShutterSpeed(glm::vec2 shutterSpeed)
+{
+	_shutterSpeed = {
+		std::clamp(shutterSpeed.x, 1.0f, 30.0f),
+		std::clamp(shutterSpeed.y, 1.0f, 8000.0f)
+	};
+}
+
+float Camera::getSensitivity() const
+{
+	return _sensitivity;
+}
+
+void Camera::setSensitivity(float sensitivity)
+{
+	_sensitivity = std::clamp(sensitivity, 50.0f, 25600.0f);
+}
+
+float Camera::calcExposure() const
+{
+	float shutterSpeed = _shutterSpeed.x / _shutterSpeed.y;
+	float ev100 = std::log2((_aperture * _aperture) / shutterSpeed * 100.0f / _sensitivity);
+	return 1.0f / (std::pow(2.0f, ev100) * 1.2f);
 }
 
 float Camera::getVerticalFov() const

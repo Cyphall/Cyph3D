@@ -38,7 +38,7 @@ void PointLight::onDrawUi()
 	}
 
 	float intensity = getIntensity();
-	if (ImGui::DragFloat("Intensity", &intensity, 0.01f, 0.0f, std::numeric_limits<float>::max(), "%.3f", ImGuiSliderFlags_AlwaysClamp))
+	if (ImGui::DragFloat("Intensity (Lumen)", &intensity, 1.0f, 0.0f, std::numeric_limits<float>::max(), "%.3f", ImGuiSliderFlags_AlwaysClamp))
 	{
 		setIntensity(intensity);
 	}
