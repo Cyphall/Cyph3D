@@ -91,14 +91,14 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 
 VKImage::~VKImage()
 {
-	if (_imageAlloc)
-	{
-		_context.getVmaAllocator().destroyImage(_handle, _imageAlloc);
-	}
-
 	for (vk::ImageView view : _views | std::views::values)
 	{
 		_context.getDevice().destroyImageView(view);
+	}
+
+	if (_imageAlloc)
+	{
+		_context.getVmaAllocator().destroyImage(_handle, _imageAlloc);
 	}
 }
 
