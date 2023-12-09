@@ -423,8 +423,8 @@ void UIViewport::drawRenderToFilePopup()
 {
 	if (ImGui::BeginPopupModal("Rendering status", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		int percent = (static_cast<float>(_renderToFileData->renderedSamples) / static_cast<float>(_renderToFileData->totalSamples)) * 100;
-		ImGui::Text("Rendering... %d%%", percent);
+		ImGui::Text(_renderToFileData->status == RenderToFileStatus::eSaveFinished ? "Rendering finished" : "Rendering in progress...");
+		ImGui::ProgressBar(static_cast<float>(_renderToFileData->renderedSamples) / static_cast<float>(_renderToFileData->totalSamples));
 		ImGui::Text("Rendered samples: %u/%u", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
 
 		auto duration = _renderToFileData->lastBatchTime - _renderToFileData->startTime;
