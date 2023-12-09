@@ -101,12 +101,3 @@ diff --git a/vendor/imgui/v1.89.4-docking/include/imconfig.h b/vendor/imgui/v1.8
  //---- ...Or use Dear ImGui's own very basic math operators.
  //#define IMGUI_DEFINE_MATH_OPERATORS
  
-@@ -115,7 +117,7 @@
- //---- Debug Tools: Macro to break in Debugger (we provide a default implementation of this in the codebase)
- // (use 'Metrics->Tools->Item Picker' to pick widgets with the mouse and break into them for easy debugging.)
- //#define IM_DEBUG_BREAK  IM_ASSERT(0)
--//#define IM_DEBUG_BREAK  __debugbreak()
-+#define IM_DEBUG_BREAK  __debugbreak
- 
- //---- Debug Tools: Enable slower asserts
- //#define IMGUI_DEBUG_PARANOID

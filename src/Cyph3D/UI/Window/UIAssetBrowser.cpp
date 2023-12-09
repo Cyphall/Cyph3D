@@ -251,7 +251,7 @@ void UIAssetBrowser::draw()
 		ImGui::SplitterBehavior(boundingBox, window->GetID("asset_browser_splitter"), ImGuiAxis_X, &_size1, &_size2, 0, 0, 4.0f, 0.04f);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		ImGui::BeginChild("asset_browser_left_panel", ImVec2(_size1, 0), true);
+		ImGui::BeginChild("asset_browser_left_panel", ImVec2(_size1, 0), ImGuiChildFlags_Border);
 		drawLeftPanel();
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
@@ -291,7 +291,7 @@ void UIAssetBrowser::draw()
 		ImGui::PopStyleVar();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
-		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), true);
+		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), ImGuiChildFlags_Border);
 
 		drawRightPanelEntries();
 

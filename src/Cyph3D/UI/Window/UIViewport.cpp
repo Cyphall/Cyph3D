@@ -351,7 +351,7 @@ void UIViewport::drawHeader()
 	float pixelScale = Engine::getWindow().getPixelScale();
 
 	ImGuiStyle& style = ImGui::GetStyle();
-	ImGui::BeginChild("ViewportHeader", ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2.0f + style.WindowPadding.y * 2.0f), false, ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NoScrollbar);
+	ImGui::BeginChild("ViewportHeader", ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2.0f + style.WindowPadding.y * 2.0f), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar);
 
 	ImGui::GetCurrentWindow()->DC.LayoutType = ImGuiLayoutType_Horizontal;
 

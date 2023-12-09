@@ -30,13 +30,13 @@
 
 //---- Don't define obsolete functions/enums/behaviors. Consider enabling from time to time after updating to clean your code of obsolete function/names.
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-#define IMGUI_DISABLE_OBSOLETE_KEYIO                      // 1.87: disable legacy io.KeyMap[]+io.KeysDown[] in favor io.AddKeyEvent(). This will be folded into IMGUI_DISABLE_OBSOLETE_FUNCTIONS in a few versions.
+#define IMGUI_DISABLE_OBSOLETE_KEYIO                      // 1.87+ disable legacy io.KeyMap[]+io.KeysDown[] in favor io.AddKeyEvent(). This is automatically done by IMGUI_DISABLE_OBSOLETE_FUNCTIONS.
 
 //---- Disable all of Dear ImGui or don't implement standard windows/tools.
 // It is very strongly recommended to NOT disable the demo windows and debug tool during development. They are extremely useful in day to day work. Please read comments in imgui_demo.cpp.
 //#define IMGUI_DISABLE                                     // Disable everything: all headers and source files will be empty.
 //#define IMGUI_DISABLE_DEMO_WINDOWS                        // Disable demo windows: ShowDemoWindow()/ShowStyleEditor() will be empty.
-//#define IMGUI_DISABLE_DEBUG_TOOLS                         // Disable metrics/debugger and other debug tools: ShowMetricsWindow(), ShowDebugLogWindow() and ShowStackToolWindow() will be empty (this was called IMGUI_DISABLE_METRICS_WINDOW before 1.88).
+//#define IMGUI_DISABLE_DEBUG_TOOLS                         // Disable metrics/debugger and other debug tools: ShowMetricsWindow(), ShowDebugLogWindow() and ShowIDStackToolWindow() will be empty.
 
 //---- Don't implement some functions to reduce linkage requirements.
 //#define IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS   // [Win32] Don't implement default clipboard handler. Won't use and link with OpenClipboard/GetClipboardData/CloseClipboard etc. (user32.lib/.a, kernel32.lib/.a)
@@ -91,11 +91,11 @@
 //---- Define constructor and implicit cast operators to convert back<>forth between your math types and ImVec2/ImVec4.
 // This will be inlined as part of ImVec2 and ImVec4 class declarations.
 
-#define IM_VEC2_CLASS_EXTRA                                                     \
+#define IM_VEC2_CLASS_EXTRA                                                        \
         constexpr ImVec2(const glm::vec2& f) : x(f.x), y(f.y) {}                   \
         operator glm::vec2() const { return glm::vec2(x,y); }
 
-#define IM_VEC4_CLASS_EXTRA                                                     \
+#define IM_VEC4_CLASS_EXTRA                                                        \
         constexpr ImVec4(const glm::vec4& f) : x(f.x), y(f.y), z(f.z), w(f.w) {}   \
         operator glm::vec4() const { return glm::vec4(x,y,z,w); }
 
@@ -117,7 +117,7 @@
 //---- Debug Tools: Macro to break in Debugger (we provide a default implementation of this in the codebase)
 // (use 'Metrics->Tools->Item Picker' to pick widgets with the mouse and break into them for easy debugging.)
 //#define IM_DEBUG_BREAK  IM_ASSERT(0)
-#define IM_DEBUG_BREAK  __debugbreak
+//#define IM_DEBUG_BREAK  __debugbreak()
 
 //---- Debug Tools: Enable slower asserts
 //#define IMGUI_DEBUG_PARANOID
