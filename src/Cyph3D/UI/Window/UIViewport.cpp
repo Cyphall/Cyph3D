@@ -179,12 +179,23 @@ void UIViewport::show()
 			{
 				if (_renderToFileData->lastRenderedTexture)
 				{
-					VKBufferInfo bufferInfo(_renderToFileData->lastRenderedTexture->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
-					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-					bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+					VKImageInfo conversionImageInfo(
+						vk::Format::eR8G8B8A8Unorm,
+						_renderToFileData->lastRenderedTexture->getInfo().getSize(),
+						1,
+						1,
+						vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst
+					);
+					conversionImageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-					VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
+					VKPtr<VKImage> conversionImage = VKImage::create(Engine::getVKContext(), conversionImageInfo);
+
+					VKBufferInfo stagingBufferInfo(conversionImage->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
+					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
+
+					VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), stagingBufferInfo);
 
 					Engine::getVKContext().executeImmediate(
 						[&](const VKPtr<VKCommandBuffer>& commandBuffer)
@@ -193,12 +204,32 @@ void UIViewport::show()
 								_renderToFileData->lastRenderedTexture,
 								vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 								vk::AccessFlagBits2::eColorAttachmentWrite,
+								vk::PipelineStageFlagBits2::eBlit,
+								vk::AccessFlagBits2::eTransferRead,
+								vk::ImageLayout::eTransferSrcOptimal
+							);
+
+							commandBuffer->imageMemoryBarrier(
+								conversionImage,
+								vk::PipelineStageFlagBits2::eNone,
+								vk::AccessFlagBits2::eNone,
+								vk::PipelineStageFlagBits2::eBlit,
+								vk::AccessFlagBits2::eTransferWrite,
+								vk::ImageLayout::eTransferDstOptimal
+							);
+
+							commandBuffer->blitImage(_renderToFileData->lastRenderedTexture, 0, 0, conversionImage, 0, 0);
+
+							commandBuffer->imageMemoryBarrier(
+								conversionImage,
+								vk::PipelineStageFlagBits2::eBlit,
+								vk::AccessFlagBits2::eTransferWrite,
 								vk::PipelineStageFlagBits2::eCopy,
 								vk::AccessFlagBits2::eTransferRead,
 								vk::ImageLayout::eTransferSrcOptimal
 							);
 
-							commandBuffer->copyImageToBuffer(_renderToFileData->lastRenderedTexture, 0, 0, stagingBuffer, 0);
+							commandBuffer->copyImageToBuffer(conversionImage, 0, 0, stagingBuffer, 0);
 						}
 					);
 
