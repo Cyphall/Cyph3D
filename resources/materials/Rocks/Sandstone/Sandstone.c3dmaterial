@@ -1,0 +1,30 @@
+{
+  "version": 4,
+  "albedo": {
+    "path": "materials/Rocks/Sandstone/old_sandstone_02_diff_2k.jpg",
+    "value": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "normal": {
+    "path": "materials/Rocks/Sandstone/old_sandstone_02_nor_dx_2k.jpg"
+  },
+  "roughness": {
+    "path": "materials/Rocks/Sandstone/old_sandstone_02_rough_2k.jpg",
+    "value": 0.5
+  },
+  "metalness": {
+    "path": null,
+    "value": 0.0
+  },
+  "displacement": {
+    "path": "materials/Rocks/Sandstone/old_sandstone_02_disp_2k.jpg",
+    "scale": 0.05000000074505806
+  },
+  "emissive": {
+    "path": null,
+    "scale": 0.0
+  }
+}
