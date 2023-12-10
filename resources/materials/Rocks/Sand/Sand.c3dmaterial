@@ -1,1 +1,30 @@
-{"version":2,"albedo":{"path":"materials/Rocks/Sand/vd3lecfs_2K_Albedo.jpg","value":[1.0,1.0,1.0]},"normal":{"path":"materials/Rocks/Sand/vd3lecfs_2K_Normal.jpg"},"roughness":{"path":"materials/Rocks/Sand/vd3lecfs_2K_Roughness.jpg","value":0.5},"metalness":{"path":null,"value":0.0},"displacement":{"path":"materials/Rocks/Sand/vd3lecfs_2K_Displacement.jpg"},"emissive":{"path":null,"value":0.0}}
+{
+  "version": 4,
+  "albedo": {
+    "path": "materials/Rocks/Sand/Sand_004_COLOR.png",
+    "value": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "normal": {
+    "path": "materials/Rocks/Sand/Sand_004_Normal.png"
+  },
+  "roughness": {
+    "path": "materials/Rocks/Sand/Sand_004_ROUGH.png",
+    "value": 0.5
+  },
+  "metalness": {
+    "path": null,
+    "value": 0.0
+  },
+  "displacement": {
+    "path": "materials/Rocks/Sand/Sand_004_Height.png",
+    "scale": 0.05000000074505806
+  },
+  "emissive": {
+    "path": null,
+    "scale": 0.0
+  }
+}
