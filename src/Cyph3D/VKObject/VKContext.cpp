@@ -533,8 +533,8 @@ void VKContext::createInstance(const std::vector<const char*>& layers, const std
 
 #if defined(_DEBUG)
 	std::vector<vk::ValidationFeatureEnableEXT> enabledFeatures{
-		vk::ValidationFeatureEnableEXT::eGpuAssisted,
-		vk::ValidationFeatureEnableEXT::eGpuAssistedReserveBindingSlot,
+		//		vk::ValidationFeatureEnableEXT::eGpuAssisted,
+		//		vk::ValidationFeatureEnableEXT::eGpuAssistedReserveBindingSlot,
 		vk::ValidationFeatureEnableEXT::eBestPractices,
 		vk::ValidationFeatureEnableEXT::eSynchronizationValidation
 	};
