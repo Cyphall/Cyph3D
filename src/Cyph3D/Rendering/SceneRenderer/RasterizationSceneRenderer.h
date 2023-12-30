@@ -7,7 +7,9 @@
 #include "Cyph3D/Rendering/Pass/SkyboxPass.h"
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 #include "Cyph3D/Rendering/Pass/ZPrepass.h"
+#include "Cyph3D/Rendering/SceneRenderer/RasterizationModelData.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 
 class RasterizationSceneRenderer : public SceneRenderer
 {
@@ -22,6 +24,12 @@ private:
 	ExposurePass _exposurePass;
 	BloomPass _bloomPass;
 	ToneMappingPass _toneMappingPass;
+
+	VKPtr<VKBuffer<RasterizationModelData>> _modelDataBuffer;
+	VKPtr<VKBuffer<vk::DrawIndirectCommand>> _allDrawCommandsBuffer;
+	VKPtr<VKBuffer<vk::DrawIndirectCommand>> _shadowDrawCommandsBuffer;
+
+	void fillSceneBuffers(const RenderRegistry& registry);
 
 	const VKPtr<VKImage>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
 	void onResize() override;

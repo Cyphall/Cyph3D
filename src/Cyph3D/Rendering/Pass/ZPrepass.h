@@ -2,6 +2,8 @@
 
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include "Cyph3D/Rendering/SceneRenderer/RasterizationModelData.h"
+#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/VKPtr.h"
 
 struct RenderRegistry;
@@ -12,7 +14,8 @@ class VKImage;
 
 struct ZPrepassInput
 {
-	const RenderRegistry& registry;
+	VKPtr<VKBuffer<RasterizationModelData>> modelDataBuffer;
+	VKPtr<VKBuffer<vk::DrawIndirectCommand>> drawCommandsBuffer;
 	Camera& camera;
 };
 
@@ -29,7 +32,8 @@ public:
 private:
 	struct PushConstantData
 	{
-		GLSL_mat4 mvp;
+		GLSL_mat4 viewProjection;
+		GLSL_DeviceAddress modelDataBuffer;
 	};
 
 	VKPtr<VKPipelineLayout> _pipelineLayout;

@@ -161,6 +161,7 @@ static std::vector<const char*> getRequiredDeviceCoreExtensions()
 	extensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME);
 
 	return extensions;
 }
@@ -658,13 +659,9 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT shaderImageAtomicInt64Features;
 	shaderImageAtomicInt64Features.shaderImageInt64Atomics = true;
 
-	vk::PhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayoutFeatures;
-	scalarBlockLayoutFeatures.scalarBlockLayout = true;
-	scalarBlockLayoutFeatures.pNext = &shaderImageAtomicInt64Features;
-
 	vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenance1Features;
 	rayTracingMaintenance1Features.rayTracingMaintenance1 = true;
-	rayTracingMaintenance1Features.pNext = &scalarBlockLayoutFeatures;
+	rayTracingMaintenance1Features.pNext = &shaderImageAtomicInt64Features;
 
 	vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;
 	rayTracingPipelineFeatures.rayTracingPipeline = true;
@@ -674,13 +671,17 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	accelerationStructureFeatures.accelerationStructure = true;
 	accelerationStructureFeatures.pNext = &rayTracingPipelineFeatures;
 
-	vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures;
-	bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+	vk::PhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayoutFeatures;
+	scalarBlockLayoutFeatures.scalarBlockLayout = true;
 
 	if (_rayTracingSupported)
 	{
-		bufferDeviceAddressFeatures.pNext = &accelerationStructureFeatures;
+		scalarBlockLayoutFeatures.pNext = &accelerationStructureFeatures;
 	}
+
+	vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures;
+	bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+	bufferDeviceAddressFeatures.pNext = &scalarBlockLayoutFeatures;
 
 	vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures;
 	hostQueryResetFeatures.hostQueryReset = true;
@@ -720,6 +721,7 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	physicalDeviceFeatures.features.shaderStorageImageReadWithoutFormat = true;
 	physicalDeviceFeatures.features.shaderStorageImageWriteWithoutFormat = true;
 	physicalDeviceFeatures.features.shaderInt64 = true;
+	physicalDeviceFeatures.features.multiDrawIndirect = true;
 
 	vk::DeviceCreateInfo deviceCreateInfo;
 	deviceCreateInfo.pNext = &physicalDeviceFeatures;

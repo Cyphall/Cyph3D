@@ -3,6 +3,8 @@
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
+#include "Cyph3D/Rendering/SceneRenderer/RasterizationModelData.h"
+#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/VKObject/VKPtr.h"
 
@@ -19,6 +21,8 @@ struct LightingPassInput
 {
 	const VKPtr<VKImage>& multisampledDepthImage;
 	const RenderRegistry& registry;
+	VKPtr<VKBuffer<RasterizationModelData>> modelDataBuffer;
+	VKPtr<VKBuffer<vk::DrawIndirectCommand>> drawCommandsBuffer;
 	Camera& camera;
 	const std::vector<DirectionalShadowMapInfo>& directionalShadowMapInfos;
 	const std::vector<PointShadowMapInfo>& pointShadowMapInfos;
@@ -56,34 +60,16 @@ private:
 		GLSL_float maxTexelSizeAtUnitDistance;
 	};
 
-	struct ObjectUniforms
-	{
-		GLSL_mat4 normalMatrix;
-		GLSL_mat4 model;
-		GLSL_mat4 mvp;
-		GLSL_int albedoIndex;
-		GLSL_int normalIndex;
-		GLSL_int roughnessIndex;
-		GLSL_int metalnessIndex;
-		GLSL_int displacementIndex;
-		GLSL_int emissiveIndex;
-		GLSL_vec3 albedoValue;
-		GLSL_float roughnessValue;
-		GLSL_float metalnessValue;
-		GLSL_float displacementScale;
-		GLSL_float emissiveScale;
-	};
-
 	struct PushConstantData
 	{
+		GLSL_mat4 viewProjection;
+		GLSL_DeviceAddress modelDataBuffer;
 		GLSL_vec3 viewPos;
 		GLSL_uint frameIndex;
 	};
 
 	VKDynamic<VKResizableBuffer<DirectionalLightUniforms>> _directionalLightsUniforms;
 	VKDynamic<VKResizableBuffer<PointLightUniforms>> _pointLightsUniforms;
-
-	VKDynamic<VKResizableBuffer<ObjectUniforms>> _objectUniforms;
 
 	VKPtr<VKSampler> _directionalLightSampler;
 	VKPtr<VKSampler> _pointLightSampler;
@@ -92,8 +78,6 @@ private:
 	VKDynamic<VKDescriptorSet> _directionalLightDescriptorSet;
 	VKPtr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
 	VKDynamic<VKDescriptorSet> _pointLightDescriptorSet;
-
-	VKPtr<VKDescriptorSetLayout> _objectDescriptorSetLayout;
 
 	VKPtr<VKPipelineLayout> _pipelineLayout;
 	VKPtr<VKGraphicsPipeline> _pipeline;

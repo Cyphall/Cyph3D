@@ -89,8 +89,6 @@ static std::array<glm::mat4, 6> calcPointShadowMapView(const PointLight::RenderD
 ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 	RenderPass(size, "Shadow map pass")
 {
-	createDescriptorSetLayout();
-	createBuffer();
 	createPipelineLayouts();
 	createPipelines();
 }
@@ -111,7 +109,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			}
 
 			commandBuffer->pushDebugGroup(std::format("Directional light ({})", shadowCastingDirectionalLightIndex));
-			renderDirectionalShadowMap(commandBuffer, light, input.registry.getModelRenderRequests());
+			renderDirectionalShadowMap(commandBuffer, light, input.registry.getModelRenderRequests(), input.modelDataBuffer, input.drawCommandsBuffer);
 			commandBuffer->popDebugGroup();
 
 			shadowCastingDirectionalLightIndex++;
@@ -123,17 +121,6 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 		_shadowMapManager.resetPointShadowMapAllocations();
 		_pointShadowMapInfos.clear();
 
-		int shadowCastingPointLights = 0;
-		for (const PointLight::RenderData& light : input.registry.getPointLightRenderRequests())
-		{
-			if (light.castShadows)
-			{
-				shadowCastingPointLights++;
-			}
-		}
-
-		_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights * 6);
-
 		int shadowCastingPointLightIndex = 0;
 		for (const PointLight::RenderData& light : input.registry.getPointLightRenderRequests())
 		{
@@ -143,7 +130,7 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 			}
 
 			commandBuffer->pushDebugGroup(std::format("Point light ({})", shadowCastingPointLightIndex));
-			renderPointShadowMap(commandBuffer, light, input.registry.getModelRenderRequests(), shadowCastingPointLightIndex);
+			renderPointShadowMap(commandBuffer, light, input.registry.getModelRenderRequests(), input.modelDataBuffer, input.drawCommandsBuffer);
 			commandBuffer->popDebugGroup();
 
 			shadowCastingPointLightIndex++;
@@ -160,31 +147,6 @@ void ShadowMapPass::onResize()
 {
 }
 
-void ShadowMapPass::createDescriptorSetLayout()
-{
-	VKDescriptorSetLayoutInfo info(true);
-	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
-
-	_pointLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-}
-
-void ShadowMapPass::createBuffer()
-{
-	VKResizableBufferInfo bufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	bufferInfo.setName("Point light shadow generation uniform buffer");
-
-	_pointLightUniformBuffer = VKDynamic<VKResizableBuffer<PointLightUniforms>>(
-		Engine::getVKContext(),
-		[&](VKContext& context, int index)
-		{
-			return VKResizableBuffer<PointLightUniforms>::create(context, bufferInfo);
-		}
-	);
-}
-
 void ShadowMapPass::createPipelineLayouts()
 {
 	{
@@ -196,7 +158,6 @@ void ShadowMapPass::createPipelineLayouts()
 
 	{
 		VKPipelineLayoutInfo info;
-		info.addDescriptorSetLayout(_pointLightDescriptorSetLayout);
 		info.setPushConstantLayout<PointLightPushConstantData>();
 
 		_pointLightPipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
@@ -214,9 +175,6 @@ void ShadowMapPass::createPipelines()
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
-		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
-
 		info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DIRECTIONAL_SHADOW_MAP_DEPTH_FORMAT, vk::CompareOp::eLess, true);
 
 		_directionalLightPipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
@@ -233,9 +191,6 @@ void ShadowMapPass::createPipelines()
 
 		info.setFragmentShader("resources/shaders/internal/shadow mapping/point light.frag");
 
-		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
-		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
-
 		info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::POINT_SHADOW_MAP_DEPTH_FORMAT, vk::CompareOp::eLess, true);
 
 		_pointLightPipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
@@ -245,7 +200,9 @@ void ShadowMapPass::createPipelines()
 void ShadowMapPass::renderDirectionalShadowMap(
 	const VKPtr<VKCommandBuffer>& commandBuffer,
 	const DirectionalLight::RenderData& light,
-	const std::vector<ModelRenderer::RenderData>& models
+	const std::vector<ModelRenderer::RenderData>& models,
+	const VKPtr<VKBuffer<RasterizationModelData>>& modelDataBuffer,
+	const VKPtr<VKBuffer<vk::DrawIndirectCommand>>& drawCommandsBuffer
 )
 {
 	VKPtr<VKImage> shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
@@ -284,25 +241,14 @@ void ShadowMapPass::renderDirectionalShadowMap(
 	auto [projection, worldSize, worldDepth] = calcDirectionalShadowMapProjection(view, models);
 	glm::mat4 viewProjection = projection * view;
 
-	for (const ModelRenderer::RenderData& model : models)
-	{
-		if (!model.contributeShadows)
-		{
-			continue;
-		}
+	commandBuffer->pushConstants(DirectionalLightPushConstantData{
+		.viewProjection = projection * view,
+		.modelDataBuffer = modelDataBuffer ? modelDataBuffer->getDeviceAddress() : 0
+	});
 
-		const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+	commandBuffer->addExternallyUsedObject(modelDataBuffer);
 
-		commandBuffer->bindVertexBuffer(0, vertexBuffer);
-		commandBuffer->bindIndexBuffer(indexBuffer);
-
-		DirectionalLightPushConstantData pushConstantData{};
-		pushConstantData.mvp = viewProjection * model.transform.getLocalToWorldMatrix();
-		commandBuffer->pushConstants(pushConstantData);
-
-		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
-	}
+	commandBuffer->drawIndirect(drawCommandsBuffer);
 
 	commandBuffer->unbindPipeline();
 
@@ -320,7 +266,8 @@ void ShadowMapPass::renderPointShadowMap(
 	const VKPtr<VKCommandBuffer>& commandBuffer,
 	const PointLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models,
-	int uniformIndex
+	const VKPtr<VKBuffer<RasterizationModelData>>& modelDataBuffer,
+	const VKPtr<VKBuffer<vk::DrawIndirectCommand>>& drawCommandsBuffer
 )
 {
 	VKPtr<VKImage> shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
@@ -366,33 +313,15 @@ void ShadowMapPass::renderPointShadowMap(
 		scissor.size = {light.shadowMapResolution, light.shadowMapResolution};
 		commandBuffer->setScissor(scissor);
 
-		int uniformOffset = uniformIndex * 6 + i;
+		commandBuffer->pushConstants(PointLightPushConstantData{
+			.viewProjection = POINT_SHADOW_MAP_PROJECTION * views[i],
+			.modelDataBuffer = modelDataBuffer ? modelDataBuffer->getDeviceAddress() : 0,
+			.lightPos = light.transform.getWorldPosition()
+		});
 
-		PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer() + uniformOffset;
-		pointLightUniformBufferPtr->viewProjection = POINT_SHADOW_MAP_PROJECTION * views[i];
-		pointLightUniformBufferPtr->lightPos = light.transform.getWorldPosition();
+		commandBuffer->addExternallyUsedObject(modelDataBuffer);
 
-		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), uniformOffset, 1);
-
-		for (const ModelRenderer::RenderData& model : models)
-		{
-			if (!model.contributeShadows)
-			{
-				continue;
-			}
-
-			const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
-
-			commandBuffer->bindVertexBuffer(0, vertexBuffer);
-			commandBuffer->bindIndexBuffer(indexBuffer);
-
-			PointLightPushConstantData pushConstantData{};
-			pushConstantData.model = model.transform.getLocalToWorldMatrix();
-			commandBuffer->pushConstants(pushConstantData);
-
-			commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
-		}
+		commandBuffer->drawIndirect(drawCommandsBuffer);
 
 		commandBuffer->unbindPipeline();
 

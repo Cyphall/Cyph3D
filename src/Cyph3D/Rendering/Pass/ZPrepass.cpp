@@ -53,22 +53,14 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 	scissor.size = _size;
 	commandBuffer->setScissor(scissor);
 
-	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
+	commandBuffer->pushConstants(PushConstantData{
+		.viewProjection = input.camera.getProjection() * input.camera.getView(),
+		.modelDataBuffer = input.modelDataBuffer ? input.modelDataBuffer->getDeviceAddress() : 0
+	});
 
-	for (const ModelRenderer::RenderData& model : input.registry.getModelRenderRequests())
-	{
-		const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+	commandBuffer->addExternallyUsedObject(input.modelDataBuffer);
 
-		commandBuffer->bindVertexBuffer(0, vertexBuffer);
-		commandBuffer->bindIndexBuffer(indexBuffer);
-
-		PushConstantData pushConstantData{};
-		pushConstantData.mvp = vp * model.transform.getLocalToWorldMatrix();
-		commandBuffer->pushConstants(pushConstantData);
-
-		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
-	}
+	commandBuffer->drawIndirect(input.drawCommandsBuffer);
 
 	commandBuffer->unbindPipeline();
 
@@ -101,9 +93,6 @@ void ZPrepass::createPipeline()
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
-
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
 
 	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
 

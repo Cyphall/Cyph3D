@@ -82,11 +82,11 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	Logger::info("Uploading mesh [{}]...", _signature.path);
 
 	{
-		vk::BufferUsageFlags positionVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
+		vk::BufferUsageFlags positionVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress;
 		vk::DeviceAddress positionVertexBufferAlignment = 1;
 		if (Engine::getVKContext().isRayTracingSupported())
 		{
-			positionVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+			positionVertexBufferUsage |= vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
 			positionVertexBufferAlignment = sizeof(float);
 		}
 		VKBufferInfo positionVertexBufferInfo(meshData.positionVertices.size(), positionVertexBufferUsage);
@@ -102,12 +102,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 
 	{
-		vk::BufferUsageFlags fullVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
-		if (Engine::getVKContext().isRayTracingSupported())
-		{
-			fullVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress;
-		}
-		VKBufferInfo fullVertexBufferInfo(meshData.fullVertices.size(), fullVertexBufferUsage);
+		VKBufferInfo fullVertexBufferInfo(meshData.fullVertices.size(), vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress);
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
@@ -119,11 +114,11 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 
 	{
-		vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer;
+		vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress;
 		vk::DeviceAddress indexBufferAlignment = 1;
 		if (Engine::getVKContext().isRayTracingSupported())
 		{
-			indexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+			indexBufferUsage |= vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
 			indexBufferAlignment = sizeof(uint32_t);
 		}
 		VKBufferInfo indexBufferInfo(meshData.indices.size(), indexBufferUsage);

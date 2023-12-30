@@ -1,5 +1,9 @@
 #version 460 core
+
+#extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_nonuniform_qualifier : require
+
+#include "../scene common data.glsl"
 
 /* ------ consts ------ */
 const float PI = 3.14159265359;
@@ -28,26 +32,9 @@ struct DirectionalLightUniforms
 	float shadowMapTexelWorldSize;
 };
 
-struct ObjectUniforms
-{
-	mat4 normalMatrix;
-	mat4 model;
-	mat4 mvp;
-	int albedoIndex;
-	int normalIndex;
-	int roughnessIndex;
-	int metalnessIndex;
-	int displacementIndex;
-	int emissiveIndex;
-	vec3 albedoValue;
-	float roughnessValue;
-	float metalnessValue;
-	float displacementScale;
-	float emissiveScale;
-};
-
 /* ------ inputs ------ */
-layout(location = 0) in V2F
+layout(location = 0) flat in int i_drawID;
+layout(location = 1) in V2F
 {
 	vec3 i_fragPos;
 	vec2 i_texCoords;
@@ -70,13 +57,10 @@ layout(std430, set = 2, binding = 0) readonly buffer UselessNameBecauseItIsNever
 };
 layout(set = 2, binding = 1) uniform samplerCube u_pointLightTextures[];
 
-layout(std430, set = 3, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere3
-{
-	ObjectUniforms u_objectUniforms;
-};
-
 layout(push_constant) uniform constants
 {
+	mat4 u_viewProjection;
+	ModelBuffer u_modelBuffer;
 	vec3 u_viewPos;
 	uint u_frameIndex;
 };
@@ -86,12 +70,12 @@ layout(location = 0) out vec4 o_color;
 
 /* ------ code ------ */
 
-float getDepth(vec2 texCoords)
+float getDepth(Model model, vec2 texCoords)
 {
-	return u_objectUniforms.displacementIndex >= 0 ? 1.0 - texture(u_textures[u_objectUniforms.displacementIndex], texCoords).r : 0.0;
+	return model.displacementIndex >= 0 ? 1.0 - texture(u_textures[model.displacementIndex], texCoords).r : 0.0;
 }
 
-vec2 POM(vec2 texCoords, vec3 viewDir)
+vec2 POM(Model model, vec2 texCoords, vec3 viewDir)
 {
 	const int   linearSamples  = 8;
 	const int   binarySamples  = 6;
@@ -99,7 +83,7 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 	// Initial sampling pass
 	vec2 currentTexCoords = texCoords;
 
-	float currentTexDepth  = getDepth(currentTexCoords);
+	float currentTexDepth  = getDepth(model, currentTexCoords);
 	float previousTexDepth;
 
 	if (currentTexDepth == 0 || linearSamples == 0) return texCoords;
@@ -107,7 +91,7 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 	if (viewDir.z <= 0) return texCoords;
 
 	// Offsets applied at each steps
-	vec2  texCoordsStepOffset = -(viewDir.xy / viewDir.z) / linearSamples * u_objectUniforms.displacementScale;
+	vec2  texCoordsStepOffset = -(viewDir.xy / viewDir.z) / linearSamples * model.displacementScale;
 	float depthStepOffset     = 1.0 / linearSamples;
 
 	float currentDepth = 0;
@@ -117,7 +101,7 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 		currentTexCoords += texCoordsStepOffset;
 
 		previousTexDepth = currentTexDepth;
-		currentTexDepth = getDepth(currentTexCoords);
+		currentTexDepth = getDepth(model, currentTexCoords);
 
 		currentDepth += depthStepOffset;
 	}
@@ -133,7 +117,7 @@ vec2 POM(vec2 texCoords, vec3 viewDir)
 		depthStepOffset *= 0.5;
 
 		vec2  halfwayTexCoords = previousTexCoords + texCoordsStepOffset;
-		float halfwayTexDepth  = getDepth(halfwayTexCoords);
+		float halfwayTexDepth  = getDepth(model, halfwayTexCoords);
 		float halfwayDepth     = previousDepth + depthStepOffset;
 
 		// If we are still above the surface
@@ -380,6 +364,8 @@ vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 viewDir, vec3 albedo, 
 // Based on the code at https://learnopengl.com/PBR/Lighting by Joey de Vries (https://twitter.com/JoeyDeVriez)
 void main()
 {
+	Model model = u_modelBuffer.models[i_drawID];
+
 	vec3 T = normalize(i_T);
 	vec3 N = normalize(i_N);
 	vec3 B = normalize(cross(i_T, i_N));
@@ -389,30 +375,30 @@ void main()
 
 	// ----------------- displacement -----------------
 
-	vec2 texCoords = POM(i_texCoords, normalize(worldToTangent * viewDir));
+	vec2 texCoords = POM(model, i_texCoords, normalize(worldToTangent * viewDir));
 
 	// ----------------- albedo -----------------
 
-	vec3 albedo = u_objectUniforms.albedoIndex >= 0 ? texture(u_textures[u_objectUniforms.albedoIndex], texCoords).rgb : u_objectUniforms.albedoValue;
+	vec3 albedo = model.albedoIndex >= 0 ? texture(u_textures[model.albedoIndex], texCoords).rgb : model.albedoValue;
 
 	// ----------------- normal -----------------
 
 	vec3 normal = vec3(0);
-	normal.xy = u_objectUniforms.normalIndex >= 0 ? texture(u_textures[u_objectUniforms.normalIndex], texCoords).rg * 2.0 - 1.0 : vec2(0.0, 0.0);
+	normal.xy = model.normalIndex >= 0 ? texture(u_textures[model.normalIndex], texCoords).rg * 2.0 - 1.0 : vec2(0.0, 0.0);
 	normal.z = sqrt(1 - min(dot(normal.xy, normal.xy), 1));
 	normal = tangentToWorld * normal;
 
 	// ----------------- roughness -----------------
 
-	float roughness = u_objectUniforms.roughnessIndex >= 0 ? texture(u_textures[u_objectUniforms.roughnessIndex], texCoords).r : u_objectUniforms.roughnessValue;
+	float roughness = model.roughnessIndex >= 0 ? texture(u_textures[model.roughnessIndex], texCoords).r : model.roughnessValue;
 
 	// ----------------- metalness -----------------
 
-	float metalness = u_objectUniforms.metalnessIndex >= 0 ? texture(u_textures[u_objectUniforms.metalnessIndex], texCoords).r : u_objectUniforms.metalnessValue;
+	float metalness = model.metalnessIndex >= 0 ? texture(u_textures[model.metalnessIndex], texCoords).r : model.metalnessValue;
 
 	// ----------------- emissive -----------------
 
-	float emissive = (u_objectUniforms.emissiveIndex >= 0 ? texture(u_textures[u_objectUniforms.emissiveIndex], texCoords).r : 1.0) * u_objectUniforms.emissiveScale;
+	float emissive = (model.emissiveIndex >= 0 ? texture(u_textures[model.emissiveIndex], texCoords).r : 1.0) * model.emissiveScale;
 
 	// ----------------- geometry normal -----------------
 

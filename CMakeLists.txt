@@ -260,6 +260,7 @@ add_executable(Cyph3D
 		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.cpp
 		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.h
 		src/Cyph3D/Asset/Processing/EquirectangularSkyboxData.h
+        src/Cyph3D/Rendering/SceneRenderer/RasterizationModelData.h
 )
 
 target_precompile_headers(Cyph3D PRIVATE <vulkan/vulkan.hpp>)

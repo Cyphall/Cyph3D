@@ -124,44 +124,16 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	commandBuffer->bindDescriptorSet(1, _directionalLightDescriptorSet.getCurrent());
 	commandBuffer->bindDescriptorSet(2, _pointLightDescriptorSet.getCurrent());
 
-	PushConstantData pushConstantData{};
-	pushConstantData.viewPos = input.camera.getPosition();
-	pushConstantData.frameIndex = _frameIndex;
-	commandBuffer->pushConstants(pushConstantData);
+	commandBuffer->pushConstants(PushConstantData{
+		.viewProjection = input.camera.getProjection() * input.camera.getView(),
+		.modelDataBuffer = input.modelDataBuffer ? input.modelDataBuffer->getDeviceAddress() : 0,
+		.viewPos = input.camera.getPosition(),
+		.frameIndex = _frameIndex
+	});
 
-	glm::mat4 viewProjection = input.camera.getProjection() * input.camera.getView();
+	commandBuffer->addExternallyUsedObject(input.modelDataBuffer);
 
-	_objectUniforms->resizeSmart(input.registry.getModelRenderRequests().size());
-	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
-	{
-		ModelRenderer::RenderData model = input.registry.getModelRenderRequests()[i];
-
-		const VKPtr<VKBuffer<FullVertexData>>& vertexBuffer = model.mesh.getFullVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
-
-		commandBuffer->bindVertexBuffer(0, vertexBuffer);
-		commandBuffer->bindIndexBuffer(indexBuffer);
-
-		ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer() + i;
-		objectUniformsPtr->normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix()));
-		objectUniformsPtr->model = model.transform.getLocalToWorldMatrix();
-		objectUniformsPtr->mvp = viewProjection * model.transform.getLocalToWorldMatrix();
-		objectUniformsPtr->albedoIndex = model.material.getAlbedoTextureBindlessIndex();
-		objectUniformsPtr->normalIndex = model.material.getNormalTextureBindlessIndex();
-		objectUniformsPtr->roughnessIndex = model.material.getRoughnessTextureBindlessIndex();
-		objectUniformsPtr->metalnessIndex = model.material.getMetalnessTextureBindlessIndex();
-		objectUniformsPtr->displacementIndex = model.material.getDisplacementTextureBindlessIndex();
-		objectUniformsPtr->emissiveIndex = model.material.getEmissiveTextureBindlessIndex();
-		objectUniformsPtr->albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue());
-		objectUniformsPtr->roughnessValue = model.material.getRoughnessValue();
-		objectUniformsPtr->metalnessValue = model.material.getMetalnessValue();
-		objectUniformsPtr->displacementScale = model.material.getDisplacementScale();
-		objectUniformsPtr->emissiveScale = model.material.getEmissiveScale();
-
-		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getCurrent()->getBuffer(), i, 1);
-
-		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
-	}
+	commandBuffer->drawIndirect(input.drawCommandsBuffer);
 
 	commandBuffer->unbindPipeline();
 
@@ -206,20 +178,6 @@ void LightingPass::createUniformBuffers()
 		[&](VKContext& context, int index)
 		{
 			return VKResizableBuffer<PointLightUniforms>::create(context, pointLightsUniformsBufferInfo);
-		}
-	);
-
-	VKResizableBufferInfo objectUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	objectUniformsBufferInfo.setName("Objects uniform buffer");
-
-	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(
-		Engine::getVKContext(),
-		[&](VKContext& context, int index)
-		{
-			return VKResizableBuffer<ObjectUniforms>::create(context, objectUniformsBufferInfo);
 		}
 	);
 }
@@ -288,13 +246,6 @@ void LightingPass::createDescriptorSetLayouts()
 
 		_pointLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 	}
-
-	{
-		VKDescriptorSetLayoutInfo info(true);
-		info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
-
-		_objectDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
 }
 
 void LightingPass::createPipelineLayout()
@@ -303,7 +254,6 @@ void LightingPass::createPipelineLayout()
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
 	info.addDescriptorSetLayout(_directionalLightDescriptorSetLayout);
 	info.addDescriptorSetLayout(_pointLightDescriptorSetLayout);
-	info.addDescriptorSetLayout(_objectDescriptorSetLayout);
 	info.setPushConstantLayout<PushConstantData>();
 
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
@@ -320,12 +270,6 @@ void LightingPass::createPipeline()
 	);
 
 	info.setFragmentShader("resources/shaders/internal/lighting/lighting.frag");
-
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(FullVertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, position));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(FullVertexData, uv));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 2, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, normal));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 3, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, tangent));
 
 	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
 
