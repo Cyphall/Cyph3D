@@ -94,7 +94,7 @@ private:
 	void createMessenger();
 	std::vector<QueueFamilyInfo> parseQueues();
 	static std::optional<QueueID> findBestQueue(std::vector<QueueFamilyInfo>& queueFamilyInfos, vk::QueueFlags requiredFlags, float priority);
-	void createLogicalDevice(const std::vector<const char*>& layers, const std::vector<const char*>& extensions);
+	void createLogicalDevice(const std::vector<const char*>& extensions);
 
 	void createVmaAllocator();
 

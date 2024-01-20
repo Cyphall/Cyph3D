@@ -26,7 +26,6 @@ struct PhysicalDeviceInfo
 {
 	vk::PhysicalDevice handle;
 	vk::PhysicalDeviceProperties properties;
-	bool coreLayersSupported;
 	bool coreExtensionsSupported;
 	bool rayTracingExtensionsSupported;
 };
@@ -144,15 +143,6 @@ static void checkInstanceExtensionSupport(const std::vector<const char*>& requir
 	}
 }
 
-static std::vector<const char*> getRequiredDeviceLayers()
-{
-	std::vector<const char*> layers;
-
-	// none
-
-	return layers;
-}
-
 static std::vector<const char*> getRequiredDeviceCoreExtensions()
 {
 	std::vector<const char*> extensions;
@@ -178,19 +168,7 @@ static std::vector<const char*> getRequiredDeviceRayTracingExtensions()
 	return extensions;
 }
 
-static std::unordered_set<std::string> getSupportedDeviceLayers(vk::PhysicalDevice physicalDevice)
-{
-	std::unordered_set<std::string> layers;
-
-	for (const vk::LayerProperties& layer : physicalDevice.enumerateDeviceLayerProperties())
-	{
-		layers.insert(layer.layerName);
-	}
-
-	return layers;
-}
-
-static std::unordered_set<std::string> getSupportedDeviceExtensions(vk::PhysicalDevice physicalDevice, const std::unordered_set<std::string>& supportedDeviceLayers)
+static std::unordered_set<std::string> getSupportedDeviceExtensions(vk::PhysicalDevice physicalDevice)
 {
 	std::unordered_set<std::string> extensions;
 
@@ -199,20 +177,11 @@ static std::unordered_set<std::string> getSupportedDeviceExtensions(vk::Physical
 		extensions.insert(extension.extensionName);
 	}
 
-	for (const std::string& layer : supportedDeviceLayers)
-	{
-		for (const vk::ExtensionProperties& extension : vk::enumerateInstanceExtensionProperties(layer))
-		{
-			extensions.insert(extension.extensionName);
-		}
-	}
-
 	return extensions;
 }
 
-PhysicalDeviceInfo getPhysicalDeviceInfo(
+static PhysicalDeviceInfo getPhysicalDeviceInfo(
 	vk::PhysicalDevice physicalDevice,
-	const std::vector<const char*>& requiredDeviceLayers,
 	const std::vector<const char*>& requiredDeviceCoreExtensions,
 	const std::vector<const char*>& requiredDeviceRayTracingExtensions
 )
@@ -221,19 +190,7 @@ PhysicalDeviceInfo getPhysicalDeviceInfo(
 	physicalDeviceInfo.handle = physicalDevice;
 	physicalDeviceInfo.properties = physicalDevice.getProperties();
 
-	std::unordered_set<std::string> supportedDeviceLayers = getSupportedDeviceLayers(physicalDevice);
-
-	physicalDeviceInfo.coreLayersSupported = true;
-	for (const char* requiredDeviceLayer : requiredDeviceLayers)
-	{
-		if (!supportedDeviceLayers.contains(std::string(requiredDeviceLayer)))
-		{
-			physicalDeviceInfo.coreLayersSupported = false;
-			break;
-		}
-	}
-
-	std::unordered_set<std::string> supportedDeviceExtensions = getSupportedDeviceExtensions(physicalDevice, supportedDeviceLayers);
+	std::unordered_set<std::string> supportedDeviceExtensions = getSupportedDeviceExtensions(physicalDevice);
 
 	physicalDeviceInfo.coreExtensionsSupported = true;
 	for (const char* requiredDeviceCoreExtension : requiredDeviceCoreExtensions)
@@ -261,11 +218,6 @@ PhysicalDeviceInfo getPhysicalDeviceInfo(
 static int calculateDeviceScore(const PhysicalDeviceInfo& physicalDevice)
 {
 	if (physicalDevice.properties.apiVersion < VULKAN_VERSION)
-	{
-		return 0;
-	}
-
-	if (!physicalDevice.coreLayersSupported)
 	{
 		return 0;
 	}
@@ -337,13 +289,12 @@ VKContext::VKContext(int concurrentFrameCount):
 
 	createMessenger();
 
-	std::vector<const char*> requiredDeviceLayers = getRequiredDeviceLayers();
 	std::vector<const char*> requiredDeviceCoreExtensions = getRequiredDeviceCoreExtensions();
 	std::vector<const char*> requiredDeviceRayTracingExtensions = getRequiredDeviceRayTracingExtensions();
 	std::vector<PhysicalDeviceInfo> physicalDevicesInfos;
 	for (vk::PhysicalDevice physicalDevice : _instance.enumeratePhysicalDevices())
 	{
-		physicalDevicesInfos.push_back(getPhysicalDeviceInfo(physicalDevice, requiredDeviceLayers, requiredDeviceCoreExtensions, requiredDeviceRayTracingExtensions));
+		physicalDevicesInfos.push_back(getPhysicalDeviceInfo(physicalDevice, requiredDeviceCoreExtensions, requiredDeviceRayTracingExtensions));
 	}
 
 	if (physicalDevicesInfos.empty())
@@ -356,7 +307,7 @@ VKContext::VKContext(int concurrentFrameCount):
 	if (bestPhysicalDevice == nullptr)
 	{
 		std::stringstream errorMessage;
-		errorMessage << "Could not find a device supporting required Vulkan version, layers and extensions.\n\n";
+		errorMessage << "Could not find a device supporting required Vulkan version and extensions.\n\n";
 		errorMessage << "Required Vulkan version: " << VK_API_VERSION_MAJOR(VULKAN_VERSION) << '.' << VK_API_VERSION_MINOR(VULKAN_VERSION) << "\n\n";
 		errorMessage << "Required Vulkan device extensions:\n";
 		for (const char* extension : requiredDeviceCoreExtensions)
@@ -375,7 +326,7 @@ VKContext::VKContext(int concurrentFrameCount):
 	{
 		deviceExtensions.insert(deviceExtensions.end(), requiredDeviceRayTracingExtensions.begin(), requiredDeviceRayTracingExtensions.end());
 	}
-	createLogicalDevice(requiredDeviceLayers, deviceExtensions);
+	createLogicalDevice(deviceExtensions);
 
 	VULKAN_HPP_DEFAULT_DISPATCHER.init(_device);
 
@@ -620,7 +571,7 @@ std::optional<VKContext::QueueID> VKContext::findBestQueue(std::vector<QueueFami
 	return std::nullopt;
 }
 
-void VKContext::createLogicalDevice(const std::vector<const char*>& layers, const std::vector<const char*>& extensions)
+void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 {
 	std::vector<QueueFamilyInfo> queueFamilyInfos = parseQueues();
 
@@ -727,8 +678,8 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& layers, cons
 	deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos.data();
 	deviceCreateInfo.enabledExtensionCount = extensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
-	deviceCreateInfo.enabledLayerCount = layers.size();
-	deviceCreateInfo.ppEnabledLayerNames = layers.data();
+	deviceCreateInfo.enabledLayerCount = 0;
+	deviceCreateInfo.ppEnabledLayerNames = nullptr;
 
 	_device = _physicalDevice.createDevice(deviceCreateInfo);
 
