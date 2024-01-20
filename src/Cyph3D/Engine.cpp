@@ -28,9 +28,9 @@ Timer Engine::_timer;
 void Engine::init()
 {
 #if defined(_DEBUG)
-	Logger::setLogLevel(Logger::LogLevel::DEBUG);
-#else
 	Logger::setLogLevel(Logger::LogLevel::INFO);
+#else
+	Logger::setLogLevel(Logger::LogLevel::WARNING);
 #endif
 
 	glfwInit();
