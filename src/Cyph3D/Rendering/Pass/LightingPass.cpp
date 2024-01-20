@@ -88,7 +88,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 
 	commandBuffer->imageMemoryBarrier(
 		_multisampledRawRenderImage,
-		vk::PipelineStageFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eAllCommands,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,

@@ -252,7 +252,7 @@ void ShadowMapPass::renderDirectionalShadowMap(
 
 	commandBuffer->imageMemoryBarrier(
 		shadowMap,
-		vk::PipelineStageFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eAllCommands,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
@@ -327,7 +327,7 @@ void ShadowMapPass::renderPointShadowMap(
 
 	commandBuffer->imageMemoryBarrier(
 		shadowMap,
-		vk::PipelineStageFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eAllCommands,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,

@@ -25,7 +25,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 {
 	commandBuffer->imageMemoryBarrier(
 		_depthImage,
-		vk::PipelineStageFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eAllCommands,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 		vk::AccessFlagBits2::eDepthStencilAttachmentWrite,

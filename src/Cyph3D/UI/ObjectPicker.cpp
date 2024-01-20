@@ -43,7 +43,7 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 		{
 			commandBuffer->imageMemoryBarrier(
 				_objectIndexImage,
-				vk::PipelineStageFlagBits2::eNone,
+				vk::PipelineStageFlagBits2::eAllCommands,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
@@ -52,7 +52,7 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 
 			commandBuffer->imageMemoryBarrier(
 				_depthImage,
-				vk::PipelineStageFlagBits2::eNone,
+				vk::PipelineStageFlagBits2::eAllCommands,
 				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests,
 				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,

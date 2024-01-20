@@ -30,7 +30,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 {
 	commandBuffer->imageMemoryBarrier(
 		_resolvedRawRenderImage,
-		vk::PipelineStageFlagBits2::eNone,
+		vk::PipelineStageFlagBits2::eAllCommands,
 		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
