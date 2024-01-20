@@ -60,10 +60,18 @@ static std::vector<const char*> getRequiredInstanceLayers()
 {
 	std::vector<const char*> layers;
 
-	layers.push_back("VK_LAYER_LUNARG_monitor");
 #if defined(_DEBUG)
 	layers.push_back("VK_LAYER_KHRONOS_validation");
 #endif
+
+	return layers;
+}
+
+static std::vector<const char*> getPreferredInstanceLayers()
+{
+	std::vector<const char*> layers;
+
+	layers.push_back("VK_LAYER_LUNARG_monitor");
 
 	return layers;
 }
@@ -85,6 +93,15 @@ static std::vector<const char*> getRequiredInstanceExtensions()
 #if defined(_DEBUG)
 	extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
 #endif
+
+	return extensions;
+}
+
+static std::vector<const char*> getPreferredInstanceExtensions()
+{
+	std::vector<const char*> extensions;
+
+	// none
 
 	return extensions;
 }
@@ -121,26 +138,58 @@ static std::unordered_set<std::string> getSupportedInstanceExtensions(const std:
 	return extensions;
 }
 
-static void checkInstanceLayersSupport(const std::vector<const char*>& requiredInstanceLayers, const std::unordered_set<std::string>& supportedInstanceLayers)
+static std::vector<const char*> buildInstanceLayerList(const std::vector<const char*>& requiredInstanceLayers, const std::vector<const char*>& preferredInstanceLayers, const std::unordered_set<std::string>& supportedInstanceLayers)
 {
+	std::vector<const char*> layers;
+
 	for (const char* requiredInstanceLayer : requiredInstanceLayers)
 	{
 		if (!supportedInstanceLayers.contains(std::string(requiredInstanceLayer)))
 		{
-			throw std::runtime_error(std::format("Vulkan instance layer \"{}\" is not supported by this driver.", requiredInstanceLayer));
+			throw std::runtime_error(std::format("Vulkan instance layer \"{}\" is not available.", requiredInstanceLayer));
 		}
+
+		layers.emplace_back(requiredInstanceLayer);
 	}
+
+	for (const char* preferredInstanceLayer : preferredInstanceLayers)
+	{
+		if (!supportedInstanceLayers.contains(std::string(preferredInstanceLayer)))
+		{
+			continue;
+		}
+
+		layers.emplace_back(preferredInstanceLayer);
+	}
+
+	return layers;
 }
 
-static void checkInstanceExtensionSupport(const std::vector<const char*>& requiredInstanceExtensions, const std::unordered_set<std::string>& supportedInstanceExtensions)
+static std::vector<const char*> buildInstanceExtensionList(const std::vector<const char*>& requiredInstanceExtensions, const std::vector<const char*>& preferredInstanceExtensions, const std::unordered_set<std::string>& supportedInstanceExtensions)
 {
+	std::vector<const char*> extensions;
+
 	for (const char* requiredInstanceExtension : requiredInstanceExtensions)
 	{
 		if (!supportedInstanceExtensions.contains(std::string(requiredInstanceExtension)))
 		{
-			throw std::runtime_error(std::format("Vulkan instance extension \"{}\" is not supported by this driver.", requiredInstanceExtension));
+			throw std::runtime_error(std::format("Vulkan instance extension \"{}\" is not available.", requiredInstanceExtension));
 		}
+
+		extensions.emplace_back(requiredInstanceExtension);
 	}
+
+	for (const char* preferredInstanceExtension : preferredInstanceExtensions)
+	{
+		if (!supportedInstanceExtensions.contains(std::string(preferredInstanceExtension)))
+		{
+			continue;
+		}
+
+		extensions.emplace_back(preferredInstanceExtension);
+	}
+
+	return extensions;
 }
 
 static std::vector<const char*> getRequiredDeviceCoreExtensions()
@@ -277,13 +326,16 @@ VKContext::VKContext(int concurrentFrameCount):
 	VULKAN_HPP_DEFAULT_DISPATCHER.init(dynamicLoader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
 
 	std::vector<const char*> requiredInstanceLayers = getRequiredInstanceLayers();
-	std::vector<const char*> requiredInstanceExtensions = getRequiredInstanceExtensions();
+	std::vector<const char*> preferredInstanceLayers = getPreferredInstanceLayers();
 	std::unordered_set<std::string> supportedInstanceLayers = getSupportedInstanceLayers();
-	std::unordered_set<std::string> supportedInstanceExtensions = getSupportedInstanceExtensions(supportedInstanceLayers);
-	checkInstanceLayersSupport(requiredInstanceLayers, supportedInstanceLayers);
-	checkInstanceExtensionSupport(requiredInstanceExtensions, supportedInstanceExtensions);
+	std::vector<const char*> instanceLayers = buildInstanceLayerList(requiredInstanceLayers, preferredInstanceLayers, supportedInstanceLayers);
 
-	createInstance(requiredInstanceLayers, requiredInstanceExtensions);
+	std::vector<const char*> requiredInstanceExtensions = getRequiredInstanceExtensions();
+	std::vector<const char*> preferredInstanceExtensions = getPreferredInstanceExtensions();
+	std::unordered_set<std::string> supportedInstanceExtensions = getSupportedInstanceExtensions(supportedInstanceLayers);
+	std::vector<const char*> instanceExtensions = buildInstanceExtensionList(requiredInstanceExtensions, preferredInstanceExtensions, supportedInstanceExtensions);
+
+	createInstance(instanceLayers, instanceExtensions);
 
 	VULKAN_HPP_DEFAULT_DISPATCHER.init(_instance);
 
