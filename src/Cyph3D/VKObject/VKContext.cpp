@@ -118,7 +118,7 @@ static std::unordered_set<std::string> getSupportedInstanceLayers()
 	return layers;
 }
 
-static std::unordered_set<std::string> getSupportedInstanceExtensions(const std::unordered_set<std::string>& supportedInstanceLayers)
+static std::unordered_set<std::string> getSupportedInstanceExtensions(const std::vector<const char*>& instanceLayers)
 {
 	std::unordered_set<std::string> extensions;
 
@@ -127,9 +127,9 @@ static std::unordered_set<std::string> getSupportedInstanceExtensions(const std:
 		extensions.insert(extension.extensionName);
 	}
 
-	for (const std::string& layer : supportedInstanceLayers)
+	for (const char* layer : instanceLayers)
 	{
-		for (const vk::ExtensionProperties& extension : vk::enumerateInstanceExtensionProperties(layer))
+		for (const vk::ExtensionProperties& extension : vk::enumerateInstanceExtensionProperties(std::string(layer)))
 		{
 			extensions.insert(extension.extensionName);
 		}
@@ -332,7 +332,7 @@ VKContext::VKContext(int concurrentFrameCount):
 
 	std::vector<const char*> requiredInstanceExtensions = getRequiredInstanceExtensions();
 	std::vector<const char*> preferredInstanceExtensions = getPreferredInstanceExtensions();
-	std::unordered_set<std::string> supportedInstanceExtensions = getSupportedInstanceExtensions(supportedInstanceLayers);
+	std::unordered_set<std::string> supportedInstanceExtensions = getSupportedInstanceExtensions(instanceLayers);
 	std::vector<const char*> instanceExtensions = buildInstanceExtensionList(requiredInstanceExtensions, preferredInstanceExtensions, supportedInstanceExtensions);
 
 	createInstance(instanceLayers, instanceExtensions);
