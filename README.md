@@ -22,12 +22,12 @@ This project is a full C++ rewrite of my [original C# 3D engine](https://github.
 - [ ] Denoising
 - [x] Viewport accumulation
 - [ ] Parallax Occlusion Mapping or equivalent
-- [ ] Normal Maps or equivalent
+- [x] Normal Maps or equivalent
 
 #### Post-processing effects
 - [x] Exposure
 - [x] Bloom
-- [x] ACES Tone-mapping
+- [x] AgX Tone-mapping
 
 ### UI
 
