@@ -81,7 +81,6 @@ This work by [Cyphall](https://github.com/Cyphall) is licensed under the [Creati
 ## Third party licenses
 
 [Font Awesome Free](https://fontawesome.com/license/free) is licensed under the [SIL Open Font License 1.1](https://spdx.org/licenses/OFL-1.1.html).<br/>
-[richgel999/bc7enc_rdo](https://github.com/richgel999/bc7enc_rdo) is licensed under the [Apache License 2.0](https://spdx.org/licenses/Apache-2.0.html).<br/>
 [bshoshany/thread-pool](https://github.com/bshoshany/thread-pool) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
 [ocornut/imgui](https://github.com/ocornut/imgui) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
 [CedricGuillemet/ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).<br/>
