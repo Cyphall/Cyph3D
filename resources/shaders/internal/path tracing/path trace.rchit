@@ -23,7 +23,7 @@ struct Vertex
 	vec3 position;
 	vec2 uv;
 	vec3 normal;
-	vec3 tangent;
+	vec4 tangent;
 };
 
 layout(buffer_reference, scalar) readonly buffer VertexBuffer
@@ -186,16 +186,20 @@ void main()
 	vec3 normal2 = normalize(normalMatrix * v2.normal);
 	vec3 normal3 = normalize(normalMatrix * v3.normal);
 
-	vec3 tangent1 = normalize(normalMatrix * v1.tangent);
-	vec3 tangent2 = normalize(normalMatrix * v2.tangent);
-	vec3 tangent3 = normalize(normalMatrix * v3.tangent);
+	vec3 tangent1 = normalize(normalMatrix * v1.tangent.xyz);
+	vec3 tangent2 = normalize(normalMatrix * v2.tangent.xyz);
+	vec3 tangent3 = normalize(normalMatrix * v3.tangent.xyz);
+
+	vec3 bitangent1 = cross(normal1, tangent1) * v1.tangent.w;
+	vec3 bitangent2 = cross(normal2, tangent2) * v2.tangent.w;
+	vec3 bitangent3 = cross(normal3, tangent3) * v3.tangent.w;
 
 	vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 
 	vec3 position = interpolateBarycentrics(position1, position2, position3, barycentrics);
 	vec3 normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics)) * normalScale;
 	vec3 tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics)) * normalScale;
-	vec3 bitangent = cross(tangent, normal);
+	vec3 bitangent = normalize(interpolateBarycentrics(bitangent1, bitangent2, bitangent3, barycentrics)) * normalScale;
 	vec3 geometryNormal = normalize(cross(position3 - position2, position1 - position2));
 
 	geometryNormal = dot(geometryNormal, hitPayload.rayDirection) < 0.0 ? geometryNormal : -geometryNormal;

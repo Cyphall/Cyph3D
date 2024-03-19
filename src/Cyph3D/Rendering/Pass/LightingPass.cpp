@@ -325,7 +325,7 @@ void LightingPass::createPipeline()
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, position));
 	info.getVertexInputLayoutInfo().defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(FullVertexData, uv));
 	info.getVertexInputLayoutInfo().defineAttribute(0, 2, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, normal));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 3, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, tangent));
+	info.getVertexInputLayoutInfo().defineAttribute(0, 3, vk::Format::eR32G32B32A32Sfloat, offsetof(FullVertexData, tangent));
 
 	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
 

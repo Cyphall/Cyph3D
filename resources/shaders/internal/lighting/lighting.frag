@@ -51,8 +51,9 @@ layout(location = 0) in V2F
 {
 	vec3 i_fragPos;
 	vec2 i_texCoords;
-	vec3 i_T;
 	vec3 i_N;
+	vec3 i_T;
+	vec3 i_B;
 };
 
 /* ------ uniforms ------ */
@@ -381,8 +382,8 @@ vec3 calculateLighting(vec3 radiance, vec3 lightDir, vec3 viewDir, vec3 albedo, 
 void main()
 {
 	vec3 T = normalize(i_T);
+	vec3 B = normalize(i_B);
 	vec3 N = normalize(i_N);
-	vec3 B = normalize(cross(i_T, i_N));
 	mat3 tangentToWorld = mat3(T, B, N);
 	mat3 worldToTangent = transpose(tangentToWorld);
 	vec3 viewDir = normalize(u_viewPos - i_fragPos);

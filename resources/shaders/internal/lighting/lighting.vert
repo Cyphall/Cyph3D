@@ -21,7 +21,7 @@ struct ObjectUniforms
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec2 a_uv;
 layout(location = 2) in vec3 a_normal;
-layout(location = 3) in vec3 a_tangent;
+layout(location = 3) in vec4 a_tangent;
 
 layout(std430, set = 3, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere4
 {
@@ -32,8 +32,9 @@ layout(location = 0) out V2F
 {
 	vec3 o_fragPos;
 	vec2 o_texCoords;
-	vec3 o_T;
 	vec3 o_N;
+	vec3 o_T;
+	vec3 o_B;
 };
 
 void main()
@@ -41,8 +42,13 @@ void main()
 	o_texCoords = a_uv;
 	o_fragPos = (u_objectUniforms.model * vec4(a_position, 1.0)).xyz;
 
-	o_T = normalize(mat3(u_objectUniforms.normalMatrix) * a_tangent);
-	o_N = normalize(mat3(u_objectUniforms.normalMatrix) * a_normal);
+	vec3 normal = normalize(mat3(u_objectUniforms.normalMatrix) * a_normal);
+	vec3 tangent = normalize(mat3(u_objectUniforms.normalMatrix) * a_tangent.xyz);
+	vec3 bitangent = cross(normal, tangent) * a_tangent.w;
+
+	o_N = normal;
+	o_T = tangent;
+	o_B = bitangent;
 
 	gl_Position = u_objectUniforms.mvp * vec4(a_position, 1.0);
 }

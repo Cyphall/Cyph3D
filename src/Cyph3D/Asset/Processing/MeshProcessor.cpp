@@ -12,7 +12,7 @@ static void writeProcessedMesh(const std::filesystem::path& path, const MeshData
 	std::filesystem::create_directories(path.parent_path());
 	std::ofstream file = FileHelper::openFileForWriting(path);
 
-	uint8_t version = 3;
+	uint8_t version = 4;
 	FileHelper::write(file, &version);
 
 	FileHelper::write(file, meshData.positionVertices);
@@ -31,7 +31,7 @@ static bool readProcessedMesh(const std::filesystem::path& path, MeshData& meshD
 	uint8_t version;
 	FileHelper::read(file, &version);
 
-	if (version != 3)
+	if (version != 4)
 	{
 		return false;
 	}
@@ -69,12 +69,19 @@ static MeshData processMesh(AssetManagerWorkerData& workerData, const std::files
 
 	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
 	{
-		meshData.positionVertices[i].position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
+		glm::vec3 position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
+		glm::vec2 uv = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
+		glm::vec3 normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
+		glm::vec3 tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z};
+		glm::vec3 bitangent = {mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z};
+		glm::vec4 tangentWithSign = {tangent, glm::sign(glm::dot(glm::cross(normal, tangent), bitangent))};
 
-		meshData.fullVertices[i].position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
-		meshData.fullVertices[i].uv = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
-		meshData.fullVertices[i].normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
-		meshData.fullVertices[i].tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z};
+		meshData.positionVertices[i].position = position;
+
+		meshData.fullVertices[i].position = position;
+		meshData.fullVertices[i].uv = uv;
+		meshData.fullVertices[i].normal = normal;
+		meshData.fullVertices[i].tangent = tangentWithSign;
 
 		meshData.boundingBoxMin = glm::min(meshData.boundingBoxMin, meshData.positionVertices[i].position);
 		meshData.boundingBoxMax = glm::max(meshData.boundingBoxMax, meshData.positionVertices[i].position);
