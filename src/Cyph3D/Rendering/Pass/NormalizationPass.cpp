@@ -1,6 +1,7 @@
 #include "NormalizationPass.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
@@ -80,7 +81,7 @@ void NormalizationPass::createPipeline()
 {
 	VKComputePipelineInfo info(
 		_pipelineLayout,
-		"resources/shaders/internal/post-processing/normalization/normalization.comp"
+		FileHelper::getDataDirectory() / "shaders/post-processing/normalization/normalization.comp"
 	);
 
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), info);

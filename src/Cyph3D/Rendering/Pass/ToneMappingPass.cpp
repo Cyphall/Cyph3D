@@ -1,6 +1,7 @@
 #include "ToneMappingPass.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
@@ -89,13 +90,13 @@ void ToneMappingPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		"resources/shaders/internal/fullscreen quad.vert",
+		FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader("resources/shaders/internal/post-processing/tone mapping/tone mapping.frag");
+	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/tone mapping/tone mapping.frag");
 
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::FINAL_COLOR_FORMAT);
 

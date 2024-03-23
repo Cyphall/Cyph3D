@@ -1,6 +1,7 @@
 #include "ExposurePass.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
@@ -95,13 +96,13 @@ void ExposurePass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		"resources/shaders/internal/fullscreen quad.vert",
+		FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader("resources/shaders/internal/post-processing/exposure/exposure.frag");
+	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/exposure/exposure.frag");
 
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 

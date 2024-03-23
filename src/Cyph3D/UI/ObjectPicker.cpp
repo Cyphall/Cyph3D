@@ -3,6 +3,7 @@
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Component/ModelRenderer.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/VertexData.h"
 #include "Cyph3D/Scene/Camera.h"
@@ -147,13 +148,13 @@ void ObjectPicker::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		"resources/shaders/internal/object picker/object picker.vert",
+		FileHelper::getDataDirectory() / "shaders/object picker/object picker.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader("resources/shaders/internal/object picker/object picker.frag");
+	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/object picker/object picker.frag");
 
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));

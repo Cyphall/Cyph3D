@@ -1,6 +1,7 @@
 #include "BloomPass.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
@@ -363,13 +364,13 @@ void BloomPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_downsamplePipelineLayout,
-			"resources/shaders/internal/fullscreen quad.vert",
+			FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.setFragmentShader("resources/shaders/internal/post-processing/bloom/downsample.frag");
+		info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/bloom/downsample.frag");
 
 		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 
@@ -379,13 +380,13 @@ void BloomPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_upsamplePipelineLayout,
-			"resources/shaders/internal/fullscreen quad.vert",
+			FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.setFragmentShader("resources/shaders/internal/post-processing/bloom/upsample and blur.frag");
+		info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/bloom/upsample and blur.frag");
 
 		VKPipelineBlendingInfo blendingInfo{
 			.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
@@ -404,13 +405,13 @@ void BloomPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_composePipelineLayout,
-			"resources/shaders/internal/fullscreen quad.vert",
+			FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.setFragmentShader("resources/shaders/internal/post-processing/bloom/compose.frag");
+		info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/bloom/compose.frag");
 
 		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 

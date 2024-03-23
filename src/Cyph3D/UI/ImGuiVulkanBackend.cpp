@@ -1,6 +1,7 @@
 #include "ImGuiVulkanBackend.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
@@ -208,13 +209,13 @@ void ImGuiVulkanBackend::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		"resources/shaders/internal/imgui/imgui.vert",
+		FileHelper::getDataDirectory() / "shaders/imgui/imgui.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eNone,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader("resources/shaders/internal/imgui/imgui.frag");
+	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/imgui/imgui.frag");
 
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(ImDrawVert), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32Sfloat, offsetof(ImDrawVert, pos));

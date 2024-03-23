@@ -5,6 +5,7 @@
 #include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h"
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/Scene/Scene.h"
@@ -106,13 +107,13 @@ void SkyboxPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		"resources/shaders/internal/skybox/skybox.vert",
+		FileHelper::getDataDirectory() / "shaders/skybox/skybox.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader("resources/shaders/internal/skybox/skybox.frag");
+	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/skybox/skybox.frag");
 
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(SkyboxPass::VertexData), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(SkyboxPass::VertexData, position));

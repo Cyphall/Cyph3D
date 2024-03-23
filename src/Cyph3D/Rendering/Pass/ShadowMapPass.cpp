@@ -3,6 +3,7 @@
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Component/DirectionalLight.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Helper/MathHelper.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
@@ -208,7 +209,7 @@ void ShadowMapPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_directionalLightPipelineLayout,
-			"resources/shaders/internal/shadow mapping/directional light.vert",
+			FileHelper::getDataDirectory() / "shaders/shadow mapping/directional light.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
@@ -225,13 +226,13 @@ void ShadowMapPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_pointLightPipelineLayout,
-			"resources/shaders/internal/shadow mapping/point light.vert",
+			FileHelper::getDataDirectory() / "shaders/shadow mapping/point light.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.setFragmentShader("resources/shaders/internal/shadow mapping/point light.frag");
+		info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/shadow mapping/point light.frag");
 
 		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
 		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));

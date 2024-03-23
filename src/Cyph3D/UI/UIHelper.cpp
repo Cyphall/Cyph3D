@@ -1,6 +1,7 @@
 #include "UIHelper.h"
 
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/UI/ImGuiVulkanBackend.h"
 #include "Cyph3D/UI/Window/UIAssetBrowser.h"
 #include "Cyph3D/UI/Window/UIHierarchy.h"
@@ -248,7 +249,10 @@ void UIHelper::initFonts()
 
 	ImFontConfig config;
 
-	io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto-Regular.ttf", 14.0f * pixelScale, &config, io.Fonts->GetGlyphRangesDefault());
+	std::string robotoPath = (FileHelper::getDataDirectory() / "fonts/Roboto-Regular.ttf").generic_string();
+	std::string fontAwesomePath = (FileHelper::getDataDirectory() / "fonts/Font Awesome 6 Free-Solid-900.otf").generic_string();
+
+	io.Fonts->AddFontFromFileTTF(robotoPath.c_str(), 14.0f * pixelScale, &config, io.Fonts->GetGlyphRangesDefault());
 
 	config.MergeMode = true;
 	config.GlyphOffset = ImVec2(0.0f, 1.0f * pixelScale);
@@ -260,7 +264,7 @@ void UIHelper::initFonts()
 		0xF07B, 0xF07B,
 		0
 	};
-	io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 14.0f * pixelScale, &config, smallIconRange);
+	io.Fonts->AddFontFromFileTTF(fontAwesomePath.c_str(), 14.0f * pixelScale, &config, smallIconRange);
 
 	io.Fonts->Build();
 
@@ -274,5 +278,5 @@ void UIHelper::initFonts()
 		0xF43C, 0xF43C,
 		0
 	};
-	_bigFont = io.Fonts->AddFontFromFileTTF("resources/fonts/Font Awesome 6 Free-Solid-900.otf", 48.0f * pixelScale, nullptr, largeIconRange);
+	_bigFont = io.Fonts->AddFontFromFileTTF(fontAwesomePath.c_str(), 48.0f * pixelScale, nullptr, largeIconRange);
 }

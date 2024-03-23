@@ -5,6 +5,7 @@
 #include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
 #include "Cyph3D/Asset/RuntimeAsset/MeshAsset.h"
 #include "Cyph3D/Engine.h"
+#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Helper/MathHelper.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
@@ -254,10 +255,10 @@ void PathTracePass::createPipeline()
 {
 	VKRayTracingPipelineInfo info(_pipelineLayout);
 
-	info.addRaygenGroupsInfos("resources/shaders/internal/path tracing/path trace.rgen");
-	info.addTriangleHitGroupsInfos("resources/shaders/internal/path tracing/path trace.rchit", std::nullopt);
-	info.addMissGroupsInfos("resources/shaders/internal/path tracing/black skybox.rmiss");
-	info.addMissGroupsInfos("resources/shaders/internal/path tracing/cubemap skybox.rmiss");
+	info.addRaygenGroupsInfos(FileHelper::getDataDirectory() / "shaders/path tracing/path trace.rgen");
+	info.addTriangleHitGroupsInfos(FileHelper::getDataDirectory() / "shaders/path tracing/path trace.rchit", std::nullopt);
+	info.addMissGroupsInfos(FileHelper::getDataDirectory() / "shaders/path tracing/black skybox.rmiss");
+	info.addMissGroupsInfos(FileHelper::getDataDirectory() / "shaders/path tracing/cubemap skybox.rmiss");
 
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }

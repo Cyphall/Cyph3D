@@ -143,7 +143,7 @@ EquirectangularSkyboxProcessor::EquirectangularSkyboxProcessor()
 
 		VKComputePipelineInfo computePipelineInfo(
 			_cubemapPipelineLayout,
-			"resources/shaders/internal/asset processing/gen cubemap.comp"
+			FileHelper::getDataDirectory() / "shaders/asset processing/gen cubemap.comp"
 		);
 
 		_cubemapPipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
@@ -184,7 +184,7 @@ EquirectangularSkyboxProcessor::EquirectangularSkyboxProcessor()
 
 		VKComputePipelineInfo computePipelineInfo(
 			_mipmapPipelineLayout,
-			"resources/shaders/internal/asset processing/gen mipmap.comp"
+			FileHelper::getDataDirectory() / "shaders/asset processing/gen mipmap.comp"
 		);
 
 		_mipmapPipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);

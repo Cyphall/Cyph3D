@@ -28,6 +28,7 @@ public:
 	static std::optional<std::filesystem::path> fileDialogSave(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName);
 	static void openExplorerAndSelectEntries(const std::filesystem::path& folder, const std::vector<std::filesystem::path>& entries);
 
+	static const std::filesystem::path& getDataDirectory();
 	static const std::filesystem::path& getRootDirectoryPath();
 	static const std::filesystem::path& getAssetDirectoryPath();
 	static const std::filesystem::path& getCacheRootDirectoryPath();

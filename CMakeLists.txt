@@ -321,6 +321,10 @@ add_subdirectory("vendor/half/v2.2.0")
 target_link_libraries(Cyph3D PRIVATE half)
 
 find_package(Python COMPONENTS Interpreter)
+add_custom_target(copy_data
+		COMMAND ${Python_EXECUTABLE} "${PROJECT_SOURCE_DIR}/copy_resources.py" "${PROJECT_SOURCE_DIR}/data" "${PROJECT_BINARY_DIR}/data" "${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}" "${CMAKE_BUILD_TYPE}")
+add_dependencies(Cyph3D copy_data)
+
 add_custom_target(copy_resources
-		COMMAND ${Python_EXECUTABLE} "${PROJECT_SOURCE_DIR}/copy_resources.py" "${PROJECT_SOURCE_DIR}/resources" "${PROJECT_BINARY_DIR}/resources" "${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}" "${CMAKE_BUILD_TYPE}")
+		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /E /NS /NC /NFL /NDL /NP /NJH /NJS || cmd /c "exit /b 0")
 add_dependencies(Cyph3D copy_resources)
