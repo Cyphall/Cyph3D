@@ -3,35 +3,31 @@
 #include <stb_image.h>
 #include <string>
 
-StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepthFlags acceptedBitDepths):
-	_data8bit(nullptr, stbi_image_free),
-	_data16bit(nullptr, stbi_image_free),
-	_data32bit(nullptr, stbi_image_free)
+StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepthFlags acceptedBitDepths)
 {
 	std::string pathStr = path.generic_string();
-
-	int width;
-	int height;
-	int channelCount;
 
 	bool is32Bit = stbi_is_hdr(pathStr.c_str());
 	bool is16Bit = stbi_is_16_bit(pathStr.c_str());
 	bool is8Bit = !is32Bit && !is16Bit;
 
+	int width = 0;
+	int height = 0;
+	int channelCount = 0;
 	if ((acceptedBitDepths & BitDepthFlags::e32) == BitDepthFlags::e32 && is32Bit)
 	{
 		_bitPerChannel = 32;
-		_data32bit.reset(stbi_loadf(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
+		_data = reinterpret_cast<std::byte*>(stbi_loadf(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
 	}
 	else if ((acceptedBitDepths & BitDepthFlags::e16) == BitDepthFlags::e16 && is16Bit)
 	{
 		_bitPerChannel = 16;
-		_data16bit.reset(stbi_load_16(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
+		_data = reinterpret_cast<std::byte*>(stbi_load_16(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
 	}
 	else if ((acceptedBitDepths & BitDepthFlags::e8) == BitDepthFlags::e8 && (is8Bit || is16Bit))
 	{
 		_bitPerChannel = 8;
-		_data8bit.reset(stbi_load(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
+		_data = reinterpret_cast<std::byte*>(stbi_load(pathStr.c_str(), &width, &height, &channelCount, static_cast<int>(desiredChannels)));
 	}
 	else
 	{
@@ -42,19 +38,15 @@ StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, 
 	_channelCount = desiredChannels == Channels::eAny ? channelCount : static_cast<int>(desiredChannels);
 }
 
+StbImage::~StbImage()
+{
+	if (_data != nullptr)
+		stbi_image_free(_data);
+}
+
 const std::byte* StbImage::getPtr() const
 {
-	switch (_bitPerChannel)
-	{
-	case 8:
-		return reinterpret_cast<std::byte*>(_data8bit.get());
-	case 16:
-		return reinterpret_cast<std::byte*>(_data16bit.get());
-	case 32:
-		return reinterpret_cast<std::byte*>(_data32bit.get());
-	default:
-		throw;
-	}
+	return _data;
 }
 
 uint32_t StbImage::getBitsPerChannel() const
@@ -84,5 +76,5 @@ size_t StbImage::getByteSize() const
 
 bool StbImage::isValid() const
 {
-	return _data8bit != nullptr || _data16bit != nullptr || _data32bit != nullptr;
+	return _data != nullptr;
 }

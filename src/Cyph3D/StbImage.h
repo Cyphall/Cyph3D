@@ -27,6 +27,8 @@ public:
 
 	explicit StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepthFlags acceptedBitDepths);
 
+	~StbImage();
+
 	const std::byte* getPtr() const;
 	uint32_t getBitsPerChannel() const;
 	uint32_t getBitsPerPixel() const;
@@ -36,9 +38,7 @@ public:
 	bool isValid() const;
 
 private:
-	std::unique_ptr<uint8_t[], std::function<void(void*)>> _data8bit;
-	std::unique_ptr<uint16_t[], std::function<void(void*)>> _data16bit;
-	std::unique_ptr<float[], std::function<void(void*)>> _data32bit;
+	std::byte* _data;
 
 	uint32_t _bitPerChannel = 0;
 	uint32_t _channelCount = 0;
