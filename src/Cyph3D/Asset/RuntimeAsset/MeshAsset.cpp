@@ -223,7 +223,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		vk::DeviceSize compactedSize = compactedSizeQuery->getCompactedSize();
 
-		VKBufferInfo backingBufferInfo(compactedSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
+		VKBufferInfo backingBufferInfo(compactedSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress);
 		backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		backingBufferInfo.setName(std::format("{}.AccelerationStructureBuffer", _signature.path));
 

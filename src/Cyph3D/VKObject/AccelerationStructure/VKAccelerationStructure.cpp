@@ -36,11 +36,6 @@ VKAccelerationStructure::VKAccelerationStructure(
 
 	_accelerationStructure = _context.getDevice().createAccelerationStructureKHR(accelerationStructureCreateInfo);
 
-	vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo;
-	accelerationStructureDeviceAddressInfo.accelerationStructure = _accelerationStructure;
-
-	_accelerationStructureAddress = _context.getDevice().getAccelerationStructureAddressKHR(accelerationStructureDeviceAddressInfo);
-
 	_accelerationStructureBackingBuffer = backingBuffer;
 }
 
@@ -64,6 +59,14 @@ vk::AccelerationStructureTypeKHR VKAccelerationStructure::getType() const
 
 vk::DeviceAddress VKAccelerationStructure::getDeviceAddress() const
 {
+	if (_accelerationStructureAddress == 0)
+	{
+		vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo;
+		accelerationStructureDeviceAddressInfo.accelerationStructure = _accelerationStructure;
+
+		_accelerationStructureAddress = _context.getDevice().getAccelerationStructureAddressKHR(accelerationStructureDeviceAddressInfo);
+	}
+
 	return _accelerationStructureAddress;
 }
 

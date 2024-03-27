@@ -50,7 +50,7 @@ protected:
 	vk::AccelerationStructureTypeKHR _type;
 	VKPtr<VKBufferBase> _accelerationStructureBackingBuffer;
 	vk::AccelerationStructureKHR _accelerationStructure = VK_NULL_HANDLE;
-	vk::DeviceAddress _accelerationStructureAddress = 0;
+	mutable vk::DeviceAddress _accelerationStructureAddress = 0;
 
 	std::vector<VKPtr<VKObject>> _referencedObjectsInBuild;
 };
