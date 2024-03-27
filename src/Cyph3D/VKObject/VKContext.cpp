@@ -197,6 +197,7 @@ static std::vector<const char*> getRequiredDeviceCoreExtensions()
 	std::vector<const char*> extensions;
 
 	extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
 	extensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
