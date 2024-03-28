@@ -2,75 +2,85 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Logging/Impl/Win32LoggerColor.h"
 
-#include <iomanip>
 #include <iostream>
+#include <Windows.h>
 
-Logger::LogLevel Logger::_logLevel = LogLevel::DEBUG;
+Logger::LogLevel Logger::_logLevel = LogLevel::eDisabled;
 std::mutex Logger::_mtx;
-std::unique_ptr<ILoggerColor> Logger::_loggerColor = std::make_unique<Win32LoggerColor>();
 std::ofstream Logger::_logFile = FileHelper::openFileForWriting("Cyph3D.log");
 
-static constexpr glm::u8vec3 DEFAULT_LOG_COLOR = {224, 224, 224};
+static constexpr const char* ERROR_COLOR = "\x1b[38;2;255;51;102m";
+static constexpr const char* WARNING_COLOR = "\x1b[38;2;255;204;85m";
+static constexpr const char* INFO_COLOR = "\x1b[38;2;22;198;12m";
+static constexpr const char* DEBUG_COLOR = "\x1b[38;2;160;160;160m";
+static constexpr const char* DEFAULT_ATTRIBUTES = "\x1b[0m";
 
-void Logger::print(std::string_view message, std::string_view prefix, glm::u8vec3 prefixColor)
+void Logger::print(std::string_view message, std::string_view prefix, std::string_view prefixColor)
 {
 	_mtx.lock();
 
-	_loggerColor->setColor(DEFAULT_LOG_COLOR);
+	std::cout << DEFAULT_ATTRIBUTES;
 
-	std::cout << std::fixed << std::setprecision(4) << Engine::getTimer().time() << " ";
-	_logFile << std::fixed << std::setprecision(4) << Engine::getTimer().time() << " ";
+	std::string time = std::format("{:.4f}", Engine::getTimer().time());
 
-	_loggerColor->setColor(prefixColor);
+	std::cout << time << " ";
+	_logFile << time << " ";
+
+	std::cout << prefixColor;
 
 	std::cout << prefix;
 	_logFile << prefix;
 
-	_loggerColor->setColor(DEFAULT_LOG_COLOR);
+	std::cout << DEFAULT_ATTRIBUTES;
 
 	std::cout << " > " << message << std::endl;
 	_logFile << " > " << message << std::endl;
-
-	_loggerColor->resetColor();
 
 	_mtx.unlock();
 }
 
 void Logger::error(std::string_view message)
 {
-	if (_logLevel < LogLevel::ERROR)
+	if (_logLevel < LogLevel::eError)
 		return;
 
-	print(message, "ERROR", {255, 51, 102});
+	print(message, "ERROR", ERROR_COLOR);
 }
 
 void Logger::warning(std::string_view message)
 {
-	if (_logLevel < LogLevel::WARNING)
+	if (_logLevel < LogLevel::eWarning)
 		return;
 
-	print(message, "WARNING", {255, 204, 85});
+	print(message, "WARNING", WARNING_COLOR);
 }
 
 void Logger::info(std::string_view message)
 {
-	if (_logLevel < LogLevel::INFO)
+	if (_logLevel < LogLevel::eInfo)
 		return;
 
-	print(message, "INFO", {22, 198, 12});
+	print(message, "INFO", INFO_COLOR);
 }
 
 void Logger::debug(std::string_view message)
 {
-	if (_logLevel < LogLevel::DEBUG)
+	if (_logLevel < LogLevel::eDebug)
 		return;
 
-	print(message, "DEBUG", {160, 160, 160});
+	print(message, "DEBUG", DEBUG_COLOR);
 }
 
-void Logger::setLogLevel(LogLevel logLevel)
+void Logger::init(LogLevel logLevel)
 {
 	_logLevel = logLevel;
+
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	DWORD mode;
+	GetConsoleMode(consoleHandle, &mode);
+
+	mode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	SetConsoleMode(consoleHandle, mode);
 }

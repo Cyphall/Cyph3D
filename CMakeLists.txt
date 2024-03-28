@@ -113,9 +113,6 @@ add_executable(Cyph3D
 		src/Cyph3D/Iterator/EntityIterator.h
 		src/Cyph3D/Logging/Logger.cpp
 		src/Cyph3D/Logging/Logger.h
-		src/Cyph3D/Logging/Impl/ILoggerColor.h
-		src/Cyph3D/Logging/Impl/Win32LoggerColor.cpp
-		src/Cyph3D/Logging/Impl/Win32LoggerColor.h
 		src/Cyph3D/Rendering/RenderRegistry.cpp
 		src/Cyph3D/Rendering/RenderRegistry.h
 		src/Cyph3D/Rendering/ShadowMapManager.cpp
