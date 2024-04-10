@@ -24,17 +24,17 @@ uint32_t VKQueue::getFamily() const
 	return _queueFamily;
 }
 
-void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores, vk::ArrayProxy<VKPtr<VKSemaphore>> signalSemaphores)
+void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>> waitSemaphores, vk::ArrayProxy<std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>> signalSemaphores)
 {
 	std::scoped_lock lock(_mutex);
 
 	std::vector<vk::SemaphoreSubmitInfo> waitSemaphoreSubmitInfos;
-	for (const VKPtr<VKSemaphore>& waitSemaphore : waitSemaphores)
+	for (const auto& [waitSemaphore, waitStage] : waitSemaphores)
 	{
 		vk::SemaphoreSubmitInfo& waitSemaphoreSubmitInfo = waitSemaphoreSubmitInfos.emplace_back();
 		waitSemaphoreSubmitInfo.semaphore = waitSemaphore->getHandle();
 		waitSemaphoreSubmitInfo.value = 0;
-		waitSemaphoreSubmitInfo.stageMask = vk::PipelineStageFlagBits2::eAllCommands;
+		waitSemaphoreSubmitInfo.stageMask = waitStage;
 		waitSemaphoreSubmitInfo.deviceIndex = 0;
 	}
 
@@ -43,12 +43,12 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 	commandBufferSubmitInfo.deviceMask = 0;
 
 	std::vector<vk::SemaphoreSubmitInfo> signalSemaphoreSubmitInfos;
-	for (const VKPtr<VKSemaphore>& signalSemaphore : signalSemaphores)
+	for (const auto& [signalSemaphore, signalStage] : signalSemaphores)
 	{
 		vk::SemaphoreSubmitInfo& signalSemaphoreSubmitInfo = signalSemaphoreSubmitInfos.emplace_back();
 		signalSemaphoreSubmitInfo.semaphore = signalSemaphore->getHandle();
 		signalSemaphoreSubmitInfo.value = 0;
-		signalSemaphoreSubmitInfo.stageMask = vk::PipelineStageFlagBits2::eAllCommands;
+		signalSemaphoreSubmitInfo.stageMask = signalStage;
 		signalSemaphoreSubmitInfo.deviceIndex = 0;
 	}
 
@@ -63,10 +63,17 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 	commandBuffer->getStatusFence()->reset();
 	_queue.submit2(submitInfo, commandBuffer->getStatusFence()->getHandle());
 
+	auto extractSemaphore = [](const std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>& pair)
+	{
+		return pair.first;
+	};
+
 	SubmitRecord& submitRecord = _submitRecords.emplace_back();
 	submitRecord.commandBuffer = commandBuffer;
-	std::ranges::copy(waitSemaphores, std::back_inserter(submitRecord.waitSemaphores));
-	std::ranges::copy(signalSemaphores, std::back_inserter(submitRecord.signalSemaphores));
+	submitRecord.waitSemaphores.resize(waitSemaphores.size());
+	submitRecord.signalSemaphores.resize(signalSemaphores.size());
+	std::ranges::transform(waitSemaphores, submitRecord.waitSemaphores.begin(), extractSemaphore);
+	std::ranges::transform(signalSemaphores, submitRecord.signalSemaphores.begin(), extractSemaphore);
 }
 
 bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores)

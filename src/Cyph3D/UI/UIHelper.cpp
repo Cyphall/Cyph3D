@@ -113,8 +113,13 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 	{
 		Engine::getVKContext().getMainQueue().submit(
 			commandBuffer,
-			{imageAvailableSemaphore},
-			{_presentSemaphore, _nextSubmitSemaphore}
+			{
+				{imageAvailableSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
+			},
+			{
+				{_presentSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
+				{_nextSubmitSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
+			}
 		);
 
 		_firstFrame = false;
@@ -123,8 +128,14 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 	{
 		Engine::getVKContext().getMainQueue().submit(
 			commandBuffer,
-			{imageAvailableSemaphore, _nextSubmitSemaphore},
-			{_presentSemaphore, _nextSubmitSemaphore}
+			{
+				{imageAvailableSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
+				{_nextSubmitSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
+			},
+			{
+				{_presentSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
+				{_nextSubmitSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
+			}
 		);
 	}
 

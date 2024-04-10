@@ -18,7 +18,7 @@ public:
 
 	uint32_t getFamily() const;
 
-	void submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores, vk::ArrayProxy<VKPtr<VKSemaphore>> signalSemaphores);
+	void submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>> waitSemaphores, vk::ArrayProxy<std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>> signalSemaphores);
 	bool present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores);
 
 private:
