@@ -18,7 +18,6 @@ class VKSampler;
 class VKDescriptorSet;
 class VKPipeline;
 class VKFence;
-class VKTimestampQuery;
 class VKAccelerationStructure;
 class VKAccelerationStructureCompactedSizeQuery;
 class VKShaderBindingTable;
@@ -105,9 +104,6 @@ public:
 
 	void pushDebugGroup(std::string_view name);
 	void popDebugGroup();
-
-	void beginTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
-	void endTimestamp(const VKPtr<VKTimestampQuery>& timestampQuery);
 
 	void queryAccelerationStructureCompactedSize(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKAccelerationStructureCompactedSizeQuery>& accelerationStructureCompactedSizeQuery);
 
