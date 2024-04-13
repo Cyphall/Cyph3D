@@ -197,7 +197,6 @@ static std::vector<const char*> getRequiredDeviceCoreExtensions()
 	extensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
-	extensions.push_back(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
 
 	return extensions;
 }
@@ -682,13 +681,9 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 		bufferDeviceAddressFeatures.pNext = &accelerationStructureFeatures;
 	}
 
-	vk::PhysicalDeviceMaintenance5FeaturesKHR maintenance5Features;
-	maintenance5Features.maintenance5 = true;
-	maintenance5Features.pNext = &bufferDeviceAddressFeatures;
-
 	vk::PhysicalDeviceMemoryPriorityFeaturesEXT memoryPriorityFeatures;
 	memoryPriorityFeatures.memoryPriority = true;
-	memoryPriorityFeatures.pNext = &maintenance5Features;
+	memoryPriorityFeatures.pNext = &bufferDeviceAddressFeatures;
 
 	vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures;
 	hostQueryResetFeatures.hostQueryReset = true;
@@ -765,8 +760,7 @@ void VKContext::createVmaAllocator()
 		VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT |
 		VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT |
 		VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT |
-		VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT |
-		VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT;
+		VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT;
 	allocatorInfo.physicalDevice = _physicalDevice;
 	allocatorInfo.device = _device;
 	allocatorInfo.preferredLargeHeapBlockSize = 0;
