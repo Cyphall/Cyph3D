@@ -718,7 +718,7 @@ void VKCommandBuffer::drawIndirect(const VKPtr<VKBuffer<vk::DrawIndirectCommand>
 {
 	if (drawCommandsBuffer)
 	{
-		_commandBuffer.drawIndirect(drawCommandsBuffer->getHandle(), 0, drawCommandsBuffer->getSize(), sizeof(vk::DrawIndirectCommand));
+		_commandBuffer.drawIndirect(drawCommandsBuffer->getHandle(), 0, drawCommandsBuffer->getInfo().getSize(), sizeof(vk::DrawIndirectCommand));
 
 		_usedObjects.emplace_back(drawCommandsBuffer);
 	}
@@ -728,7 +728,7 @@ void VKCommandBuffer::drawIndexedIndirect(const VKPtr<VKBuffer<vk::DrawIndexedIn
 {
 	if (drawCommandsBuffer)
 	{
-		_commandBuffer.drawIndexedIndirect(drawCommandsBuffer->getHandle(), 0, drawCommandsBuffer->getSize(), sizeof(vk::DrawIndexedIndirectCommand));
+		_commandBuffer.drawIndexedIndirect(drawCommandsBuffer->getHandle(), 0, drawCommandsBuffer->getInfo().getSize(), sizeof(vk::DrawIndexedIndirectCommand));
 
 		_usedObjects.emplace_back(drawCommandsBuffer);
 	}
@@ -1028,13 +1028,13 @@ void VKCommandBuffer::buildBottomLevelAccelerationStructure(const VKPtr<VKAccele
 	geometry.geometry.triangles.vertexFormat = buildInfo.vertexFormat;
 	geometry.geometry.triangles.vertexData = buildInfo.vertexBuffer->getDeviceAddress();
 	geometry.geometry.triangles.vertexStride = buildInfo.vertexStride;
-	geometry.geometry.triangles.maxVertex = buildInfo.vertexBuffer->getSize() - 1;
+	geometry.geometry.triangles.maxVertex = buildInfo.vertexBuffer->getInfo().getSize() - 1;
 	geometry.geometry.triangles.indexType = buildInfo.indexType;
 	geometry.geometry.triangles.indexData = buildInfo.indexBuffer->getDeviceAddress();
 	geometry.geometry.triangles.transformData = VK_NULL_HANDLE;
 	geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
 
-	uint32_t primitiveCount = buildInfo.indexBuffer->getSize() / 3;
+	uint32_t primitiveCount = buildInfo.indexBuffer->getInfo().getSize() / 3;
 
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;

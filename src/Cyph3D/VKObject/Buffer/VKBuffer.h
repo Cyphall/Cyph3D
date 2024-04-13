@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
-#include "Cyph3D/VKObject/Buffer/VKBufferInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
 #include <vk_mem_alloc.hpp>
@@ -20,7 +19,7 @@ public:
 #if defined(_DEBUG)
 		if (_allocationInfo.pMappedData)
 		{
-			std::memset(_allocationInfo.pMappedData, 0xDD, _info.getSize() * sizeof(T));
+			std::memset(_allocationInfo.pMappedData, 0xDD, getByteSize());
 		}
 #endif
 		_context.getVmaAllocator().destroyBuffer(_buffer, _allocation);
@@ -31,24 +30,9 @@ public:
 		return static_cast<T*>(_allocationInfo.pMappedData);
 	}
 
-	const VKBufferInfo& getInfo() const
-	{
-		return _info;
-	}
-
 	const vk::Buffer& getHandle() override
 	{
 		return _buffer;
-	}
-
-	size_t getSize() const override
-	{
-		return _info.getSize();
-	}
-
-	vk::DeviceSize getByteSize() const override
-	{
-		return _info.getSize() * sizeof(T);
 	}
 
 	size_t getStride() const override
@@ -63,8 +47,7 @@ public:
 
 private:
 	VKBuffer(VKContext& context, const VKBufferInfo& info):
-		VKBufferBase(context),
-		_info(info)
+		VKBufferBase(context, info)
 	{
 		vk::BufferCreateInfo bufferCreateInfo;
 		bufferCreateInfo.size = _info.getSize() * sizeof(T);
@@ -106,8 +89,6 @@ private:
 		}
 #endif
 	}
-
-	VKBufferInfo _info;
 
 	vk::Buffer _buffer;
 

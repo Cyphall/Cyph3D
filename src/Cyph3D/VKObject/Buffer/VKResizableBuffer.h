@@ -26,7 +26,7 @@ public:
 
 	size_t getSize() const
 	{
-		return _buffer ? _buffer->getSize() : 0;
+		return _buffer ? _buffer->getInfo().getSize() : 0;
 	}
 
 	vk::DeviceSize getByteSize() const

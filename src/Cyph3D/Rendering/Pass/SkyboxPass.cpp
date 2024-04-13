@@ -82,7 +82,7 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 
 		commandBuffer->bindVertexBuffer(0, _vertexBuffer);
 
-		commandBuffer->draw(_vertexBuffer->getSize(), 0);
+		commandBuffer->draw(_vertexBuffer->getInfo().getSize(), 0);
 
 		commandBuffer->unbindPipeline();
 	}

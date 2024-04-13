@@ -300,7 +300,7 @@ void ShadowMapPass::renderDirectionalShadowMap(
 		pushConstantData.mvp = viewProjection * model.transform.getLocalToWorldMatrix();
 		commandBuffer->pushConstants(pushConstantData);
 
-		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
+		commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
 	}
 
 	commandBuffer->unbindPipeline();
@@ -388,7 +388,7 @@ void ShadowMapPass::renderPointShadowMap(
 			pushConstantData.model = model.transform.getLocalToWorldMatrix();
 			commandBuffer->pushConstants(pushConstantData);
 
-			commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
+			commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
 		}
 
 		commandBuffer->unbindPipeline();

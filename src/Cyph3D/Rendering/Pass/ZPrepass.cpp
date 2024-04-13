@@ -66,7 +66,7 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 		pushConstantData.mvp = vp * model.transform.getLocalToWorldMatrix();
 		commandBuffer->pushConstants(pushConstantData);
 
-		commandBuffer->drawIndexed(indexBuffer->getSize(), 0, 0);
+		commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
 	}
 
 	commandBuffer->unbindPipeline();

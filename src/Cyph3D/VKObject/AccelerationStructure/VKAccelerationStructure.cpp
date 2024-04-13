@@ -78,13 +78,13 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getBottomLev
 	geometry.geometry.triangles.vertexFormat = buildInfo.vertexFormat;
 	geometry.geometry.triangles.vertexData = VK_NULL_HANDLE;
 	geometry.geometry.triangles.vertexStride = buildInfo.vertexStride;
-	geometry.geometry.triangles.maxVertex = buildInfo.vertexBuffer->getSize() - 1;
+	geometry.geometry.triangles.maxVertex = buildInfo.vertexBuffer->getInfo().getSize() - 1;
 	geometry.geometry.triangles.indexType = buildInfo.indexType;
 	geometry.geometry.triangles.indexData = VK_NULL_HANDLE;
 	geometry.geometry.triangles.transformData = VK_NULL_HANDLE;
 	geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
 
-	uint32_t primitiveCount = buildInfo.indexBuffer->getSize() / 3;
+	uint32_t primitiveCount = buildInfo.indexBuffer->getInfo().getSize() / 3;
 
 	vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo;
 	buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
