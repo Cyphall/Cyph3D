@@ -13,7 +13,6 @@ struct NormalizationPassInput
 {
 	std::array<VKPtr<VKImage>, 3> inputImage;
 	uint32_t accumulatedSamples;
-	uint32_t fixedPointDecimals;
 };
 
 struct NormalizationPassOutput
@@ -30,7 +29,6 @@ private:
 	struct PushConstantData
 	{
 		GLSL_uint accumulatedSamples;
-		GLSL_uint fixedPointDecimals;
 	};
 
 	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;

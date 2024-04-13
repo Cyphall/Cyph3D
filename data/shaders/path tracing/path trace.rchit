@@ -60,7 +60,6 @@ layout(push_constant) uniform constants
 	uint u_batchIndex;
 	uint u_sampleCount;
 	bool u_resetAccumulation;
-	uint u_fixedPointDecimals;
 };
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;

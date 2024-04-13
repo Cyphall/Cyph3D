@@ -2,6 +2,10 @@
 
 #extension GL_EXT_shader_image_int64 : require
 #extension GL_ARB_gpu_shader_int64 : require
+#extension GL_ARB_gpu_shader_fp64 : require
+#extension GL_GOOGLE_include_directive : require
+
+#include "../../common/64bit.glsl"
 
 layout(set = 0, binding = 0, r64ui) uniform readonly u64image2D u_input[3];
 layout(set = 0, binding = 1, rgba16f) uniform writeonly image2D u_output;
@@ -9,7 +13,6 @@ layout(set = 0, binding = 1, rgba16f) uniform writeonly image2D u_output;
 layout(push_constant) uniform constants
 {
 	uint u_accumulatedSamples;
-	uint u_fixedPointDecimals;
 };
 
 layout (local_size_x = 8, local_size_y = 8) in;
@@ -23,15 +26,15 @@ void main()
 		return;
 	}
 
-	u64vec3 light = u64vec3(
+	u64vec3 lightEncoded = u64vec3(
 		imageLoad(u_input[0], ivec2(dstPos)).r,
 		imageLoad(u_input[1], ivec2(dstPos)).r,
 		imageLoad(u_input[2], ivec2(dstPos)).r
 	);
 
-	light /= uint64_t(u_accumulatedSamples);
+	dvec3 light = uint64BitsToDouble(lightEncoded);
 
-	vec3 color = vec3(light) / pow(10, u_fixedPointDecimals);
+	vec3 color = vec3(light / u_accumulatedSamples);
 
 	imageStore(u_output, ivec2(dstPos), vec4(color, 1));
 }

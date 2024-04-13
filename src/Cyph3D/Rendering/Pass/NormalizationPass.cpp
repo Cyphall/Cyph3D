@@ -48,8 +48,7 @@ NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>
 	commandBuffer->pushDescriptor(0, 1, _outputImage, 0);
 
 	PushConstantData pushConstantData{
-		.accumulatedSamples = input.accumulatedSamples,
-		.fixedPointDecimals = input.fixedPointDecimals
+		.accumulatedSamples = input.accumulatedSamples
 	};
 	commandBuffer->pushConstants(pushConstantData);
 

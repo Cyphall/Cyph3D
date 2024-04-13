@@ -38,8 +38,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 
 	NormalizationPassInput normalizationPassInput{
 		.inputImage = pathTracePassOutput.rawRenderImage,
-		.accumulatedSamples = pathTracePassOutput.accumulatedSamples,
-		.fixedPointDecimals = pathTracePassOutput.fixedPointDecimals
+		.accumulatedSamples = pathTracePassOutput.accumulatedSamples
 	};
 
 	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput);

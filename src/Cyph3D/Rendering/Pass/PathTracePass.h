@@ -26,7 +26,6 @@ struct PathTracePassOutput
 {
 	std::array<VKPtr<VKImage>, 3> rawRenderImage;
 	uint32_t accumulatedSamples;
-	uint32_t fixedPointDecimals;
 };
 
 class PathTracePass : public RenderPass<PathTracePassInput, PathTracePassOutput>
@@ -72,7 +71,6 @@ private:
 		GLSL_uint batchIndex;
 		GLSL_uint sampleCount;
 		GLSL_bool resetAccumulation;
-		GLSL_uint fixedPointDecimals;
 	};
 
 	VKPtr<VKAccelerationStructure> _tlas;

@@ -26,8 +26,6 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>
 
-static constexpr uint32_t FIXED_POINT_DECIMALS = 3;
-
 PathTracePass::PathTracePass(const glm::uvec2& size):
 	RenderPass(size, "Path trace pass")
 {
@@ -103,8 +101,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	FramePushConstants framePushConstants{
 		.batchIndex = _batchIndex,
 		.sampleCount = input.sampleCount,
-		.resetAccumulation = _accumulatedSamples == 0,
-		.fixedPointDecimals = FIXED_POINT_DECIMALS
+		.resetAccumulation = _accumulatedSamples == 0
 	};
 
 	commandBuffer->pushConstants(framePushConstants);
@@ -118,8 +115,7 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 
 	return {
 		.rawRenderImage = _rawRenderImage,
-		.accumulatedSamples = _accumulatedSamples,
-		.fixedPointDecimals = FIXED_POINT_DECIMALS
+		.accumulatedSamples = _accumulatedSamples
 	};
 }
 
