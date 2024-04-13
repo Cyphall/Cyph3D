@@ -223,6 +223,12 @@ void UIViewport::show()
 								vk::ImageLayout::eTransferSrcOptimal
 							);
 
+							commandBuffer->bufferMemoryBarrier(
+								stagingBuffer,
+								vk::PipelineStageFlagBits2::eCopy,
+								vk::AccessFlagBits2::eTransferWrite
+							);
+
 							commandBuffer->copyImageToBuffer(conversionImage, 0, 0, stagingBuffer, 0);
 						}
 					);

@@ -271,6 +271,12 @@ void ImGuiVulkanBackend::createFontsTexture()
 	Engine::getVKContext().executeImmediate(
 		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
 		{
+			commandBuffer->bufferMemoryBarrier(
+				stagingBuffer,
+				vk::PipelineStageFlagBits2::eCopy,
+				vk::AccessFlagBits2::eTransferRead
+			);
+
 			commandBuffer->imageMemoryBarrier(
 				_fontsTexture,
 				vk::PipelineStageFlagBits2::eCopy,

@@ -306,6 +306,12 @@ static VKPtr<VKImage> uploadEquirectangularImage(AssetManagerWorkerData& workerD
 	// upload staging buffer to texture
 	workerData.transferCommandBuffer->begin();
 
+	workerData.transferCommandBuffer->bufferMemoryBarrier(
+		stagingBuffer,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferRead
+	);
+
 	workerData.transferCommandBuffer->imageMemoryBarrier(
 		image,
 		vk::PipelineStageFlagBits2::eCopy,
@@ -510,6 +516,12 @@ static EquirectangularSkyboxData downloadCubemapTexture(AssetManagerWorkerData& 
 		vk::PipelineStageFlagBits2::eTransfer,
 		vk::AccessFlagBits2::eTransferRead,
 		vk::ImageLayout::eTransferSrcOptimal
+	);
+
+	workerData.transferCommandBuffer->bufferMemoryBarrier(
+		stagingBuffer,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferWrite
 	);
 
 	vk::DeviceSize bufferOffset = 0;

@@ -149,6 +149,12 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	// upload staging buffer to texture
 	workerData.transferCommandBuffer->begin();
 
+	workerData.transferCommandBuffer->bufferMemoryBarrier(
+		stagingBuffer,
+		vk::PipelineStageFlagBits2::eCopy,
+		vk::AccessFlagBits2::eTransferRead
+	);
+
 	workerData.transferCommandBuffer->imageMemoryBarrier(
 		_image,
 		vk::PipelineStageFlagBits2::eCopy,

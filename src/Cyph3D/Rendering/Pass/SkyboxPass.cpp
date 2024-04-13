@@ -43,6 +43,12 @@ SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffe
 		vk::ImageLayout::eColorAttachmentOptimal
 	);
 
+	commandBuffer->bufferMemoryBarrier(
+		_vertexBuffer,
+		vk::PipelineStageFlagBits2::eVertexAttributeInput,
+		vk::AccessFlagBits2::eVertexAttributeRead
+	);
+
 	VKRenderingInfo renderingInfo(_size);
 
 	renderingInfo.addColorAttachment(input.multisampledRawRenderImage)

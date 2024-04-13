@@ -8,28 +8,37 @@
 class VKBufferBase : public VKObject
 {
 public:
-	const VKBufferInfo& getInfo() const
+	struct State
 	{
-		return _info;
-	}
+		vk::PipelineStageFlags2 stageMask;
+		vk::AccessFlags2 accessMask;
+
+		bool operator==(const State& other) const = default;
+	};
+
+	const VKBufferInfo& getInfo() const;
 
 	virtual const vk::Buffer& getHandle() = 0;
 
-	vk::DeviceSize getByteSize() const
-	{
-		return _info.getSize() * getStride();
-	}
+	vk::DeviceSize getByteSize() const;
 
 	virtual size_t getStride() const = 0;
 
 	virtual vk::DeviceAddress getDeviceAddress() const = 0;
 
+	const State& getState() const;
+
 protected:
+	friend class VKCommandBuffer;
+
 	VKBufferInfo _info;
 
-	explicit VKBufferBase(VKContext& context, const VKBufferInfo& info):
-		VKObject(context),
-		_info(info)
-	{
-	}
+	State _state = {
+		.stageMask = vk::PipelineStageFlagBits2::eNone,
+		.accessMask = vk::AccessFlagBits2::eNone,
+	};
+
+	explicit VKBufferBase(VKContext& context, const VKBufferInfo& info);
+
+	void setState(const State& state);
 };

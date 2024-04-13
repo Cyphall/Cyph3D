@@ -104,11 +104,13 @@ void VKCommandBuffer::memoryBarrier(vk::PipelineStageFlags2 srcStageMask, vk::Ac
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 }
 
-void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
+void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
 {
+	const VKBufferBase::State& bufferState = buffer->getState();
+
 	vk::BufferMemoryBarrier2 bufferMemoryBarrier;
-	bufferMemoryBarrier.srcStageMask = srcStageMask;
-	bufferMemoryBarrier.srcAccessMask = srcAccessMask;
+	bufferMemoryBarrier.srcStageMask = bufferState.stageMask;
+	bufferMemoryBarrier.srcAccessMask = bufferState.accessMask;
 	bufferMemoryBarrier.dstStageMask = dstStageMask;
 	bufferMemoryBarrier.dstAccessMask = dstAccessMask;
 	bufferMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -122,6 +124,13 @@ void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk:
 	dependencyInfo.pBufferMemoryBarriers = &bufferMemoryBarrier;
 
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
+
+	buffer->setState(
+		VKBufferBase::State{
+			.stageMask = dstStageMask,
+			.accessMask = dstAccessMask
+		}
+	);
 
 	_usedObjects.emplace_back(buffer);
 }
@@ -198,14 +207,23 @@ void VKCommandBuffer::acquireBufferOwnership(const VKPtr<VKBufferBase>& buffer, 
 
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 
+	buffer->setState(
+		VKBufferBase::State{
+			.stageMask = dstStageMask,
+			.accessMask = dstAccessMask
+		}
+	);
+
 	_usedObjects.emplace_back(buffer);
 }
 
-void VKCommandBuffer::releaseBufferOwnership(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner)
+void VKCommandBuffer::releaseBufferOwnership(const VKPtr<VKBufferBase>& buffer, const VKQueue& nextOwner)
 {
+	const VKBufferBase::State& bufferState = buffer->getState();
+
 	vk::BufferMemoryBarrier2 bufferMemoryBarrier;
-	bufferMemoryBarrier.srcStageMask = srcStageMask;
-	bufferMemoryBarrier.srcAccessMask = srcAccessMask;
+	bufferMemoryBarrier.srcStageMask = bufferState.stageMask;
+	bufferMemoryBarrier.srcAccessMask = bufferState.accessMask;
 	bufferMemoryBarrier.dstStageMask = vk::PipelineStageFlagBits2::eNone;
 	bufferMemoryBarrier.dstAccessMask = vk::AccessFlagBits2::eNone;
 	bufferMemoryBarrier.srcQueueFamilyIndex = _queueFamily;

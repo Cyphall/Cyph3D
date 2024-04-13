@@ -83,6 +83,18 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 		}
 	}
 
+	commandBuffer->bufferMemoryBarrier(
+		_tlas->getBackingBuffer(),
+		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+		vk::AccessFlagBits2::eAccelerationStructureReadKHR
+	);
+
+	commandBuffer->bufferMemoryBarrier(
+		_sbt->getBuffer(),
+		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+		vk::AccessFlagBits2::eShaderBindingTableReadKHR
+	);
+
 	commandBuffer->bindPipeline(_pipeline);
 
 	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
@@ -151,15 +163,19 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 	instancesBufferInfo.setRequiredAlignment(16);
 	VKPtr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>> instancesBuffer = VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(Engine::getVKContext(), instancesBufferInfo);
 
-	commandBuffer->buildTopLevelAccelerationStructure(_tlas, scratchBuffer, buildInfo, instancesBuffer);
-
 	commandBuffer->bufferMemoryBarrier(
 		_tlas->getBackingBuffer(),
 		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
-		vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
-		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eAccelerationStructureReadKHR
+		vk::AccessFlagBits2::eAccelerationStructureWriteKHR
 	);
+
+	commandBuffer->bufferMemoryBarrier(
+		scratchBuffer,
+		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+		vk::AccessFlagBits2::eAccelerationStructureReadKHR | vk::AccessFlagBits2::eAccelerationStructureWriteKHR
+	);
+
+	commandBuffer->buildTopLevelAccelerationStructure(_tlas, scratchBuffer, buildInfo, instancesBuffer);
 }
 
 void PathTracePass::setupSBT(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
@@ -214,14 +230,6 @@ void PathTracePass::setupSBT(const VKPtr<VKCommandBuffer>& commandBuffer, const 
 	}
 
 	_sbt = VKShaderBindingTable::create(Engine::getVKContext(), info);
-
-	commandBuffer->bufferMemoryBarrier(
-		_sbt->getBuffer(),
-		vk::PipelineStageFlagBits2::eHost,
-		vk::AccessFlagBits2::eHostWrite,
-		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eShaderBindingTableReadKHR
-	);
 }
 
 void PathTracePass::createDescriptorSetLayout()

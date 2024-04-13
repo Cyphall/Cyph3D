@@ -112,6 +112,12 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 				vk::ImageLayout::eTransferSrcOptimal
 			);
 
+			commandBuffer->bufferMemoryBarrier(
+				_readbackBuffer,
+				vk::PipelineStageFlagBits2::eCopy,
+				vk::AccessFlagBits2::eTransferWrite
+			);
+
 			commandBuffer->copyPixelToBuffer(_objectIndexImage, 0, 0, clickPos, _readbackBuffer, 0);
 		}
 	);
