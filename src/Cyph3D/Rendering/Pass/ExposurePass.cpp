@@ -24,9 +24,14 @@ ExposurePass::ExposurePass(glm::uvec2 size):
 ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
+		input.inputImage,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal
+	);
+
+	commandBuffer->imageMemoryBarrier(
 		_outputImage,
-		vk::PipelineStageFlagBits2::eAllCommands,
-		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal

@@ -16,5 +16,5 @@ public:
 
 	static vk::ImageAspectFlags getAspect(vk::Format format);
 
-	static void assertImageViewHasUniqueLayout(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange);
+	static void assertImageViewHasUniqueState(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange);
 };

@@ -14,6 +14,15 @@
 class VKImage : public VKObject
 {
 public:
+	struct State
+	{
+		vk::ImageLayout layout;
+		vk::PipelineStageFlags2 stageMask;
+		vk::AccessFlags2 accessMask;
+
+		bool operator==(const State& other) const = default;
+	};
+
 	static VKPtr<VKImage> create(VKContext& context, const VKImageInfo& info);
 
 	~VKImage() override;
@@ -24,7 +33,7 @@ public:
 
 	const glm::uvec2& getSize(uint32_t level) const;
 
-	vk::ImageLayout getLayout(uint32_t layer, uint32_t level) const;
+	const State& getState(uint32_t layer, uint32_t level) const;
 
 	vk::DeviceSize getLayerByteSize() const;
 	vk::DeviceSize getLevelByteSize(uint32_t level) const;
@@ -69,10 +78,10 @@ private:
 	vk::Image _handle;
 
 	std::vector<glm::uvec2> _sizes;
-	std::vector<std::vector<vk::ImageLayout>> _currentLayouts;
+	std::vector<std::vector<State>> _currentStates;
 	std::unordered_map<ViewInfo, vk::ImageView, ViewInfoHasher> _views;
 
 	VKImage(VKContext& context, const VKImageInfo& info);
 
-	void setLayout(glm::uvec2 layerRange, glm::uvec2 levelRange, vk::ImageLayout layout);
+	void setState(glm::uvec2 layerRange, glm::uvec2 levelRange, const State& state);
 };

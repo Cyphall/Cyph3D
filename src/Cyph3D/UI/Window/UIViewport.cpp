@@ -202,8 +202,6 @@ void UIViewport::show()
 						{
 							commandBuffer->imageMemoryBarrier(
 								_renderToFileData->lastRenderedTexture,
-								vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-								vk::AccessFlagBits2::eColorAttachmentWrite,
 								vk::PipelineStageFlagBits2::eBlit,
 								vk::AccessFlagBits2::eTransferRead,
 								vk::ImageLayout::eTransferSrcOptimal
@@ -211,8 +209,6 @@ void UIViewport::show()
 
 							commandBuffer->imageMemoryBarrier(
 								conversionImage,
-								vk::PipelineStageFlagBits2::eNone,
-								vk::AccessFlagBits2::eNone,
 								vk::PipelineStageFlagBits2::eBlit,
 								vk::AccessFlagBits2::eTransferWrite,
 								vk::ImageLayout::eTransferDstOptimal
@@ -222,8 +218,6 @@ void UIViewport::show()
 
 							commandBuffer->imageMemoryBarrier(
 								conversionImage,
-								vk::PipelineStageFlagBits2::eBlit,
-								vk::AccessFlagBits2::eTransferWrite,
 								vk::PipelineStageFlagBits2::eCopy,
 								vk::AccessFlagBits2::eTransferRead,
 								vk::ImageLayout::eTransferSrcOptimal
@@ -264,6 +258,13 @@ void UIViewport::show()
 				}
 
 				_lastViewportImage = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, sceneChanged, cameraChanged);
+
+				Engine::getVKContext().getDefaultCommandBuffer()->imageMemoryBarrier(
+					_lastViewportImage,
+					vk::PipelineStageFlagBits2::eFragmentShader,
+					vk::AccessFlagBits2::eShaderSampledRead,
+					vk::ImageLayout::eReadOnlyOptimal
+				);
 
 				_sceneChangeVersion = currentSceneChangeVersion;
 			}

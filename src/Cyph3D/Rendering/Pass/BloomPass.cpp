@@ -32,8 +32,6 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	{
 		commandBuffer->imageMemoryBarrier(
 			input.inputImage,
-			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-			vk::AccessFlagBits2::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferRead,
 			vk::ImageLayout::eTransferSrcOptimal
@@ -41,27 +39,14 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 
 		commandBuffer->imageMemoryBarrier(
 			_workImage,
-			{0, 0},
-			{0, 0},
-			vk::PipelineStageFlagBits2::eAllCommands,
-			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eCopy,
 			vk::AccessFlagBits2::eTransferWrite,
-			vk::ImageLayout::eTransferDstOptimal
+			vk::ImageLayout::eTransferDstOptimal,
+			{0, 0},
+			{0, 0}
 		);
 
 		commandBuffer->copyImageToImage(input.inputImage, 0, 0, _workImage, 0, 0);
-
-		commandBuffer->imageMemoryBarrier(
-			_workImage,
-			{0, 0},
-			{0, 0},
-			vk::PipelineStageFlagBits2::eCopy,
-			vk::AccessFlagBits2::eTransferWrite,
-			vk::PipelineStageFlagBits2::eFragmentShader,
-			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal
-		);
 	}
 	commandBuffer->popDebugGroup();
 
@@ -69,87 +54,21 @@ BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer,
 	for (int i = 1; i < _workImage->getInfo().getLevels(); i++)
 	{
 		commandBuffer->pushDebugGroup(std::format("downsampleAnsBlur({}->{})", i - 1, i));
-		{
-			commandBuffer->imageMemoryBarrier(
-				_workImage,
-				{0, 0},
-				{i, i},
-				vk::PipelineStageFlagBits2::eAllCommands,
-				vk::AccessFlagBits2::eNone,
-				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-				vk::AccessFlagBits2::eColorAttachmentWrite,
-				vk::ImageLayout::eColorAttachmentOptimal
-			);
-
-			downsampleAnsBlur(commandBuffer, i);
-
-			commandBuffer->imageMemoryBarrier(
-				_workImage,
-				{0, 0},
-				{i, i},
-				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-				vk::AccessFlagBits2::eColorAttachmentWrite,
-				vk::PipelineStageFlagBits2::eFragmentShader,
-				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal
-			);
-		}
+		downsampleAnsBlur(commandBuffer, i);
 		commandBuffer->popDebugGroup();
 	}
 
 	// upsample and blur work image
-	for (int i = _workImage->getInfo().getLevels() - 2; i >= 0; i--)
+	for (int i = static_cast<int>(_workImage->getInfo().getLevels() - 2); i >= 0; i--)
 	{
 		commandBuffer->pushDebugGroup(std::format("upsampleAndBlur({}->{})", i + 1, i));
-		{
-			commandBuffer->imageMemoryBarrier(
-				_workImage,
-				{0, 0},
-				{i, i},
-				vk::PipelineStageFlagBits2::eFragmentShader,
-				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-				vk::AccessFlagBits2::eColorAttachmentRead,
-				vk::ImageLayout::eColorAttachmentOptimal
-			);
-
-			upsampleAndBlur(commandBuffer, i);
-
-			commandBuffer->imageMemoryBarrier(
-				_workImage,
-				{0, 0},
-				{i, i},
-				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-				vk::AccessFlagBits2::eColorAttachmentWrite,
-				vk::PipelineStageFlagBits2::eFragmentShader,
-				vk::AccessFlagBits2::eShaderSampledRead,
-				vk::ImageLayout::eReadOnlyOptimal
-			);
-		}
+		upsampleAndBlur(commandBuffer, i);
 		commandBuffer->popDebugGroup();
 	}
 
 	// compose inputImageView image level 0 and work image level 0 to outputImageView image level 0
 	commandBuffer->pushDebugGroup("compose");
 	{
-		commandBuffer->imageMemoryBarrier(
-			input.inputImage,
-			vk::PipelineStageFlagBits2::eCopy,
-			vk::AccessFlagBits2::eTransferRead,
-			vk::PipelineStageFlagBits2::eFragmentShader,
-			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal
-		);
-
-		commandBuffer->imageMemoryBarrier(
-			_outputImage,
-			vk::PipelineStageFlagBits2::eAllCommands,
-			vk::AccessFlagBits2::eNone,
-			vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-			vk::AccessFlagBits2::eColorAttachmentWrite,
-			vk::ImageLayout::eColorAttachmentOptimal
-		);
-
 		compose(input.inputImage, commandBuffer);
 	}
 	commandBuffer->popDebugGroup();
@@ -166,6 +85,24 @@ void BloomPass::onResize()
 
 void BloomPass::downsampleAnsBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
+	commandBuffer->imageMemoryBarrier(
+		_workImage,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		{0, 0},
+		{dstLevel - 1, dstLevel - 1}
+	);
+
+	commandBuffer->imageMemoryBarrier(
+		_workImage,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal,
+		{0, 0},
+		{dstLevel, dstLevel}
+	);
+
 	VKRenderingInfo renderingInfo(_workImage->getSize(dstLevel));
 
 	renderingInfo.addColorAttachment(
@@ -218,6 +155,24 @@ void BloomPass::downsampleAnsBlur(const VKPtr<VKCommandBuffer>& commandBuffer, i
 
 void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
+	commandBuffer->imageMemoryBarrier(
+		_workImage,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		{0, 0},
+		{dstLevel + 1, dstLevel + 1}
+	);
+
+	commandBuffer->imageMemoryBarrier(
+		_workImage,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentRead | vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal,
+		{0, 0},
+		{dstLevel, dstLevel}
+	);
+
 	VKRenderingInfo renderingInfo(_workImage->getSize(dstLevel));
 
 	renderingInfo
@@ -272,6 +227,29 @@ void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int
 
 void BloomPass::compose(const VKPtr<VKImage>& input, const VKPtr<VKCommandBuffer>& commandBuffer)
 {
+	commandBuffer->imageMemoryBarrier(
+		input,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal
+	);
+
+	commandBuffer->imageMemoryBarrier(
+		_workImage,
+		vk::PipelineStageFlagBits2::eFragmentShader,
+		vk::AccessFlagBits2::eShaderSampledRead,
+		vk::ImageLayout::eReadOnlyOptimal,
+		{0, 0},
+		{0, 0}
+	);
+
+	commandBuffer->imageMemoryBarrier(
+		_outputImage,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal
+	);
+
 	VKRenderingInfo renderingInfo(_size);
 
 	renderingInfo.addColorAttachment(_outputImage)
@@ -294,7 +272,16 @@ void BloomPass::compose(const VKPtr<VKImage>& input, const VKPtr<VKCommandBuffer
 	commandBuffer->setScissor(scissor);
 
 	commandBuffer->pushDescriptor(0, 0, input, _inputImageSampler);
-	commandBuffer->pushDescriptor(0, 1, _workImage, _inputImageSampler);
+	commandBuffer->pushDescriptor(
+		0,
+		1,
+		_workImage,
+		vk::ImageViewType::e2D,
+		{0, 0},
+		{0, 0},
+		_workImage->getInfo().getFormat(),
+		_inputImageSampler
+	);
 
 	ComposePushConstantData pushConstantData{};
 	pushConstantData.factor = glm::clamp(BLOOM_STRENGTH, 0.0f, 1.0f);

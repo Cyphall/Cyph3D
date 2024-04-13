@@ -20,10 +20,18 @@ NormalizationPass::NormalizationPass(glm::uvec2 size):
 
 NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input)
 {
+	for (int i = 0; i < 3; i++)
+	{
+		commandBuffer->imageMemoryBarrier(
+			input.inputImage[i],
+			vk::PipelineStageFlagBits2::eComputeShader,
+			vk::AccessFlagBits2::eShaderStorageRead,
+			vk::ImageLayout::eGeneral
+		);
+	}
+
 	commandBuffer->imageMemoryBarrier(
 		_outputImage,
-		vk::PipelineStageFlagBits2::eAllCommands,
-		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::ImageLayout::eGeneral

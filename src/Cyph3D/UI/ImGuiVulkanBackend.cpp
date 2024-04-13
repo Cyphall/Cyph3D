@@ -116,7 +116,7 @@ void ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const VKPtr<
 
 				const VKPtr<VKImage>& texture = *static_cast<const VKPtr<VKImage>*>(pcmd->TextureId);
 
-				if (texture->getLayout(0, 0) != vk::ImageLayout::eReadOnlyOptimal)
+				if (texture->getState(0, 0).layout != vk::ImageLayout::eReadOnlyOptimal)
 				{
 					Logger::error("VKImage passed to ImGui has the wrong layout");
 				}
@@ -273,8 +273,6 @@ void ImGuiVulkanBackend::createFontsTexture()
 		{
 			commandBuffer->imageMemoryBarrier(
 				_fontsTexture,
-				vk::PipelineStageFlagBits2::eNone,
-				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferWrite,
 				vk::ImageLayout::eTransferDstOptimal
@@ -284,8 +282,6 @@ void ImGuiVulkanBackend::createFontsTexture()
 
 			commandBuffer->imageMemoryBarrier(
 				_fontsTexture,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite,
 				vk::PipelineStageFlagBits2::eFragmentShader,
 				vk::AccessFlagBits2::eShaderSampledRead,
 				vk::ImageLayout::eReadOnlyOptimal

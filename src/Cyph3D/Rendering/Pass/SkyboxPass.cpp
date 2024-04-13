@@ -30,9 +30,14 @@ SkyboxPass::SkyboxPass(glm::uvec2 size):
 SkyboxPassOutput SkyboxPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
+		input.multisampledRawRenderImage,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal
+	);
+
+	commandBuffer->imageMemoryBarrier(
 		_resolvedRawRenderImage,
-		vk::PipelineStageFlagBits2::eAllCommands,
-		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal

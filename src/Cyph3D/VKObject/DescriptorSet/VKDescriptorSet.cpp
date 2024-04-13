@@ -193,11 +193,11 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 {
 	if (image)
 	{
-		VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+		VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
 
 		vk::DescriptorImageInfo imageInfo;
 		imageInfo.imageView = image->getView(type, layerRange, levelRange, format);
-		imageInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
+		imageInfo.imageLayout = image->getState(layerRange.x, levelRange.x).layout;
 
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
 
@@ -246,11 +246,11 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 {
 	if (image && sampler)
 	{
-		VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+		VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
 
 		vk::DescriptorImageInfo combinedImageSamplerInfo;
 		combinedImageSamplerInfo.imageView = image->getView(type, layerRange, levelRange, format);
-		combinedImageSamplerInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
+		combinedImageSamplerInfo.imageLayout = image->getState(layerRange.x, levelRange.x).layout;
 		combinedImageSamplerInfo.sampler = sampler->getHandle();
 
 		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);

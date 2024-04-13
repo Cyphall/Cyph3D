@@ -74,11 +74,18 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 	uint32_t layers = _info.getLayers();
 	uint32_t levels = _info.getLevels();
 
-	_currentLayouts.resize(layers);
+	_currentStates.resize(layers);
 	for (uint32_t i = 0; i < layers; i++)
 	{
-		_currentLayouts[i].resize(levels);
-		std::ranges::fill(_currentLayouts[i], vk::ImageLayout::eUndefined);
+		_currentStates[i].resize(levels);
+		std::ranges::fill(
+			_currentStates[i],
+			State{
+				.layout = vk::ImageLayout::eUndefined,
+				.stageMask = vk::PipelineStageFlagBits2::eNone,
+				.accessMask = vk::AccessFlagBits2::eNone,
+			}
+		);
 	}
 
 	_sizes.resize(levels);
@@ -117,9 +124,9 @@ const glm::uvec2& VKImage::getSize(uint32_t level) const
 	return _sizes[level];
 }
 
-vk::ImageLayout VKImage::getLayout(uint32_t layer, uint32_t level) const
+const VKImage::State& VKImage::getState(uint32_t layer, uint32_t level) const
 {
-	return _currentLayouts[layer][level];
+	return _currentStates[layer][level];
 }
 
 vk::DeviceSize VKImage::getLayerByteSize() const
@@ -213,13 +220,13 @@ int VKImage::calcMaxMipLevels(const glm::uvec2& size)
 	return static_cast<int>(glm::floor(glm::log2(static_cast<float>(glm::min(size.x, size.y))))) + 1;
 }
 
-void VKImage::setLayout(glm::uvec2 layerRange, glm::uvec2 levelRange, vk::ImageLayout layout)
+void VKImage::setState(glm::uvec2 layerRange, glm::uvec2 levelRange, const State& state)
 {
 	for (uint32_t layer = layerRange.x; layer <= layerRange.y; layer++)
 	{
 		for (uint32_t level = levelRange.x; level <= levelRange.y; level++)
 		{
-			_currentLayouts[layer][level] = layout;
+			_currentStates[layer][level] = state;
 		}
 	}
 }

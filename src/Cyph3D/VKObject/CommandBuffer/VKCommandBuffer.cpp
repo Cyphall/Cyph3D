@@ -126,30 +126,30 @@ void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk:
 	_usedObjects.emplace_back(buffer);
 }
 
-void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
 {
 	imageMemoryBarrier(
 		image,
-		{0, image->getInfo().getLayers() - 1},
-		{0, image->getInfo().getLevels() - 1},
-		srcStageMask,
-		srcAccessMask,
 		dstStageMask,
 		dstAccessMask,
-		newImageLayout
+		newImageLayout,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1}
 	);
 }
 
-void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
-	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+	VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
+
+	const VKImage::State& imageState = image->getState(layerRange.x, levelRange.x);
 
 	vk::ImageMemoryBarrier2 imageMemoryBarrier;
-	imageMemoryBarrier.srcStageMask = srcStageMask;
-	imageMemoryBarrier.srcAccessMask = srcAccessMask;
+	imageMemoryBarrier.srcStageMask = imageState.stageMask;
+	imageMemoryBarrier.srcAccessMask = imageState.accessMask;
 	imageMemoryBarrier.dstStageMask = dstStageMask;
 	imageMemoryBarrier.dstAccessMask = dstAccessMask;
-	imageMemoryBarrier.oldLayout = image->getLayout(layerRange.x, levelRange.x);
+	imageMemoryBarrier.oldLayout = imageState.layout;
 	imageMemoryBarrier.newLayout = newImageLayout;
 	imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -166,7 +166,15 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, glm::uvec2
 
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 
-	image->setLayout(layerRange, levelRange, newImageLayout);
+	image->setState(
+		layerRange,
+		levelRange,
+		VKImage::State{
+			.layout = newImageLayout,
+			.stageMask = dstStageMask,
+			.accessMask = dstAccessMask
+		}
+	);
 
 	_usedObjects.emplace_back(image);
 }
@@ -219,25 +227,27 @@ void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, const V
 {
 	acquireImageOwnership(
 		image,
-		{0, image->getInfo().getLayers() - 1},
-		{0, image->getInfo().getLevels() - 1},
 		previousOwner,
 		dstStageMask,
 		dstAccessMask,
-		newImageLayout
+		newImageLayout,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1}
 	);
 }
 
-void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
-	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+	VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
+
+	const VKImage::State& imageState = image->getState(layerRange.x, levelRange.x);
 
 	vk::ImageMemoryBarrier2 imageMemoryBarrier;
 	imageMemoryBarrier.srcStageMask = vk::PipelineStageFlagBits2::eNone;
 	imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits2::eNone;
 	imageMemoryBarrier.dstStageMask = dstStageMask;
 	imageMemoryBarrier.dstAccessMask = dstAccessMask;
-	imageMemoryBarrier.oldLayout = image->getLayout(layerRange.x, levelRange.x);
+	imageMemoryBarrier.oldLayout = imageState.layout;
 	imageMemoryBarrier.newLayout = newImageLayout;
 	imageMemoryBarrier.srcQueueFamilyIndex = previousOwner.getFamily();
 	imageMemoryBarrier.dstQueueFamilyIndex = _queueFamily;
@@ -254,34 +264,42 @@ void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, glm::uv
 
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 
-	image->setLayout(layerRange, levelRange, newImageLayout);
+	image->setState(
+		layerRange,
+		levelRange,
+		VKImage::State{
+			.layout = newImageLayout,
+			.stageMask = dstStageMask,
+			.accessMask = dstAccessMask
+		}
+	);
 
 	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, const VKQueue& nextOwner, vk::ImageLayout newImageLayout)
 {
 	releaseImageOwnership(
 		image,
-		{0, image->getInfo().getLayers() - 1},
-		{0, image->getInfo().getLevels() - 1},
-		srcStageMask,
-		srcAccessMask,
 		nextOwner,
-		newImageLayout
+		newImageLayout,
+		{0, image->getInfo().getLayers() - 1},
+		{0, image->getInfo().getLevels() - 1}
 	);
 }
 
-void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::PipelineStageFlags2 srcStageMask, vk::AccessFlags2 srcAccessMask, const VKQueue& nextOwner, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, const VKQueue& nextOwner, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
-	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+	VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
+
+	const VKImage::State& imageState = image->getState(layerRange.x, levelRange.x);
 
 	vk::ImageMemoryBarrier2 imageMemoryBarrier;
-	imageMemoryBarrier.srcStageMask = srcStageMask;
-	imageMemoryBarrier.srcAccessMask = srcAccessMask;
+	imageMemoryBarrier.srcStageMask = imageState.stageMask;
+	imageMemoryBarrier.srcAccessMask = imageState.accessMask;
 	imageMemoryBarrier.dstStageMask = vk::PipelineStageFlagBits2::eNone;
 	imageMemoryBarrier.dstAccessMask = vk::AccessFlagBits2::eNone;
-	imageMemoryBarrier.oldLayout = image->getLayout(layerRange.x, levelRange.x);
+	imageMemoryBarrier.oldLayout = imageState.layout;
 	imageMemoryBarrier.newLayout = newImageLayout;
 	imageMemoryBarrier.srcQueueFamilyIndex = _queueFamily;
 	imageMemoryBarrier.dstQueueFamilyIndex = nextOwner.getFamily();
@@ -314,9 +332,9 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 
 		const VKRenderingColorAttachmentInfo::ImageInfo& imageInfo = colorAttachmentInfo.getImageInfo();
 		_usedObjects.emplace_back(imageInfo.image);
-		VKHelper::assertImageViewHasUniqueLayout(imageInfo.image, imageInfo.layerRange, imageInfo.levelRange);
+		VKHelper::assertImageViewHasUniqueState(imageInfo.image, imageInfo.layerRange, imageInfo.levelRange);
 		colorAttachment.imageView = imageInfo.image->getView(imageInfo.type, imageInfo.layerRange, imageInfo.levelRange, imageInfo.format);
-		colorAttachment.imageLayout = imageInfo.image->getLayout(imageInfo.layerRange.x, imageInfo.levelRange.x);
+		colorAttachment.imageLayout = imageInfo.image->getState(imageInfo.layerRange.x, imageInfo.levelRange.x).layout;
 
 		if (colorAttachmentInfo.getResolveMode() != vk::ResolveModeFlagBits::eNone)
 		{
@@ -324,9 +342,9 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 
 			const VKRenderingColorAttachmentInfo::ImageInfo& resolveImageInfo = colorAttachmentInfo.getResolveImageInfo();
 			_usedObjects.emplace_back(resolveImageInfo.image);
-			VKHelper::assertImageViewHasUniqueLayout(resolveImageInfo.image, resolveImageInfo.layerRange, resolveImageInfo.levelRange);
+			VKHelper::assertImageViewHasUniqueState(resolveImageInfo.image, resolveImageInfo.layerRange, resolveImageInfo.levelRange);
 			colorAttachment.resolveImageView = resolveImageInfo.image->getView(resolveImageInfo.type, resolveImageInfo.layerRange, resolveImageInfo.levelRange, resolveImageInfo.format);
-			colorAttachment.resolveImageLayout = resolveImageInfo.image->getLayout(resolveImageInfo.layerRange.x, resolveImageInfo.levelRange.x);
+			colorAttachment.resolveImageLayout = resolveImageInfo.image->getState(resolveImageInfo.layerRange.x, resolveImageInfo.levelRange.x).layout;
 		}
 		else
 		{
@@ -356,9 +374,9 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 
 		const VKRenderingDepthAttachmentInfo::ImageInfo& imageInfo = depthAttachmentInfo.getImageInfo();
 		_usedObjects.emplace_back(imageInfo.image);
-		VKHelper::assertImageViewHasUniqueLayout(imageInfo.image, imageInfo.layerRange, imageInfo.levelRange);
+		VKHelper::assertImageViewHasUniqueState(imageInfo.image, imageInfo.layerRange, imageInfo.levelRange);
 		depthAttachment.imageView = imageInfo.image->getView(imageInfo.type, imageInfo.layerRange, imageInfo.levelRange, imageInfo.format);
-		depthAttachment.imageLayout = imageInfo.image->getLayout(imageInfo.layerRange.x, imageInfo.levelRange.x);
+		depthAttachment.imageLayout = imageInfo.image->getState(imageInfo.layerRange.x, imageInfo.levelRange.x).layout;
 
 		if (depthAttachmentInfo.getResolveMode() != vk::ResolveModeFlagBits::eNone)
 		{
@@ -366,9 +384,9 @@ void VKCommandBuffer::beginRendering(const VKRenderingInfo& renderingInfo)
 
 			const VKRenderingDepthAttachmentInfo::ImageInfo& resolveImageInfo = depthAttachmentInfo.getResolveImageInfo();
 			_usedObjects.emplace_back(resolveImageInfo.image);
-			VKHelper::assertImageViewHasUniqueLayout(resolveImageInfo.image, resolveImageInfo.layerRange, resolveImageInfo.levelRange);
+			VKHelper::assertImageViewHasUniqueState(resolveImageInfo.image, resolveImageInfo.layerRange, resolveImageInfo.levelRange);
 			depthAttachment.resolveImageView = resolveImageInfo.image->getView(resolveImageInfo.type, resolveImageInfo.layerRange, resolveImageInfo.levelRange, resolveImageInfo.format);
-			depthAttachment.resolveImageLayout = resolveImageInfo.image->getLayout(resolveImageInfo.layerRange.x, resolveImageInfo.levelRange.x);
+			depthAttachment.resolveImageLayout = resolveImageInfo.image->getState(resolveImageInfo.layerRange.x, resolveImageInfo.levelRange.x).layout;
 		}
 		else
 		{
@@ -543,11 +561,11 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	if (_boundPipeline == nullptr)
 		throw;
 
-	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+	VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
 
 	vk::DescriptorImageInfo imageInfo;
 	imageInfo.imageView = image->getView(type, layerRange, levelRange, format);
-	imageInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
+	imageInfo.imageLayout = image->getState(layerRange.x, levelRange.x).layout;
 
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
 
@@ -591,11 +609,11 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	if (_boundPipeline == nullptr)
 		throw;
 
-	VKHelper::assertImageViewHasUniqueLayout(image, layerRange, levelRange);
+	VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
 
 	vk::DescriptorImageInfo combinedImageSamplerInfo;
 	combinedImageSamplerInfo.imageView = image->getView(type, layerRange, levelRange, format);
-	combinedImageSamplerInfo.imageLayout = image->getLayout(layerRange.x, levelRange.x);
+	combinedImageSamplerInfo.imageLayout = image->getState(layerRange.x, levelRange.x).layout;
 	combinedImageSamplerInfo.sampler = sampler->getHandle();
 
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
@@ -737,7 +755,7 @@ void VKCommandBuffer::copyBufferToImage(const VKPtr<VKBufferBase>& srcBuffer, vk
 	vk::CopyBufferToImageInfo2 copyInfo;
 	copyInfo.srcBuffer = srcBuffer->getHandle();
 	copyInfo.dstImage = dstImage->getHandle();
-	copyInfo.dstImageLayout = dstImage->getLayout(dstLayer, dstLevel);
+	copyInfo.dstImageLayout = dstImage->getState(dstLayer, dstLevel).layout;
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
 
@@ -789,7 +807,7 @@ void VKCommandBuffer::copyImageToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 
 	vk::CopyImageToBufferInfo2 copyInfo;
 	copyInfo.srcImage = srcImage->getHandle();
-	copyInfo.srcImageLayout = srcImage->getLayout(srcLayer, srcLevel);
+	copyInfo.srcImageLayout = srcImage->getState(srcLayer, srcLevel).layout;
 	copyInfo.dstBuffer = dstBuffer->getHandle();
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
@@ -826,9 +844,9 @@ void VKCommandBuffer::copyImageToImage(const VKPtr<VKImage>& srcImage, uint32_t 
 
 	vk::CopyImageInfo2 copyInfo;
 	copyInfo.srcImage = srcImage->getHandle();
-	copyInfo.srcImageLayout = srcImage->getLayout(srcLayer, srcLevel);
+	copyInfo.srcImageLayout = srcImage->getState(srcLayer, srcLevel).layout;
 	copyInfo.dstImage = dstImage->getHandle();
-	copyInfo.dstImageLayout = dstImage->getLayout(dstLayer, dstLevel);
+	copyInfo.dstImageLayout = dstImage->getState(dstLayer, dstLevel).layout;
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
 
@@ -856,7 +874,7 @@ void VKCommandBuffer::copyPixelToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 
 	vk::CopyImageToBufferInfo2 copyInfo;
 	copyInfo.srcImage = srcImage->getHandle();
-	copyInfo.srcImageLayout = srcImage->getLayout(srcLayer, srcLevel);
+	copyInfo.srcImageLayout = srcImage->getState(srcLayer, srcLevel).layout;
 	copyInfo.dstBuffer = dstBuffer->getHandle();
 	copyInfo.regionCount = 1;
 	copyInfo.pRegions = &copiedRegion;
@@ -893,9 +911,9 @@ void VKCommandBuffer::blitImage(const VKPtr<VKImage>& srcImage, uint32_t srcLaye
 
 	vk::BlitImageInfo2 info;
 	info.srcImage = srcImage->getHandle();
-	info.srcImageLayout = srcImage->getLayout(srcLayer, srcLevel);
+	info.srcImageLayout = srcImage->getState(srcLayer, srcLevel).layout;
 	info.dstImage = dstImage->getHandle();
-	info.dstImageLayout = dstImage->getLayout(dstLayer, dstLevel);
+	info.dstImageLayout = dstImage->getState(dstLayer, dstLevel).layout;
 	info.regionCount = 1;
 	info.pRegions = &imageBlit;
 	info.filter = vk::Filter::eLinear;
@@ -992,7 +1010,7 @@ void VKCommandBuffer::clearColorImage(const VKPtr<VKImage>& image, uint32_t laye
 	range.baseArrayLayer = layer;
 	range.layerCount = 1;
 
-	_commandBuffer.clearColorImage(image->getHandle(), image->getLayout(layer, level), clearColor, range);
+	_commandBuffer.clearColorImage(image->getHandle(), image->getState(layer, level).layout, clearColor, range);
 
 	_usedObjects.emplace_back(image);
 }

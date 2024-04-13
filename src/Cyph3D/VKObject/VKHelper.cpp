@@ -26,16 +26,16 @@ vk::ImageAspectFlags VKHelper::getAspect(vk::Format format)
 	}
 }
 
-void VKHelper::assertImageViewHasUniqueLayout(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange)
+void VKHelper::assertImageViewHasUniqueState(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
 #if defined(_DEBUG)
 	// make sure all referenced layers and levels have the same layout
-	vk::ImageLayout layout = image->getLayout(layerRange.x, levelRange.x);
+	const VKImage::State& state = image->getState(layerRange.x, levelRange.x);
 	for (uint32_t layer = layerRange.x; layer <= layerRange.y; layer++)
 	{
 		for (uint32_t level = levelRange.x; level <= levelRange.y; level++)
 		{
-			if (image->getLayout(layer, level) != layout)
+			if (image->getState(layer, level) != state)
 			{
 				throw;
 			}

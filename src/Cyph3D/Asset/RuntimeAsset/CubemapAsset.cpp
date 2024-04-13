@@ -151,8 +151,6 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 
 	workerData.transferCommandBuffer->imageMemoryBarrier(
 		_image,
-		vk::PipelineStageFlagBits2::eNone,
-		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
 		vk::ImageLayout::eTransferDstOptimal
@@ -170,8 +168,6 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 
 	workerData.transferCommandBuffer->releaseImageOwnership(
 		_image,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferWrite,
 		Engine::getVKContext().getMainQueue(),
 		vk::ImageLayout::eReadOnlyOptimal
 	);

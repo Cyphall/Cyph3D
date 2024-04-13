@@ -334,25 +334,21 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 
 	workerData.transferCommandBuffer->imageMemoryBarrier(
 		texture,
-		{0, 0},
-		{0, 0},
-		vk::PipelineStageFlagBits2::eNone,
-		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
-		vk::ImageLayout::eTransferDstOptimal
+		vk::ImageLayout::eTransferDstOptimal,
+		{0, 0},
+		{0, 0}
 	);
 
 	workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, 0, texture, 0, 0);
 
 	workerData.transferCommandBuffer->releaseImageOwnership(
 		texture,
-		{0, 0},
-		{0, 0},
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferWrite,
 		Engine::getVKContext().getComputeQueue(),
-		vk::ImageLayout::eGeneral
+		vk::ImageLayout::eGeneral,
+		{0, 0},
+		{0, 0}
 	);
 
 	workerData.transferCommandBuffer->end();
@@ -375,25 +371,23 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 
 	workerData.computeCommandBuffer->acquireImageOwnership(
 		texture,
-		{0, 0},
-		{0, 0},
 		Engine::getVKContext().getTransferQueue(),
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageRead,
-		vk::ImageLayout::eGeneral
+		vk::ImageLayout::eGeneral,
+		{0, 0},
+		{0, 0}
 	);
 
 	for (int i = 1; i < texture->getInfo().getLevels(); i++)
 	{
 		workerData.computeCommandBuffer->imageMemoryBarrier(
 			texture,
-			{0, 0},
-			{i, i},
-			vk::PipelineStageFlagBits2::eNone,
-			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::ImageLayout::eGeneral
+			vk::ImageLayout::eGeneral,
+			{0, 0},
+			{i, i}
 		);
 
 		workerData.computeCommandBuffer->pushDescriptor(
@@ -421,20 +415,16 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 
 		workerData.computeCommandBuffer->imageMemoryBarrier(
 			texture,
-			{0, 0},
-			{i, i},
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral
+			vk::ImageLayout::eGeneral,
+			{0, 0},
+			{i, i}
 		);
 	}
 
 	workerData.computeCommandBuffer->releaseImageOwnership(
 		texture,
-		vk::PipelineStageFlagBits2::eComputeShader,
-		vk::AccessFlagBits2::eShaderStorageRead,
 		Engine::getVKContext().getTransferQueue(),
 		vk::ImageLayout::eTransferSrcOptimal
 	);

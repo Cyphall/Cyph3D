@@ -308,8 +308,6 @@ static VKPtr<VKImage> uploadEquirectangularImage(AssetManagerWorkerData& workerD
 
 	workerData.transferCommandBuffer->imageMemoryBarrier(
 		image,
-		vk::PipelineStageFlagBits2::eNone,
-		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
 		vk::ImageLayout::eTransferDstOptimal
@@ -319,8 +317,6 @@ static VKPtr<VKImage> uploadEquirectangularImage(AssetManagerWorkerData& workerD
 
 	workerData.transferCommandBuffer->releaseImageOwnership(
 		image,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferWrite,
 		Engine::getVKContext().getComputeQueue(),
 		vk::ImageLayout::eReadOnlyOptimal
 	);
@@ -374,13 +370,11 @@ VKPtr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetManagerWorke
 
 	workerData.computeCommandBuffer->imageMemoryBarrier(
 		cubemapTexture,
-		{0, 5},
-		{0, 0},
-		vk::PipelineStageFlagBits2::eNone,
-		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::ImageLayout::eGeneral
+		vk::ImageLayout::eGeneral,
+		{0, 5},
+		{0, 0}
 	);
 
 	workerData.computeCommandBuffer->bindPipeline(_cubemapPipeline);
@@ -430,26 +424,22 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 
 	workerData.computeCommandBuffer->imageMemoryBarrier(
 		cubemapTexture,
-		{0, 5},
-		{0, 0},
-		vk::PipelineStageFlagBits2::eComputeShader,
-		vk::AccessFlagBits2::eShaderStorageWrite,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageRead,
-		vk::ImageLayout::eGeneral
+		vk::ImageLayout::eGeneral,
+		{0, 5},
+		{0, 0}
 	);
 
 	for (int level = 1; level < cubemapTexture->getInfo().getLevels(); level++)
 	{
 		workerData.computeCommandBuffer->imageMemoryBarrier(
 			cubemapTexture,
-			{0, 5},
-			{level, level},
-			vk::PipelineStageFlagBits2::eNone,
-			vk::AccessFlagBits2::eNone,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::ImageLayout::eGeneral
+			vk::ImageLayout::eGeneral,
+			{0, 5},
+			{level, level}
 		);
 
 		for (int face = 0; face < 6; face++)
@@ -480,20 +470,16 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 
 		workerData.computeCommandBuffer->imageMemoryBarrier(
 			cubemapTexture,
-			{0, 5},
-			{level, level},
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral
+			vk::ImageLayout::eGeneral,
+			{0, 5},
+			{level, level}
 		);
 	}
 
 	workerData.computeCommandBuffer->releaseImageOwnership(
 		cubemapTexture,
-		vk::PipelineStageFlagBits2::eComputeShader,
-		vk::AccessFlagBits2::eShaderStorageRead,
 		Engine::getVKContext().getTransferQueue(),
 		vk::ImageLayout::eTransferSrcOptimal
 	);

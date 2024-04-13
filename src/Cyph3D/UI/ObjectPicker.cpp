@@ -44,8 +44,6 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 		{
 			commandBuffer->imageMemoryBarrier(
 				_objectIndexImage,
-				vk::PipelineStageFlagBits2::eAllCommands,
-				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::ImageLayout::eColorAttachmentOptimal
@@ -53,10 +51,8 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 
 			commandBuffer->imageMemoryBarrier(
 				_depthImage,
-				vk::PipelineStageFlagBits2::eAllCommands,
-				vk::AccessFlagBits2::eNone,
 				vk::PipelineStageFlagBits2::eEarlyFragmentTests,
-				vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+				vk::AccessFlagBits2::eDepthStencilAttachmentRead | vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
 				vk::ImageLayout::eDepthAttachmentOptimal
 			);
 
@@ -111,8 +107,6 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 
 			commandBuffer->imageMemoryBarrier(
 				_objectIndexImage,
-				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-				vk::AccessFlagBits2::eColorAttachmentWrite,
 				vk::PipelineStageFlagBits2::eCopy,
 				vk::AccessFlagBits2::eTransferRead,
 				vk::ImageLayout::eTransferSrcOptimal

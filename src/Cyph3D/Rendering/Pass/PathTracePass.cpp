@@ -48,10 +48,8 @@ PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& comman
 	{
 		commandBuffer->imageMemoryBarrier(
 			_rawRenderImage[i],
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageRead,
 			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eShaderStorageRead,
+			vk::AccessFlagBits2::eShaderStorageRead | vk::AccessFlagBits2::eShaderStorageWrite,
 			vk::ImageLayout::eGeneral
 		);
 	}

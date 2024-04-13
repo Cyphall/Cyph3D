@@ -89,8 +89,6 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 
 	commandBuffer->imageMemoryBarrier(
 		destImage,
-		vk::PipelineStageFlagBits2::eAllCommands,
-		vk::AccessFlagBits2::eNone,
 		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::ImageLayout::eColorAttachmentOptimal
@@ -100,8 +98,6 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 
 	commandBuffer->imageMemoryBarrier(
 		destImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
 		vk::PipelineStageFlagBits2::eAllCommands,
 		vk::AccessFlagBits2::eNone,
 		vk::ImageLayout::ePresentSrcKHR

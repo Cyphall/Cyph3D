@@ -34,6 +34,40 @@ LightingPass::LightingPass(glm::uvec2 size):
 
 LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
 {
+	commandBuffer->imageMemoryBarrier(
+		input.multisampledDepthImage,
+		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
+		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
+		vk::ImageLayout::eDepthAttachmentOptimal
+	);
+
+	for (const DirectionalShadowMapInfo& info : input.directionalShadowMapInfos)
+	{
+		commandBuffer->imageMemoryBarrier(
+			info.image,
+			vk::PipelineStageFlagBits2::eFragmentShader,
+			vk::AccessFlagBits2::eShaderSampledRead,
+			vk::ImageLayout::eReadOnlyOptimal
+		);
+	}
+
+	for (const PointShadowMapInfo& info : input.pointShadowMapInfos)
+	{
+		commandBuffer->imageMemoryBarrier(
+			info.image,
+			vk::PipelineStageFlagBits2::eFragmentShader,
+			vk::AccessFlagBits2::eShaderSampledRead,
+			vk::ImageLayout::eReadOnlyOptimal
+		);
+	}
+
+	commandBuffer->imageMemoryBarrier(
+		_multisampledRawRenderImage,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		vk::AccessFlagBits2::eColorAttachmentWrite,
+		vk::ImageLayout::eColorAttachmentOptimal
+	);
+
 	descriptorSetsResizeSmart(input.directionalShadowMapInfos.size(), input.pointShadowMapInfos.size());
 
 	_directionalLightsUniforms->resizeSmart(input.registry.getDirectionalLightRenderRequests().size());
@@ -86,15 +120,6 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 		}
 	}
 	_pointLightDescriptorSet->bindDescriptor(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
-
-	commandBuffer->imageMemoryBarrier(
-		_multisampledRawRenderImage,
-		vk::PipelineStageFlagBits2::eAllCommands,
-		vk::AccessFlagBits2::eNone,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal
-	);
 
 	VKRenderingInfo renderingInfo(_size);
 

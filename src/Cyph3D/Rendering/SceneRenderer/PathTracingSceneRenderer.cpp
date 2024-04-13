@@ -22,6 +22,8 @@ void PathTracingSceneRenderer::setSampleCountPerRender(uint32_t count)
 
 const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
+	// Path trace pass
+
 	PathTracePassInput pathTracePassInput{
 		.registry = registry,
 		.camera = camera,
@@ -32,17 +34,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 
 	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput);
 
-	for (int i = 0; i < 3; i++)
-	{
-		commandBuffer->imageMemoryBarrier(
-			pathTracePassOutput.rawRenderImage[i],
-			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral
-		);
-	}
+	// Normalization pass
 
 	NormalizationPassInput normalizationPassInput{
 		.inputImage = pathTracePassOutput.rawRenderImage,
@@ -52,14 +44,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 
 	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput);
 
-	commandBuffer->imageMemoryBarrier(
-		normalizationPassOutput.outputImage,
-		vk::PipelineStageFlagBits2::eComputeShader,
-		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
+	// Exposure pass
 
 	ExposurePassInput exposurePassInput{
 		.inputImage = normalizationPassOutput.outputImage,
@@ -68,14 +53,7 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 
 	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput);
 
-	commandBuffer->imageMemoryBarrier(
-		exposurePassOutput.outputImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
+	// Bloom pass
 
 	BloomPassInput bloomPassInput{
 		.inputImage = exposurePassOutput.outputImage
@@ -83,29 +61,13 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 
 	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput);
 
-	commandBuffer->imageMemoryBarrier(
-		bloomPassOutput.outputImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
+	// Tone mapping pass
 
 	ToneMappingPassInput toneMappingPassInput{
 		.inputImage = bloomPassOutput.outputImage
 	};
 
 	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput);
-
-	commandBuffer->imageMemoryBarrier(
-		toneMappingPassOutput.outputImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
 
 	return toneMappingPassOutput.outputImage;
 }
