@@ -303,11 +303,8 @@ target_link_libraries(Cyph3D PRIVATE imgui)
 add_subdirectory("vendor/imguizmo/fbc3614abcc642de7f3868cc0d68a35503ca9a4e")
 target_link_libraries(Cyph3D PRIVATE imguizmo)
 
-add_subdirectory("vendor/VulkanMemoryAllocator/5e43c795daf43dd09398d8307212e85025215052")
+add_subdirectory("vendor/VulkanMemoryAllocator/5677097bafb8477097c6e3354ce68b7a44fd01a4")
 target_link_libraries(Cyph3D PRIVATE VulkanMemoryAllocator)
-
-add_subdirectory("vendor/VulkanMemoryAllocator-Hpp/b19816b9bc5a679a5b4977a421f78cc7556f120c")
-target_link_libraries(Cyph3D PRIVATE VulkanMemoryAllocator-Hpp)
 
 add_subdirectory("vendor/sigslot/v1.2.2")
 target_link_libraries(Cyph3D PRIVATE sigslot)

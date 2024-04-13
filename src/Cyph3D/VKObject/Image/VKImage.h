@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 #include <unordered_map>
-#include <vk_mem_alloc.hpp>
+#include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>
 
 class VKImage : public VKObject
@@ -73,9 +73,8 @@ private:
 
 	VKImageInfo _info;
 
-	vma::Allocation _imageAlloc;
-
 	vk::Image _handle;
+	VmaAllocation _allocation = VK_NULL_HANDLE;
 
 	std::vector<glm::uvec2> _sizes;
 	std::vector<std::vector<State>> _currentStates;

@@ -37,28 +37,40 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 		viewFormatsCreateInfo.viewFormatCount = _info.getCompatibleViewFormats().size();
 		viewFormatsCreateInfo.pViewFormats = _info.getCompatibleViewFormats().data();
 
-		vk::ImageCreateInfo createInfo;
-		createInfo.imageType = vk::ImageType::e2D;
-		createInfo.extent = vk::Extent3D(_info.getSize().x, _info.getSize().y, 1);
-		createInfo.mipLevels = _info.getLevels();
-		createInfo.arrayLayers = _info.getLayers();
-		createInfo.format = _info.getFormat();
-		createInfo.tiling = vk::ImageTiling::eOptimal;
-		createInfo.initialLayout = vk::ImageLayout::eUndefined;
-		createInfo.usage = _info.getUsage();
-		createInfo.sharingMode = vk::SharingMode::eExclusive;
-		createInfo.queueFamilyIndexCount = 0;
-		createInfo.pQueueFamilyIndices = nullptr;
-		createInfo.samples = _info.getSampleCount();
-		createInfo.flags = flags;
-		createInfo.pNext = &viewFormatsCreateInfo;
+		vk::ImageCreateInfo imageCreateInfo;
+		imageCreateInfo.imageType = vk::ImageType::e2D;
+		imageCreateInfo.extent = vk::Extent3D(_info.getSize().x, _info.getSize().y, 1);
+		imageCreateInfo.mipLevels = _info.getLevels();
+		imageCreateInfo.arrayLayers = _info.getLayers();
+		imageCreateInfo.format = _info.getFormat();
+		imageCreateInfo.tiling = vk::ImageTiling::eOptimal;
+		imageCreateInfo.initialLayout = vk::ImageLayout::eUndefined;
+		imageCreateInfo.usage = _info.getUsage();
+		imageCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+		imageCreateInfo.queueFamilyIndexCount = 0;
+		imageCreateInfo.pQueueFamilyIndices = nullptr;
+		imageCreateInfo.samples = _info.getSampleCount();
+		imageCreateInfo.flags = flags;
+		imageCreateInfo.pNext = &viewFormatsCreateInfo;
 
-		vma::AllocationCreateInfo allocationCreateInfo;
-		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
-		allocationCreateInfo.requiredFlags = _info.getRequiredMemoryProperties();
-		allocationCreateInfo.preferredFlags = _info.getPreferredMemoryProperties();
+		VmaAllocationCreateInfo allocationCreateInfo{};
+		allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		allocationCreateInfo.usage = VMA_MEMORY_USAGE_UNKNOWN;
+		allocationCreateInfo.requiredFlags = static_cast<VkMemoryPropertyFlags>(_info.getRequiredMemoryProperties());
+		allocationCreateInfo.preferredFlags = static_cast<VkMemoryPropertyFlags>(_info.getPreferredMemoryProperties());
+		allocationCreateInfo.memoryTypeBits = std::numeric_limits<uint32_t>::max();
+		allocationCreateInfo.pool = nullptr;
+		allocationCreateInfo.pUserData = nullptr;
+		allocationCreateInfo.priority = 0.5f;
 
-		std::tie(_handle, _imageAlloc) = _context.getVmaAllocator().createImage(createInfo, allocationCreateInfo);
+		vmaCreateImage(
+			_context.getVmaAllocator(),
+			reinterpret_cast<VkImageCreateInfo*>(&imageCreateInfo),
+			&allocationCreateInfo,
+			reinterpret_cast<VkImage*>(&_handle),
+			&_allocation,
+			nullptr
+		);
 	}
 
 	if (_info.hasName())
@@ -103,9 +115,9 @@ VKImage::~VKImage()
 		_context.getDevice().destroyImageView(view);
 	}
 
-	if (_imageAlloc)
+	if (_allocation)
 	{
-		_context.getVmaAllocator().destroyImage(_handle, _imageAlloc);
+		vmaDestroyImage(_context.getVmaAllocator(), _handle, _allocation);
 	}
 }
 

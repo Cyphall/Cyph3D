@@ -3,7 +3,7 @@
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-#include <vk_mem_alloc.hpp>
+#include <vk_mem_alloc.h>
 
 template<typename T>
 class VKBuffer : public VKBufferBase
@@ -22,7 +22,7 @@ public:
 			std::memset(_allocationInfo.pMappedData, 0xDD, getByteSize());
 		}
 #endif
-		_context.getVmaAllocator().destroyBuffer(_buffer, _allocation);
+		vmaDestroyBuffer(_context.getVmaAllocator(), _handle, _allocation);
 	}
 
 	T* getHostPointer()
@@ -32,7 +32,7 @@ public:
 
 	const vk::Buffer& getHandle() override
 	{
-		return _buffer;
+		return _handle;
 	}
 
 	size_t getStride() const override
@@ -56,18 +56,30 @@ private:
 		bufferCreateInfo.queueFamilyIndexCount = 0;
 		bufferCreateInfo.pQueueFamilyIndices = nullptr;
 
-		vma::AllocationCreateInfo allocationCreateInfo{};
-		allocationCreateInfo.usage = vma::MemoryUsage::eUnknown;
-		allocationCreateInfo.requiredFlags = _info.getRequiredMemoryProperties();
-		allocationCreateInfo.preferredFlags = _info.getPreferredMemoryProperties();
-		allocationCreateInfo.flags = vma::AllocationCreateFlagBits::eMapped;
+		VmaAllocationCreateInfo allocationCreateInfo{};
+		allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		allocationCreateInfo.usage = VMA_MEMORY_USAGE_UNKNOWN;
+		allocationCreateInfo.requiredFlags = static_cast<VkMemoryPropertyFlags>(_info.getRequiredMemoryProperties());
+		allocationCreateInfo.preferredFlags = static_cast<VkMemoryPropertyFlags>(_info.getPreferredMemoryProperties());
+		allocationCreateInfo.memoryTypeBits = std::numeric_limits<uint32_t>::max();
+		allocationCreateInfo.pool = nullptr;
+		allocationCreateInfo.pUserData = nullptr;
+		allocationCreateInfo.priority = 0.5f;
 
-		std::tie(_buffer, _allocation) = _context.getVmaAllocator().createBufferWithAlignment(bufferCreateInfo, allocationCreateInfo, _info.getRequiredAlignment(), _allocationInfo);
+		vmaCreateBufferWithAlignment(
+			_context.getVmaAllocator(),
+			reinterpret_cast<VkBufferCreateInfo*>(&bufferCreateInfo),
+			&allocationCreateInfo,
+			_info.getRequiredAlignment(),
+			reinterpret_cast<VkBuffer*>(&_handle),
+			&_allocation,
+			&_allocationInfo
+		);
 
 		if (_info.getUsage() & vk::BufferUsageFlagBits::eShaderDeviceAddress)
 		{
 			vk::BufferDeviceAddressInfo bufferDeviceAddressInfo;
-			bufferDeviceAddressInfo.buffer = _buffer;
+			bufferDeviceAddressInfo.buffer = _handle;
 
 			_deviceAddress = _context.getDevice().getBufferAddress(bufferDeviceAddressInfo);
 		}
@@ -76,7 +88,7 @@ private:
 		{
 			vk::DebugUtilsObjectNameInfoEXT objectNameInfo;
 			objectNameInfo.objectType = vk::ObjectType::eBuffer;
-			objectNameInfo.objectHandle = reinterpret_cast<uintptr_t>(static_cast<VkBuffer>(_buffer));
+			objectNameInfo.objectHandle = reinterpret_cast<uintptr_t>(static_cast<VkBuffer>(_handle));
 			objectNameInfo.pObjectName = _info.getName().c_str();
 
 			_context.getDevice().setDebugUtilsObjectNameEXT(objectNameInfo);
@@ -90,10 +102,9 @@ private:
 #endif
 	}
 
-	vk::Buffer _buffer;
-
-	vma::Allocation _allocation;
-	vma::AllocationInfo _allocationInfo;
+	vk::Buffer _handle;
+	VmaAllocation _allocation = VK_NULL_HANDLE;
+	VmaAllocationInfo _allocationInfo;
 
 	vk::DeviceAddress _deviceAddress = 0;
 };

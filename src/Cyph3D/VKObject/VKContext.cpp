@@ -402,7 +402,7 @@ VKContext::~VKContext()
 	if (_transferQueue)
 		_transferQueue->handleCompletedSubmits();
 	_helperData.reset();
-	_vmaAllocator.destroy();
+	vmaDestroyAllocator(_vmaAllocator);
 	_device.destroy();
 	_instance.destroyDebugUtilsMessengerEXT(_messenger);
 	_instance.destroy();
@@ -426,7 +426,7 @@ void VKContext::onNewFrame()
 		_computeQueue->handleCompletedSubmits();
 	if (_transferQueue)
 		_transferQueue->handleCompletedSubmits();
-	_vmaAllocator.setCurrentFrameIndex(_currentConcurrentFrame);
+	vmaSetCurrentFrameIndex(_vmaAllocator, _currentConcurrentFrame);
 }
 
 const vk::Instance& VKContext::getInstance()
@@ -459,7 +459,7 @@ VKQueue& VKContext::getTransferQueue()
 	return _transferQueue ? *_transferQueue : *_mainQueue;
 }
 
-vma::Allocator VKContext::getVmaAllocator()
+VmaAllocator VKContext::getVmaAllocator()
 {
 	return _vmaAllocator;
 }
@@ -746,19 +746,24 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 
 void VKContext::createVmaAllocator()
 {
-	vma::VulkanFunctions vulkanFunctions{};
+	VmaVulkanFunctions vulkanFunctions{};
 	vulkanFunctions.vkGetInstanceProcAddr = VULKAN_HPP_DEFAULT_DISPATCHER.vkGetInstanceProcAddr;
 	vulkanFunctions.vkGetDeviceProcAddr = VULKAN_HPP_DEFAULT_DISPATCHER.vkGetDeviceProcAddr;
 
-	vma::AllocatorCreateInfo allocatorInfo{};
-	allocatorInfo.vulkanApiVersion = VULKAN_VERSION;
-	allocatorInfo.instance = _instance;
+	VmaAllocatorCreateInfo allocatorInfo{};
+	allocatorInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT | VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 	allocatorInfo.physicalDevice = _physicalDevice;
 	allocatorInfo.device = _device;
+	allocatorInfo.preferredLargeHeapBlockSize = 0;
+	allocatorInfo.pAllocationCallbacks = nullptr;
+	allocatorInfo.pDeviceMemoryCallbacks = nullptr;
+	allocatorInfo.pHeapSizeLimit = nullptr;
 	allocatorInfo.pVulkanFunctions = &vulkanFunctions;
-	allocatorInfo.flags = vma::AllocatorCreateFlagBits::eExtMemoryBudget | vma::AllocatorCreateFlagBits::eBufferDeviceAddress;
+	allocatorInfo.instance = _instance;
+	allocatorInfo.vulkanApiVersion = VULKAN_VERSION;
+	allocatorInfo.pTypeExternalMemoryHandleTypes = nullptr;
 
-	vma::createAllocator(&allocatorInfo, &_vmaAllocator);
+	vmaCreateAllocator(&allocatorInfo, &_vmaAllocator);
 }
 
 void VKContext::createImmediateCommandBuffer()

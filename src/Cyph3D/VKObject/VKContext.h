@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <functional>
 #include <vector>
-#include <vk_mem_alloc.hpp>
+#include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>
 
 class VKQueue;
@@ -30,7 +30,7 @@ public:
 	VKQueue& getComputeQueue();
 	VKQueue& getTransferQueue();
 
-	vma::Allocator getVmaAllocator();
+	VmaAllocator getVmaAllocator();
 
 	const VKPtr<VKCommandBuffer>& getDefaultCommandBuffer();
 
@@ -75,7 +75,7 @@ private:
 	std::unique_ptr<VKQueue> _transferQueue;
 	vk::Device _device;
 
-	vma::Allocator _vmaAllocator;
+	VmaAllocator _vmaAllocator = VK_NULL_HANDLE;
 
 	std::unique_ptr<HelperData> _helperData;
 
