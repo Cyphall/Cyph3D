@@ -5,18 +5,16 @@
 VKPtr<VKAccelerationStructure> VKAccelerationStructure::create(
 	VKContext& context,
 	vk::AccelerationStructureTypeKHR type,
-	vk::DeviceSize size,
-	const VKPtr<VKBufferBase>& backingBuffer
+	vk::DeviceSize size
 )
 {
-	return VKPtr<VKAccelerationStructure>(new VKAccelerationStructure(context, type, size, backingBuffer));
+	return VKPtr<VKAccelerationStructure>(new VKAccelerationStructure(context, type, size));
 }
 
 VKAccelerationStructure::VKAccelerationStructure(
 	VKContext& context,
 	vk::AccelerationStructureTypeKHR type,
-	vk::DeviceSize size,
-	const VKPtr<VKBufferBase>& backingBuffer
+	vk::DeviceSize size
 ):
 	VKObject(context),
 	_type(type)
@@ -26,30 +24,35 @@ VKAccelerationStructure::VKAccelerationStructure(
 		throw;
 	}
 
+	VKBufferInfo backingBufferInfo(size, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress);
+	backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+	_backingBuffer = VKBuffer<std::byte>::create(context, backingBufferInfo);
+
 	vk::AccelerationStructureCreateInfoKHR accelerationStructureCreateInfo;
 	accelerationStructureCreateInfo.createFlags = {};
-	accelerationStructureCreateInfo.buffer = backingBuffer->getHandle();
+	accelerationStructureCreateInfo.buffer = _backingBuffer->getHandle();
 	accelerationStructureCreateInfo.offset = 0;
 	accelerationStructureCreateInfo.size = size;
 	accelerationStructureCreateInfo.type = type;
 	accelerationStructureCreateInfo.deviceAddress = 0;
 
-	_accelerationStructure = _context.getDevice().createAccelerationStructureKHR(accelerationStructureCreateInfo);
+	_handle = _context.getDevice().createAccelerationStructureKHR(accelerationStructureCreateInfo);
 
-	_accelerationStructureBackingBuffer = backingBuffer;
+	vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo;
+	accelerationStructureDeviceAddressInfo.accelerationStructure = _handle;
+
+	_deviceAddress = _context.getDevice().getAccelerationStructureAddressKHR(accelerationStructureDeviceAddressInfo);
 }
 
 VKAccelerationStructure::~VKAccelerationStructure()
 {
-	if (_accelerationStructure)
-	{
-		_context.getDevice().destroyAccelerationStructureKHR(_accelerationStructure);
-	}
+	_context.getDevice().destroyAccelerationStructureKHR(_handle);
 }
 
 const vk::AccelerationStructureKHR& VKAccelerationStructure::getHandle()
 {
-	return _accelerationStructure;
+	return _handle;
 }
 
 vk::AccelerationStructureTypeKHR VKAccelerationStructure::getType() const
@@ -59,15 +62,12 @@ vk::AccelerationStructureTypeKHR VKAccelerationStructure::getType() const
 
 vk::DeviceAddress VKAccelerationStructure::getDeviceAddress() const
 {
-	if (_accelerationStructureAddress == 0)
-	{
-		vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo;
-		accelerationStructureDeviceAddressInfo.accelerationStructure = _accelerationStructure;
+	return _deviceAddress;
+}
 
-		_accelerationStructureAddress = _context.getDevice().getAccelerationStructureAddressKHR(accelerationStructureDeviceAddressInfo);
-	}
-
-	return _accelerationStructureAddress;
+VKPtr<VKBufferBase> VKAccelerationStructure::getBackingBuffer()
+{
+	return _backingBuffer;
 }
 
 vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getBottomLevelBuildSizesInfo(VKContext& context, const VKBottomLevelAccelerationStructureBuildInfo& buildInfo)

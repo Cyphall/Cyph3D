@@ -15,8 +15,7 @@ public:
 	static VKPtr<VKAccelerationStructure> create(
 		VKContext& context,
 		vk::AccelerationStructureTypeKHR type,
-		vk::DeviceSize size,
-		const VKPtr<VKBufferBase>& backingBuffer
+		vk::DeviceSize size
 	);
 
 	~VKAccelerationStructure() override;
@@ -26,6 +25,8 @@ public:
 	vk::AccelerationStructureTypeKHR getType() const;
 
 	vk::DeviceAddress getDeviceAddress() const;
+
+	VKPtr<VKBufferBase> getBackingBuffer();
 
 	static vk::AccelerationStructureBuildSizesInfoKHR getBottomLevelBuildSizesInfo(
 		VKContext& context,
@@ -43,14 +44,13 @@ protected:
 	VKAccelerationStructure(
 		VKContext& context,
 		vk::AccelerationStructureTypeKHR type,
-		vk::DeviceSize size,
-		const VKPtr<VKBufferBase>& backingBuffer
+		vk::DeviceSize size
 	);
 
 	vk::AccelerationStructureTypeKHR _type;
-	VKPtr<VKBufferBase> _accelerationStructureBackingBuffer;
-	vk::AccelerationStructureKHR _accelerationStructure = VK_NULL_HANDLE;
-	mutable vk::DeviceAddress _accelerationStructureAddress = 0;
+	VKPtr<VKBufferBase> _backingBuffer;
+	vk::AccelerationStructureKHR _handle = VK_NULL_HANDLE;
+	vk::DeviceAddress _deviceAddress = 0;
 
 	std::vector<VKPtr<VKObject>> _referencedObjectsInBuild;
 };

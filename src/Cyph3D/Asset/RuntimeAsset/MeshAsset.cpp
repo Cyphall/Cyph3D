@@ -150,16 +150,10 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
 
-		VKBufferInfo temporaryBackingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
-		temporaryBackingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-		VKPtr<VKBuffer<std::byte>> temporaryBackingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), temporaryBackingBufferInfo);
-
 		VKPtr<VKAccelerationStructure> temporaryAccelerationStructure = VKAccelerationStructure::create(
 			Engine::getVKContext(),
 			vk::AccelerationStructureTypeKHR::eBottomLevel,
-			buildSizesInfo.accelerationStructureSize,
-			temporaryBackingBuffer
+			buildSizesInfo.accelerationStructureSize
 		);
 
 		VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
@@ -205,7 +199,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		);
 
 		workerData.computeCommandBuffer->bufferMemoryBarrier(
-			temporaryBackingBuffer,
+			temporaryAccelerationStructure->getBackingBuffer(),
 			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 			vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
 			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
@@ -223,17 +217,10 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		vk::DeviceSize compactedSize = compactedSizeQuery->getCompactedSize();
 
-		VKBufferInfo backingBufferInfo(compactedSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress);
-		backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		backingBufferInfo.setName(std::format("{}.AccelerationStructureBuffer", _signature.path));
-
-		VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
-
 		_accelerationStructure = VKAccelerationStructure::create(
 			Engine::getVKContext(),
 			vk::AccelerationStructureTypeKHR::eBottomLevel,
-			compactedSize,
-			backingBuffer
+			compactedSize
 		);
 
 		workerData.computeCommandBuffer->begin();
@@ -241,7 +228,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		workerData.computeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);
 
 		workerData.computeCommandBuffer->releaseBufferOwnership(
-			backingBuffer,
+			_accelerationStructure->getBackingBuffer(),
 			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
 			vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
 			Engine::getVKContext().getMainQueue()
@@ -279,7 +266,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		);
 
 		workerData.graphicsCommandBuffer->acquireBufferOwnership(
-			backingBuffer,
+			_accelerationStructure->getBackingBuffer(),
 			Engine::getVKContext().getComputeQueue(),
 			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR

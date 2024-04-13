@@ -133,16 +133,10 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 
 	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
 
-	VKBufferInfo backingBufferInfo(buildSizesInfo.accelerationStructureSize, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR);
-	backingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	backingBufferInfo.setName("TLAS buffer");
-	VKPtr<VKBuffer<std::byte>> backingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), backingBufferInfo);
-
 	_tlas = VKAccelerationStructure::create(
 		Engine::getVKContext(),
 		vk::AccelerationStructureTypeKHR::eTopLevel,
-		buildSizesInfo.accelerationStructureSize,
-		backingBuffer
+		buildSizesInfo.accelerationStructureSize
 	);
 
 	VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
@@ -160,7 +154,7 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 	commandBuffer->buildTopLevelAccelerationStructure(_tlas, scratchBuffer, buildInfo, instancesBuffer);
 
 	commandBuffer->bufferMemoryBarrier(
-		backingBuffer,
+		_tlas->getBackingBuffer(),
 		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 		vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
 		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
