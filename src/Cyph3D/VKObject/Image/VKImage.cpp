@@ -82,7 +82,7 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 			_currentStates[i],
 			State{
 				.layout = vk::ImageLayout::eUndefined,
-				.stageMask = vk::PipelineStageFlagBits2::eNone,
+				.stageMask = _info.hasSwapchainImageHandle() ? vk::PipelineStageFlagBits2::eColorAttachmentOutput : vk::PipelineStageFlagBits2::eNone,
 				.accessMask = vk::AccessFlagBits2::eNone,
 			}
 		);

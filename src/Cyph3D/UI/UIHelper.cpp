@@ -31,9 +31,6 @@ bool UIHelper::_dockingLayoutInitialized = false;
 std::unique_ptr<ImGuiVulkanBackend> UIHelper::_vulkanBackend;
 
 VKPtr<VKSemaphore> UIHelper::_presentSemaphore;
-VKPtr<VKSemaphore> UIHelper::_nextSubmitSemaphore;
-
-bool UIHelper::_firstFrame = true;
 
 void UIHelper::init()
 {
@@ -58,7 +55,6 @@ void UIHelper::init()
 
 	vk::SemaphoreCreateInfo semaphoreCreateInfo;
 	_presentSemaphore = VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo);
-	_nextSubmitSemaphore = VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo);
 }
 
 const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, const VKPtr<VKSemaphore>& imageAvailableSemaphore)
@@ -98,42 +94,22 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 
 	commandBuffer->imageMemoryBarrier(
 		destImage,
-		vk::PipelineStageFlagBits2::eAllCommands,
+		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		vk::AccessFlagBits2::eNone,
 		vk::ImageLayout::ePresentSrcKHR
 	);
 
 	commandBuffer->end();
 
-	if (_firstFrame)
-	{
-		Engine::getVKContext().getMainQueue().submit(
-			commandBuffer,
-			{
-				{imageAvailableSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
-			},
-			{
-				{_presentSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
-				{_nextSubmitSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
-			}
-		);
-
-		_firstFrame = false;
-	}
-	else
-	{
-		Engine::getVKContext().getMainQueue().submit(
-			commandBuffer,
-			{
-				{imageAvailableSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
-				{_nextSubmitSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
-			},
-			{
-				{_presentSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
-				{_nextSubmitSemaphore, vk::PipelineStageFlagBits2::eAllCommands},
-			}
-		);
-	}
+	Engine::getVKContext().getMainQueue().submit(
+		commandBuffer,
+		{
+			{imageAvailableSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput},
+		},
+		{
+			{_presentSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput},
+		}
+	);
 
 	return _presentSemaphore;
 }
@@ -141,7 +117,6 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 void UIHelper::shutdown()
 {
 	_presentSemaphore = {};
-	_nextSubmitSemaphore = {};
 
 	UIViewport::shutdown();
 	_vulkanBackend.reset();
