@@ -28,6 +28,7 @@ public:
 	static const vk::Format FINAL_COLOR_FORMAT;
 
 protected:
+	std::string _name;
 	glm::uvec2 _size;
 
 	bool _firstRender = true;

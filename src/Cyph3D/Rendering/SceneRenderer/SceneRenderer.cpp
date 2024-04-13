@@ -10,6 +10,7 @@ const vk::Format SceneRenderer::POINT_SHADOW_MAP_DEPTH_FORMAT = vk::Format::eD32
 const vk::Format SceneRenderer::FINAL_COLOR_FORMAT = vk::Format::eA2B10G10R10UnormPack32;
 
 SceneRenderer::SceneRenderer(std::string_view name, glm::uvec2 size):
+	_name(name),
 	_size(size)
 {
 }
@@ -21,7 +22,10 @@ glm::uvec2 SceneRenderer::getSize() const
 
 const VKPtr<VKImage>& SceneRenderer::render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
+	commandBuffer->pushDebugGroup(_name);
 	const VKPtr<VKImage>& result = onRender(commandBuffer, camera, registry, _firstRender || sceneChanged, _firstRender || cameraChanged);
+	commandBuffer->popDebugGroup();
+
 	_firstRender = false;
 
 	return result;
