@@ -157,6 +157,7 @@ void UIViewport::show()
 				uint32_t thisBatchSamples = std::min(remainingSamples, 16u);
 
 				_renderToFileData->renderer->setSampleCountPerRender(thisBatchSamples);
+				_renderToFileData->renderer->setAccumulationOnlyMode(thisBatchSamples != remainingSamples);
 
 				Engine::getVKContext().executeImmediate(
 					[&](const VKPtr<VKCommandBuffer>& commandBuffer)
@@ -473,7 +474,7 @@ void UIViewport::drawRenderToFilePopup()
 		{
 			if (ImGui::Button("Finish now"))
 			{
-				_renderToFileData->status = RenderToFileStatus::eRenderFinished;
+				_renderToFileData->totalSamples = _renderToFileData->renderedSamples + 16;
 			}
 		}
 		else if (_renderToFileData->status == RenderToFileStatus::eSaveFinished)

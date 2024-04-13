@@ -20,7 +20,12 @@ void PathTracingSceneRenderer::setSampleCountPerRender(uint32_t count)
 	_sampleCount = count;
 }
 
-const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+void PathTracingSceneRenderer::setAccumulationOnlyMode(bool enabled)
+{
+	_accumulationOnlyMode = enabled;
+}
+
+VKPtr<VKImage> PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	// Path trace pass
 
@@ -33,6 +38,9 @@ const VKPtr<VKImage>& PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBu
 	};
 
 	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput);
+
+	if (_accumulationOnlyMode)
+		return {};
 
 	// Normalization pass
 

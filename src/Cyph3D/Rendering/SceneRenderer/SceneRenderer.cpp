@@ -20,10 +20,10 @@ glm::uvec2 SceneRenderer::getSize() const
 	return _size;
 }
 
-const VKPtr<VKImage>& SceneRenderer::render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+VKPtr<VKImage> SceneRenderer::render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	commandBuffer->pushDebugGroup(_name);
-	const VKPtr<VKImage>& result = onRender(commandBuffer, camera, registry, _firstRender || sceneChanged, _firstRender || cameraChanged);
+	VKPtr<VKImage> result = onRender(commandBuffer, camera, registry, _firstRender || sceneChanged, _firstRender || cameraChanged);
 	commandBuffer->popDebugGroup();
 
 	_firstRender = false;

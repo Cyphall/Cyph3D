@@ -23,6 +23,6 @@ private:
 	BloomPass _bloomPass;
 	ToneMappingPass _toneMappingPass;
 
-	const VKPtr<VKImage>& onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
+	VKPtr<VKImage> onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
 	void onResize() override;
 };
