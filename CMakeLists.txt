@@ -321,5 +321,5 @@ add_custom_target(copy_data
 add_dependencies(Cyph3D copy_data)
 
 add_custom_target(copy_resources
-		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /E /NS /NC /NFL /NDL /NP /NJH /NJS || cmd /c "exit /b 0")
+		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /XO /E /NS /NC /NFL /NDL /NP /NJH /NJS || cmd /c "exit /b 0")
 add_dependencies(Cyph3D copy_resources)
