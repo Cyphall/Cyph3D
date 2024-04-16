@@ -34,20 +34,6 @@ add_compile_definitions(VULKAN_HPP_NO_SMART_HANDLE)
 add_compile_definitions(VULKAN_HPP_NO_STRUCT_CONSTRUCTORS)
 
 add_executable(Cyph3D
-		src/Cyph3D/Engine.cpp
-		src/Cyph3D/Engine.h
-		src/Cyph3D/GLSL_types.h
-		src/Cyph3D/HashBuilder.h
-		src/Cyph3D/LibImpl.cpp
-		src/Cyph3D/Main.cpp
-		src/Cyph3D/ObjectSerialization.cpp
-		src/Cyph3D/ObjectSerialization.h
-		src/Cyph3D/StbImage.cpp
-		src/Cyph3D/StbImage.h
-		src/Cyph3D/Timer.cpp
-		src/Cyph3D/Timer.h
-		src/Cyph3D/Window.cpp
-		src/Cyph3D/Window.h
 		src/Cyph3D/Asset/AssetManager.cpp
 		src/Cyph3D/Asset/AssetManager.h
 		src/Cyph3D/Asset/AssetManagerWorkerData.h
@@ -57,6 +43,11 @@ add_executable(Cyph3D
 		src/Cyph3D/Asset/Processing/AssetProcessingCacheDatabase.h
 		src/Cyph3D/Asset/Processing/AssetProcessor.cpp
 		src/Cyph3D/Asset/Processing/AssetProcessor.h
+		src/Cyph3D/Asset/Processing/EquirectangularSkyboxData.h
+		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.cpp
+		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.h
+		src/Cyph3D/Asset/Processing/ImageCompressor.cpp
+		src/Cyph3D/Asset/Processing/ImageCompressor.h
 		src/Cyph3D/Asset/Processing/ImageData.h
 		src/Cyph3D/Asset/Processing/ImageProcessor.cpp
 		src/Cyph3D/Asset/Processing/ImageProcessor.h
@@ -75,8 +66,8 @@ add_executable(Cyph3D
 		src/Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h
 		src/Cyph3D/Asset/RuntimeAsset/TextureAsset.cpp
 		src/Cyph3D/Asset/RuntimeAsset/TextureAsset.h
-		src/Cyph3D/Entity/Entity.cpp
-		src/Cyph3D/Entity/Entity.h
+		src/Cyph3D/Engine.cpp
+		src/Cyph3D/Engine.h
 		src/Cyph3D/Entity/Component/Animator.cpp
 		src/Cyph3D/Entity/Component/Animator.h
 		src/Cyph3D/Entity/Component/Component.cpp
@@ -89,7 +80,11 @@ add_executable(Cyph3D
 		src/Cyph3D/Entity/Component/ModelRenderer.h
 		src/Cyph3D/Entity/Component/PointLight.cpp
 		src/Cyph3D/Entity/Component/PointLight.h
+		src/Cyph3D/Entity/Entity.cpp
+		src/Cyph3D/Entity/Entity.h
 		src/Cyph3D/Enums/ResourceType.h
+		src/Cyph3D/GLSL_types.h
+		src/Cyph3D/HashBuilder.h
 		src/Cyph3D/Helper/FileHelper.cpp
 		src/Cyph3D/Helper/FileHelper.h
 		src/Cyph3D/Helper/ImGuiHelper.cpp
@@ -111,13 +106,12 @@ add_executable(Cyph3D
 		src/Cyph3D/Iterator/EntityConstIterator.h
 		src/Cyph3D/Iterator/EntityIterator.cpp
 		src/Cyph3D/Iterator/EntityIterator.h
+		src/Cyph3D/LibImpl.cpp
 		src/Cyph3D/Logging/Logger.cpp
 		src/Cyph3D/Logging/Logger.h
-		src/Cyph3D/Rendering/RenderRegistry.cpp
-		src/Cyph3D/Rendering/RenderRegistry.h
-		src/Cyph3D/Rendering/ShadowMapManager.cpp
-		src/Cyph3D/Rendering/ShadowMapManager.h
-		src/Cyph3D/Rendering/VertexData.h
+		src/Cyph3D/Main.cpp
+		src/Cyph3D/ObjectSerialization.cpp
+		src/Cyph3D/ObjectSerialization.h
 		src/Cyph3D/Rendering/Pass/BloomPass.cpp
 		src/Cyph3D/Rendering/Pass/BloomPass.h
 		src/Cyph3D/Rendering/Pass/ExposurePass.cpp
@@ -137,18 +131,27 @@ add_executable(Cyph3D
 		src/Cyph3D/Rendering/Pass/ToneMappingPass.h
 		src/Cyph3D/Rendering/Pass/ZPrepass.cpp
 		src/Cyph3D/Rendering/Pass/ZPrepass.h
+		src/Cyph3D/Rendering/RenderRegistry.cpp
+		src/Cyph3D/Rendering/RenderRegistry.h
 		src/Cyph3D/Rendering/SceneRenderer/PathTracingSceneRenderer.cpp
 		src/Cyph3D/Rendering/SceneRenderer/PathTracingSceneRenderer.h
 		src/Cyph3D/Rendering/SceneRenderer/RasterizationSceneRenderer.cpp
 		src/Cyph3D/Rendering/SceneRenderer/RasterizationSceneRenderer.h
 		src/Cyph3D/Rendering/SceneRenderer/SceneRenderer.cpp
 		src/Cyph3D/Rendering/SceneRenderer/SceneRenderer.h
+		src/Cyph3D/Rendering/ShadowMapManager.cpp
+		src/Cyph3D/Rendering/ShadowMapManager.h
+		src/Cyph3D/Rendering/VertexData.h
 		src/Cyph3D/Scene/Camera.cpp
 		src/Cyph3D/Scene/Camera.h
 		src/Cyph3D/Scene/Scene.cpp
 		src/Cyph3D/Scene/Scene.h
 		src/Cyph3D/Scene/Transform.cpp
 		src/Cyph3D/Scene/Transform.h
+		src/Cyph3D/StbImage.cpp
+		src/Cyph3D/StbImage.h
+		src/Cyph3D/Timer.cpp
+		src/Cyph3D/Timer.h
 		src/Cyph3D/UI/IInspectable.h
 		src/Cyph3D/UI/ImGuiVulkanBackend.cpp
 		src/Cyph3D/UI/ImGuiVulkanBackend.h
@@ -168,21 +171,12 @@ add_executable(Cyph3D
 		src/Cyph3D/UI/Window/UIMisc.h
 		src/Cyph3D/UI/Window/UIViewport.cpp
 		src/Cyph3D/UI/Window/UIViewport.h
-		src/Cyph3D/VKObject/VKContext.cpp
-		src/Cyph3D/VKObject/VKContext.h
-		src/Cyph3D/VKObject/VKDynamic.h
-		src/Cyph3D/VKObject/VKHelper.cpp
-		src/Cyph3D/VKObject/VKHelper.h
-		src/Cyph3D/VKObject/VKObject.cpp
-		src/Cyph3D/VKObject/VKObject.h
-		src/Cyph3D/VKObject/VKPtr.h
-		src/Cyph3D/VKObject/VKSwapchain.cpp
-		src/Cyph3D/VKObject/VKSwapchain.h
 		src/Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.cpp
 		src/Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h
 		src/Cyph3D/VKObject/AccelerationStructure/VKBottomLevelAccelerationStructureBuildInfo.h
 		src/Cyph3D/VKObject/AccelerationStructure/VKTopLevelAccelerationStructureBuildInfo.h
 		src/Cyph3D/VKObject/Buffer/VKBuffer.h
+		src/Cyph3D/VKObject/Buffer/VKBufferBase.cpp
 		src/Cyph3D/VKObject/Buffer/VKBufferBase.h
 		src/Cyph3D/VKObject/Buffer/VKBufferInfo.cpp
 		src/Cyph3D/VKObject/Buffer/VKBufferInfo.h
@@ -211,7 +205,7 @@ add_executable(Cyph3D
 		src/Cyph3D/VKObject/Image/VKImage.h
 		src/Cyph3D/VKObject/Image/VKImageInfo.cpp
 		src/Cyph3D/VKObject/Image/VKImageInfo.h
-        src/Cyph3D/VKObject/Image/VKSwapchainImage.cpp
+		src/Cyph3D/VKObject/Image/VKSwapchainImage.cpp
 		src/Cyph3D/VKObject/Image/VKSwapchainImage.h
 		src/Cyph3D/VKObject/Pipeline/VKComputePipeline.cpp
 		src/Cyph3D/VKObject/Pipeline/VKComputePipeline.h
@@ -252,12 +246,18 @@ add_executable(Cyph3D
 		src/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h
 		src/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.cpp
 		src/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.h
-		src/Cyph3D/Asset/Processing/ImageCompressor.cpp
-		src/Cyph3D/Asset/Processing/ImageCompressor.h
-		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.cpp
-		src/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.h
-		src/Cyph3D/Asset/Processing/EquirectangularSkyboxData.h
-		src/Cyph3D/VKObject/Buffer/VKBufferBase.cpp
+		src/Cyph3D/VKObject/VKContext.cpp
+		src/Cyph3D/VKObject/VKContext.h
+		src/Cyph3D/VKObject/VKDynamic.h
+		src/Cyph3D/VKObject/VKHelper.cpp
+		src/Cyph3D/VKObject/VKHelper.h
+		src/Cyph3D/VKObject/VKObject.cpp
+		src/Cyph3D/VKObject/VKObject.h
+		src/Cyph3D/VKObject/VKPtr.h
+		src/Cyph3D/VKObject/VKSwapchain.cpp
+		src/Cyph3D/VKObject/VKSwapchain.h
+		src/Cyph3D/Window.cpp
+		src/Cyph3D/Window.h
 )
 
 target_precompile_headers(Cyph3D PRIVATE <vulkan/vulkan.hpp>)
