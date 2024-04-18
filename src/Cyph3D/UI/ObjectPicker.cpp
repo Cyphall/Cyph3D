@@ -59,7 +59,7 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 			VKRenderingInfo renderingInfo(_currentSize);
 
 			renderingInfo.addColorAttachment(_objectIndexImage)
-				.setLoadOpClear(glm::ivec4(-1, 0, 0, 0))
+				.setLoadOpClear(glm::ivec4(0, 0, 0, 0))
 				.setStoreOpStore();
 
 			renderingInfo.setDepthAttachment(_depthImage)
@@ -95,7 +95,7 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 
 				PushConstantData pushConstantData{};
 				pushConstantData.mvp = vp * model.transform.getLocalToWorldMatrix();
-				pushConstantData.objectIndex = i;
+				pushConstantData.objectIndex = i + 1;
 				commandBuffer->pushConstants(pushConstantData);
 
 				commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
@@ -124,7 +124,7 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 
 	int objectIndex = *_readbackBuffer->getHostPointer();
 
-	return objectIndex != -1 ? &renderRegistry.getModelRenderRequests()[objectIndex].owner : nullptr;
+	return objectIndex > 0 ? &renderRegistry.getModelRenderRequests()[objectIndex - 1].owner : nullptr;
 }
 
 void ObjectPicker::createDescriptorSetLayout()
