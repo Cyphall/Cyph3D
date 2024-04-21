@@ -197,6 +197,7 @@ static std::vector<const char*> getRequiredDeviceCoreExtensions()
 	extensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+	extensions.push_back(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
 
 	return extensions;
 }
@@ -681,9 +682,13 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 		bufferDeviceAddressFeatures.pNext = &accelerationStructureFeatures;
 	}
 
+	vk::PhysicalDevicePageableDeviceLocalMemoryFeaturesEXT pageableDeviceLocalMemoryFeatures;
+	pageableDeviceLocalMemoryFeatures.pageableDeviceLocalMemory = true;
+	pageableDeviceLocalMemoryFeatures.pNext = &bufferDeviceAddressFeatures;
+
 	vk::PhysicalDeviceMemoryPriorityFeaturesEXT memoryPriorityFeatures;
 	memoryPriorityFeatures.memoryPriority = true;
-	memoryPriorityFeatures.pNext = &bufferDeviceAddressFeatures;
+	memoryPriorityFeatures.pNext = &pageableDeviceLocalMemoryFeatures;
 
 	vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures;
 	hostQueryResetFeatures.hostQueryReset = true;
