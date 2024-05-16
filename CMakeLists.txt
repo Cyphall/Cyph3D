@@ -25,6 +25,7 @@ add_compile_options($<$<COMPILE_LANGUAGE:ISPC>:--target-os=windows>)
 add_compile_options($<$<COMPILE_LANGUAGE:ISPC>:--woff>)
 add_compile_options($<$<COMPILE_LANGUAGE:ISPC>:--opt=fast-math>)
 
+add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 add_compile_definitions(GLM_FORCE_DEPTH_ZERO_TO_ONE)
 add_compile_definitions(GLFW_INCLUDE_NONE)
 add_compile_definitions(VK_NO_PROTOTYPES)
