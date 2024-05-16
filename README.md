@@ -56,9 +56,6 @@ Cyph3D only supports Windows. Support for any other OS is not currently planned.
 
 ### Steps:
 
-1. Run the `init.bat` file to initialize vcpkg
-2. Build with CMake:
-
 ```bash
 cmake -B bin -G Ninja -D CMAKE_BUILD_TYPE=Release
 cmake --build bin
