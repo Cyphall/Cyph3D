@@ -292,7 +292,7 @@ target_link_libraries(Cyph3D PRIVATE nlohmann_json::nlohmann_json)
 find_package(SQLiteCpp CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE SQLiteCpp)
 
-find_package(Vulkan REQUIRED)
+find_package(VulkanHeaders CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE Vulkan::Headers)
 
 add_subdirectory("vendor/bs-thread-pool/v3.3.0")
@@ -316,9 +316,10 @@ target_link_libraries(Cyph3D PRIVATE ISPCTextureCompressor)
 add_subdirectory("vendor/half/v2.2.0")
 target_link_libraries(Cyph3D PRIVATE half)
 
-find_package(Python COMPONENTS Interpreter)
+find_package(Python COMPONENTS Interpreter REQUIRED)
+find_program(GLSLANG_EXECUTABLE glslang REQUIRED)
 add_custom_target(copy_data
-		COMMAND ${Python_EXECUTABLE} "${PROJECT_SOURCE_DIR}/copy_resources.py" "${PROJECT_SOURCE_DIR}/data" "${PROJECT_BINARY_DIR}/data" "${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}" "${CMAKE_BUILD_TYPE}")
+		COMMAND ${Python_EXECUTABLE} "${PROJECT_SOURCE_DIR}/copy_resources.py" "${PROJECT_SOURCE_DIR}/data" "${PROJECT_BINARY_DIR}/data" "${GLSLANG_EXECUTABLE}" "${CMAKE_BUILD_TYPE}")
 add_dependencies(Cyph3D copy_data)
 
 add_custom_target(copy_resources
