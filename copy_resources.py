@@ -12,27 +12,9 @@ def copy_file(input_path, output_path):
 		shutil.copyfile(input_path, output_path)
 
 
-def fill_glslc_arguments(input_path, output_path):
-	arguments = [compiler_path, input_path]
-	arguments.extend(["-o", output_path])
-	arguments.extend(["--target-env=vulkan1.3"])
-	if cmakeConfig == "Debug":
-		arguments.extend(["-O0"])
-		arguments.extend(["-g"])
-	elif cmakeConfig == "Release":
-		arguments.extend(["-O"])
-	elif cmakeConfig == "RelWithDebInfo":
-		arguments.extend(["-O"])
-		arguments.extend(["-g"])
-	elif cmakeConfig == "MinSizeRel":
-		arguments.extend(["-Os"])
-	else:
-		sys.exit(1)
-
-	return arguments
-
-
-def fill_glslang_validator_arguments(input_path, output_path):
+def compile_shader(input_path, output_path):
+	print(f"Building shader file {input_path}")
+	
 	arguments = [compiler_path, input_path]
 	arguments.extend(["-o", output_path])
 	arguments.extend(["--target-env", "vulkan1.3"])
@@ -46,19 +28,6 @@ def fill_glslang_validator_arguments(input_path, output_path):
 		arguments.extend(["-g"])
 	elif cmakeConfig == "MinSizeRel":
 		arguments.extend(["-Os"])
-	else:
-		sys.exit(1)
-
-	return arguments
-
-
-def compile_shader(input_path, output_path):
-	print(f"Building shader file {input_path}")
-
-	if compiler_path.endswith("glslc.exe"):
-		arguments = fill_glslc_arguments(input_path, output_path)
-	elif compiler_path.endswith("glslangValidator.exe"):
-		arguments = fill_glslang_validator_arguments(input_path, output_path)
 	else:
 		sys.exit(1)
 
