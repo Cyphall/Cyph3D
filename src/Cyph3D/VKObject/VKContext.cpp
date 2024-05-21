@@ -55,10 +55,6 @@ static std::vector<const char*> getRequiredInstanceLayers()
 {
 	std::vector<const char*> layers;
 
-#if defined(_DEBUG)
-	layers.push_back("VK_LAYER_KHRONOS_validation");
-#endif
-
 	return layers;
 }
 
@@ -85,9 +81,6 @@ static std::vector<const char*> getRequiredInstanceExtensions()
 
 	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
-#if defined(_DEBUG)
-	extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
-#endif
 
 	return extensions;
 }
@@ -530,21 +523,6 @@ void VKContext::createInstance(const std::vector<const char*>& layers, const std
 	createInfo.ppEnabledExtensionNames = extensions.data();
 	createInfo.enabledLayerCount = layers.size();
 	createInfo.ppEnabledLayerNames = layers.data();
-
-#if defined(_DEBUG)
-	std::vector<vk::ValidationFeatureEnableEXT> enabledFeatures{
-		//		vk::ValidationFeatureEnableEXT::eGpuAssisted,
-		//		vk::ValidationFeatureEnableEXT::eGpuAssistedReserveBindingSlot,
-		vk::ValidationFeatureEnableEXT::eBestPractices,
-		vk::ValidationFeatureEnableEXT::eSynchronizationValidation
-	};
-
-	vk::ValidationFeaturesEXT validationFeatures;
-	validationFeatures.enabledValidationFeatureCount = enabledFeatures.size();
-	validationFeatures.pEnabledValidationFeatures = enabledFeatures.data();
-
-	createInfo.pNext = &validationFeatures;
-#endif
 
 	_instance = vk::createInstance(createInfo);
 }
