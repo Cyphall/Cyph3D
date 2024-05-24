@@ -45,7 +45,8 @@
       "name": "glslang",
       "version>=": "14.2.0",
       "features": [
-        "tools"
+        "tools",
+        "opt"
       ]
     }
   ]
