@@ -255,8 +255,8 @@ void LightingPass::createSamplers()
 	{
 		vk::SamplerCreateInfo createInfo;
 		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eNearest;
-		createInfo.minFilter = vk::Filter::eNearest;
+		createInfo.magFilter = vk::Filter::eLinear;
+		createInfo.minFilter = vk::Filter::eLinear;
 		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
 		createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
 		createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
@@ -264,8 +264,8 @@ void LightingPass::createSamplers()
 		createInfo.mipLodBias = 0.0f;
 		createInfo.anisotropyEnable = false;
 		createInfo.maxAnisotropy = 1;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
+		createInfo.compareEnable = true;
+		createInfo.compareOp = vk::CompareOp::eGreater;
 		createInfo.minLod = -1000.0f;
 		createInfo.maxLod = 1000.0f;
 		createInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
@@ -277,8 +277,8 @@ void LightingPass::createSamplers()
 	{
 		vk::SamplerCreateInfo createInfo;
 		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eNearest;
-		createInfo.minFilter = vk::Filter::eNearest;
+		createInfo.magFilter = vk::Filter::eLinear;
+		createInfo.minFilter = vk::Filter::eLinear;
 		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
 		createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
 		createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
@@ -286,8 +286,8 @@ void LightingPass::createSamplers()
 		createInfo.mipLodBias = 0.0f;
 		createInfo.anisotropyEnable = false;
 		createInfo.maxAnisotropy = 1;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
+		createInfo.compareEnable = true;
+		createInfo.compareOp = vk::CompareOp::eGreater;
 		createInfo.minLod = -1000.0f;
 		createInfo.maxLod = 1000.0f;
 		createInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;

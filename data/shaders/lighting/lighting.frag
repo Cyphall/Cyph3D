@@ -63,13 +63,13 @@ layout(std430, set = 1, binding = 0) readonly buffer UselessNameBecauseItIsNever
 {
 	DirectionalLightUniforms u_directionalLightUniforms[];
 };
-layout(set = 1, binding = 1) uniform sampler2D u_directionalLightTextures[];
+layout(set = 1, binding = 1) uniform sampler2DShadow u_directionalLightTextures[];
 
 layout(std430, set = 2, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere2
 {
 	PointLightUniforms u_pointLightUniforms[];
 };
-layout(set = 2, binding = 1) uniform samplerCube u_pointLightTextures[];
+layout(set = 2, binding = 1) uniform samplerCubeShadow u_pointLightTextures[];
 
 layout(std430, set = 3, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere3
 {
@@ -236,20 +236,14 @@ float isInDirectionalShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 	float phi = getRandom().x * TWO_PI;
 
 	const float bias = 0.0002;
-	const int sampleCount = 16;
+	const int sampleCount = 8;
 	float shadow = 0.0;
 	for (int i = 0; i < sampleCount; i++)
 	{
 		vec2 sampleOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadius;
 		vec2 uvOffset = sampleOffset * texelSize;
-		float sampleDepth = texture(u_directionalLightTextures[u_directionalLightUniforms[lightIndex].textureIndex], fragUV_SMV + uvOffset).r;
-
 		float expectedDepth = fragDepth_SMV + fRightTexelDepthDelta * sampleOffset.x + fUpTexelDepthDelta * sampleOffset.y;
-
-		if (expectedDepth - bias > sampleDepth)
-		{
-			shadow++;
-		}
+		shadow += texture(u_directionalLightTextures[u_directionalLightUniforms[lightIndex].textureIndex], vec3(fragUV_SMV + uvOffset, expectedDepth - bias)).r;
 	}
 	shadow /= sampleCount;
 
@@ -286,17 +280,13 @@ float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 
 	float shadow = 0.0;
 
-	const int sampleCount = 16;
+	const int sampleCount = 8;
 	for (int i = 0; i < sampleCount; i++)
 	{
 		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
 		vec3 posOffset = (left * uvOffset.x) + (up * uvOffset.y);
-		float sampleDepth = texture(u_pointLightTextures[u_pointLightUniforms[lightIndex].textureIndex], forward + posOffset).r;
-
-		if (fragDepth_SMV - bias > sampleDepth)
-		{
-			shadow++;
-		}
+		float expectedDepth = fragDepth_SMV;
+		shadow += texture(u_pointLightTextures[u_pointLightUniforms[lightIndex].textureIndex], vec4(forward + posOffset, expectedDepth - bias)).r;
 	}
 	shadow /= sampleCount;
 
