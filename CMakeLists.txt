@@ -295,6 +295,9 @@ target_link_libraries(Cyph3D PRIVATE SQLiteCpp)
 find_package(VulkanHeaders CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE Vulkan::Headers)
 
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+target_link_libraries(Cyph3D PRIVATE GPUOpen::VulkanMemoryAllocator)
+
 add_subdirectory("vendor/bs-thread-pool/v3.3.0")
 target_link_libraries(Cyph3D PRIVATE bs-thread-pool)
 
@@ -303,9 +306,6 @@ target_link_libraries(Cyph3D PRIVATE imgui)
 
 add_subdirectory("vendor/imguizmo/fbc3614abcc642de7f3868cc0d68a35503ca9a4e")
 target_link_libraries(Cyph3D PRIVATE imguizmo)
-
-add_subdirectory("vendor/VulkanMemoryAllocator/5677097bafb8477097c6e3354ce68b7a44fd01a4")
-target_link_libraries(Cyph3D PRIVATE VulkanMemoryAllocator)
 
 add_subdirectory("vendor/sigslot/v1.2.2")
 target_link_libraries(Cyph3D PRIVATE sigslot)

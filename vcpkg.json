@@ -48,6 +48,10 @@
         "tools",
         "opt"
       ]
+    },
+    {
+      "name": "vulkan-memory-allocator",
+      "version>=": "3.1.0"
     }
   ]
 }
