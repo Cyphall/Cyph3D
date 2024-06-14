@@ -26,12 +26,12 @@ struct Vertex
 	vec4 tangent;
 };
 
-layout(buffer_reference, scalar) readonly buffer VertexBuffer
+layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer VertexBuffer
 {
 	Vertex vertices[];
 };
 
-layout(buffer_reference, scalar) readonly buffer IndexBuffer
+layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer IndexBuffer
 {
 	uvec3 indices[];
 };
