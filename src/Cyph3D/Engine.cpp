@@ -15,7 +15,6 @@
 #include "Cyph3D/VKObject/VKSwapchain.h"
 #include "Cyph3D/Window.h"
 
-#include <format>
 #include <GLFW/glfw3.h>
 
 std::unique_ptr<VKContext> Engine::_vkContext;

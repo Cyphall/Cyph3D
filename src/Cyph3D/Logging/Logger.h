@@ -1,6 +1,5 @@
 #pragma once
 
-#include <format>
 #include <fstream>
 #include <glm/glm.hpp>
 #include <mutex>

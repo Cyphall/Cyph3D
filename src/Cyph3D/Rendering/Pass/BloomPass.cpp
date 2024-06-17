@@ -10,8 +10,6 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
-#include <format>
-
 static constexpr float BLOOM_RADIUS = 0.85f;
 static constexpr float BLOOM_STRENGTH = 0.15f;
 

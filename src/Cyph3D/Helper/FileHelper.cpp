@@ -8,7 +8,6 @@
 
 #undef APIENTRY
 #include <filesystem>
-#include <format>
 #include <fstream>
 #include <ios>
 #include <ShlObj_core.h>

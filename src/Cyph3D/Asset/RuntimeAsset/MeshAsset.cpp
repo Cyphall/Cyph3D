@@ -10,8 +10,6 @@
 #include "Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
-#include <format>
-
 MeshAsset* MeshAsset::_defaultMesh = nullptr;
 MeshAsset* MeshAsset::_missingMesh = nullptr;
 

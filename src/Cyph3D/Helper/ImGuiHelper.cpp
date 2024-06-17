@@ -3,7 +3,6 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Window.h"
 
-#include <format>
 #include <imgui_internal.h>
 #include <stack>
 

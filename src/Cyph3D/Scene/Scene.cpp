@@ -14,7 +14,6 @@
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 
-#include <format>
 #include <glm/gtc/type_ptr.hpp>
 
 std::atomic_uint64_t Scene::_changeVersion = 0;
