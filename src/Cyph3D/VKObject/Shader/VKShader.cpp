@@ -31,7 +31,8 @@ VKPtr<VKShader> VKShader::create(VKContext& context, const std::filesystem::path
 VKShader::VKShader(VKContext& context, const std::filesystem::path& path):
 	VKObject(context)
 {
-	_code = readSPIRV(path);
+	std::filesystem::path realPath = std::filesystem::path(path).concat(".spv");
+	_code = readSPIRV(realPath);
 
 	vk::ShaderModuleCreateInfo createInfo;
 	createInfo.codeSize = _code.size() * sizeof(uint32_t);

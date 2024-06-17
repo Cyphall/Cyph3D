@@ -15,6 +15,8 @@ def copy_file(input_path, output_path):
 def compile_shader(input_path, output_path):
 	print(f"Building shader file {input_path}")
 	
+	output_path = f"{output_path}.spv"
+	
 	arguments = [compiler_path, input_path]
 	arguments.extend(["-o", output_path])
 	arguments.extend(["--target-env", "vulkan1.3"])
