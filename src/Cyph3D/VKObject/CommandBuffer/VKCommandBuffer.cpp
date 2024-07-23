@@ -495,20 +495,9 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		throw;
 
 	vk::DescriptorBufferInfo bufferInfo;
-	if (size > 0)
-	{
-		bufferInfo.buffer = buffer->getHandle();
-		bufferInfo.offset = offset * buffer->getStride();
-		bufferInfo.range = size * buffer->getStride();
-
-		_usedObjects.emplace_back(buffer);
-	}
-	else
-	{
-		bufferInfo.buffer = VK_NULL_HANDLE;
-		bufferInfo.offset = 0;
-		bufferInfo.range = VK_WHOLE_SIZE;
-	}
+	bufferInfo.buffer = buffer->getHandle();
+	bufferInfo.offset = offset * buffer->getStride();
+	bufferInfo.range = size * buffer->getStride();
 
 	const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _boundPipeline->getPipelineLayout()->getInfo().getDescriptorSetLayout(setIndex)->getInfo().getBindingInfo(bindingIndex);
 
@@ -528,6 +517,8 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 		setIndex,
 		descriptorWrite
 	);
+
+	_usedObjects.emplace_back(buffer);
 }
 
 void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)

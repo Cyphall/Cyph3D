@@ -78,6 +78,8 @@ private:
 	{
 		GLSL_vec3 viewPos;
 		GLSL_uint frameIndex;
+		GLSL_int directionalLightCount;
+		GLSL_int pointLightCount;
 	};
 
 	VKDynamic<VKResizableBuffer<DirectionalLightUniforms>> _directionalLightsUniforms;

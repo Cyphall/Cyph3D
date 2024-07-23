@@ -80,6 +80,8 @@ layout(push_constant) uniform constants
 {
 	vec3 u_viewPos;
 	uint u_frameIndex;
+	int u_directionalLightCount;
+	int u_pointLightCount;
 };
 
 /* ------ outputs ------ */
@@ -417,7 +419,7 @@ void main()
 	vec3 finalColor = albedo * emissive;
 
 	// Directional Light calculation
-	for (int i = 0; i < u_directionalLightUniforms.length(); ++i)
+	for (int i = 0; i < u_directionalLightCount; ++i)
 	{
 		float shadow = u_directionalLightUniforms[i].castShadows ? isInDirectionalShadow(i, fragPos, geometryNormal) : 0;
 
@@ -429,7 +431,7 @@ void main()
 	}
 
 	// Point Light calculation
-	for (int i = 0; i < u_pointLightUniforms.length(); ++i)
+	for (int i = 0; i < u_pointLightCount; ++i)
 	{
 		float shadow = u_pointLightUniforms[i].castShadows ? isInPointShadow(i, fragPos, geometryNormal) : 0;
 

@@ -185,7 +185,6 @@ static std::vector<const char*> getRequiredDeviceCoreExtensions()
 	std::vector<const char*> extensions;
 
 	extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
 	extensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
@@ -671,13 +670,9 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 	hostQueryResetFeatures.hostQueryReset = true;
 	hostQueryResetFeatures.pNext = &memoryPriorityFeatures;
 
-	vk::PhysicalDeviceRobustness2FeaturesEXT robustness2Features;
-	robustness2Features.nullDescriptor = true;
-	robustness2Features.pNext = &hostQueryResetFeatures;
-
 	vk::PhysicalDeviceMaintenance4Features maintenance4Features;
 	maintenance4Features.maintenance4 = true;
-	maintenance4Features.pNext = &robustness2Features;
+	maintenance4Features.pNext = &hostQueryResetFeatures;
 
 	vk::PhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatures;
 	descriptorIndexingFeatures.shaderUniformBufferArrayNonUniformIndexing = true;

@@ -117,26 +117,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBuffer
 	}
 	else
 	{
-		vk::DescriptorBufferInfo bufferInfo;
-		bufferInfo.buffer = VK_NULL_HANDLE;
-		bufferInfo.offset = 0;
-		bufferInfo.range = VK_WHOLE_SIZE;
-
-		const VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _info.getLayout()->getInfo().getBindingInfo(bindingIndex);
-
-		vk::WriteDescriptorSet descriptorWrite;
-		descriptorWrite.dstSet = _descriptorSet;
-		descriptorWrite.dstBinding = bindingIndex;
-		descriptorWrite.dstArrayElement = arrayIndex;
-		descriptorWrite.descriptorType = bindingInfo.type;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = nullptr; // Optional
-		descriptorWrite.pBufferInfo = &bufferInfo;
-		descriptorWrite.pTexelBufferView = nullptr; // Optional
-
-		_context.getDevice().updateDescriptorSets(descriptorWrite, nullptr);
-
-		_boundObjects[bindingIndex][arrayIndex] = {buffer};
+		_boundObjects[bindingIndex][arrayIndex] = {};
 	}
 }
 

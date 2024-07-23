@@ -94,7 +94,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			directionalLightShadowIndex++;
 		}
 	}
-	_directionalLightDescriptorSet->bindDescriptor(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getDirectionalLightRenderRequests().size());
+	if (!input.registry.getDirectionalLightRenderRequests().empty())
+		_directionalLightDescriptorSet->bindDescriptor(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getDirectionalLightRenderRequests().size());
 
 	_pointLightsUniforms->resizeSmart(input.registry.getPointLightRenderRequests().size());
 	uint32_t pointLightShadowIndex = 0;
@@ -119,7 +120,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 			pointLightShadowIndex++;
 		}
 	}
-	_pointLightDescriptorSet->bindDescriptor(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
+	if (!input.registry.getPointLightRenderRequests().empty())
+		_pointLightDescriptorSet->bindDescriptor(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
 
 	VKRenderingInfo renderingInfo(_size);
 
@@ -153,6 +155,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	PushConstantData pushConstantData{};
 	pushConstantData.viewPos = input.camera.getPosition();
 	pushConstantData.frameIndex = _frameIndex;
+	pushConstantData.directionalLightCount = input.registry.getDirectionalLightRenderRequests().size();
+	pushConstantData.pointLightCount = input.registry.getPointLightRenderRequests().size();
 	commandBuffer->pushConstants(pushConstantData);
 
 	glm::mat4 viewProjection = input.camera.getProjection() * input.camera.getView();
