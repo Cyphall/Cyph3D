@@ -157,6 +157,7 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	pushConstantData.frameIndex = _frameIndex;
 	pushConstantData.directionalLightCount = input.registry.getDirectionalLightRenderRequests().size();
 	pushConstantData.pointLightCount = input.registry.getPointLightRenderRequests().size();
+	pushConstantData.pointLightMaxDistance = input.pointLightMaxDistance;
 	commandBuffer->pushConstants(pushConstantData);
 
 	glm::mat4 viewProjection = input.camera.getProjection() * input.camera.getView();

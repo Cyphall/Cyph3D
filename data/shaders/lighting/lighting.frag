@@ -82,6 +82,7 @@ layout(push_constant) uniform constants
 	uint u_frameIndex;
 	int u_directionalLightCount;
 	int u_pointLightCount;
+	float u_pointLightMaxDistance;
 };
 
 /* ------ outputs ------ */
@@ -288,7 +289,7 @@ float isInPointShadow(int lightIndex, vec3 fragPos, vec3 geometryNormal)
 		vec2 uvOffset = VogelDiskSample(i, sampleCount, phi) * samplingRadiusNormalized;
 		vec3 posOffset = (left * uvOffset.x) + (up * uvOffset.y);
 		float expectedDepth = fragDepth_SMV;
-		shadow += texture(u_pointLightTextures[u_pointLightUniforms[lightIndex].textureIndex], vec4(forward + posOffset, expectedDepth - bias)).r;
+		shadow += texture(u_pointLightTextures[u_pointLightUniforms[lightIndex].textureIndex], vec4(forward + posOffset, (expectedDepth - bias) / u_pointLightMaxDistance)).r;
 	}
 	shadow /= sampleCount;
 

@@ -22,6 +22,7 @@ struct LightingPassInput
 	Camera& camera;
 	const std::vector<DirectionalShadowMapInfo>& directionalShadowMapInfos;
 	const std::vector<PointShadowMapInfo>& pointShadowMapInfos;
+	float pointLightMaxDistance;
 };
 
 struct LightingPassOutput
@@ -80,6 +81,7 @@ private:
 		GLSL_uint frameIndex;
 		GLSL_int directionalLightCount;
 		GLSL_int pointLightCount;
+		GLSL_float pointLightMaxDistance;
 	};
 
 	VKDynamic<VKResizableBuffer<DirectionalLightUniforms>> _directionalLightsUniforms;

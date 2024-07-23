@@ -37,6 +37,7 @@ struct ShadowMapPassOutput
 {
 	const std::vector<DirectionalShadowMapInfo>& directionalShadowMapInfos;
 	const std::vector<PointShadowMapInfo>& pointShadowMapInfos;
+	float pointLightMaxDistance;
 };
 
 class ShadowMapPass : public RenderPass<ShadowMapPassInput, ShadowMapPassOutput>
@@ -54,6 +55,7 @@ private:
 	{
 		GLSL_mat4 viewProjection;
 		GLSL_vec3 lightPos;
+		GLSL_float maxDistance;
 	};
 
 	struct PointLightPushConstantData

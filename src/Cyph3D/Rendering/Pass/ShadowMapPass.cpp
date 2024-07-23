@@ -153,7 +153,8 @@ ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& comman
 
 	return {
 		.directionalShadowMapInfos = _directionalShadowMapInfos,
-		.pointShadowMapInfos = _pointShadowMapInfos
+		.pointShadowMapInfos = _pointShadowMapInfos,
+		.pointLightMaxDistance = POINT_SHADOW_MAP_FAR
 	};
 }
 
@@ -368,6 +369,7 @@ void ShadowMapPass::renderPointShadowMap(
 		PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer() + uniformOffset;
 		pointLightUniformBufferPtr->viewProjection = POINT_SHADOW_MAP_PROJECTION * views[i];
 		pointLightUniformBufferPtr->lightPos = light.transform.getWorldPosition();
+		pointLightUniformBufferPtr->maxDistance = POINT_SHADOW_MAP_FAR;
 
 		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), uniformOffset, 1);
 

@@ -43,7 +43,8 @@ VKPtr<VKImage> RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>
 		.registry = registry,
 		.camera = camera,
 		.directionalShadowMapInfos = shadowMapPassOutput.directionalShadowMapInfos,
-		.pointShadowMapInfos = shadowMapPassOutput.pointShadowMapInfos
+		.pointShadowMapInfos = shadowMapPassOutput.pointShadowMapInfos,
+		.pointLightMaxDistance = shadowMapPassOutput.pointLightMaxDistance
 	};
 
 	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput);
