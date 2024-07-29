@@ -1,12 +1,14 @@
 #version 460 core
 
+#extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing : require
+#extension GL_ARB_gpu_shader_fp64 : require
 #extension GL_EXT_nonuniform_qualifier : require
 
 struct HitPayload
 {
 	uint randomOffset;
-	vec3 light;
+    dvec3 light;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;

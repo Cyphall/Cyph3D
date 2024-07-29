@@ -1,17 +1,17 @@
 #version 460 core
 
+#extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing : require
+#extension GL_ARB_gpu_shader_fp64 : require
 #extension GL_EXT_shader_image_int64 : require
 #extension GL_ARB_gpu_shader_int64 : require
-#extension GL_ARB_gpu_shader_fp64 : require
-#extension GL_GOOGLE_include_directive : require
 
 #include "../common/64bit.glsl"
 
 struct HitPayload
 {
 	uint randomOffset;
-	vec3 light;
+	dvec3 light;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
@@ -56,7 +56,18 @@ vec4 getRandom()
 void main()
 {
 	hitPayload.randomOffset = 0;
-	hitPayload.light = vec3(0);
+	hitPayload.light = dvec3(0);
+
+	if (!u_resetAccumulation)
+	{
+		u64vec3 totalLightEncoded = u64vec3(
+			imageLoad(u_color[0], ivec2(gl_LaunchIDEXT.xy)).r,
+			imageLoad(u_color[1], ivec2(gl_LaunchIDEXT.xy)).r,
+			imageLoad(u_color[2], ivec2(gl_LaunchIDEXT.xy)).r
+		);
+
+		hitPayload.light = uint64BitsToDouble(totalLightEncoded);
+	}
 
 	for (int s = 0; s < u_sampleCount; s++)
 	{
@@ -93,17 +104,7 @@ void main()
 		}
 	}
 
-	u64vec3 totalLightEncoded = u_resetAccumulation ? u64vec3(0) : u64vec3(
-		imageLoad(u_color[0], ivec2(gl_LaunchIDEXT.xy)).r,
-		imageLoad(u_color[1], ivec2(gl_LaunchIDEXT.xy)).r,
-		imageLoad(u_color[2], ivec2(gl_LaunchIDEXT.xy)).r
-	);
-
-	dvec3 totalLight = uint64BitsToDouble(totalLightEncoded);
-
-	totalLight += dvec3(hitPayload.light);
-
-	totalLightEncoded = doubleBitsToUint64(totalLight);
+	u64vec3 totalLightEncoded = doubleBitsToUint64(hitPayload.light);
 
 	imageStore(u_color[0], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLightEncoded.r, 0, 0, 0));
 	imageStore(u_color[1], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLightEncoded.g, 0, 0, 0));
