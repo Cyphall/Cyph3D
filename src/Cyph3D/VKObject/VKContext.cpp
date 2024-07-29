@@ -699,8 +699,11 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 	physicalDeviceFeatures.features.geometryShader = true;
 	physicalDeviceFeatures.features.shaderStorageImageReadWithoutFormat = true;
 	physicalDeviceFeatures.features.shaderStorageImageWriteWithoutFormat = true;
-	physicalDeviceFeatures.features.shaderInt64 = true;
-	physicalDeviceFeatures.features.shaderFloat64 = true;
+	if (_rayTracingSupported)
+	{
+		physicalDeviceFeatures.features.shaderInt64 = true;
+		physicalDeviceFeatures.features.shaderFloat64 = true;
+	}
 
 	vk::DeviceCreateInfo deviceCreateInfo;
 	deviceCreateInfo.pNext = &physicalDeviceFeatures;
