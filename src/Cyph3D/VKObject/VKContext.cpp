@@ -631,82 +631,62 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 		deviceQueueCreateInfo.pQueuePriorities = queueFamilyUsage.data();
 	}
 
-	vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT shaderImageAtomicInt64Features;
-	shaderImageAtomicInt64Features.shaderImageInt64Atomics = true;
+	vk::StructureChain<
+		vk::PhysicalDeviceFeatures2,
+		vk::PhysicalDeviceVulkan11Features,
+		vk::PhysicalDeviceVulkan12Features,
+		vk::PhysicalDeviceVulkan13Features,
+		vk::PhysicalDeviceMemoryPriorityFeaturesEXT,
+		vk::PhysicalDevicePageableDeviceLocalMemoryFeaturesEXT,
+		vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
+		vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
+		vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR,
+		vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT>
+		features;
 
-	vk::PhysicalDeviceScalarBlockLayoutFeatures scalarBlockLayoutFeatures;
-	scalarBlockLayoutFeatures.scalarBlockLayout = true;
-	scalarBlockLayoutFeatures.pNext = &shaderImageAtomicInt64Features;
+	features.unlink<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>();
+	features.unlink<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>();
+	features.unlink<vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR>();
+	features.unlink<vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT>();
 
-	vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenance1Features;
-	rayTracingMaintenance1Features.rayTracingMaintenance1 = true;
-	rayTracingMaintenance1Features.pNext = &scalarBlockLayoutFeatures;
-
-	vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;
-	rayTracingPipelineFeatures.rayTracingPipeline = true;
-	rayTracingPipelineFeatures.pNext = &rayTracingMaintenance1Features;
-
-	vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures;
-	accelerationStructureFeatures.accelerationStructure = true;
-	accelerationStructureFeatures.pNext = &rayTracingPipelineFeatures;
-
-	vk::PhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures;
-	bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+	features.get<vk::PhysicalDeviceFeatures2>().features.samplerAnisotropy = true;
+	features.get<vk::PhysicalDeviceFeatures2>().features.geometryShader = true;
+	features.get<vk::PhysicalDeviceFeatures2>().features.shaderStorageImageReadWithoutFormat = true;
+	features.get<vk::PhysicalDeviceFeatures2>().features.shaderStorageImageWriteWithoutFormat = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().shaderUniformBufferArrayNonUniformIndexing = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().shaderSampledImageArrayNonUniformIndexing = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().shaderStorageBufferArrayNonUniformIndexing = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().shaderStorageImageArrayNonUniformIndexing = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingSampledImageUpdateAfterBind = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingPartiallyBound = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingVariableDescriptorCount = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().runtimeDescriptorArray = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().hostQueryReset = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().bufferDeviceAddress = true;
+	features.get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering = true;
+	features.get<vk::PhysicalDeviceVulkan13Features>().synchronization2 = true;
+	features.get<vk::PhysicalDeviceVulkan13Features>().maintenance4 = true;
+	features.get<vk::PhysicalDeviceMemoryPriorityFeaturesEXT>().memoryPriority = true;
+	features.get<vk::PhysicalDevicePageableDeviceLocalMemoryFeaturesEXT>().pageableDeviceLocalMemory = true;
 
 	if (_rayTracingSupported)
 	{
-		bufferDeviceAddressFeatures.pNext = &accelerationStructureFeatures;
-	}
+		features.relink<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>();
+		features.relink<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>();
+		features.relink<vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR>();
+		features.relink<vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT>();
 
-	vk::PhysicalDevicePageableDeviceLocalMemoryFeaturesEXT pageableDeviceLocalMemoryFeatures;
-	pageableDeviceLocalMemoryFeatures.pageableDeviceLocalMemory = true;
-	pageableDeviceLocalMemoryFeatures.pNext = &bufferDeviceAddressFeatures;
-
-	vk::PhysicalDeviceMemoryPriorityFeaturesEXT memoryPriorityFeatures;
-	memoryPriorityFeatures.memoryPriority = true;
-	memoryPriorityFeatures.pNext = &pageableDeviceLocalMemoryFeatures;
-
-	vk::PhysicalDeviceHostQueryResetFeatures hostQueryResetFeatures;
-	hostQueryResetFeatures.hostQueryReset = true;
-	hostQueryResetFeatures.pNext = &memoryPriorityFeatures;
-
-	vk::PhysicalDeviceMaintenance4Features maintenance4Features;
-	maintenance4Features.maintenance4 = true;
-	maintenance4Features.pNext = &hostQueryResetFeatures;
-
-	vk::PhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatures;
-	descriptorIndexingFeatures.shaderUniformBufferArrayNonUniformIndexing = true;
-	descriptorIndexingFeatures.shaderSampledImageArrayNonUniformIndexing = true;
-	descriptorIndexingFeatures.shaderStorageBufferArrayNonUniformIndexing = true;
-	descriptorIndexingFeatures.shaderStorageImageArrayNonUniformIndexing = true;
-	descriptorIndexingFeatures.descriptorBindingSampledImageUpdateAfterBind = true;
-	descriptorIndexingFeatures.descriptorBindingPartiallyBound = true;
-	descriptorIndexingFeatures.descriptorBindingVariableDescriptorCount = true;
-	descriptorIndexingFeatures.runtimeDescriptorArray = true;
-	descriptorIndexingFeatures.pNext = &maintenance4Features;
-
-	vk::PhysicalDeviceSynchronization2Features synchronization2Features;
-	synchronization2Features.synchronization2 = true;
-	synchronization2Features.pNext = &descriptorIndexingFeatures;
-
-	vk::PhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures;
-	dynamicRenderingFeatures.pNext = &synchronization2Features;
-	dynamicRenderingFeatures.dynamicRendering = true;
-
-	vk::PhysicalDeviceFeatures2 physicalDeviceFeatures;
-	physicalDeviceFeatures.pNext = &dynamicRenderingFeatures;
-	physicalDeviceFeatures.features.samplerAnisotropy = true;
-	physicalDeviceFeatures.features.geometryShader = true;
-	physicalDeviceFeatures.features.shaderStorageImageReadWithoutFormat = true;
-	physicalDeviceFeatures.features.shaderStorageImageWriteWithoutFormat = true;
-	if (_rayTracingSupported)
-	{
-		physicalDeviceFeatures.features.shaderInt64 = true;
-		physicalDeviceFeatures.features.shaderFloat64 = true;
+		features.get<vk::PhysicalDeviceFeatures2>().features.shaderInt64 = true;
+		features.get<vk::PhysicalDeviceFeatures2>().features.shaderFloat64 = true;
+		features.get<vk::PhysicalDeviceVulkan12Features>().scalarBlockLayout = true;
+		features.get<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>().accelerationStructure = true;
+		features.get<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>().rayTracingPipeline = true;
+		features.get<vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR>().rayTracingMaintenance1 = true;
+		features.get<vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT>().shaderImageInt64Atomics = true;
 	}
 
 	vk::DeviceCreateInfo deviceCreateInfo;
-	deviceCreateInfo.pNext = &physicalDeviceFeatures;
+	deviceCreateInfo.pNext = &features.get<vk::PhysicalDeviceFeatures2>();
 	deviceCreateInfo.queueCreateInfoCount = deviceQueueCreateInfos.size();
 	deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos.data();
 	deviceCreateInfo.enabledExtensionCount = extensions.size();
