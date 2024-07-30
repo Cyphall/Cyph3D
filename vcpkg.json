@@ -7,15 +7,15 @@
     },
     {
       "name": "glm",
-      "version>=": "1.0.1#2"
+      "version>=": "1.0.1#3"
     },
     {
       "name": "nlohmann-json",
-      "version>=": "3.11.3#0"
+      "version>=": "3.11.3#1"
     },
     {
       "name": "assimp",
-      "version>=": "5.4.0#0"
+      "version>=": "5.4.2#0"
     },
     {
       "name": "stb",
@@ -23,7 +23,7 @@
     },
     {
       "name": "magic-enum",
-      "version>=": "0.9.5#0"
+      "version>=": "0.9.6#0"
     },
     {
       "name": "freetype",
@@ -43,7 +43,7 @@
     },
     {
       "name": "glslang",
-      "version>=": "14.2.0#0",
+      "version>=": "14.2.0#1",
       "features": [
         "tools",
         "opt"
