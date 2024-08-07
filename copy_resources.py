@@ -21,17 +21,8 @@ def compile_shader(input_path, output_path):
 	arguments.extend(["-o", output_path])
 	arguments.extend(["--target-env", "vulkan1.3"])
 	arguments.extend(["--quiet"])
-	if cmakeConfig == "Debug":
-		arguments.extend(["-Od"])
-		arguments.extend(["-g"])
-	elif cmakeConfig == "Release":
-		pass
-	elif cmakeConfig == "RelWithDebInfo":
-		arguments.extend(["-g"])
-	elif cmakeConfig == "MinSizeRel":
-		arguments.extend(["-Os"])
-	else:
-		sys.exit(1)
+	if cmakeConfig == "Debug" or cmakeConfig == "RelWithDebInfo":
+		arguments.extend(["-gVS"])
 
 	result = subprocess.run(arguments)
 	if result.returncode != 0:
