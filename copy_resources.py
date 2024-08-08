@@ -22,7 +22,7 @@ def compile_shader(input_path, output_path):
 	arguments.extend(["--target-env", "vulkan1.3"])
 	arguments.extend(["--quiet"])
 	if cmakeConfig == "Debug" or cmakeConfig == "RelWithDebInfo":
-		arguments.extend(["-gVS"])
+		arguments.extend(["-g"])
 
 	result = subprocess.run(arguments)
 	if result.returncode != 0:
