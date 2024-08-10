@@ -188,7 +188,6 @@ static std::vector<const char*> getRequiredDeviceCoreExtensions()
 	extensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 	extensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
-	extensions.push_back(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
 
 	return extensions;
 }
@@ -637,7 +636,6 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 		vk::PhysicalDeviceVulkan12Features,
 		vk::PhysicalDeviceVulkan13Features,
 		vk::PhysicalDeviceMemoryPriorityFeaturesEXT,
-		vk::PhysicalDevicePageableDeviceLocalMemoryFeaturesEXT,
 		vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
 		vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
 		vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR,
@@ -667,7 +665,6 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 	features.get<vk::PhysicalDeviceVulkan13Features>().synchronization2 = true;
 	features.get<vk::PhysicalDeviceVulkan13Features>().maintenance4 = true;
 	features.get<vk::PhysicalDeviceMemoryPriorityFeaturesEXT>().memoryPriority = true;
-	features.get<vk::PhysicalDevicePageableDeviceLocalMemoryFeaturesEXT>().pageableDeviceLocalMemory = true;
 
 	if (_rayTracingSupported)
 	{
