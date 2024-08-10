@@ -608,13 +608,13 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 		queueFamilyUsages[mainQueue->family].emplace_back(mainQueue->priority);
 	}
 
-	std::optional<QueueID> computeQueue = findBestQueue(queueFamilyInfos, vk::QueueFlagBits::eCompute, 0.5f);
+	std::optional<QueueID> computeQueue = findBestQueue(queueFamilyInfos, vk::QueueFlagBits::eCompute, 0.0f);
 	if (computeQueue)
 	{
 		queueFamilyUsages[computeQueue->family].emplace_back(computeQueue->priority);
 	}
 
-	std::optional<QueueID> transferQueue = findBestQueue(queueFamilyInfos, vk::QueueFlagBits::eTransfer, 0.5f);
+	std::optional<QueueID> transferQueue = findBestQueue(queueFamilyInfos, vk::QueueFlagBits::eTransfer, 0.0f);
 	if (transferQueue)
 	{
 		queueFamilyUsages[transferQueue->family].emplace_back(transferQueue->priority);
