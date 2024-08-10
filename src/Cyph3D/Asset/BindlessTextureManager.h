@@ -41,8 +41,6 @@ private:
 
 	uint32_t _currentFrame = 0;
 
-	uint32_t _upperBound;
-
 	std::mutex _mutex;
 
 	void expand();

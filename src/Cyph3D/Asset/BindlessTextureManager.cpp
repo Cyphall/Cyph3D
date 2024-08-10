@@ -7,9 +7,9 @@
 
 BindlessTextureManager::BindlessTextureManager()
 {
-	_upperBound = 1000000;
-	_upperBound -= 1024; // directional lights shadow maps
-	_upperBound -= 1024; // point lights shadow maps
+	VKDescriptorSetLayoutInfo descriptorSetLayoutInfo(false);
+	descriptorSetLayoutInfo.addIndexedBinding(vk::DescriptorType::eCombinedImageSampler, 100000);
+	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), descriptorSetLayoutInfo);
 
 	_descriptorSets.resize(Engine::getVKContext().getConcurrentFrameCount());
 	_pendingChanges.resize(Engine::getVKContext().getConcurrentFrameCount());
@@ -91,11 +91,7 @@ void BindlessTextureManager::expand()
 	uint32_t oldSize = _descriptorSets[_currentFrame] ? _descriptorSets[_currentFrame]->getInfo().getVariableSizeAllocatedCount() : 0;
 	uint32_t newSize = oldSize > 0 ? oldSize * 2 : 16;
 
-	VKDescriptorSetLayoutInfo descriptorSetLayoutInfo(false);
-	descriptorSetLayoutInfo.addIndexedBinding(vk::DescriptorType::eCombinedImageSampler, _upperBound);
-	VKPtr<VKDescriptorSetLayout> newDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), descriptorSetLayoutInfo);
-
-	VKDescriptorSetInfo descriptorSetInfo(newDescriptorSetLayout);
+	VKDescriptorSetInfo descriptorSetInfo(_descriptorSetLayout);
 	descriptorSetInfo.setVariableSizeAllocatedCount(newSize);
 
 	std::vector<VKPtr<VKDescriptorSet>> newDescriptorSets(Engine::getVKContext().getConcurrentFrameCount());
@@ -103,13 +99,12 @@ void BindlessTextureManager::expand()
 	{
 		newDescriptorSets[i] = VKDescriptorSet::create(Engine::getVKContext(), descriptorSetInfo);
 
-		if (_descriptorSets[i] && _descriptorSetLayout)
+		if (_descriptorSets[i])
 		{
 			_descriptorSets[i]->copyTo(0, 0, newDescriptorSets[i], 0, 0, oldSize);
 		}
 	}
 
-	_descriptorSetLayout = newDescriptorSetLayout;
 	_descriptorSets = std::move(newDescriptorSets);
 
 	for (int64_t i = newSize - 1; i >= oldSize; i--)
