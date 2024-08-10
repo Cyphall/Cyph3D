@@ -18,7 +18,7 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 struct VKContext::HelperData
 {
-	VKPtr<VKCommandBuffer> immediateCommandBuffer;
+	std::shared_ptr<VKCommandBuffer> immediateCommandBuffer;
 	VKDynamic<VKCommandBuffer> defaultCommandBuffer;
 };
 
@@ -457,12 +457,12 @@ VmaAllocator VKContext::getVmaAllocator()
 	return _vmaAllocator;
 }
 
-const VKPtr<VKCommandBuffer>& VKContext::getDefaultCommandBuffer()
+const std::shared_ptr<VKCommandBuffer>& VKContext::getDefaultCommandBuffer()
 {
 	return _helperData->defaultCommandBuffer.getCurrent();
 }
 
-void VKContext::executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>& commandBuffer)>&& function)
+void VKContext::executeImmediate(std::function<void(const std::shared_ptr<VKCommandBuffer>& commandBuffer)>&& function)
 {
 	_helperData->immediateCommandBuffer->begin();
 

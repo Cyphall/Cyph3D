@@ -74,7 +74,7 @@ VKSwapchain::~VKSwapchain()
 
 VKSwapchain::NextImageInfo VKSwapchain::retrieveNextImage()
 {
-	const VKPtr<VKSemaphore>& semaphore = _semaphores[_nextIndex];
+	const std::shared_ptr<VKSemaphore>& semaphore = _semaphores[_nextIndex];
 	_nextIndex = (_nextIndex + 1) % _swapchainImages.size();
 
 	auto [result, imageIndex] = _context.getDevice().acquireNextImageKHR(_swapchain, UINT64_MAX, semaphore->getHandle(), VK_NULL_HANDLE);

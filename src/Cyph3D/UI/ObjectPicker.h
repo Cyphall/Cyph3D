@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/GLSL_types.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -34,16 +33,16 @@ private:
 
 	glm::uvec2 _currentSize = {0, 0};
 
-	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
 
-	VKPtr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
 
-	VKPtr<VKGraphicsPipeline> _pipeline;
+	std::shared_ptr<VKGraphicsPipeline> _pipeline;
 
-	VKPtr<VKBuffer<int32_t>> _readbackBuffer;
+	std::shared_ptr<VKBuffer<int32_t>> _readbackBuffer;
 
-	VKPtr<VKImage> _objectIndexImage;
-	VKPtr<VKImage> _depthImage;
+	std::shared_ptr<VKImage> _objectIndexImage;
+	std::shared_ptr<VKImage> _depthImage;
 
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

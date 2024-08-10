@@ -5,7 +5,7 @@
 
 #include <ranges>
 
-VKPtr<VKImage> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
+std::shared_ptr<VKImage> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
 {
 	ShadowMapContainer& container = _directionalShadowMaps[resolution];
 
@@ -28,7 +28,7 @@ VKPtr<VKImage> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolutio
 	return container.shadowMaps[container.allocatedShadowMaps++];
 }
 
-VKPtr<VKImage> ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
+std::shared_ptr<VKImage> ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
 {
 	ShadowMapContainer& container = _pointShadowMaps[resolution];
 

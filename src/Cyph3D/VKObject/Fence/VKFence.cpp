@@ -2,9 +2,9 @@
 
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKFence> VKFence::create(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo)
+std::shared_ptr<VKFence> VKFence::create(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo)
 {
-	return VKPtr<VKFence>(new VKFence(context, fenceCreateInfo));
+	return std::shared_ptr<VKFence>(new VKFence(context, fenceCreateInfo));
 }
 
 VKFence::VKFence(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo):

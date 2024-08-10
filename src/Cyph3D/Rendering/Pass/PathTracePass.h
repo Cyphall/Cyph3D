@@ -2,7 +2,6 @@
 
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 struct RenderRegistry;
 class Camera;
@@ -24,7 +23,7 @@ struct PathTracePassInput
 
 struct PathTracePassOutput
 {
-	std::array<VKPtr<VKImage>, 3> rawRenderImage;
+	std::array<std::shared_ptr<VKImage>, 3> rawRenderImage;
 	uint32_t accumulatedSamples;
 };
 
@@ -73,27 +72,27 @@ private:
 		GLSL_bool resetAccumulation;
 	};
 
-	VKPtr<VKAccelerationStructure> _tlas;
+	std::shared_ptr<VKAccelerationStructure> _tlas;
 
-	VKPtr<VKShaderBindingTable> _sbt;
+	std::shared_ptr<VKShaderBindingTable> _sbt;
 
-	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
 
-	VKPtr<VKDescriptorSet> _descriptorSet;
+	std::shared_ptr<VKDescriptorSet> _descriptorSet;
 
-	VKPtr<VKPipelineLayout> _pipelineLayout;
-	VKPtr<VKRayTracingPipeline> _pipeline;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKRayTracingPipeline> _pipeline;
 
-	std::array<VKPtr<VKImage>, 3> _rawRenderImage;
+	std::array<std::shared_ptr<VKImage>, 3> _rawRenderImage;
 
 	uint32_t _batchIndex = 0;
 	uint32_t _accumulatedSamples = 0;
 
-	PathTracePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input) override;
+	PathTracePassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input) override;
 	void onResize() override;
 
-	void setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
-	void setupSBT(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
+	void setupTLAS(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
+	void setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input);
 
 	void createDescriptorSetLayout();
 	void createPipelineLayout();

@@ -11,13 +11,13 @@ class VKImage;
 
 struct NormalizationPassInput
 {
-	std::array<VKPtr<VKImage>, 3> inputImage;
+	std::array<std::shared_ptr<VKImage>, 3> inputImage;
 	uint32_t accumulatedSamples;
 };
 
 struct NormalizationPassOutput
 {
-	const VKPtr<VKImage>& outputImage;
+	const std::shared_ptr<VKImage>& outputImage;
 };
 
 class NormalizationPass : public RenderPass<NormalizationPassInput, NormalizationPassOutput>
@@ -31,18 +31,18 @@ private:
 		GLSL_uint accumulatedSamples;
 	};
 
-	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
 
-	VKPtr<VKPipelineLayout> _pipelineLayout;
-	VKPtr<VKComputePipeline> _pipeline;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKComputePipeline> _pipeline;
 
-	VKPtr<VKImage> _outputImage;
+	std::shared_ptr<VKImage> _outputImage;
 
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();
 	void createImage();
 
-	NormalizationPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input) override;
+	NormalizationPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input) override;
 	void onResize() override;
 };

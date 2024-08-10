@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <mutex>
 #include <vulkan/vulkan.hpp>
@@ -18,15 +17,15 @@ public:
 
 	uint32_t getFamily() const;
 
-	void submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>> waitSemaphores, vk::ArrayProxy<std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>> signalSemaphores);
-	bool present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores);
+	void submit(const std::shared_ptr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>> waitSemaphores, vk::ArrayProxy<std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>> signalSemaphores);
+	bool present(const std::shared_ptr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<std::shared_ptr<VKSemaphore>> waitSemaphores);
 
 private:
 	struct SubmitRecord
 	{
-		VKPtr<VKCommandBuffer> commandBuffer;
-		std::vector<VKPtr<VKSemaphore>> waitSemaphores;
-		std::vector<VKPtr<VKSemaphore>> signalSemaphores;
+		std::shared_ptr<VKCommandBuffer> commandBuffer;
+		std::vector<std::shared_ptr<VKSemaphore>> waitSemaphores;
+		std::vector<std::shared_ptr<VKSemaphore>> signalSemaphores;
 	};
 
 	friend class VKContext;

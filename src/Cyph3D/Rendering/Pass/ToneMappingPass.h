@@ -11,12 +11,12 @@ class VKImage;
 
 struct ToneMappingPassInput
 {
-	const VKPtr<VKImage>& inputImage;
+	const std::shared_ptr<VKImage>& inputImage;
 };
 
 struct ToneMappingPassOutput
 {
-	const VKPtr<VKImage>& outputImage;
+	const std::shared_ptr<VKImage>& outputImage;
 };
 
 class ToneMappingPass : public RenderPass<ToneMappingPassInput, ToneMappingPassOutput>
@@ -25,14 +25,14 @@ public:
 	explicit ToneMappingPass(glm::uvec2 size);
 
 private:
-	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
 
-	VKPtr<VKPipelineLayout> _pipelineLayout;
-	VKPtr<VKGraphicsPipeline> _pipeline;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _pipeline;
 
-	VKPtr<VKSampler> _inputSampler;
+	std::shared_ptr<VKSampler> _inputSampler;
 
-	VKPtr<VKImage> _outputImage;
+	std::shared_ptr<VKImage> _outputImage;
 
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
@@ -40,6 +40,6 @@ private:
 	void createSampler();
 	void createImage();
 
-	ToneMappingPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input) override;
+	ToneMappingPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input) override;
 	void onResize() override;
 };

@@ -9,9 +9,9 @@ template<typename T>
 class VKBuffer : public VKBufferBase
 {
 public:
-	static VKPtr<VKBuffer> create(VKContext& context, const VKBufferInfo& info)
+	static std::shared_ptr<VKBuffer> create(VKContext& context, const VKBufferInfo& info)
 	{
-		return VKPtr<VKBuffer>(new VKBuffer(context, info));
+		return std::shared_ptr<VKBuffer>(new VKBuffer(context, info));
 	}
 
 	~VKBuffer() override

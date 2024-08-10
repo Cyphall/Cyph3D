@@ -23,7 +23,7 @@ BloomPass::BloomPass(glm::uvec2 size):
 	createSamplers();
 }
 
-BloomPassOutput BloomPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, BloomPassInput& input)
+BloomPassOutput BloomPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, BloomPassInput& input)
 {
 	// copy inputImageView image level 0 to work image level 0
 	commandBuffer->pushDebugGroup("copyImageBaseLevel");
@@ -81,7 +81,7 @@ void BloomPass::onResize()
 	createImages();
 }
 
-void BloomPass::downsampleAnsBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void BloomPass::downsampleAnsBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	commandBuffer->imageMemoryBarrier(
 		_workImage,
@@ -151,7 +151,7 @@ void BloomPass::downsampleAnsBlur(const VKPtr<VKCommandBuffer>& commandBuffer, i
 	commandBuffer->endRendering();
 }
 
-void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void BloomPass::upsampleAndBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	commandBuffer->imageMemoryBarrier(
 		_workImage,
@@ -223,7 +223,7 @@ void BloomPass::upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int
 	commandBuffer->endRendering();
 }
 
-void BloomPass::compose(const VKPtr<VKImage>& input, const VKPtr<VKCommandBuffer>& commandBuffer)
+void BloomPass::compose(const std::shared_ptr<VKImage>& input, const std::shared_ptr<VKCommandBuffer>& commandBuffer)
 {
 	commandBuffer->imageMemoryBarrier(
 		input,

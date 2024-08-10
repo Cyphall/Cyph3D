@@ -23,9 +23,9 @@ static std::vector<uint32_t> readSPIRV(const std::filesystem::path& filePath)
 	return data;
 }
 
-VKPtr<VKShader> VKShader::create(VKContext& context, const std::filesystem::path& path)
+std::shared_ptr<VKShader> VKShader::create(VKContext& context, const std::filesystem::path& path)
 {
-	return VKPtr<VKShader>(new VKShader(context, path));
+	return std::shared_ptr<VKShader>(new VKShader(context, path));
 }
 
 VKShader::VKShader(VKContext& context, const std::filesystem::path& path):

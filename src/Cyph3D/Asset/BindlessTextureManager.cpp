@@ -40,7 +40,7 @@ void BindlessTextureManager::releaseIndex(uint32_t index)
 	_availableIndices.push(index);
 }
 
-void BindlessTextureManager::setTexture(uint32_t index, const VKPtr<VKImage>& texture, const VKPtr<VKSampler>& sampler)
+void BindlessTextureManager::setTexture(uint32_t index, const std::shared_ptr<VKImage>& texture, const std::shared_ptr<VKSampler>& sampler)
 {
 	std::scoped_lock lock(_mutex);
 
@@ -60,12 +60,12 @@ void BindlessTextureManager::setTexture(uint32_t index, const VKPtr<VKImage>& te
 	}
 }
 
-const VKPtr<VKDescriptorSetLayout>& BindlessTextureManager::getDescriptorSetLayout()
+const std::shared_ptr<VKDescriptorSetLayout>& BindlessTextureManager::getDescriptorSetLayout()
 {
 	return _descriptorSetLayout;
 }
 
-const VKPtr<VKDescriptorSet>& BindlessTextureManager::getDescriptorSet()
+const std::shared_ptr<VKDescriptorSet>& BindlessTextureManager::getDescriptorSet()
 {
 	std::scoped_lock lock(_mutex);
 
@@ -94,7 +94,7 @@ void BindlessTextureManager::expand()
 	VKDescriptorSetInfo descriptorSetInfo(_descriptorSetLayout);
 	descriptorSetInfo.setVariableSizeAllocatedCount(newSize);
 
-	std::vector<VKPtr<VKDescriptorSet>> newDescriptorSets(Engine::getVKContext().getConcurrentFrameCount());
+	std::vector<std::shared_ptr<VKDescriptorSet>> newDescriptorSets(Engine::getVKContext().getConcurrentFrameCount());
 	for (int i = 0; i < Engine::getVKContext().getConcurrentFrameCount(); i++)
 	{
 		newDescriptorSets[i] = VKDescriptorSet::create(Engine::getVKContext(), descriptorSetInfo);

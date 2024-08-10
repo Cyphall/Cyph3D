@@ -19,17 +19,17 @@ public:
 	EquirectangularSkyboxData readEquirectangularSkyboxData(AssetManagerWorkerData& workerData, std::string_view path, std::string_view cachePath);
 
 private:
-	VKPtr<VKDescriptorSetLayout> _cubemapDescriptorSetLayout;
-	VKPtr<VKPipelineLayout> _cubemapPipelineLayout;
-	VKPtr<VKComputePipeline> _cubemapPipeline;
-	VKPtr<VKSampler> _cubemapSampler;
+	std::shared_ptr<VKDescriptorSetLayout> _cubemapDescriptorSetLayout;
+	std::shared_ptr<VKPipelineLayout> _cubemapPipelineLayout;
+	std::shared_ptr<VKComputePipeline> _cubemapPipeline;
+	std::shared_ptr<VKSampler> _cubemapSampler;
 
-	VKPtr<VKDescriptorSetLayout> _mipmapDescriptorSetLayout;
-	VKPtr<VKPipelineLayout> _mipmapPipelineLayout;
-	VKPtr<VKComputePipeline> _mipmapPipeline;
+	std::shared_ptr<VKDescriptorSetLayout> _mipmapDescriptorSetLayout;
+	std::shared_ptr<VKPipelineLayout> _mipmapPipelineLayout;
+	std::shared_ptr<VKComputePipeline> _mipmapPipeline;
 
 	EquirectangularSkyboxData processEquirectangularSkybox(AssetManagerWorkerData& workerData, const std::filesystem::path& input, const std::filesystem::path& output);
 	EquirectangularSkyboxData genCubemapAndMipmaps(AssetManagerWorkerData& workerData, vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb);
-	VKPtr<VKImage> generateCubemap(AssetManagerWorkerData& workerData, vk::Format format, const VKPtr<VKImage>& equirectangularTexture);
-	void generateMipmaps(AssetManagerWorkerData& workerData, const VKPtr<VKImage>& cubemapTexture, bool isSrgb);
+	std::shared_ptr<VKImage> generateCubemap(AssetManagerWorkerData& workerData, vk::Format format, const std::shared_ptr<VKImage>& equirectangularTexture);
+	void generateMipmaps(AssetManagerWorkerData& workerData, const std::shared_ptr<VKImage>& cubemapTexture, bool isSrgb);
 };

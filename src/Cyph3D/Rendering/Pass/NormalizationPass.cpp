@@ -18,7 +18,7 @@ NormalizationPass::NormalizationPass(glm::uvec2 size):
 	createImage();
 }
 
-NormalizationPassOutput NormalizationPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input)
+NormalizationPassOutput NormalizationPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input)
 {
 	for (int i = 0; i < 3; i++)
 	{

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
@@ -12,19 +11,19 @@ class VKRenderingDepthAttachmentInfo
 public:
 	struct ImageInfo
 	{
-		VKPtr<VKImage> image;
+		std::shared_ptr<VKImage> image;
 		vk::ImageViewType type;
 		glm::uvec2 layerRange;
 		glm::uvec2 levelRange;
 		vk::Format format;
 	};
 
-	VKRenderingDepthAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
+	VKRenderingDepthAttachmentInfo(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
 
 	const ImageInfo& getImageInfo() const;
 
-	VKRenderingDepthAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image);
-	VKRenderingDepthAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
+	VKRenderingDepthAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image);
+	VKRenderingDepthAttachmentInfo& enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format);
 	const vk::ResolveModeFlagBits& getResolveMode() const;
 	const ImageInfo& getResolveImageInfo() const;
 

@@ -2,9 +2,9 @@
 
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKSemaphore> VKSemaphore::create(VKContext& context, const vk::SemaphoreCreateInfo& semaphoreCreateInfo)
+std::shared_ptr<VKSemaphore> VKSemaphore::create(VKContext& context, const vk::SemaphoreCreateInfo& semaphoreCreateInfo)
 {
-	return VKPtr<VKSemaphore>(new VKSemaphore(context, semaphoreCreateInfo));
+	return std::shared_ptr<VKSemaphore>(new VKSemaphore(context, semaphoreCreateInfo));
 }
 
 VKSemaphore::VKSemaphore(VKContext& context, const vk::SemaphoreCreateInfo& semaphoreCreateInfo):

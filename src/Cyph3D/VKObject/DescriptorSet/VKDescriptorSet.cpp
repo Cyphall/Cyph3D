@@ -9,9 +9,9 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 
-VKPtr<VKDescriptorSet> VKDescriptorSet::create(VKContext& context, const VKDescriptorSetInfo& info)
+std::shared_ptr<VKDescriptorSet> VKDescriptorSet::create(VKContext& context, const VKDescriptorSetInfo& info)
 {
-	return VKPtr<VKDescriptorSet>(new VKDescriptorSet(context, info));
+	return std::shared_ptr<VKDescriptorSet>(new VKDescriptorSet(context, info));
 }
 
 VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& info):
@@ -90,7 +90,7 @@ const vk::DescriptorSet& VKDescriptorSet::getHandle()
 	return _descriptorSet;
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
 {
 	if (buffer && size > 0)
 	{
@@ -121,7 +121,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKBuffer
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (sampler)
 	{
@@ -150,7 +150,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKSample
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, uint32_t arrayIndex)
 {
 	if (image)
 	{
@@ -170,7 +170,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
 {
 	if (image)
 	{
@@ -202,7 +202,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (image && sampler)
 	{
@@ -223,7 +223,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (image && sampler)
 	{
@@ -256,7 +256,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKImage>
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
+void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
 {
 	if (accelerationStructure)
 	{
@@ -287,7 +287,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const VKPtr<VKAccele
 	}
 }
 
-void VKDescriptorSet::copyTo(uint32_t srcBindingIndex, uint32_t srcArrayIndex, const VKPtr<VKDescriptorSet>& dst, uint32_t dstBindingIndex, uint32_t dstArrayIndex, uint32_t count)
+void VKDescriptorSet::copyTo(uint32_t srcBindingIndex, uint32_t srcArrayIndex, const std::shared_ptr<VKDescriptorSet>& dst, uint32_t dstBindingIndex, uint32_t dstArrayIndex, uint32_t count)
 {
 	vk::CopyDescriptorSet copyDescriptorSet;
 	copyDescriptorSet.srcSet = _descriptorSet;

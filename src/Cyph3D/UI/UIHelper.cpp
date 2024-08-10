@@ -30,7 +30,7 @@ bool UIHelper::_dockingLayoutInitialized = false;
 
 std::unique_ptr<ImGuiVulkanBackend> UIHelper::_vulkanBackend;
 
-VKPtr<VKSemaphore> UIHelper::_presentSemaphore;
+std::shared_ptr<VKSemaphore> UIHelper::_presentSemaphore;
 
 void UIHelper::init()
 {
@@ -57,7 +57,7 @@ void UIHelper::init()
 	_presentSemaphore = VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo);
 }
 
-const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, const VKPtr<VKSemaphore>& imageAvailableSemaphore)
+const std::shared_ptr<VKSemaphore>& UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std::shared_ptr<VKSemaphore>& imageAvailableSemaphore)
 {
 	ImGuiID dockspaceId = ImGui::DockSpaceOverViewport();
 
@@ -67,7 +67,7 @@ const VKPtr<VKSemaphore>& UIHelper::render(const VKPtr<VKImage>& destImage, cons
 		_dockingLayoutInitialized = true;
 	}
 
-	const VKPtr<VKCommandBuffer>& commandBuffer = Engine::getVKContext().getDefaultCommandBuffer();
+	const std::shared_ptr<VKCommandBuffer>& commandBuffer = Engine::getVKContext().getDefaultCommandBuffer();
 
 	commandBuffer->begin();
 

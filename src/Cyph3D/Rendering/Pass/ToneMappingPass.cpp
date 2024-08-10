@@ -20,7 +20,7 @@ ToneMappingPass::ToneMappingPass(glm::uvec2 size):
 	createImage();
 }
 
-ToneMappingPassOutput ToneMappingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input)
+ToneMappingPassOutput ToneMappingPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		input.inputImage,

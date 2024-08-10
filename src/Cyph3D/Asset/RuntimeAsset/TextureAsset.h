@@ -3,7 +3,6 @@
 #include "Cyph3D/Asset/Processing/ImageData.h"
 #include "Cyph3D/Asset/RuntimeAsset/GPUAsset.h"
 #include "Cyph3D/HashBuilder.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <memory>
 #include <string>
@@ -47,6 +46,6 @@ private:
 
 	void load_async(AssetManagerWorkerData& workerData);
 
-	VKPtr<VKImage> _image;
+	std::shared_ptr<VKImage> _image;
 	uint32_t _bindlessIndex;
 };

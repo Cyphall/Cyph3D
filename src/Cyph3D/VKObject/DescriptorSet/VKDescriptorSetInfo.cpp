@@ -1,6 +1,6 @@
 #include "VKDescriptorSetInfo.h"
 
-VKDescriptorSetInfo::VKDescriptorSetInfo(const VKPtr<VKDescriptorSetLayout>& layout):
+VKDescriptorSetInfo::VKDescriptorSetInfo(const std::shared_ptr<VKDescriptorSetLayout>& layout):
 	_layout(layout)
 {
 }
@@ -15,7 +15,7 @@ void VKDescriptorSetInfo::setVariableSizeAllocatedCount(uint32_t count)
 	_variableSizeAllocatedCount = count;
 }
 
-const VKPtr<VKDescriptorSetLayout>& VKDescriptorSetInfo::getLayout() const
+const std::shared_ptr<VKDescriptorSetLayout>& VKDescriptorSetInfo::getLayout() const
 {
 	return _layout;
 }

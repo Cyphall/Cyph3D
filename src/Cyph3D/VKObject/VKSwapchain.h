@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
@@ -14,8 +13,8 @@ class VKSwapchain : public VKObject
 public:
 	struct NextImageInfo
 	{
-		const VKPtr<VKSwapchainImage>& image;
-		const VKPtr<VKSemaphore>& imageAvailableSemaphore;
+		const std::shared_ptr<VKSwapchainImage>& image;
+		const std::shared_ptr<VKSemaphore>& imageAvailableSemaphore;
 	};
 
 	static std::unique_ptr<VKSwapchain> create(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain = nullptr);
@@ -41,8 +40,8 @@ private:
 
 	vk::SwapchainKHR _swapchain;
 
-	std::vector<VKPtr<VKSwapchainImage>> _swapchainImages;
+	std::vector<std::shared_ptr<VKSwapchainImage>> _swapchainImages;
 
-	std::vector<VKPtr<VKSemaphore>> _semaphores;
+	std::vector<std::shared_ptr<VKSemaphore>> _semaphores;
 	size_t _nextIndex = 0;
 };

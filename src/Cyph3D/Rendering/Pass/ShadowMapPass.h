@@ -5,7 +5,6 @@
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/ShadowMapManager.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 class VKPipelineLayout;
 class VKGraphicsPipeline;
@@ -18,12 +17,12 @@ struct DirectionalShadowMapInfo
 	float worldSize;
 	float worldDepth;
 	glm::mat4 viewProjection;
-	VKPtr<VKImage> image;
+	std::shared_ptr<VKImage> image;
 };
 
 struct PointShadowMapInfo
 {
-	VKPtr<VKImage> image;
+	std::shared_ptr<VKImage> image;
 };
 
 struct ShadowMapPassInput
@@ -65,17 +64,17 @@ private:
 
 	ShadowMapManager _shadowMapManager;
 
-	VKPtr<VKPipelineLayout> _directionalLightPipelineLayout;
-	VKPtr<VKGraphicsPipeline> _directionalLightPipeline;
+	std::shared_ptr<VKPipelineLayout> _directionalLightPipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _directionalLightPipeline;
 	std::vector<DirectionalShadowMapInfo> _directionalShadowMapInfos;
 
-	VKPtr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
 	VKDynamic<VKResizableBuffer<PointLightUniforms>> _pointLightUniformBuffer;
-	VKPtr<VKPipelineLayout> _pointLightPipelineLayout;
-	VKPtr<VKGraphicsPipeline> _pointLightPipeline;
+	std::shared_ptr<VKPipelineLayout> _pointLightPipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _pointLightPipeline;
 	std::vector<PointShadowMapInfo> _pointShadowMapInfos;
 
-	ShadowMapPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input) override;
+	ShadowMapPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input) override;
 	void onResize() override;
 
 	void createDescriptorSetLayout();
@@ -84,13 +83,13 @@ private:
 	void createPipelines();
 
 	void renderDirectionalShadowMap(
-		const VKPtr<VKCommandBuffer>& commandBuffer,
+		const std::shared_ptr<VKCommandBuffer>& commandBuffer,
 		const DirectionalLight::RenderData& light,
 		const std::vector<ModelRenderer::RenderData>& models
 	);
 
 	void renderPointShadowMap(
-		const VKPtr<VKCommandBuffer>& commandBuffer,
+		const std::shared_ptr<VKCommandBuffer>& commandBuffer,
 		const PointLight::RenderData& light,
 		const std::vector<ModelRenderer::RenderData>& models,
 		int uniformIndex

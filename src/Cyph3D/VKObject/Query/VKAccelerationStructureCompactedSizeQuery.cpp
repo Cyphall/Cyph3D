@@ -3,9 +3,9 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKAccelerationStructureCompactedSizeQuery> VKAccelerationStructureCompactedSizeQuery::create(VKContext& context)
+std::shared_ptr<VKAccelerationStructureCompactedSizeQuery> VKAccelerationStructureCompactedSizeQuery::create(VKContext& context)
 {
-	return VKPtr<VKAccelerationStructureCompactedSizeQuery>(new VKAccelerationStructureCompactedSizeQuery(context));
+	return std::shared_ptr<VKAccelerationStructureCompactedSizeQuery>(new VKAccelerationStructureCompactedSizeQuery(context));
 }
 
 VKAccelerationStructureCompactedSizeQuery::VKAccelerationStructureCompactedSizeQuery(VKContext& context):

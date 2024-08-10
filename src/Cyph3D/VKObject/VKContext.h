@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <filesystem>
 #include <functional>
@@ -32,9 +31,9 @@ public:
 
 	VmaAllocator getVmaAllocator();
 
-	const VKPtr<VKCommandBuffer>& getDefaultCommandBuffer();
+	const std::shared_ptr<VKCommandBuffer>& getDefaultCommandBuffer();
 
-	void executeImmediate(std::function<void(const VKPtr<VKCommandBuffer>& commandBuffer)>&& function);
+	void executeImmediate(std::function<void(const std::shared_ptr<VKCommandBuffer>& commandBuffer)>&& function);
 
 	const vk::PhysicalDeviceProperties& getProperties() const;
 	const vk::PhysicalDeviceDescriptorIndexingProperties& getDescriptorIndexingProperties() const;

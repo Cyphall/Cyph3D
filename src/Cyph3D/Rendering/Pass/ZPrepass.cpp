@@ -22,7 +22,7 @@ ZPrepass::ZPrepass(glm::uvec2 size):
 	createImage();
 }
 
-ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
+ZPrepassOutput ZPrepass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		_depthImage,
@@ -56,8 +56,8 @@ ZPrepassOutput ZPrepass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Z
 
 	for (const ModelRenderer::RenderData& model : input.registry.getModelRenderRequests())
 	{
-		const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+		const std::shared_ptr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
+		const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKContext.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <memory>
 #include <vector>
@@ -12,7 +11,7 @@ class VKDynamic
 public:
 	VKDynamic() = default;
 
-	explicit VKDynamic(VKContext& context, std::function<VKPtr<T>(VKContext&, int)> createCallback):
+	explicit VKDynamic(VKContext& context, std::function<std::shared_ptr<T>(VKContext&, int)> createCallback):
 		_context(&context)
 	{
 		int count = _context->getConcurrentFrameCount();
@@ -57,18 +56,18 @@ public:
 		return _context != nullptr;
 	}
 
-	const VKPtr<T>& getCurrent() const
+	const std::shared_ptr<T>& getCurrent() const
 	{
 		return _objects.empty() ? _empty : _objects[_context->getCurrentConcurrentFrame()];
 	}
 
-	const VKPtr<T>& operator[](size_t index) const
+	const std::shared_ptr<T>& operator[](size_t index) const
 	{
 		return _objects[index];
 	}
 
 private:
 	VKContext* _context = nullptr;
-	std::vector<VKPtr<T>> _objects;
-	VKPtr<T> _empty;
+	std::vector<std::shared_ptr<T>> _objects;
+	std::shared_ptr<T> _empty;
 };

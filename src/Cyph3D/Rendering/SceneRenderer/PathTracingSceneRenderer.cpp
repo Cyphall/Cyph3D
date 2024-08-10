@@ -25,7 +25,7 @@ void PathTracingSceneRenderer::setAccumulationOnlyMode(bool enabled)
 	_accumulationOnlyMode = enabled;
 }
 
-VKPtr<VKImage> PathTracingSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+std::shared_ptr<VKImage> PathTracingSceneRenderer::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	// Path trace pass
 

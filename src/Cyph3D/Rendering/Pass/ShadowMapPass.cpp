@@ -96,7 +96,7 @@ ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 	createPipelines();
 }
 
-ShadowMapPassOutput ShadowMapPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
+ShadowMapPassOutput ShadowMapPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
 {
 	if (input.sceneChanged || input.cameraChanged)
 	{
@@ -245,12 +245,12 @@ void ShadowMapPass::createPipelines()
 }
 
 void ShadowMapPass::renderDirectionalShadowMap(
-	const VKPtr<VKCommandBuffer>& commandBuffer,
+	const std::shared_ptr<VKCommandBuffer>& commandBuffer,
 	const DirectionalLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models
 )
 {
-	VKPtr<VKImage> shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
+	std::shared_ptr<VKImage> shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
 
 	commandBuffer->imageMemoryBarrier(
 		shadowMap,
@@ -291,8 +291,8 @@ void ShadowMapPass::renderDirectionalShadowMap(
 			continue;
 		}
 
-		const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+		const std::shared_ptr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
+		const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);
@@ -317,13 +317,13 @@ void ShadowMapPass::renderDirectionalShadowMap(
 }
 
 void ShadowMapPass::renderPointShadowMap(
-	const VKPtr<VKCommandBuffer>& commandBuffer,
+	const std::shared_ptr<VKCommandBuffer>& commandBuffer,
 	const PointLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models,
 	int uniformIndex
 )
 {
-	VKPtr<VKImage> shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
+	std::shared_ptr<VKImage> shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
 
 	commandBuffer->imageMemoryBarrier(
 		shadowMap,
@@ -380,8 +380,8 @@ void ShadowMapPass::renderPointShadowMap(
 				continue;
 			}
 
-			const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-			const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+			const std::shared_ptr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
+			const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 
 			commandBuffer->bindVertexBuffer(0, vertexBuffer);
 			commandBuffer->bindIndexBuffer(indexBuffer);

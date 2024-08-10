@@ -8,8 +8,8 @@
 class ShadowMapManager
 {
 public:
-	VKPtr<VKImage> allocateDirectionalShadowMap(uint32_t resolution);
-	VKPtr<VKImage> allocatePointShadowMap(uint32_t resolution);
+	std::shared_ptr<VKImage> allocateDirectionalShadowMap(uint32_t resolution);
+	std::shared_ptr<VKImage> allocatePointShadowMap(uint32_t resolution);
 
 	void resetDirectionalShadowMapAllocations();
 	void resetPointShadowMapAllocations();
@@ -17,7 +17,7 @@ public:
 private:
 	struct ShadowMapContainer
 	{
-		std::vector<VKPtr<VKImage>> shadowMaps;
+		std::vector<std::shared_ptr<VKImage>> shadowMaps;
 		size_t allocatedShadowMaps = 0;
 	};
 

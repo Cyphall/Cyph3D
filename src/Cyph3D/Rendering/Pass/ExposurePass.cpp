@@ -21,7 +21,7 @@ ExposurePass::ExposurePass(glm::uvec2 size):
 	createImage();
 }
 
-ExposurePassOutput ExposurePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input)
+ExposurePassOutput ExposurePass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		input.inputImage,

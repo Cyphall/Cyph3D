@@ -2,9 +2,9 @@
 
 #include "Cyph3D/VKObject/VKHelper.h"
 
-VKPtr<VKShaderBindingTable> VKShaderBindingTable::create(VKContext& context, const VKShaderBindingTableInfo& info)
+std::shared_ptr<VKShaderBindingTable> VKShaderBindingTable::create(VKContext& context, const VKShaderBindingTableInfo& info)
 {
-	return VKPtr<VKShaderBindingTable>(new VKShaderBindingTable(context, info));
+	return std::shared_ptr<VKShaderBindingTable>(new VKShaderBindingTable(context, info));
 }
 
 VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBindingTableInfo& info):
@@ -88,7 +88,7 @@ const VKShaderBindingTableInfo& VKShaderBindingTable::getInfo() const
 	return _info;
 }
 
-const VKPtr<VKBuffer<std::byte>>& VKShaderBindingTable::getBuffer() const
+const std::shared_ptr<VKBuffer<std::byte>>& VKShaderBindingTable::getBuffer() const
 {
 	return _buffer;
 }

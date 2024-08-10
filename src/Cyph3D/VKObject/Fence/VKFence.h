@@ -1,14 +1,13 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <vulkan/vulkan.hpp>
 
 class VKFence : public VKObject
 {
 public:
-	static VKPtr<VKFence> create(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo);
+	static std::shared_ptr<VKFence> create(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo);
 
 	~VKFence() override;
 

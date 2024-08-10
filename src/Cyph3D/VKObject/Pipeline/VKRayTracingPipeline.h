@@ -2,7 +2,6 @@
 
 #include "Cyph3D/VKObject/Pipeline/VKPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipelineInfo.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <array>
 #include <vulkan/vulkan.hpp>
@@ -10,7 +9,7 @@
 class VKRayTracingPipeline : public VKPipeline
 {
 public:
-	static VKPtr<VKRayTracingPipeline> create(VKContext& context, const VKRayTracingPipelineInfo& info);
+	static std::shared_ptr<VKRayTracingPipeline> create(VKContext& context, const VKRayTracingPipelineInfo& info);
 
 	~VKRayTracingPipeline() override;
 
@@ -26,7 +25,7 @@ public:
 	size_t getMissGroupCount() const;
 
 	vk::PipelineBindPoint getPipelineType() const override;
-	const VKPtr<VKPipelineLayout>& getPipelineLayout() const override;
+	const std::shared_ptr<VKPipelineLayout>& getPipelineLayout() const override;
 
 private:
 	VKRayTracingPipeline(VKContext& context, const VKRayTracingPipelineInfo& info);

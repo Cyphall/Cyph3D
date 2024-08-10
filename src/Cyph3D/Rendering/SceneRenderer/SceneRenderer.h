@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 
@@ -15,7 +14,7 @@ public:
 	SceneRenderer(std::string_view name, glm::uvec2 size);
 	virtual ~SceneRenderer() = default;
 
-	VKPtr<VKImage> render(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged);
+	std::shared_ptr<VKImage> render(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged);
 	void resize(glm::uvec2 size);
 
 	glm::uvec2 getSize() const;
@@ -33,6 +32,6 @@ protected:
 
 	bool _firstRender = true;
 
-	virtual VKPtr<VKImage> onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) = 0;
+	virtual std::shared_ptr<VKImage> onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) = 0;
 	virtual void onResize() = 0;
 };

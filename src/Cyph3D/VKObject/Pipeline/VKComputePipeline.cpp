@@ -4,16 +4,16 @@
 #include "Cyph3D/VKObject/Shader/VKShader.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKComputePipeline> VKComputePipeline::create(VKContext& context, const VKComputePipelineInfo& info)
+std::shared_ptr<VKComputePipeline> VKComputePipeline::create(VKContext& context, const VKComputePipelineInfo& info)
 {
-	return VKPtr<VKComputePipeline>(new VKComputePipeline(context, info));
+	return std::shared_ptr<VKComputePipeline>(new VKComputePipeline(context, info));
 }
 
 VKComputePipeline::VKComputePipeline(VKContext& context, const VKComputePipelineInfo& info):
 	VKPipeline(context),
 	_info(info)
 {
-	VKPtr<VKShader> shader = VKShader::create(_context, _info.getComputeShader());
+	std::shared_ptr<VKShader> shader = VKShader::create(_context, _info.getComputeShader());
 
 	vk::PipelineShaderStageCreateInfo createInfo;
 	createInfo.stage = vk::ShaderStageFlagBits::eCompute;
@@ -42,7 +42,7 @@ vk::PipelineBindPoint VKComputePipeline::getPipelineType() const
 	return vk::PipelineBindPoint::eCompute;
 }
 
-const VKPtr<VKPipelineLayout>& VKComputePipeline::getPipelineLayout() const
+const std::shared_ptr<VKPipelineLayout>& VKComputePipeline::getPipelineLayout() const
 {
 	return _info.getPipelineLayout();
 }

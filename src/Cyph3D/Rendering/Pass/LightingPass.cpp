@@ -32,7 +32,7 @@ LightingPass::LightingPass(glm::uvec2 size):
 	createImage();
 }
 
-LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
+LightingPassOutput LightingPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		input.multisampledDepthImage,
@@ -167,8 +167,8 @@ LightingPassOutput LightingPass::onRender(const VKPtr<VKCommandBuffer>& commandB
 	{
 		ModelRenderer::RenderData model = input.registry.getModelRenderRequests()[i];
 
-		const VKPtr<VKBuffer<FullVertexData>>& vertexBuffer = model.mesh.getFullVertexBuffer();
-		const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+		const std::shared_ptr<VKBuffer<FullVertexData>>& vertexBuffer = model.mesh.getFullVertexBuffer();
+		const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 
 		commandBuffer->bindVertexBuffer(0, vertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);

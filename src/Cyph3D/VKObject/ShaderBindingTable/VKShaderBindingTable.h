@@ -3,20 +3,19 @@
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.h"
 #include "Cyph3D/VKObject/VKObject.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <vulkan/vulkan.hpp>
 
 class VKShaderBindingTable : public VKObject
 {
 public:
-	static VKPtr<VKShaderBindingTable> create(VKContext& context, const VKShaderBindingTableInfo& info);
+	static std::shared_ptr<VKShaderBindingTable> create(VKContext& context, const VKShaderBindingTableInfo& info);
 
 	~VKShaderBindingTable() override;
 
 	const VKShaderBindingTableInfo& getInfo() const;
 
-	const VKPtr<VKBuffer<std::byte>>& getBuffer() const;
+	const std::shared_ptr<VKBuffer<std::byte>>& getBuffer() const;
 
 	const vk::DeviceAddress& getRaygenSBTAddress() const;
 	const vk::DeviceSize& getRaygenSBTSize() const;
@@ -33,7 +32,7 @@ private:
 
 	VKShaderBindingTableInfo _info;
 
-	VKPtr<VKBuffer<std::byte>> _buffer;
+	std::shared_ptr<VKBuffer<std::byte>> _buffer;
 
 	vk::DeviceAddress _raygenSBTAddress = 0;
 	vk::DeviceSize _raygenSBTSize = 0;

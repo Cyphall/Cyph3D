@@ -12,12 +12,12 @@ class VKImage;
 
 struct BloomPassInput
 {
-	const VKPtr<VKImage>& inputImage;
+	const std::shared_ptr<VKImage>& inputImage;
 };
 
 struct BloomPassOutput
 {
-	const VKPtr<VKImage>& outputImage;
+	const std::shared_ptr<VKImage>& outputImage;
 };
 
 class BloomPass : public RenderPass<BloomPassInput, BloomPassOutput>
@@ -28,11 +28,11 @@ public:
 private:
 	// common
 
-	VKPtr<VKImage> _workImage;
-	VKPtr<VKImage> _outputImage;
+	std::shared_ptr<VKImage> _workImage;
+	std::shared_ptr<VKImage> _outputImage;
 
-	VKPtr<VKSampler> _downsampleSampler;
-	VKPtr<VKSampler> _upsampleSampler;
+	std::shared_ptr<VKSampler> _downsampleSampler;
+	std::shared_ptr<VKSampler> _upsampleSampler;
 
 	// downsample
 
@@ -42,10 +42,10 @@ private:
 		GLSL_int srcLevel;
 	};
 
-	VKPtr<VKDescriptorSetLayout> _downsampleDescriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _downsampleDescriptorSetLayout;
 
-	VKPtr<VKPipelineLayout> _downsamplePipelineLayout;
-	VKPtr<VKGraphicsPipeline> _downsamplePipeline;
+	std::shared_ptr<VKPipelineLayout> _downsamplePipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _downsamplePipeline;
 
 	// upsample
 
@@ -56,10 +56,10 @@ private:
 		GLSL_float bloomRadius;
 	};
 
-	VKPtr<VKDescriptorSetLayout> _upsampleDescriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _upsampleDescriptorSetLayout;
 
-	VKPtr<VKPipelineLayout> _upsamplePipelineLayout;
-	VKPtr<VKGraphicsPipeline> _upsamplePipeline;
+	std::shared_ptr<VKPipelineLayout> _upsamplePipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _upsamplePipeline;
 
 	// compose
 
@@ -68,17 +68,17 @@ private:
 		GLSL_float factor;
 	};
 
-	VKPtr<VKDescriptorSetLayout> _composeDescriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _composeDescriptorSetLayout;
 
-	VKPtr<VKPipelineLayout> _composePipelineLayout;
-	VKPtr<VKGraphicsPipeline> _composePipeline;
+	std::shared_ptr<VKPipelineLayout> _composePipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _composePipeline;
 
-	VKPtr<VKSampler> _inputImageSampler;
+	std::shared_ptr<VKSampler> _inputImageSampler;
 
 
-	void downsampleAnsBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
-	void upsampleAndBlur(const VKPtr<VKCommandBuffer>& commandBuffer, int dstLevel);
-	void compose(const VKPtr<VKImage>& input, const VKPtr<VKCommandBuffer>& commandBuffer);
+	void downsampleAnsBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel);
+	void upsampleAndBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel);
+	void compose(const std::shared_ptr<VKImage>& input, const std::shared_ptr<VKCommandBuffer>& commandBuffer);
 
 	void createDescriptorSetLayouts();
 	void createPipelineLayouts();
@@ -86,6 +86,6 @@ private:
 	void createImages();
 	void createSamplers();
 
-	BloomPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, BloomPassInput& input) override;
+	BloomPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, BloomPassInput& input) override;
 	void onResize() override;
 };

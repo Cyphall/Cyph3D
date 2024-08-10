@@ -26,7 +26,7 @@ vk::ImageAspectFlags VKHelper::getAspect(vk::Format format)
 	}
 }
 
-void VKHelper::assertImageViewHasUniqueState(const VKPtr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange)
+void VKHelper::assertImageViewHasUniqueState(const std::shared_ptr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
 #if defined(_DEBUG)
 	// make sure all referenced layers and levels have the same layout

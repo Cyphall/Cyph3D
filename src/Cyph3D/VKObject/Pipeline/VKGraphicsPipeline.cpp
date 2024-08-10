@@ -5,20 +5,20 @@
 #include "Cyph3D/VKObject/Shader/VKShader.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKGraphicsPipeline> VKGraphicsPipeline::create(VKContext& context, const VKGraphicsPipelineInfo& info)
+std::shared_ptr<VKGraphicsPipeline> VKGraphicsPipeline::create(VKContext& context, const VKGraphicsPipelineInfo& info)
 {
-	return VKPtr<VKGraphicsPipeline>(new VKGraphicsPipeline(context, info));
+	return std::shared_ptr<VKGraphicsPipeline>(new VKGraphicsPipeline(context, info));
 }
 
 VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, const VKGraphicsPipelineInfo& info):
 	VKPipeline(context),
 	_info(info)
 {
-	std::vector<VKPtr<VKShader>> shaders;
+	std::vector<std::shared_ptr<VKShader>> shaders;
 	std::vector<vk::PipelineShaderStageCreateInfo> shadersCreateInfos;
 
 	{
-		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getVertexShader()));
+		std::shared_ptr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getVertexShader()));
 
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eVertex;
@@ -28,7 +28,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, const VKGraphicsPipel
 
 	if (_info.hasGeometryShader())
 	{
-		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getGeometryShader()));
+		std::shared_ptr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getGeometryShader()));
 
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eGeometry;
@@ -38,7 +38,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, const VKGraphicsPipel
 
 	if (_info.hasFragmentShader())
 	{
-		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getFragmentShader()));
+		std::shared_ptr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, _info.getFragmentShader()));
 
 		vk::PipelineShaderStageCreateInfo& createInfo = shadersCreateInfos.emplace_back();
 		createInfo.stage = vk::ShaderStageFlagBits::eFragment;
@@ -221,7 +221,7 @@ vk::PipelineBindPoint VKGraphicsPipeline::getPipelineType() const
 	return vk::PipelineBindPoint::eGraphics;
 }
 
-const VKPtr<VKPipelineLayout>& VKGraphicsPipeline::getPipelineLayout() const
+const std::shared_ptr<VKPipelineLayout>& VKGraphicsPipeline::getPipelineLayout() const
 {
 	return _info.getPipelineLayout();
 }

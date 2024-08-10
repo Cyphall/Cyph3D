@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -14,7 +13,7 @@ struct VKTopLevelAccelerationStructureBuildInfo
 		glm::mat4 localToWorld;
 		uint32_t customIndex;
 		uint32_t recordIndex;
-		VKPtr<VKAccelerationStructure> accelerationStructure;
+		std::shared_ptr<VKAccelerationStructure> accelerationStructure;
 	};
 
 	std::vector<InstanceInfo> instancesInfos;

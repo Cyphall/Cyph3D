@@ -12,13 +12,13 @@ class VKImage;
 
 struct ExposurePassInput
 {
-	const VKPtr<VKImage>& inputImage;
+	const std::shared_ptr<VKImage>& inputImage;
 	const Camera& camera;
 };
 
 struct ExposurePassOutput
 {
-	const VKPtr<VKImage>& outputImage;
+	const std::shared_ptr<VKImage>& outputImage;
 };
 
 class ExposurePass : public RenderPass<ExposurePassInput, ExposurePassOutput>
@@ -32,14 +32,14 @@ private:
 		GLSL_float exposure;
 	};
 
-	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
 
-	VKPtr<VKPipelineLayout> _pipelineLayout;
-	VKPtr<VKGraphicsPipeline> _pipeline;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _pipeline;
 
-	VKPtr<VKSampler> _inputSampler;
+	std::shared_ptr<VKSampler> _inputSampler;
 
-	VKPtr<VKImage> _outputImage;
+	std::shared_ptr<VKImage> _outputImage;
 
 	void createDescriptorSetLayout();
 	void createPipelineLayout();
@@ -47,6 +47,6 @@ private:
 	void createSampler();
 	void createImage();
 
-	ExposurePassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input) override;
+	ExposurePassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input) override;
 	void onResize() override;
 };

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <glm/glm.hpp>
 
@@ -17,7 +16,7 @@ public:
 
 	virtual ~RenderPass() = default;
 
-	TOutput render(const VKPtr<VKCommandBuffer>& commandBuffer, TInput& input)
+	TOutput render(const std::shared_ptr<VKCommandBuffer>& commandBuffer, TInput& input)
 	{
 		commandBuffer->pushDebugGroup(_name);
 		TOutput output = onRender(commandBuffer, input);
@@ -35,7 +34,7 @@ public:
 protected:
 	glm::uvec2 _size;
 
-	virtual TOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, TInput& input) = 0;
+	virtual TOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, TInput& input) = 0;
 	virtual void onResize() = 0;
 
 private:

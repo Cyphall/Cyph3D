@@ -4,7 +4,6 @@
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 class RenderRegistry;
 class Camera;
@@ -17,7 +16,7 @@ class VKResizableBuffer;
 
 struct LightingPassInput
 {
-	const VKPtr<VKImage>& multisampledDepthImage;
+	const std::shared_ptr<VKImage>& multisampledDepthImage;
 	const RenderRegistry& registry;
 	Camera& camera;
 	const std::vector<DirectionalShadowMapInfo>& directionalShadowMapInfos;
@@ -27,7 +26,7 @@ struct LightingPassInput
 
 struct LightingPassOutput
 {
-	const VKPtr<VKImage>& multisampledRawRenderImage;
+	const std::shared_ptr<VKImage>& multisampledRawRenderImage;
 };
 
 class LightingPass : public RenderPass<LightingPassInput, LightingPassOutput>
@@ -89,24 +88,24 @@ private:
 
 	VKDynamic<VKResizableBuffer<ObjectUniforms>> _objectUniforms;
 
-	VKPtr<VKSampler> _directionalLightSampler;
-	VKPtr<VKSampler> _pointLightSampler;
+	std::shared_ptr<VKSampler> _directionalLightSampler;
+	std::shared_ptr<VKSampler> _pointLightSampler;
 
-	VKPtr<VKDescriptorSetLayout> _directionalLightDescriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _directionalLightDescriptorSetLayout;
 	VKDynamic<VKDescriptorSet> _directionalLightDescriptorSet;
-	VKPtr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
 	VKDynamic<VKDescriptorSet> _pointLightDescriptorSet;
 
-	VKPtr<VKDescriptorSetLayout> _objectDescriptorSetLayout;
+	std::shared_ptr<VKDescriptorSetLayout> _objectDescriptorSetLayout;
 
-	VKPtr<VKPipelineLayout> _pipelineLayout;
-	VKPtr<VKGraphicsPipeline> _pipeline;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _pipeline;
 
-	VKPtr<VKImage> _multisampledRawRenderImage;
+	std::shared_ptr<VKImage> _multisampledRawRenderImage;
 
 	uint32_t _frameIndex = 0;
 
-	LightingPassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, LightingPassInput& input) override;
+	LightingPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, LightingPassInput& input) override;
 	void onResize() override;
 
 	void createUniformBuffers();

@@ -40,7 +40,7 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 	}
 
 	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+		[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer)
 		{
 			commandBuffer->imageMemoryBarrier(
 				_objectIndexImage,
@@ -87,8 +87,8 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 			{
 				const ModelRenderer::RenderData& model = renderRegistry.getModelRenderRequests()[i];
 
-				const VKPtr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-				const VKPtr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+				const std::shared_ptr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
+				const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 
 				commandBuffer->bindVertexBuffer(0, vertexBuffer);
 				commandBuffer->bindIndexBuffer(indexBuffer);

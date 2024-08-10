@@ -24,7 +24,7 @@ uint32_t VKQueue::getFamily() const
 	return _queueFamily;
 }
 
-void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>> waitSemaphores, vk::ArrayProxy<std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>> signalSemaphores)
+void VKQueue::submit(const std::shared_ptr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>> waitSemaphores, vk::ArrayProxy<std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>> signalSemaphores)
 {
 	std::scoped_lock lock(_mutex);
 
@@ -63,7 +63,7 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 	commandBuffer->getStatusFence()->reset();
 	_queue.submit2(submitInfo, commandBuffer->getStatusFence()->getHandle());
 
-	auto extractSemaphore = [](const std::pair<VKPtr<VKSemaphore>, vk::PipelineStageFlags2>& pair)
+	auto extractSemaphore = [](const std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>& pair)
 	{
 		return pair.first;
 	};
@@ -76,12 +76,12 @@ void VKQueue::submit(const VKPtr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy
 	std::ranges::transform(signalSemaphores, submitRecord.signalSemaphores.begin(), extractSemaphore);
 }
 
-bool VKQueue::present(const VKPtr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<VKPtr<VKSemaphore>> waitSemaphores)
+bool VKQueue::present(const std::shared_ptr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<std::shared_ptr<VKSemaphore>> waitSemaphores)
 {
 	std::scoped_lock lock(_mutex);
 
 	std::vector<vk::Semaphore> waitVkSemaphores;
-	for (const VKPtr<VKSemaphore>& semaphore : waitSemaphores)
+	for (const std::shared_ptr<VKSemaphore>& semaphore : waitSemaphores)
 	{
 		waitVkSemaphores.push_back(semaphore->getHandle());
 	}

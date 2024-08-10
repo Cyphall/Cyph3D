@@ -2,14 +2,13 @@
 
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/VKObject.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <vulkan/vulkan.hpp>
 
 class VKDescriptorSetLayout : public VKObject
 {
 public:
-	static VKPtr<VKDescriptorSetLayout> create(VKContext& context, const VKDescriptorSetLayoutInfo& info);
+	static std::shared_ptr<VKDescriptorSetLayout> create(VKContext& context, const VKDescriptorSetLayoutInfo& info);
 
 	~VKDescriptorSetLayout() override;
 

@@ -4,7 +4,6 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineScissor.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineVertexInputLayoutInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineViewport.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <filesystem>
 #include <optional>
@@ -16,14 +15,14 @@ class VKGraphicsPipelineInfo
 {
 public:
 	VKGraphicsPipelineInfo(
-		const VKPtr<VKPipelineLayout>& pipelineLayout,
+		const std::shared_ptr<VKPipelineLayout>& pipelineLayout,
 		const std::filesystem::path& vertexShader,
 		vk::PrimitiveTopology primitiveTopology,
 		vk::CullModeFlags cullMode,
 		vk::FrontFace frontFace
 	);
 
-	const VKPtr<VKPipelineLayout>& getPipelineLayout() const;
+	const std::shared_ptr<VKPipelineLayout>& getPipelineLayout() const;
 
 	const std::filesystem::path& getVertexShader() const;
 
@@ -59,7 +58,7 @@ public:
 	const vk::SampleCountFlagBits& getRasterizationSampleCount() const;
 
 private:
-	VKPtr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
 	std::filesystem::path _vertexShader;
 	vk::PrimitiveTopology _primitiveTopology;
 	vk::CullModeFlags _cullMode;

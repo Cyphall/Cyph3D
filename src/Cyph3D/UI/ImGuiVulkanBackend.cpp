@@ -43,7 +43,7 @@ ImGuiVulkanBackend::~ImGuiVulkanBackend()
 	io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
 }
 
-void ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const VKPtr<VKCommandBuffer>& commandBuffer, const VKPtr<VKImage>& outputImage)
+void ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const std::shared_ptr<VKCommandBuffer>& commandBuffer, const std::shared_ptr<VKImage>& outputImage)
 {
 	glm::uvec2 framebufferSize = outputImage->getSize(0);
 
@@ -114,7 +114,7 @@ void ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const VKPtr<
 				scissor.size.y = clipMax.y - clipMin.y;
 				commandBuffer->setScissor(scissor);
 
-				const VKPtr<VKImage>& texture = *static_cast<const VKPtr<VKImage>*>(pcmd->TextureId);
+				const std::shared_ptr<VKImage>& texture = *static_cast<const std::shared_ptr<VKImage>*>(pcmd->TextureId);
 
 				if (texture->getState(0, 0).layout != vk::ImageLayout::eReadOnlyOptimal)
 				{
@@ -251,7 +251,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 
-	VKPtr<VKBuffer<uint8_t>> stagingBuffer = VKBuffer<uint8_t>::create(Engine::getVKContext(), bufferInfo);
+	std::shared_ptr<VKBuffer<uint8_t>> stagingBuffer = VKBuffer<uint8_t>::create(Engine::getVKContext(), bufferInfo);
 
 	std::copy_n(data, dataSize, stagingBuffer->getHostPointer());
 
@@ -269,7 +269,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 	_fontsTexture = VKImage::create(Engine::getVKContext(), imageInfo);
 
 	Engine::getVKContext().executeImmediate(
-		[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+		[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer)
 		{
 			commandBuffer->bufferMemoryBarrier(
 				stagingBuffer,
@@ -335,9 +335,9 @@ void ImGuiVulkanBackend::createBuffers()
 
 void ImGuiVulkanBackend::setupRenderState(
 	const ImDrawData* drawData,
-	const VKPtr<VKCommandBuffer>& commandBuffer,
-	const VKPtr<VKResizableBuffer<ImDrawVert>>& vertexBuffer,
-	const VKPtr<VKResizableBuffer<ImDrawIdx>>& indexBuffer,
+	const std::shared_ptr<VKCommandBuffer>& commandBuffer,
+	const std::shared_ptr<VKResizableBuffer<ImDrawVert>>& vertexBuffer,
+	const std::shared_ptr<VKResizableBuffer<ImDrawIdx>>& indexBuffer,
 	glm::uvec2 viewportSize
 )
 {

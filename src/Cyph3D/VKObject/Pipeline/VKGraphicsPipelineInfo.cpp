@@ -1,7 +1,7 @@
 #include "VKGraphicsPipelineInfo.h"
 
 VKGraphicsPipelineInfo::VKGraphicsPipelineInfo(
-	const VKPtr<VKPipelineLayout>& pipelineLayout,
+	const std::shared_ptr<VKPipelineLayout>& pipelineLayout,
 	const std::filesystem::path& vertexShader,
 	vk::PrimitiveTopology primitiveTopology,
 	vk::CullModeFlags cullMode,
@@ -15,7 +15,7 @@ VKGraphicsPipelineInfo::VKGraphicsPipelineInfo(
 {
 }
 
-const VKPtr<VKPipelineLayout>& VKGraphicsPipelineInfo::getPipelineLayout() const
+const std::shared_ptr<VKPipelineLayout>& VKGraphicsPipelineInfo::getPipelineLayout() const
 {
 	return _pipelineLayout;
 }

@@ -2,7 +2,7 @@
 
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-VKRenderingColorAttachmentInfo::VKRenderingColorAttachmentInfo(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
+VKRenderingColorAttachmentInfo::VKRenderingColorAttachmentInfo(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
 	_imageInfo(image, type, layerRange, levelRange, format)
 {
 }
@@ -12,7 +12,7 @@ const VKRenderingColorAttachmentInfo::ImageInfo& VKRenderingColorAttachmentInfo:
 	return _imageInfo;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image)
+VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image)
 {
 	return enableResolve(
 		mode,
@@ -24,7 +24,7 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk
 	);
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	_resolveMode = mode;
 	_resolveImageInfo = {image, type, layerRange, levelRange, format};

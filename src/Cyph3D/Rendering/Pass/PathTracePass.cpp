@@ -35,7 +35,7 @@ PathTracePass::PathTracePass(const glm::uvec2& size):
 	createImage();
 }
 
-PathTracePassOutput PathTracePass::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input)
+PathTracePassOutput PathTracePass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input)
 {
 	if (input.sceneChanged || input.cameraChanged)
 	{
@@ -124,7 +124,7 @@ void PathTracePass::onResize()
 	createImage();
 }
 
-void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
+void PathTracePass::setupTLAS(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
 {
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
 	buildInfo.instancesInfos.reserve(input.registry.getModelRenderRequests().size());
@@ -150,14 +150,14 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 	VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
 	scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
-	VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
+	std::shared_ptr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
 
 	VKResizableBufferInfo instancesBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR);
 	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 	instancesBufferInfo.setRequiredAlignment(16);
-	VKPtr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>> instancesBuffer = VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(Engine::getVKContext(), instancesBufferInfo);
+	std::shared_ptr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>> instancesBuffer = VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(Engine::getVKContext(), instancesBufferInfo);
 
 	commandBuffer->bufferMemoryBarrier(
 		_tlas->getBackingBuffer(),
@@ -174,7 +174,7 @@ void PathTracePass::setupTLAS(const VKPtr<VKCommandBuffer>& commandBuffer, const
 	commandBuffer->buildTopLevelAccelerationStructure(_tlas, scratchBuffer, buildInfo, instancesBuffer);
 }
 
-void PathTracePass::setupSBT(const VKPtr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
+void PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
 {
 	CameraUniforms cameraUniforms{
 		.cameraPosition = input.camera.getPosition(),

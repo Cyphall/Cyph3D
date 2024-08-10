@@ -1,14 +1,13 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <vulkan/vulkan.hpp>
 
 class VKSampler : public VKObject
 {
 public:
-	static VKPtr<VKSampler> create(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo);
+	static std::shared_ptr<VKSampler> create(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo);
 
 	~VKSampler() override;
 

@@ -4,9 +4,9 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKPipelineLayout> VKPipelineLayout::create(VKContext& context, const VKPipelineLayoutInfo& info)
+std::shared_ptr<VKPipelineLayout> VKPipelineLayout::create(VKContext& context, const VKPipelineLayoutInfo& info)
 {
-	return VKPtr<VKPipelineLayout>(new VKPipelineLayout(context, info));
+	return std::shared_ptr<VKPipelineLayout>(new VKPipelineLayout(context, info));
 }
 
 VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInfo& info):
@@ -15,7 +15,7 @@ VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInf
 {
 	std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
 	descriptorSetLayouts.reserve(_info.getDescriptorSetLayouts().size());
-	for (const VKPtr<VKDescriptorSetLayout>& descriptorSetLayout : _info.getDescriptorSetLayouts())
+	for (const std::shared_ptr<VKDescriptorSetLayout>& descriptorSetLayout : _info.getDescriptorSetLayouts())
 	{
 		descriptorSetLayouts.emplace_back(descriptorSetLayout->getHandle());
 	}

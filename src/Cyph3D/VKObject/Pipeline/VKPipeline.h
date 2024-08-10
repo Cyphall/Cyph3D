@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <vulkan/vulkan.hpp>
 
@@ -13,7 +12,7 @@ public:
 	const vk::Pipeline& getHandle();
 
 	virtual vk::PipelineBindPoint getPipelineType() const = 0;
-	virtual const VKPtr<VKPipelineLayout>& getPipelineLayout() const = 0;
+	virtual const std::shared_ptr<VKPipelineLayout>& getPipelineLayout() const = 0;
 
 protected:
 	explicit VKPipeline(VKContext& context);

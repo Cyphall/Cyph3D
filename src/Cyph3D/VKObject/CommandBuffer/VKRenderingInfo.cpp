@@ -22,7 +22,7 @@ const uint32_t& VKRenderingInfo::getLayers() const
 	return _layers;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const VKPtr<VKImage>& image)
+VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const std::shared_ptr<VKImage>& image)
 {
 	return addColorAttachment(
 		image,
@@ -33,7 +33,7 @@ VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const VKPtr<
 	);
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	return _colorAttachmentsInfos.emplace_back(image, type, layerRange, levelRange, format);
 }
@@ -43,7 +43,7 @@ const std::vector<VKRenderingColorAttachmentInfo>& VKRenderingInfo::getColorAtta
 	return _colorAttachmentsInfos;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const VKPtr<VKImage>& image)
+VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const std::shared_ptr<VKImage>& image)
 {
 	return setDepthAttachment(
 		image,
@@ -54,7 +54,7 @@ VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const VKPtr<
 	);
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	_depthAttachmentInfo = std::make_optional<VKRenderingDepthAttachmentInfo>(image, type, layerRange, levelRange, format);
 	return _depthAttachmentInfo.value();

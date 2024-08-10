@@ -37,7 +37,7 @@ struct UIViewport::RenderToFileData
 	std::filesystem::path outputFile;
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastBatchTime;
-	VKPtr<VKImage> lastRenderedTexture;
+	std::shared_ptr<VKImage> lastRenderedTexture;
 	RenderToFileStatus status = RenderToFileStatus::eRendering;
 };
 
@@ -66,7 +66,7 @@ std::unique_ptr<ObjectPicker> UIViewport::_objectPicker;
 
 std::unique_ptr<UIViewport::RenderToFileData> UIViewport::_renderToFileData;
 bool UIViewport::_showRenderToFilePopup = false;
-VKPtr<VKImage> UIViewport::_lastViewportImage;
+std::shared_ptr<VKImage> UIViewport::_lastViewportImage;
 
 void UIViewport::show()
 {
@@ -160,7 +160,7 @@ void UIViewport::show()
 				_renderToFileData->renderer->setAccumulationOnlyMode(thisBatchSamples != remainingSamples);
 
 				Engine::getVKContext().executeImmediate(
-					[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+					[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer)
 					{
 						_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
 					}
@@ -189,17 +189,17 @@ void UIViewport::show()
 					);
 					conversionImageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-					VKPtr<VKImage> conversionImage = VKImage::create(Engine::getVKContext(), conversionImageInfo);
+					std::shared_ptr<VKImage> conversionImage = VKImage::create(Engine::getVKContext(), conversionImageInfo);
 
 					VKBufferInfo stagingBufferInfo(conversionImage->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
 					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
 					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
 					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
 
-					VKPtr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), stagingBufferInfo);
+					std::shared_ptr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), stagingBufferInfo);
 
 					Engine::getVKContext().executeImmediate(
-						[&](const VKPtr<VKCommandBuffer>& commandBuffer)
+						[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer)
 						{
 							commandBuffer->imageMemoryBarrier(
 								_renderToFileData->lastRenderedTexture,

@@ -3,9 +3,9 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKDescriptorSetLayout> VKDescriptorSetLayout::create(VKContext& context, const VKDescriptorSetLayoutInfo& info)
+std::shared_ptr<VKDescriptorSetLayout> VKDescriptorSetLayout::create(VKContext& context, const VKDescriptorSetLayoutInfo& info)
 {
-	return VKPtr<VKDescriptorSetLayout>(new VKDescriptorSetLayout(context, info));
+	return std::shared_ptr<VKDescriptorSetLayout>(new VKDescriptorSetLayout(context, info));
 }
 
 VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescriptorSetLayoutInfo& info):

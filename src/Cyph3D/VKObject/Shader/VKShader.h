@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cyph3D/VKObject/VKObject.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <filesystem>
 #include <vulkan/vulkan.hpp>
@@ -9,7 +8,7 @@
 class VKShader : public VKObject
 {
 public:
-	static VKPtr<VKShader> create(VKContext& context, const std::filesystem::path& path);
+	static std::shared_ptr<VKShader> create(VKContext& context, const std::filesystem::path& path);
 
 	~VKShader() override;
 

@@ -4,9 +4,9 @@
 #include "Cyph3D/VKObject/Shader/VKShader.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKRayTracingPipeline> VKRayTracingPipeline::create(VKContext& context, const VKRayTracingPipelineInfo& info)
+std::shared_ptr<VKRayTracingPipeline> VKRayTracingPipeline::create(VKContext& context, const VKRayTracingPipelineInfo& info)
 {
-	return VKPtr<VKRayTracingPipeline>(new VKRayTracingPipeline(context, info));
+	return std::shared_ptr<VKRayTracingPipeline>(new VKRayTracingPipeline(context, info));
 }
 
 VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracingPipelineInfo& info):
@@ -18,13 +18,13 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracin
 		throw;
 	}
 
-	std::vector<VKPtr<VKShader>> shaders;
+	std::vector<std::shared_ptr<VKShader>> shaders;
 	std::vector<vk::PipelineShaderStageCreateInfo> shadersStagesCreateInfos;
 	std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shadersGroupsCreateInfos;
 
 	for (const VKRayTracingPipelineInfo::RaygenGroupInfo& groupInfo : _info.getRaygenGroupsInfos())
 	{
-		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, groupInfo.raygenShader));
+		std::shared_ptr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, groupInfo.raygenShader));
 
 		vk::PipelineShaderStageCreateInfo& shaderStageCreateInfo = shadersStagesCreateInfos.emplace_back();
 		shaderStageCreateInfo.stage = vk::ShaderStageFlagBits::eRaygenKHR;
@@ -50,7 +50,7 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracin
 
 		if (groupInfo.closestHitShader)
 		{
-			VKPtr<VKShader>& closestHitShader = shaders.emplace_back(VKShader::create(_context, *groupInfo.closestHitShader));
+			std::shared_ptr<VKShader>& closestHitShader = shaders.emplace_back(VKShader::create(_context, *groupInfo.closestHitShader));
 
 			vk::PipelineShaderStageCreateInfo& shaderStageCreateInfo = shadersStagesCreateInfos.emplace_back();
 			shaderStageCreateInfo.stage = vk::ShaderStageFlagBits::eClosestHitKHR;
@@ -62,7 +62,7 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracin
 
 		if (groupInfo.anyHitShader)
 		{
-			VKPtr<VKShader>& anyHitShader = shaders.emplace_back(VKShader::create(_context, *groupInfo.anyHitShader));
+			std::shared_ptr<VKShader>& anyHitShader = shaders.emplace_back(VKShader::create(_context, *groupInfo.anyHitShader));
 
 			vk::PipelineShaderStageCreateInfo& shaderStageCreateInfo = shadersStagesCreateInfos.emplace_back();
 			shaderStageCreateInfo.stage = vk::ShaderStageFlagBits::eAnyHitKHR;
@@ -75,7 +75,7 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracin
 
 	for (const VKRayTracingPipelineInfo::MissGroupInfo& groupInfo : _info.getMissGroupsInfos())
 	{
-		VKPtr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, groupInfo.missShader));
+		std::shared_ptr<VKShader>& shader = shaders.emplace_back(VKShader::create(_context, groupInfo.missShader));
 
 		vk::PipelineShaderStageCreateInfo& shaderStageCreateInfo = shadersStagesCreateInfos.emplace_back();
 		shaderStageCreateInfo.stage = vk::ShaderStageFlagBits::eMissKHR;
@@ -178,7 +178,7 @@ vk::PipelineBindPoint VKRayTracingPipeline::getPipelineType() const
 	return vk::PipelineBindPoint::eRayTracingKHR;
 }
 
-const VKPtr<VKPipelineLayout>& VKRayTracingPipeline::getPipelineLayout() const
+const std::shared_ptr<VKPipelineLayout>& VKRayTracingPipeline::getPipelineLayout() const
 {
 	return _info.getPipelineLayout();
 }

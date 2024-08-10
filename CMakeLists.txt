@@ -254,8 +254,7 @@ add_executable(Cyph3D
 		src/Cyph3D/VKObject/VKHelper.h
 		src/Cyph3D/VKObject/VKObject.cpp
 		src/Cyph3D/VKObject/VKObject.h
-		src/Cyph3D/VKObject/VKPtr.h
-		src/Cyph3D/VKObject/VKSwapchain.cpp
+        src/Cyph3D/VKObject/VKSwapchain.cpp
 		src/Cyph3D/VKObject/VKSwapchain.h
 		src/Cyph3D/Window.cpp
 		src/Cyph3D/Window.h

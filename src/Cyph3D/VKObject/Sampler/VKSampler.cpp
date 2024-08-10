@@ -2,9 +2,9 @@
 
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKSampler> VKSampler::create(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo)
+std::shared_ptr<VKSampler> VKSampler::create(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo)
 {
-	return VKPtr<VKSampler>(new VKSampler(context, samplerCreateInfo));
+	return std::shared_ptr<VKSampler>(new VKSampler(context, samplerCreateInfo));
 }
 
 VKSampler::VKSampler(VKContext& context, const vk::SamplerCreateInfo& samplerCreateInfo):

@@ -3,7 +3,6 @@
 #include "Cyph3D/Asset/Processing/MeshData.h"
 #include "Cyph3D/Asset/RuntimeAsset/GPUAsset.h"
 #include "Cyph3D/HashBuilder.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <memory>
 #include <string>
@@ -37,10 +36,10 @@ class MeshAsset : public GPUAsset<MeshAssetSignature>
 public:
 	~MeshAsset() override;
 
-	const VKPtr<VKBuffer<PositionVertexData>>& getPositionVertexBuffer() const;
-	const VKPtr<VKBuffer<FullVertexData>>& getFullVertexBuffer() const;
-	const VKPtr<VKBuffer<uint32_t>>& getIndexBuffer() const;
-	const VKPtr<VKAccelerationStructure>& getAccelerationStructure() const;
+	const std::shared_ptr<VKBuffer<PositionVertexData>>& getPositionVertexBuffer() const;
+	const std::shared_ptr<VKBuffer<FullVertexData>>& getFullVertexBuffer() const;
+	const std::shared_ptr<VKBuffer<uint32_t>>& getIndexBuffer() const;
+	const std::shared_ptr<VKAccelerationStructure>& getAccelerationStructure() const;
 
 	const glm::vec3& getBoundingBoxMin() const;
 	const glm::vec3& getBoundingBoxMax() const;
@@ -56,10 +55,10 @@ private:
 
 	void load_async(AssetManagerWorkerData& workerData);
 
-	VKPtr<VKBuffer<PositionVertexData>> _positionVertexBuffer;
-	VKPtr<VKBuffer<FullVertexData>> _fullVertexBuffer;
-	VKPtr<VKBuffer<uint32_t>> _indexBuffer;
-	VKPtr<VKAccelerationStructure> _accelerationStructure;
+	std::shared_ptr<VKBuffer<PositionVertexData>> _positionVertexBuffer;
+	std::shared_ptr<VKBuffer<FullVertexData>> _fullVertexBuffer;
+	std::shared_ptr<VKBuffer<uint32_t>> _indexBuffer;
+	std::shared_ptr<VKAccelerationStructure> _accelerationStructure;
 
 	glm::vec3 _boundingBoxMin = {0, 0, 0};
 	glm::vec3 _boundingBoxMax = {0, 0, 0};

@@ -17,9 +17,9 @@ public:
 	ImageData readImageData(AssetManagerWorkerData& workerData, std::string_view path, ImageType type, std::string_view cachePath);
 
 private:
-	VKPtr<VKDescriptorSetLayout> _descriptorSetLayout;
-	VKPtr<VKPipelineLayout> _pipelineLayout;
-	VKPtr<VKComputePipeline> _pipeline;
+	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKComputePipeline> _pipeline;
 
 	ImageData processImage(AssetManagerWorkerData& workerData, const std::filesystem::path& input, const std::filesystem::path& output, ImageType type);
 	ImageData genMipmaps(AssetManagerWorkerData& workerData, vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb);

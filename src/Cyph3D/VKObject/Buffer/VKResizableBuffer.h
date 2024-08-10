@@ -3,15 +3,14 @@
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBufferInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 template<typename T>
 class VKResizableBuffer : public VKObject
 {
 public:
-	static VKPtr<VKResizableBuffer> create(VKContext& context, const VKResizableBufferInfo& info)
+	static std::shared_ptr<VKResizableBuffer> create(VKContext& context, const VKResizableBufferInfo& info)
 	{
-		return VKPtr<VKResizableBuffer>(new VKResizableBuffer(context, info));
+		return std::shared_ptr<VKResizableBuffer>(new VKResizableBuffer(context, info));
 	}
 
 	T* getHostPointer()
@@ -19,7 +18,7 @@ public:
 		return _buffer ? _buffer->getHostPointer() : nullptr;
 	}
 
-	const VKPtr<VKBuffer<T>>& getBuffer()
+	const std::shared_ptr<VKBuffer<T>>& getBuffer()
 	{
 		return _buffer;
 	}
@@ -109,5 +108,5 @@ private:
 
 	VKResizableBufferInfo _info;
 
-	VKPtr<VKBuffer<T>> _buffer;
+	std::shared_ptr<VKBuffer<T>> _buffer;
 };

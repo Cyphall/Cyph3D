@@ -21,8 +21,8 @@ public:
 	explicit AssetManager(int threadCount);
 	~AssetManager();
 
-	const VKPtr<VKSampler>& getTextureSampler();
-	const VKPtr<VKSampler>& getCubemapSampler();
+	const std::shared_ptr<VKSampler>& getTextureSampler();
+	const std::shared_ptr<VKSampler>& getCubemapSampler();
 
 	AssetProcessor& getAssetProcessor();
 
@@ -46,8 +46,8 @@ public:
 private:
 	AssetProcessor _assetProcessor;
 
-	VKPtr<VKSampler> _textureSampler;
-	VKPtr<VKSampler> _cubemapSampler;
+	std::shared_ptr<VKSampler> _textureSampler;
+	std::shared_ptr<VKSampler> _cubemapSampler;
 
 	BindlessTextureManager _bindlessTextureManager;
 

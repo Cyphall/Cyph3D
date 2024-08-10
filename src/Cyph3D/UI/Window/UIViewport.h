@@ -58,7 +58,7 @@ private:
 
 	static std::unique_ptr<RenderToFileData> _renderToFileData;
 	static bool _showRenderToFilePopup;
-	static VKPtr<VKImage> _lastViewportImage;
+	static std::shared_ptr<VKImage> _lastViewportImage;
 
 	static void drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize);
 	static void drawHeader();

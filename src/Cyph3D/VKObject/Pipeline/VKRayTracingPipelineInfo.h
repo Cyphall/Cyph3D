@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKPtr.h"
 
 #include <filesystem>
 #include <optional>
@@ -26,9 +25,9 @@ public:
 		std::filesystem::path missShader;
 	};
 
-	explicit VKRayTracingPipelineInfo(const VKPtr<VKPipelineLayout>& pipelineLayout);
+	explicit VKRayTracingPipelineInfo(const std::shared_ptr<VKPipelineLayout>& pipelineLayout);
 
-	const VKPtr<VKPipelineLayout>& getPipelineLayout() const;
+	const std::shared_ptr<VKPipelineLayout>& getPipelineLayout() const;
 
 	const RaygenGroupInfo& getRaygenGroupInfo(uint32_t index) const;
 	const std::vector<RaygenGroupInfo>& getRaygenGroupsInfos() const;
@@ -43,7 +42,7 @@ public:
 	void addMissGroupsInfos(const std::filesystem::path& missShader);
 
 private:
-	VKPtr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
 	std::vector<RaygenGroupInfo> _raygenGroupsInfos;
 	std::vector<TriangleHitGroupInfo> _triangleHitGroupsInfos;
 	std::vector<MissGroupInfo> _missGroupsInfos;

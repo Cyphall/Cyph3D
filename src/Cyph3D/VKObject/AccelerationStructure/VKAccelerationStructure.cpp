@@ -2,13 +2,13 @@
 
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 
-VKPtr<VKAccelerationStructure> VKAccelerationStructure::create(
+std::shared_ptr<VKAccelerationStructure> VKAccelerationStructure::create(
 	VKContext& context,
 	vk::AccelerationStructureTypeKHR type,
 	vk::DeviceSize size
 )
 {
-	return VKPtr<VKAccelerationStructure>(new VKAccelerationStructure(context, type, size));
+	return std::shared_ptr<VKAccelerationStructure>(new VKAccelerationStructure(context, type, size));
 }
 
 VKAccelerationStructure::VKAccelerationStructure(
@@ -65,7 +65,7 @@ vk::DeviceAddress VKAccelerationStructure::getDeviceAddress() const
 	return _deviceAddress;
 }
 
-VKPtr<VKBufferBase> VKAccelerationStructure::getBackingBuffer()
+std::shared_ptr<VKBufferBase> VKAccelerationStructure::getBackingBuffer()
 {
 	return _backingBuffer;
 }

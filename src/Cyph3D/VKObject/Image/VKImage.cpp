@@ -6,9 +6,9 @@
 #include <ranges>
 #include <vulkan/vulkan_format_traits.hpp>
 
-VKPtr<VKImage> VKImage::create(VKContext& context, const VKImageInfo& info)
+std::shared_ptr<VKImage> VKImage::create(VKContext& context, const VKImageInfo& info)
 {
-	return VKPtr<VKImage>(new VKImage(context, info));
+	return std::shared_ptr<VKImage>(new VKImage(context, info));
 }
 
 VKImage::VKImage(VKContext& context, const VKImageInfo& info):

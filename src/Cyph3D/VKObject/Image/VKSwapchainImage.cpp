@@ -3,9 +3,9 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-VKPtr<VKSwapchainImage> VKSwapchainImage::create(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index)
+std::shared_ptr<VKSwapchainImage> VKSwapchainImage::create(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index)
 {
-	return VKPtr<VKSwapchainImage>(new VKSwapchainImage(context, handle, format, size, swapchain, index));
+	return std::shared_ptr<VKSwapchainImage>(new VKSwapchainImage(context, handle, format, size, swapchain, index));
 }
 
 VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index):
@@ -27,7 +27,7 @@ VKSwapchain& VKSwapchainImage::getSwapchain() const
 	return _swapchain;
 }
 
-const VKPtr<VKImage>& VKSwapchainImage::getImage()
+const std::shared_ptr<VKImage>& VKSwapchainImage::getImage()
 {
 	return _image;
 }

@@ -2,7 +2,6 @@
 
 #include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
-#include "Cyph3D/VKObject/VKPtr.h"
 
 struct RenderRegistry;
 class Camera;
@@ -18,7 +17,7 @@ struct ZPrepassInput
 
 struct ZPrepassOutput
 {
-	const VKPtr<VKImage>& multisampledDepthImage;
+	const std::shared_ptr<VKImage>& multisampledDepthImage;
 };
 
 class ZPrepass : public RenderPass<ZPrepassInput, ZPrepassOutput>
@@ -32,12 +31,12 @@ private:
 		GLSL_mat4 mvp;
 	};
 
-	VKPtr<VKPipelineLayout> _pipelineLayout;
-	VKPtr<VKGraphicsPipeline> _pipeline;
+	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
+	std::shared_ptr<VKGraphicsPipeline> _pipeline;
 
-	VKPtr<VKImage> _depthImage;
+	std::shared_ptr<VKImage> _depthImage;
 
-	ZPrepassOutput onRender(const VKPtr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
+	ZPrepassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
 	void onResize() override;
 
 	void createPipelineLayout();

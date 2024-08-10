@@ -68,12 +68,12 @@ AssetManager::~AssetManager()
 	_threadPool.wait_for_tasks();
 }
 
-const VKPtr<VKSampler>& AssetManager::getTextureSampler()
+const std::shared_ptr<VKSampler>& AssetManager::getTextureSampler()
 {
 	return _textureSampler;
 }
 
-const VKPtr<VKSampler>& AssetManager::getCubemapSampler()
+const std::shared_ptr<VKSampler>& AssetManager::getCubemapSampler()
 {
 	return _cubemapSampler;
 }

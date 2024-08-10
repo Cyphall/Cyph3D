@@ -85,7 +85,7 @@ void Engine::run()
 
 		_scene->onUpdate();
 
-		const VKPtr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.image->getImage(), nextImageInfo.imageAvailableSemaphore);
+		const std::shared_ptr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.image->getImage(), nextImageInfo.imageAvailableSemaphore);
 		if (!_vkContext->getMainQueue().present(nextImageInfo.image, renderFinishedSemaphore))
 		{
 			glm::uvec2 surfaceSize = _window->getSurfaceSize();

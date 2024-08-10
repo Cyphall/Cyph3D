@@ -15,7 +15,7 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 {
 }
 
-VKPtr<VKImage> RasterizationSceneRenderer::onRender(const VKPtr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+std::shared_ptr<VKImage> RasterizationSceneRenderer::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	// Z prepass
 

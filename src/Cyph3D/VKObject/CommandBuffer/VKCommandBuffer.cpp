@@ -21,9 +21,9 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 
-VKPtr<VKCommandBuffer> VKCommandBuffer::create(VKContext& context, const VKQueue& queue)
+std::shared_ptr<VKCommandBuffer> VKCommandBuffer::create(VKContext& context, const VKQueue& queue)
 {
-	return VKPtr<VKCommandBuffer>(new VKCommandBuffer(context, queue));
+	return std::shared_ptr<VKCommandBuffer>(new VKCommandBuffer(context, queue));
 }
 
 VKCommandBuffer::VKCommandBuffer(VKContext& context, const VKQueue& queue):
@@ -104,7 +104,7 @@ void VKCommandBuffer::memoryBarrier(vk::PipelineStageFlags2 srcStageMask, vk::Ac
 	_commandBuffer.pipelineBarrier2(dependencyInfo);
 }
 
-void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
+void VKCommandBuffer::bufferMemoryBarrier(const std::shared_ptr<VKBufferBase>& buffer, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
 {
 	const VKBufferBase::State& bufferState = buffer->getState();
 
@@ -135,7 +135,7 @@ void VKCommandBuffer::bufferMemoryBarrier(const VKPtr<VKBufferBase>& buffer, vk:
 	_usedObjects.emplace_back(buffer);
 }
 
-void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::imageMemoryBarrier(const std::shared_ptr<VKImage>& image, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
 {
 	imageMemoryBarrier(
 		image,
@@ -147,7 +147,7 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 	);
 }
 
-void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
+void VKCommandBuffer::imageMemoryBarrier(const std::shared_ptr<VKImage>& image, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
 	VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
 
@@ -188,7 +188,7 @@ void VKCommandBuffer::imageMemoryBarrier(const VKPtr<VKImage>& image, vk::Pipeli
 	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::acquireBufferOwnership(const VKPtr<VKBufferBase>& buffer, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
+void VKCommandBuffer::acquireBufferOwnership(const std::shared_ptr<VKBufferBase>& buffer, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask)
 {
 	vk::BufferMemoryBarrier2 bufferMemoryBarrier;
 	bufferMemoryBarrier.srcStageMask = vk::PipelineStageFlagBits2::eNone;
@@ -217,7 +217,7 @@ void VKCommandBuffer::acquireBufferOwnership(const VKPtr<VKBufferBase>& buffer, 
 	_usedObjects.emplace_back(buffer);
 }
 
-void VKCommandBuffer::releaseBufferOwnership(const VKPtr<VKBufferBase>& buffer, const VKQueue& nextOwner)
+void VKCommandBuffer::releaseBufferOwnership(const std::shared_ptr<VKBufferBase>& buffer, const VKQueue& nextOwner)
 {
 	const VKBufferBase::State& bufferState = buffer->getState();
 
@@ -241,7 +241,7 @@ void VKCommandBuffer::releaseBufferOwnership(const VKPtr<VKBufferBase>& buffer, 
 	_usedObjects.emplace_back(buffer);
 }
 
-void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::acquireImageOwnership(const std::shared_ptr<VKImage>& image, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout)
 {
 	acquireImageOwnership(
 		image,
@@ -254,7 +254,7 @@ void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, const V
 	);
 }
 
-void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
+void VKCommandBuffer::acquireImageOwnership(const std::shared_ptr<VKImage>& image, const VKQueue& previousOwner, vk::PipelineStageFlags2 dstStageMask, vk::AccessFlags2 dstAccessMask, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
 	VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
 
@@ -295,7 +295,7 @@ void VKCommandBuffer::acquireImageOwnership(const VKPtr<VKImage>& image, const V
 	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, const VKQueue& nextOwner, vk::ImageLayout newImageLayout)
+void VKCommandBuffer::releaseImageOwnership(const std::shared_ptr<VKImage>& image, const VKQueue& nextOwner, vk::ImageLayout newImageLayout)
 {
 	releaseImageOwnership(
 		image,
@@ -306,7 +306,7 @@ void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, const V
 	);
 }
 
-void VKCommandBuffer::releaseImageOwnership(const VKPtr<VKImage>& image, const VKQueue& nextOwner, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
+void VKCommandBuffer::releaseImageOwnership(const std::shared_ptr<VKImage>& image, const VKQueue& nextOwner, vk::ImageLayout newImageLayout, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
 	VKHelper::assertImageViewHasUniqueState(image, layerRange, levelRange);
 
@@ -438,7 +438,7 @@ void VKCommandBuffer::endRendering()
 	_commandBuffer.endRendering();
 }
 
-void VKCommandBuffer::bindPipeline(const VKPtr<VKPipeline>& pipeline)
+void VKCommandBuffer::bindPipeline(const std::shared_ptr<VKPipeline>& pipeline)
 {
 	if (_boundPipeline != nullptr)
 		throw;
@@ -457,7 +457,7 @@ void VKCommandBuffer::unbindPipeline()
 	_boundPipeline = nullptr;
 }
 
-void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescriptorSet>& descriptorSet)
+void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const std::shared_ptr<VKDescriptorSet>& descriptorSet)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -473,7 +473,7 @@ void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescrip
 	_usedObjects.emplace_back(descriptorSet);
 }
 
-void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescriptorSet>& descriptorSet, uint32_t dynamicOffset)
+void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const std::shared_ptr<VKDescriptorSet>& descriptorSet, uint32_t dynamicOffset)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -489,7 +489,7 @@ void VKCommandBuffer::bindDescriptorSet(uint32_t setIndex, const VKPtr<VKDescrip
 	_usedObjects.emplace_back(descriptorSet);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const std::shared_ptr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -521,7 +521,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	_usedObjects.emplace_back(buffer);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -551,7 +551,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	_usedObjects.emplace_back(sampler);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, uint32_t arrayIndex)
 {
 	pushDescriptor(
 		setIndex,
@@ -565,7 +565,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -598,7 +598,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	pushDescriptor(
 		setIndex,
@@ -613,7 +613,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const VKPtr<VKSampler>& sampler, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -648,7 +648,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	_usedObjects.emplace_back(sampler);
 }
 
-void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const VKPtr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
+void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, const std::shared_ptr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -680,7 +680,7 @@ void VKCommandBuffer::pushDescriptor(uint32_t setIndex, uint32_t bindingIndex, c
 	_usedObjects.emplace_back(accelerationStructure);
 }
 
-void VKCommandBuffer::bindVertexBuffer(uint32_t vertexBufferIndex, const VKPtr<VKBufferBase>& vertexBuffer)
+void VKCommandBuffer::bindVertexBuffer(uint32_t vertexBufferIndex, const std::shared_ptr<VKBufferBase>& vertexBuffer)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -690,7 +690,7 @@ void VKCommandBuffer::bindVertexBuffer(uint32_t vertexBufferIndex, const VKPtr<V
 	_usedObjects.emplace_back(vertexBuffer);
 }
 
-void VKCommandBuffer::bindIndexBuffer(const VKPtr<VKBufferBase>& indexBuffer)
+void VKCommandBuffer::bindIndexBuffer(const std::shared_ptr<VKBufferBase>& indexBuffer)
 {
 	if (_boundPipeline == nullptr)
 		throw;
@@ -723,7 +723,7 @@ void VKCommandBuffer::drawIndexed(uint32_t indexCount, uint32_t indexOffset, uin
 	_commandBuffer.drawIndexed(indexCount, 1, indexOffset, vertexOffset, 0);
 }
 
-void VKCommandBuffer::drawIndirect(const VKPtr<VKBuffer<vk::DrawIndirectCommand>>& drawCommandsBuffer)
+void VKCommandBuffer::drawIndirect(const std::shared_ptr<VKBuffer<vk::DrawIndirectCommand>>& drawCommandsBuffer)
 {
 	if (drawCommandsBuffer)
 	{
@@ -733,7 +733,7 @@ void VKCommandBuffer::drawIndirect(const VKPtr<VKBuffer<vk::DrawIndirectCommand>
 	}
 }
 
-void VKCommandBuffer::drawIndexedIndirect(const VKPtr<VKBuffer<vk::DrawIndexedIndirectCommand>>& drawCommandsBuffer)
+void VKCommandBuffer::drawIndexedIndirect(const std::shared_ptr<VKBuffer<vk::DrawIndexedIndirectCommand>>& drawCommandsBuffer)
 {
 	if (drawCommandsBuffer)
 	{
@@ -743,7 +743,7 @@ void VKCommandBuffer::drawIndexedIndirect(const VKPtr<VKBuffer<vk::DrawIndexedIn
 	}
 }
 
-void VKCommandBuffer::copyBufferToImage(const VKPtr<VKBufferBase>& srcBuffer, vk::DeviceSize srcByteOffset, const VKPtr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel)
+void VKCommandBuffer::copyBufferToImage(const std::shared_ptr<VKBufferBase>& srcBuffer, vk::DeviceSize srcByteOffset, const std::shared_ptr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel)
 {
 	if (srcBuffer->getByteSize() - srcByteOffset < dstImage->getLevelByteSize(dstLevel))
 		throw;
@@ -774,7 +774,7 @@ void VKCommandBuffer::copyBufferToImage(const VKPtr<VKBufferBase>& srcBuffer, vk
 	_usedObjects.emplace_back(dstImage);
 }
 
-void VKCommandBuffer::copyBufferToBuffer(const VKPtr<VKBufferBase>& srcBuffer, vk::DeviceSize srcByteOffset, const VKPtr<VKBufferBase>& dstBuffer, vk::DeviceSize dstByteOffset, vk::DeviceSize size)
+void VKCommandBuffer::copyBufferToBuffer(const std::shared_ptr<VKBufferBase>& srcBuffer, vk::DeviceSize srcByteOffset, const std::shared_ptr<VKBufferBase>& dstBuffer, vk::DeviceSize dstByteOffset, vk::DeviceSize size)
 {
 	if (srcBuffer->getByteSize() - srcByteOffset < size || dstBuffer->getByteSize() - dstByteOffset < size)
 		throw;
@@ -796,7 +796,7 @@ void VKCommandBuffer::copyBufferToBuffer(const VKPtr<VKBufferBase>& srcBuffer, v
 	_usedObjects.emplace_back(dstBuffer);
 }
 
-void VKCommandBuffer::copyImageToBuffer(const VKPtr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, const VKPtr<VKBufferBase>& dstBuffer, vk::DeviceSize dstByteOffset)
+void VKCommandBuffer::copyImageToBuffer(const std::shared_ptr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, const std::shared_ptr<VKBufferBase>& dstBuffer, vk::DeviceSize dstByteOffset)
 {
 	if (srcImage->getLevelByteSize(srcLevel) > dstBuffer->getByteSize() - dstByteOffset)
 		throw;
@@ -827,7 +827,7 @@ void VKCommandBuffer::copyImageToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 	_usedObjects.emplace_back(dstBuffer);
 }
 
-void VKCommandBuffer::copyImageToImage(const VKPtr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, const VKPtr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel)
+void VKCommandBuffer::copyImageToImage(const std::shared_ptr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, const std::shared_ptr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel)
 {
 	if (srcImage->getLevelByteSize(srcLevel) != dstImage->getLevelByteSize(dstLevel))
 		throw;
@@ -865,7 +865,7 @@ void VKCommandBuffer::copyImageToImage(const VKPtr<VKImage>& srcImage, uint32_t 
 	_usedObjects.emplace_back(dstImage);
 }
 
-void VKCommandBuffer::copyPixelToBuffer(const VKPtr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, glm::uvec2 srcPixel, const VKPtr<VKBufferBase>& dstBuffer, vk::DeviceSize dstByteOffset)
+void VKCommandBuffer::copyPixelToBuffer(const std::shared_ptr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, glm::uvec2 srcPixel, const std::shared_ptr<VKBufferBase>& dstBuffer, vk::DeviceSize dstByteOffset)
 {
 	if (srcImage->getPixelByteSize() > dstBuffer->getByteSize() - dstByteOffset)
 		throw;
@@ -894,7 +894,7 @@ void VKCommandBuffer::copyPixelToBuffer(const VKPtr<VKImage>& srcImage, uint32_t
 	_usedObjects.emplace_back(dstBuffer);
 }
 
-void VKCommandBuffer::blitImage(const VKPtr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, const VKPtr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel)
+void VKCommandBuffer::blitImage(const std::shared_ptr<VKImage>& srcImage, uint32_t srcLayer, uint32_t srcLevel, const std::shared_ptr<VKImage>& dstImage, uint32_t dstLayer, uint32_t dstLevel)
 {
 	vk::ImageBlit2 imageBlit;
 	imageBlit.srcSubresource.aspectMask = VKHelper::getAspect(srcImage->getInfo().getFormat());
@@ -997,7 +997,7 @@ void VKCommandBuffer::popDebugGroup()
 	_commandBuffer.endDebugUtilsLabelEXT();
 }
 
-void VKCommandBuffer::queryAccelerationStructureCompactedSize(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKAccelerationStructureCompactedSizeQuery>& accelerationStructureCompactedSizeQuery)
+void VKCommandBuffer::queryAccelerationStructureCompactedSize(const std::shared_ptr<VKAccelerationStructure>& accelerationStructure, const std::shared_ptr<VKAccelerationStructureCompactedSizeQuery>& accelerationStructureCompactedSizeQuery)
 {
 	_commandBuffer.writeAccelerationStructuresPropertiesKHR(
 		accelerationStructure->getHandle(),
@@ -1010,7 +1010,7 @@ void VKCommandBuffer::queryAccelerationStructureCompactedSize(const VKPtr<VKAcce
 	_usedObjects.emplace_back(accelerationStructureCompactedSizeQuery);
 }
 
-void VKCommandBuffer::clearColorImage(const VKPtr<VKImage>& image, uint32_t layer, uint32_t level, const vk::ClearColorValue& clearColor)
+void VKCommandBuffer::clearColorImage(const std::shared_ptr<VKImage>& image, uint32_t layer, uint32_t level, const vk::ClearColorValue& clearColor)
 {
 	vk::ImageSubresourceRange range;
 	range.aspectMask = VKHelper::getAspect(image->getInfo().getFormat());
@@ -1024,7 +1024,7 @@ void VKCommandBuffer::clearColorImage(const VKPtr<VKImage>& image, uint32_t laye
 	_usedObjects.emplace_back(image);
 }
 
-void VKCommandBuffer::buildBottomLevelAccelerationStructure(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKBufferBase>& scratchBuffer, const VKBottomLevelAccelerationStructureBuildInfo& buildInfo)
+void VKCommandBuffer::buildBottomLevelAccelerationStructure(const std::shared_ptr<VKAccelerationStructure>& accelerationStructure, const std::shared_ptr<VKBufferBase>& scratchBuffer, const VKBottomLevelAccelerationStructureBuildInfo& buildInfo)
 {
 	if (accelerationStructure->getType() != vk::AccelerationStructureTypeKHR::eBottomLevel)
 	{
@@ -1071,7 +1071,7 @@ void VKCommandBuffer::buildBottomLevelAccelerationStructure(const VKPtr<VKAccele
 	_usedObjects.emplace_back(scratchBuffer);
 }
 
-void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerationStructure>& accelerationStructure, const VKPtr<VKBufferBase>& scratchBuffer, const VKTopLevelAccelerationStructureBuildInfo& buildInfo, const VKPtr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>& instancesBuffer)
+void VKCommandBuffer::buildTopLevelAccelerationStructure(const std::shared_ptr<VKAccelerationStructure>& accelerationStructure, const std::shared_ptr<VKBufferBase>& scratchBuffer, const VKTopLevelAccelerationStructureBuildInfo& buildInfo, const std::shared_ptr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>>& instancesBuffer)
 {
 	if (accelerationStructure->getType() != vk::AccelerationStructureTypeKHR::eTopLevel)
 	{
@@ -1137,7 +1137,7 @@ void VKCommandBuffer::buildTopLevelAccelerationStructure(const VKPtr<VKAccelerat
 	_usedObjects.emplace_back(scratchBuffer);
 }
 
-void VKCommandBuffer::compactAccelerationStructure(const VKPtr<VKAccelerationStructure>& src, const VKPtr<VKAccelerationStructure>& dst)
+void VKCommandBuffer::compactAccelerationStructure(const std::shared_ptr<VKAccelerationStructure>& src, const std::shared_ptr<VKAccelerationStructure>& dst)
 {
 	vk::CopyAccelerationStructureInfoKHR copyAccelerationStructureInfo;
 	copyAccelerationStructureInfo.src = src->getHandle();
@@ -1150,7 +1150,7 @@ void VKCommandBuffer::compactAccelerationStructure(const VKPtr<VKAccelerationStr
 	_usedObjects.emplace_back(dst);
 }
 
-void VKCommandBuffer::traceRays(const VKPtr<VKShaderBindingTable>& sbt, glm::uvec2 size)
+void VKCommandBuffer::traceRays(const std::shared_ptr<VKShaderBindingTable>& sbt, glm::uvec2 size)
 {
 	vk::StridedDeviceAddressRegionKHR raygenRegion;
 	raygenRegion.deviceAddress = sbt->getRaygenSBTAddress();
@@ -1195,12 +1195,12 @@ void VKCommandBuffer::pushConstants(const void* data, uint32_t dataSize)
 	_commandBuffer.pushConstants(_boundPipeline->getPipelineLayout()->getHandle(), shaderStages, 0, dataSize, data);
 }
 
-const VKPtr<VKFence>& VKCommandBuffer::getStatusFence() const
+const std::shared_ptr<VKFence>& VKCommandBuffer::getStatusFence() const
 {
 	return _statusFence;
 }
 
-void VKCommandBuffer::addExternallyUsedObject(const VKPtr<VKObject>& object)
+void VKCommandBuffer::addExternallyUsedObject(const std::shared_ptr<VKObject>& object)
 {
 	_usedObjects.emplace_back(object);
 }

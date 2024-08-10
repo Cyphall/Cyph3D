@@ -21,25 +21,25 @@ MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature)
 
 MeshAsset::~MeshAsset() = default;
 
-const VKPtr<VKBuffer<PositionVertexData>>& MeshAsset::getPositionVertexBuffer() const
+const std::shared_ptr<VKBuffer<PositionVertexData>>& MeshAsset::getPositionVertexBuffer() const
 {
 	checkLoaded();
 	return _positionVertexBuffer;
 }
 
-const VKPtr<VKBuffer<FullVertexData>>& MeshAsset::getFullVertexBuffer() const
+const std::shared_ptr<VKBuffer<FullVertexData>>& MeshAsset::getFullVertexBuffer() const
 {
 	checkLoaded();
 	return _fullVertexBuffer;
 }
 
-const VKPtr<VKBuffer<uint32_t>>& MeshAsset::getIndexBuffer() const
+const std::shared_ptr<VKBuffer<uint32_t>>& MeshAsset::getIndexBuffer() const
 {
 	checkLoaded();
 	return _indexBuffer;
 }
 
-const VKPtr<VKAccelerationStructure>& MeshAsset::getAccelerationStructure() const
+const std::shared_ptr<VKAccelerationStructure>& MeshAsset::getAccelerationStructure() const
 {
 	checkLoaded();
 	return _accelerationStructure;
@@ -150,7 +150,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
 
-		VKPtr<VKAccelerationStructure> temporaryAccelerationStructure = VKAccelerationStructure::create(
+		std::shared_ptr<VKAccelerationStructure> temporaryAccelerationStructure = VKAccelerationStructure::create(
 			Engine::getVKContext(),
 			vk::AccelerationStructureTypeKHR::eBottomLevel,
 			buildSizesInfo.accelerationStructureSize
@@ -162,7 +162,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
 		scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
 
-		VKPtr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
+		std::shared_ptr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
 
 		// Build temporary acceleration structure and query compact size
 
@@ -210,7 +210,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 			Engine::getVKContext().getMainQueue()
 		);
 
-		VKPtr<VKAccelerationStructureCompactedSizeQuery> compactedSizeQuery = VKAccelerationStructureCompactedSizeQuery::create(Engine::getVKContext());
+		std::shared_ptr<VKAccelerationStructureCompactedSizeQuery> compactedSizeQuery = VKAccelerationStructureCompactedSizeQuery::create(Engine::getVKContext());
 		workerData.computeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
 
 		workerData.computeCommandBuffer->end();
