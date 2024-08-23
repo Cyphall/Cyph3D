@@ -299,9 +299,9 @@ target_shaders(Cyph3D shaders "src/glsl"
 		"src/glsl/z-prepass/z-prepass.vert"
 )
 
-target_resources(Cyph3D resources "data"
-		"data/fonts/Font Awesome 6 Free-Solid-900.otf"
-		"data/fonts/Roboto-Regular.ttf"
+target_resources(Cyph3D resources "resources"
+		"resources/fonts/Font Awesome 6 Free-Solid-900.otf"
+		"resources/fonts/Roboto-Regular.ttf"
 )
 
 target_precompile_headers(Cyph3D PRIVATE <vulkan/vulkan.hpp>)
@@ -357,6 +357,6 @@ target_link_libraries(Cyph3D PRIVATE ISPCTextureCompressor)
 add_subdirectory("vendor/half/v2.2.0")
 target_link_libraries(Cyph3D PRIVATE half)
 
-add_custom_target(copy_resources
-		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /XO /E /NS /NC /NFL /NDL /NP /NJH /NJS || cmd /c "exit /b 0")
-add_dependencies(Cyph3D copy_resources)
+add_custom_target(copy_assets
+		COMMAND robocopy ${PROJECT_SOURCE_DIR}/assets/ ${PROJECT_BINARY_DIR}/assets /XO /E /NS /NC /NFL /NDL /NP /NJH /NJS || cmd /c "exit /b 0")
+add_dependencies(Cyph3D copy_assets)

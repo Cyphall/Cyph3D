@@ -17,7 +17,7 @@
 #include <GLFW/glfw3native.h>
 
 static std::filesystem::path rootDirectoryPath = std::filesystem::current_path();
-static std::filesystem::path assetDirectoryPath = rootDirectoryPath / "resources";
+static std::filesystem::path assetDirectoryPath = rootDirectoryPath / "assets";
 
 static std::filesystem::path cacheRootDirectoryPath = rootDirectoryPath / "cache";
 static std::filesystem::path cacheAssetDirectoryPath = cacheRootDirectoryPath / "assets";
