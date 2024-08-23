@@ -344,13 +344,13 @@ void LightingPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		FileHelper::getDataDirectory() / "shaders/lighting/lighting.vert",
+		"lighting/lighting.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/lighting/lighting.frag");
+	info.setFragmentShader("lighting/lighting.frag");
 
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(FullVertexData), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, position));

@@ -48,7 +48,6 @@ Cyph3D only supports Windows. Support for any other OS is not currently planned.
 
 ### Requirements:
 
-- Somewhat recent version of Python 3
 - CMake 3.28+
 - Ninja
 - Latest MSVC (with the English Language Pack, vcpkg won't work otherwise, see [microsoft/vcpkg#3842](https://github.com/microsoft/vcpkg/issues/3842))

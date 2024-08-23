@@ -2,7 +2,7 @@
 
 VKGraphicsPipelineInfo::VKGraphicsPipelineInfo(
 	const std::shared_ptr<VKPipelineLayout>& pipelineLayout,
-	const std::filesystem::path& vertexShader,
+	const std::string& vertexShader,
 	vk::PrimitiveTopology primitiveTopology,
 	vk::CullModeFlags cullMode,
 	vk::FrontFace frontFace
@@ -20,7 +20,7 @@ const std::shared_ptr<VKPipelineLayout>& VKGraphicsPipelineInfo::getPipelineLayo
 	return _pipelineLayout;
 }
 
-const std::filesystem::path& VKGraphicsPipelineInfo::getVertexShader() const
+const std::string& VKGraphicsPipelineInfo::getVertexShader() const
 {
 	return _vertexShader;
 }
@@ -65,12 +65,12 @@ bool VKGraphicsPipelineInfo::hasGeometryShader() const
 	return _geometryShader.has_value();
 }
 
-const std::filesystem::path& VKGraphicsPipelineInfo::getGeometryShader() const
+const std::string& VKGraphicsPipelineInfo::getGeometryShader() const
 {
 	return _geometryShader.value();
 }
 
-void VKGraphicsPipelineInfo::setGeometryShader(const std::filesystem::path& path)
+void VKGraphicsPipelineInfo::setGeometryShader(const std::string& path)
 {
 	_geometryShader = path;
 }
@@ -80,12 +80,12 @@ bool VKGraphicsPipelineInfo::hasFragmentShader() const
 	return _fragmentShader.has_value();
 }
 
-const std::filesystem::path& VKGraphicsPipelineInfo::getFragmentShader() const
+const std::string& VKGraphicsPipelineInfo::getFragmentShader() const
 {
 	return _fragmentShader.value();
 }
 
-void VKGraphicsPipelineInfo::setFragmentShader(const std::filesystem::path& path)
+void VKGraphicsPipelineInfo::setFragmentShader(const std::string& path)
 {
 	_fragmentShader = path;
 }

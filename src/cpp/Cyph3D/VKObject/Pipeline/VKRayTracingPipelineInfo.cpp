@@ -20,7 +20,7 @@ const std::vector<VKRayTracingPipelineInfo::RaygenGroupInfo>& VKRayTracingPipeli
 	return _raygenGroupsInfos;
 }
 
-void VKRayTracingPipelineInfo::addRaygenGroupsInfos(const std::filesystem::path& raygenShader)
+void VKRayTracingPipelineInfo::addRaygenGroupsInfos(const std::string& raygenShader)
 {
 	RaygenGroupInfo& info = _raygenGroupsInfos.emplace_back();
 	info.raygenShader = raygenShader;
@@ -36,7 +36,7 @@ const std::vector<VKRayTracingPipelineInfo::TriangleHitGroupInfo>& VKRayTracingP
 	return _triangleHitGroupsInfos;
 }
 
-void VKRayTracingPipelineInfo::addTriangleHitGroupsInfos(std::optional<std::filesystem::path> closestHitShader, std::optional<std::filesystem::path> anyHitShader)
+void VKRayTracingPipelineInfo::addTriangleHitGroupsInfos(std::optional<std::string> closestHitShader, std::optional<std::string> anyHitShader)
 {
 	TriangleHitGroupInfo& info = _triangleHitGroupsInfos.emplace_back();
 	info.closestHitShader = std::move(closestHitShader);
@@ -53,7 +53,7 @@ const std::vector<VKRayTracingPipelineInfo::MissGroupInfo>& VKRayTracingPipeline
 	return _missGroupsInfos;
 }
 
-void VKRayTracingPipelineInfo::addMissGroupsInfos(const std::filesystem::path& missShader)
+void VKRayTracingPipelineInfo::addMissGroupsInfos(const std::string& missShader)
 {
 	MissGroupInfo& info = _missGroupsInfos.emplace_back();
 	info.missShader = missShader;

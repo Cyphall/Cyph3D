@@ -101,13 +101,13 @@ void ExposurePass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
+		"fullscreen quad.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/exposure/exposure.frag");
+	info.setFragmentShader("post-processing/exposure/exposure.frag");
 
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 

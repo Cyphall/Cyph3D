@@ -251,10 +251,10 @@ void PathTracePass::createPipeline()
 {
 	VKRayTracingPipelineInfo info(_pipelineLayout);
 
-	info.addRaygenGroupsInfos(FileHelper::getDataDirectory() / "shaders/path tracing/path trace.rgen");
-	info.addTriangleHitGroupsInfos(FileHelper::getDataDirectory() / "shaders/path tracing/path trace.rchit", std::nullopt);
-	info.addMissGroupsInfos(FileHelper::getDataDirectory() / "shaders/path tracing/black skybox.rmiss");
-	info.addMissGroupsInfos(FileHelper::getDataDirectory() / "shaders/path tracing/cubemap skybox.rmiss");
+	info.addRaygenGroupsInfos("path tracing/path trace.rgen");
+	info.addTriangleHitGroupsInfos("path tracing/path trace.rchit", std::nullopt);
+	info.addMissGroupsInfos("path tracing/black skybox.rmiss");
+	info.addMissGroupsInfos("path tracing/cubemap skybox.rmiss");
 
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }

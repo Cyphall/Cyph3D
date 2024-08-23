@@ -142,7 +142,7 @@ ImageProcessor::ImageProcessor()
 
 	VKComputePipelineInfo computePipelineInfo(
 		_pipelineLayout,
-		FileHelper::getDataDirectory() / "shaders/asset processing/gen mipmap.comp"
+		"asset processing/gen mipmap.comp"
 	);
 
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);

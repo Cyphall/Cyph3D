@@ -2,22 +2,22 @@
 
 #include "Cyph3D/VKObject/VKObject.h"
 
-#include <filesystem>
+#include <string>
 #include <vulkan/vulkan.hpp>
 
 class VKShader : public VKObject
 {
 public:
-	static std::shared_ptr<VKShader> create(VKContext& context, const std::filesystem::path& path);
+	static std::shared_ptr<VKShader> create(VKContext& context, const std::string& path);
 
 	~VKShader() override;
 
 	const vk::ShaderModule& getHandle();
-	const std::vector<uint32_t>& getCode() const;
+	const std::span<const uint32_t>& getCode() const;
 
 private:
-	VKShader(VKContext& context, const std::filesystem::path& path);
+	VKShader(VKContext& context, const std::string& path);
 
 	vk::ShaderModule _handle;
-	std::vector<uint32_t> _code;
+	std::span<const uint32_t> _code;
 };

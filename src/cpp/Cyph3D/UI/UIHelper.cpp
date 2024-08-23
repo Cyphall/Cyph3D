@@ -20,6 +20,9 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
+#include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(resources);
 
 ImGuiContext* UIHelper::_context = nullptr;
 
@@ -230,11 +233,12 @@ void UIHelper::initFonts()
 	float pixelScale = Engine::getWindow().getPixelScale();
 
 	ImFontConfig config;
+	config.FontDataOwnedByAtlas = false;
 
-	std::string robotoPath = (FileHelper::getDataDirectory() / "fonts/Roboto-Regular.ttf").generic_string();
-	std::string fontAwesomePath = (FileHelper::getDataDirectory() / "fonts/Font Awesome 6 Free-Solid-900.otf").generic_string();
+	cmrc::file robotoData = cmrc::resources::get_filesystem().open("fonts/Roboto-Regular.ttf");
+	cmrc::file fontAwesomeData = cmrc::resources::get_filesystem().open("fonts/Font Awesome 6 Free-Solid-900.otf");
 
-	io.Fonts->AddFontFromFileTTF(robotoPath.c_str(), 14.0f * pixelScale, &config, io.Fonts->GetGlyphRangesDefault());
+	io.Fonts->AddFontFromMemoryTTF(const_cast<char*>(robotoData.begin()), static_cast<int>(robotoData.end() - robotoData.begin()), 14.0f * pixelScale, &config, io.Fonts->GetGlyphRangesDefault());
 
 	config.MergeMode = true;
 	config.GlyphOffset = ImVec2(0.0f, 1.0f * pixelScale);
@@ -246,9 +250,12 @@ void UIHelper::initFonts()
 		0xF07B, 0xF07B,
 		0
 	};
-	io.Fonts->AddFontFromFileTTF(fontAwesomePath.c_str(), 14.0f * pixelScale, &config, smallIconRange);
+	io.Fonts->AddFontFromMemoryTTF(const_cast<char*>(fontAwesomeData.begin()), static_cast<int>(fontAwesomeData.end() - fontAwesomeData.begin()), 14.0f * pixelScale, &config, smallIconRange);
 
 	io.Fonts->Build();
+
+	ImFontConfig bigFontConfig;
+	bigFontConfig.FontDataOwnedByAtlas = false;
 
 	static const ImWchar largeIconRange[] = {
 		0xE209, 0xE209,
@@ -260,5 +267,5 @@ void UIHelper::initFonts()
 		0xF43C, 0xF43C,
 		0
 	};
-	_bigFont = io.Fonts->AddFontFromFileTTF(fontAwesomePath.c_str(), 48.0f * pixelScale, nullptr, largeIconRange);
+	_bigFont = io.Fonts->AddFontFromMemoryTTF(const_cast<char*>(fontAwesomeData.begin()), static_cast<int>(fontAwesomeData.end() - fontAwesomeData.begin()), 48.0f * pixelScale, &bigFontConfig, largeIconRange);
 }

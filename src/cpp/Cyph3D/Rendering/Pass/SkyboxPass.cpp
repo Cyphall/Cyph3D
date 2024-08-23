@@ -118,13 +118,13 @@ void SkyboxPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		FileHelper::getDataDirectory() / "shaders/skybox/skybox.vert",
+		"skybox/skybox.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/skybox/skybox.frag");
+	info.setFragmentShader("skybox/skybox.frag");
 
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(SkyboxPass::VertexData), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(SkyboxPass::VertexData, position));

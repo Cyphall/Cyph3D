@@ -209,13 +209,13 @@ void ImGuiVulkanBackend::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		FileHelper::getDataDirectory() / "shaders/imgui/imgui.vert",
+		"imgui/imgui.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eNone,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/imgui/imgui.frag");
+	info.setFragmentShader("imgui/imgui.frag");
 
 	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(ImDrawVert), vk::VertexInputRate::eVertex);
 	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32Sfloat, offsetof(ImDrawVert, pos));

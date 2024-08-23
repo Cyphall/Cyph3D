@@ -16,7 +16,6 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
-static std::filesystem::path dataDirectory = std::filesystem::current_path() / "data";
 static std::filesystem::path rootDirectoryPath = std::filesystem::current_path();
 static std::filesystem::path assetDirectoryPath = rootDirectoryPath / "resources";
 
@@ -232,11 +231,6 @@ void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folde
 	{
 		Logger::error("Could not open folder in explorer and select entries: {}", std::system_category().message(result));
 	}
-}
-
-const std::filesystem::path& FileHelper::getDataDirectory()
-{
-	return dataDirectory;
 }
 
 const std::filesystem::path& FileHelper::getRootDirectoryPath()

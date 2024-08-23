@@ -88,7 +88,7 @@ void NormalizationPass::createPipeline()
 {
 	VKComputePipelineInfo info(
 		_pipelineLayout,
-		FileHelper::getDataDirectory() / "shaders/post-processing/normalization/normalization.comp"
+		"post-processing/normalization/normalization.comp"
 	);
 
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), info);

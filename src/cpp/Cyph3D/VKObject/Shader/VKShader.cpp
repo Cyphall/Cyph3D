@@ -1,38 +1,32 @@
 #include "VKShader.h"
 
-#include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
+#include <cmrc/cmrc.hpp>
 #include <filesystem>
 #include <fstream>
-#include <vector>
 
-static std::vector<uint32_t> readSPIRV(const std::filesystem::path& filePath)
-{
-	size_t size = std::filesystem::file_size(filePath);
-	if (size % sizeof(uint32_t) != 0)
-	{
-		throw;
-	}
+CMRC_DECLARE(shaders);
 
-	std::ifstream file = FileHelper::openFileForReading(filePath);
-
-	std::vector<uint32_t> data(size / sizeof(uint32_t));
-	file.read(reinterpret_cast<char*>(data.data()), size);
-
-	return data;
-}
-
-std::shared_ptr<VKShader> VKShader::create(VKContext& context, const std::filesystem::path& path)
+std::shared_ptr<VKShader> VKShader::create(VKContext& context, const std::string& path)
 {
 	return std::shared_ptr<VKShader>(new VKShader(context, path));
 }
 
-VKShader::VKShader(VKContext& context, const std::filesystem::path& path):
+VKShader::VKShader(VKContext& context, const std::string& path):
 	VKObject(context)
 {
-	std::filesystem::path realPath = std::filesystem::path(path).concat(".spv");
-	_code = readSPIRV(realPath);
+	cmrc::file spirvFile = cmrc::shaders::get_filesystem().open(std::format("{}.spv", path));
+
+	if ((spirvFile.end() - spirvFile.begin()) % sizeof(uint32_t) != 0)
+	{
+		throw;
+	}
+
+	_code = {
+		reinterpret_cast<const uint32_t*>(spirvFile.begin()),
+		reinterpret_cast<const uint32_t*>(spirvFile.end())
+	};
 
 	vk::ShaderModuleCreateInfo createInfo;
 	createInfo.codeSize = _code.size() * sizeof(uint32_t);
@@ -51,7 +45,7 @@ const vk::ShaderModule& VKShader::getHandle()
 	return _handle;
 }
 
-const std::vector<uint32_t>& VKShader::getCode() const
+const std::span<const uint32_t>& VKShader::getCode() const
 {
 	return _code;
 }

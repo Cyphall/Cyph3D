@@ -349,13 +349,13 @@ void BloomPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_downsamplePipelineLayout,
-			FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
+			"fullscreen quad.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/bloom/downsample.frag");
+		info.setFragmentShader("post-processing/bloom/downsample.frag");
 
 		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 
@@ -365,13 +365,13 @@ void BloomPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_upsamplePipelineLayout,
-			FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
+			"fullscreen quad.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/bloom/upsample and blur.frag");
+		info.setFragmentShader("post-processing/bloom/upsample and blur.frag");
 
 		VKPipelineBlendingInfo blendingInfo{
 			.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
@@ -390,13 +390,13 @@ void BloomPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_composePipelineLayout,
-			FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
+			"fullscreen quad.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/bloom/compose.frag");
+		info.setFragmentShader("post-processing/bloom/compose.frag");
 
 		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
 

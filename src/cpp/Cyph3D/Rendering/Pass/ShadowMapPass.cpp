@@ -210,7 +210,7 @@ void ShadowMapPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_directionalLightPipelineLayout,
-			FileHelper::getDataDirectory() / "shaders/shadow mapping/directional light.vert",
+			"shadow mapping/directional light.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
@@ -227,13 +227,13 @@ void ShadowMapPass::createPipelines()
 	{
 		VKGraphicsPipelineInfo info(
 			_pointLightPipelineLayout,
-			FileHelper::getDataDirectory() / "shaders/shadow mapping/point light.vert",
+			"shadow mapping/point light.vert",
 			vk::PrimitiveTopology::eTriangleList,
 			vk::CullModeFlagBits::eBack,
 			vk::FrontFace::eCounterClockwise
 		);
 
-		info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/shadow mapping/point light.frag");
+		info.setFragmentShader("shadow mapping/point light.frag");
 
 		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
 		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));

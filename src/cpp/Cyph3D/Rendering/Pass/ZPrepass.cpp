@@ -95,7 +95,7 @@ void ZPrepass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		FileHelper::getDataDirectory() / "shaders/z-prepass/z-prepass.vert",
+		"z-prepass/z-prepass.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise

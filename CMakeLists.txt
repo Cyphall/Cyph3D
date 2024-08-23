@@ -8,8 +8,12 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 set(CMAKE_ISPC_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/tools/ispc/ispc.exe")
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
 
 project(Cyph3D)
+
+include(Shaders)
+include(Resources)
 
 add_compile_options($<$<COMPILE_LANGUAGE:C>:/Zc:__STDC__>)
 add_compile_options($<$<COMPILE_LANGUAGE:C>:/Zc:__cplusplus>)
@@ -140,7 +144,7 @@ target_sources(Cyph3D
 			src/cpp/Cyph3D/VKObject/VKObject.cpp
 			src/cpp/Cyph3D/VKObject/VKSwapchain.cpp
 			src/cpp/Cyph3D/Window.cpp
-		PUBLIC
+		PRIVATE
 		FILE_SET HEADERS
 		BASE_DIRS src/cpp
 		FILES
@@ -267,6 +271,39 @@ target_sources(Cyph3D
 			src/cpp/Cyph3D/Window.h
 )
 
+target_shaders(Cyph3D shaders "src/glsl"
+		"src/glsl/fullscreen quad.vert"
+		"src/glsl/asset processing/gen cubemap.comp"
+		"src/glsl/asset processing/gen mipmap.comp"
+		"src/glsl/imgui/imgui.frag"
+		"src/glsl/imgui/imgui.vert"
+		"src/glsl/lighting/lighting.frag"
+		"src/glsl/lighting/lighting.vert"
+		"src/glsl/object picker/object picker.frag"
+		"src/glsl/object picker/object picker.vert"
+		"src/glsl/path tracing/black skybox.rmiss"
+		"src/glsl/path tracing/cubemap skybox.rmiss"
+		"src/glsl/path tracing/path trace.rchit"
+		"src/glsl/path tracing/path trace.rgen"
+		"src/glsl/post-processing/bloom/compose.frag"
+		"src/glsl/post-processing/bloom/downsample.frag"
+		"src/glsl/post-processing/bloom/upsample and blur.frag"
+		"src/glsl/post-processing/exposure/exposure.frag"
+		"src/glsl/post-processing/normalization/normalization.comp"
+		"src/glsl/post-processing/tone mapping/tone mapping.frag"
+		"src/glsl/shadow mapping/directional light.vert"
+		"src/glsl/shadow mapping/point light.frag"
+		"src/glsl/shadow mapping/point light.vert"
+		"src/glsl/skybox/skybox.frag"
+		"src/glsl/skybox/skybox.vert"
+		"src/glsl/z-prepass/z-prepass.vert"
+)
+
+target_resources(Cyph3D resources "data"
+		"data/fonts/Font Awesome 6 Free-Solid-900.otf"
+		"data/fonts/Roboto-Regular.ttf"
+)
+
 target_precompile_headers(Cyph3D PRIVATE <vulkan/vulkan.hpp>)
 
 find_package(Stb REQUIRED)
@@ -319,12 +356,6 @@ target_link_libraries(Cyph3D PRIVATE ISPCTextureCompressor)
 
 add_subdirectory("vendor/half/v2.2.0")
 target_link_libraries(Cyph3D PRIVATE half)
-
-find_package(Python COMPONENTS Interpreter REQUIRED)
-find_program(GLSLANG_EXECUTABLE glslang REQUIRED)
-add_custom_target(copy_data
-		COMMAND ${Python_EXECUTABLE} "${PROJECT_SOURCE_DIR}/copy_resources.py" "${PROJECT_SOURCE_DIR}/data" "${PROJECT_BINARY_DIR}/data" "${GLSLANG_EXECUTABLE}" "${CMAKE_BUILD_TYPE}")
-add_dependencies(Cyph3D copy_data)
 
 add_custom_target(copy_resources
 		COMMAND robocopy ${PROJECT_SOURCE_DIR}/resources/ ${PROJECT_BINARY_DIR}/resources /XO /E /NS /NC /NFL /NDL /NP /NJH /NJS || cmd /c "exit /b 0")

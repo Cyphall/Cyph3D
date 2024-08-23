@@ -95,13 +95,13 @@ void ToneMappingPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
-		FileHelper::getDataDirectory() / "shaders/fullscreen quad.vert",
+		"fullscreen quad.vert",
 		vk::PrimitiveTopology::eTriangleList,
 		vk::CullModeFlagBits::eBack,
 		vk::FrontFace::eCounterClockwise
 	);
 
-	info.setFragmentShader(FileHelper::getDataDirectory() / "shaders/post-processing/tone mapping/tone mapping.frag");
+	info.setFragmentShader("post-processing/tone mapping/tone mapping.frag");
 
 	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::FINAL_COLOR_FORMAT);
 
