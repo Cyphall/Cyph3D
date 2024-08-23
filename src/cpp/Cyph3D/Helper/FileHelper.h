@@ -19,7 +19,7 @@ public:
 	static void init();
 	static void shutdown();
 
-	static std::string readAllText(const std::string& path);
+	static std::string readAllText(const std::filesystem::path& path);
 
 	static std::ifstream openFileForReading(const std::filesystem::path& path);
 	static std::ofstream openFileForWriting(const std::filesystem::path& path);

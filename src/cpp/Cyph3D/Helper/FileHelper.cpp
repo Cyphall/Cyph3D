@@ -22,7 +22,7 @@ static std::filesystem::path assetDirectoryPath = rootDirectoryPath / "assets";
 static std::filesystem::path cacheRootDirectoryPath = rootDirectoryPath / "cache";
 static std::filesystem::path cacheAssetDirectoryPath = cacheRootDirectoryPath / "assets";
 
-std::string FileHelper::readAllText(const std::string& path)
+std::string FileHelper::readAllText(const std::filesystem::path& path)
 {
 	std::ifstream file = openFileForReading(path);
 
