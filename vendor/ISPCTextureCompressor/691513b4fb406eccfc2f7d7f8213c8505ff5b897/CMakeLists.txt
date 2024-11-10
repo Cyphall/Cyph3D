@@ -9,6 +9,12 @@ project(ISPCTextureCompressorInternal LANGUAGES ISPC)
 
 add_library(ISPCTextureCompressorInternal STATIC src/kernel.ispc)
 
+target_compile_options(ISPCTextureCompressorInternal PRIVATE --arch=x86-64)
+target_compile_options(ISPCTextureCompressorInternal PRIVATE --target=avx2-i32x16)
+target_compile_options(ISPCTextureCompressorInternal PRIVATE --target-os=windows)
+target_compile_options(ISPCTextureCompressorInternal PRIVATE --woff)
+target_compile_options(ISPCTextureCompressorInternal PRIVATE --opt=fast-math)
+
 # C++ interface
 
 project(ISPCTextureCompressor)
