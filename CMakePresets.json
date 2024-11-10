@@ -42,5 +42,19 @@
         "CMAKE_BUILD_TYPE": "Release"
       }
     }
+  ],
+  "buildPresets": [
+    {
+      "name": "Debug",
+      "configurePreset": "Debug"
+    },
+    {
+      "name": "RelWithDebInfo",
+      "configurePreset": "RelWithDebInfo"
+    },
+    {
+      "name": "Release",
+      "configurePreset": "Release"
+    }
   ]
 }
