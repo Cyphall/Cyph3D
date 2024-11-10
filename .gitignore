@@ -1,5 +1,18 @@
-/.idea
-/.vs
+# Build outputs
+build/
 
-/bin
-/vcpkg
+# Install outputs
+install/
+
+# CLion
+.idea/
+
+# Visual Studio
+.vs/
+CMakeSettings.json
+
+# Visual Studio Code
+.vscode/
+
+# User files
+**/*.user
