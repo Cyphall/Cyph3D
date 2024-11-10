@@ -42,7 +42,7 @@ This project is a full C++ rewrite of my [original C# 3D engine](https://github.
 - [ ] Directional Light
 - [ ] Point Light
 
-## Build
+## Build & Install
 
 Cyph3D only supports Windows. Support for any other OS is not currently planned.
 
@@ -55,8 +55,12 @@ Cyph3D only supports Windows. Support for any other OS is not currently planned.
 ### Steps:
 
 ```bash
-cmake -B bin -G Ninja -D CMAKE_BUILD_TYPE=Release
-cmake --build bin
+# To build (required)
+cmake --preset Release
+cmake --build --preset Release --target Cyph3D
+
+# To install (optional)
+cmake --build --preset Release --target install
 ```
 
 ## Screenshots
