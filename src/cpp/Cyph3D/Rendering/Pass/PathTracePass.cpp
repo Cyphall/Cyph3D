@@ -192,7 +192,8 @@ void PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuff
 
 		ObjectUniforms objectUniforms{
 			.normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix())),
-			.vertexBuffer = model.mesh.getFullVertexBuffer()->getDeviceAddress(),
+			.positionVertexBuffer = model.mesh.getPositionVertexBuffer()->getDeviceAddress(),
+			.materialVertexBuffer = model.mesh.getMaterialVertexBuffer()->getDeviceAddress(),
 			.indexBuffer = model.mesh.getIndexBuffer()->getDeviceAddress(),
 			.albedoIndex = model.material.getAlbedoTextureBindlessIndex(),
 			.normalIndex = model.material.getNormalTextureBindlessIndex(),

@@ -37,7 +37,7 @@ public:
 	~MeshAsset() override;
 
 	const std::shared_ptr<VKBuffer<PositionVertexData>>& getPositionVertexBuffer() const;
-	const std::shared_ptr<VKBuffer<FullVertexData>>& getFullVertexBuffer() const;
+	const std::shared_ptr<VKBuffer<MaterialVertexData>>& getMaterialVertexBuffer() const;
 	const std::shared_ptr<VKBuffer<uint32_t>>& getIndexBuffer() const;
 	const std::shared_ptr<VKAccelerationStructure>& getAccelerationStructure() const;
 
@@ -56,7 +56,7 @@ private:
 	void load_async(AssetManagerWorkerData& workerData);
 
 	std::shared_ptr<VKBuffer<PositionVertexData>> _positionVertexBuffer;
-	std::shared_ptr<VKBuffer<FullVertexData>> _fullVertexBuffer;
+	std::shared_ptr<VKBuffer<MaterialVertexData>> _materialVertexBuffer;
 	std::shared_ptr<VKBuffer<uint32_t>> _indexBuffer;
 	std::shared_ptr<VKAccelerationStructure> _accelerationStructure;
 

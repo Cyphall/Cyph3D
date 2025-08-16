@@ -20,17 +20,26 @@ struct HitPayload
 	vec3 rayDirection;
 };
 
-struct Vertex
+struct PositionVertex
 {
 	vec3 position;
+};
+
+struct MaterialVertex
+{
 	vec2 uv;
 	vec3 normal;
 	vec4 tangent;
 };
 
-layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer VertexBuffer
+layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer PositionVertexBuffer
 {
-	Vertex vertices[];
+    PositionVertex vertices[];
+};
+
+layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer MaterialVertexBuffer
+{
+	MaterialVertex vertices[];
 };
 
 layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer IndexBuffer
@@ -43,7 +52,8 @@ layout(set = 0, binding = 0) uniform sampler2D u_textures[];
 layout(shaderRecordEXT) buffer uniforms
 {
 	mat4 u_normalMatrix;
-	VertexBuffer u_vertexBuffer;
+    PositionVertexBuffer u_positionVertexBuffer;
+    MaterialVertexBuffer u_materialVertexBuffer;
 	IndexBuffer u_indexBuffer;
 	int u_albedoIndex;
 	int u_normalIndex;
@@ -169,31 +179,35 @@ vec3 offsetRay(const vec3 p, const vec3 n)
 void main()
 {
 	// flip normals if ray hit a back face
-	float normalScale = gl_HitKindEXT == gl_HitKindBackFacingTriangleEXT ? -1 : 1;
+	float normalScale = gl_HitKindEXT == gl_HitKindBackFacingTriangleEXT ? -1.0 : 1.0;
 
 	uvec3 indices = u_indexBuffer.indices[gl_PrimitiveID];
 
-	Vertex v1 = u_vertexBuffer.vertices[indices.x];
-	Vertex v2 = u_vertexBuffer.vertices[indices.y];
-	Vertex v3 = u_vertexBuffer.vertices[indices.z];
+    PositionVertex pv1 = u_positionVertexBuffer.vertices[indices.x];
+    PositionVertex pv2 = u_positionVertexBuffer.vertices[indices.y];
+    PositionVertex pv3 = u_positionVertexBuffer.vertices[indices.z];
 
-	vec3 position1 = gl_ObjectToWorldEXT * vec4(v1.position, 1);
-	vec3 position2 = gl_ObjectToWorldEXT * vec4(v2.position, 1);
-	vec3 position3 = gl_ObjectToWorldEXT * vec4(v3.position, 1);
+	MaterialVertex mv1 = u_materialVertexBuffer.vertices[indices.x];
+	MaterialVertex mv2 = u_materialVertexBuffer.vertices[indices.y];
+	MaterialVertex mv3 = u_materialVertexBuffer.vertices[indices.z];
+
+	vec3 position1 = gl_ObjectToWorldEXT * vec4(pv1.position, 1.0);
+	vec3 position2 = gl_ObjectToWorldEXT * vec4(pv2.position, 1.0);
+	vec3 position3 = gl_ObjectToWorldEXT * vec4(pv3.position, 1.0);
 
 	mat3 normalMatrix = mat3(u_normalMatrix);
 
-	vec3 normal1 = normalize(normalMatrix * v1.normal);
-	vec3 normal2 = normalize(normalMatrix * v2.normal);
-	vec3 normal3 = normalize(normalMatrix * v3.normal);
+	vec3 normal1 = normalize(normalMatrix * mv1.normal);
+	vec3 normal2 = normalize(normalMatrix * mv2.normal);
+	vec3 normal3 = normalize(normalMatrix * mv3.normal);
 
-	vec3 tangent1 = normalize(normalMatrix * v1.tangent.xyz);
-	vec3 tangent2 = normalize(normalMatrix * v2.tangent.xyz);
-	vec3 tangent3 = normalize(normalMatrix * v3.tangent.xyz);
+	vec3 tangent1 = normalize(normalMatrix * mv1.tangent.xyz);
+	vec3 tangent2 = normalize(normalMatrix * mv2.tangent.xyz);
+	vec3 tangent3 = normalize(normalMatrix * mv3.tangent.xyz);
 
-	vec3 bitangent1 = cross(normal1, tangent1) * v1.tangent.w;
-	vec3 bitangent2 = cross(normal2, tangent2) * v2.tangent.w;
-	vec3 bitangent3 = cross(normal3, tangent3) * v3.tangent.w;
+	vec3 bitangent1 = cross(normal1, tangent1) * mv1.tangent.w;
+	vec3 bitangent2 = cross(normal2, tangent2) * mv2.tangent.w;
+	vec3 bitangent3 = cross(normal3, tangent3) * mv3.tangent.w;
 
 	vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 
@@ -205,16 +219,16 @@ void main()
 
 	geometryNormal = dot(geometryNormal, hitPayload.rayDirection) < 0.0 ? geometryNormal : -geometryNormal;
 
-	vec2 uv = interpolateBarycentrics(v1.uv, v2.uv, v3.uv, barycentrics);
+	vec2 uv = interpolateBarycentrics(mv1.uv, mv2.uv, mv3.uv, barycentrics);
 
 	vec3 albedo = u_albedoIndex >= 0 ? texture(u_textures[nonuniformEXT(u_albedoIndex)], uv).rgb : u_albedoValue;
 	float roughness = u_roughnessIndex >= 0 ? texture(u_textures[nonuniformEXT(u_roughnessIndex)], uv).r : u_roughnessValue;
 	float metalness = u_metalnessIndex >= 0 ? texture(u_textures[nonuniformEXT(u_metalnessIndex)], uv).r : u_metalnessValue;
 	float emissive = (u_emissiveIndex >= 0 ? texture(u_textures[nonuniformEXT(u_emissiveIndex)], uv).r : 1.0) * u_emissiveScale;
 
-	vec3 textureNormal = vec3(0);
+	vec3 textureNormal = vec3(0.0);
 	textureNormal.xy = u_normalIndex >= 0 ? texture(u_textures[nonuniformEXT(u_normalIndex)], uv).rg * 2.0 - 1.0 : vec2(0.0, 0.0);
-	textureNormal.z = sqrt(1 - min(dot(textureNormal.xy, textureNormal.xy), 1));
+	textureNormal.z = sqrt(1.0 - min(dot(textureNormal.xy, textureNormal.xy), 1.0));
 
 	normal = normalize(mat3(tangent, bitangent, normal) * textureNormal);
 	tangent = normalize(tangent - normal * dot(tangent, normal));
@@ -257,7 +271,7 @@ void main()
 		vec3 conductor  = conductorSpecularWeight;
 		hitPayload.throughput *= mix(dielectric, conductor, metalness);
 
-		hitPayload.throughput *= 2;
+		hitPayload.throughput *= 2.0;
 	}
 	else
 	{
@@ -269,6 +283,6 @@ void main()
 		vec3 conductor  = albedo * conductorDiffuseWeight;
 		hitPayload.throughput *= mix(dielectric, conductor, metalness);
 
-		hitPayload.throughput *= 2;
+		hitPayload.throughput *= 2.0;
 	}
 }

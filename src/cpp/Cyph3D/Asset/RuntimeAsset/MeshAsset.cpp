@@ -27,10 +27,10 @@ const std::shared_ptr<VKBuffer<PositionVertexData>>& MeshAsset::getPositionVerte
 	return _positionVertexBuffer;
 }
 
-const std::shared_ptr<VKBuffer<FullVertexData>>& MeshAsset::getFullVertexBuffer() const
+const std::shared_ptr<VKBuffer<MaterialVertexData>>& MeshAsset::getMaterialVertexBuffer() const
 {
 	checkLoaded();
-	return _fullVertexBuffer;
+	return _materialVertexBuffer;
 }
 
 const std::shared_ptr<VKBuffer<uint32_t>>& MeshAsset::getIndexBuffer() const
@@ -100,20 +100,20 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 
 	{
-		vk::BufferUsageFlags fullVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
+		vk::BufferUsageFlags materialVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
 		if (Engine::getVKContext().isRayTracingSupported())
 		{
-			fullVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress;
+			materialVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress;
 		}
-		VKBufferInfo fullVertexBufferInfo(meshData.fullVertices.size(), fullVertexBufferUsage);
-		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-		fullVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-		fullVertexBufferInfo.setName(std::format("{}.FullVertexBuffer", _signature.path));
+		VKBufferInfo materialVertexBufferInfo(meshData.materialVertices.size(), materialVertexBufferUsage);
+		materialVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+		materialVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
+		materialVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
+		materialVertexBufferInfo.setName(std::format("{}.MaterialVertexBuffer", _signature.path));
 
-		_fullVertexBuffer = VKBuffer<FullVertexData>::create(Engine::getVKContext(), fullVertexBufferInfo);
+		_materialVertexBuffer = VKBuffer<MaterialVertexData>::create(Engine::getVKContext(), materialVertexBufferInfo);
 
-		std::ranges::copy(meshData.fullVertices, _fullVertexBuffer->getHostPointer());
+		std::ranges::copy(meshData.materialVertices, _materialVertexBuffer->getHostPointer());
 	}
 
 	{
@@ -278,7 +278,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		);
 
 		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
-			_fullVertexBuffer,
+			_materialVertexBuffer,
 			vk::PipelineStageFlagBits2::eVertexAttributeInput | vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 			vk::AccessFlagBits2::eVertexAttributeRead | vk::AccessFlagBits2::eShaderStorageRead
 		);
@@ -301,7 +301,7 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 		);
 
 		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
-			_fullVertexBuffer,
+			_materialVertexBuffer,
 			vk::PipelineStageFlagBits2::eVertexAttributeInput,
 			vk::AccessFlagBits2::eVertexAttributeRead
 		);

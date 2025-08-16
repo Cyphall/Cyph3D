@@ -167,10 +167,12 @@ LightingPassOutput LightingPass::onRender(const std::shared_ptr<VKCommandBuffer>
 	{
 		ModelRenderer::RenderData model = input.registry.getModelRenderRequests()[i];
 
-		const std::shared_ptr<VKBuffer<FullVertexData>>& vertexBuffer = model.mesh.getFullVertexBuffer();
+		const std::shared_ptr<VKBuffer<PositionVertexData>>& positionVertexBuffer = model.mesh.getPositionVertexBuffer();
+		const std::shared_ptr<VKBuffer<MaterialVertexData>>& materialVertexBuffer = model.mesh.getMaterialVertexBuffer();
 		const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
 
-		commandBuffer->bindVertexBuffer(0, vertexBuffer);
+		commandBuffer->bindVertexBuffer(0, positionVertexBuffer);
+		commandBuffer->bindVertexBuffer(1, materialVertexBuffer);
 		commandBuffer->bindIndexBuffer(indexBuffer);
 
 		ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer() + i;
@@ -352,11 +354,12 @@ void LightingPass::createPipeline()
 
 	info.setFragmentShader("lighting/lighting.frag");
 
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(FullVertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, position));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 1, vk::Format::eR32G32Sfloat, offsetof(FullVertexData, uv));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 2, vk::Format::eR32G32B32Sfloat, offsetof(FullVertexData, normal));
-	info.getVertexInputLayoutInfo().defineAttribute(0, 3, vk::Format::eR32G32B32A32Sfloat, offsetof(FullVertexData, tangent));
+	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineSlot(1, sizeof(MaterialVertexData), vk::VertexInputRate::eVertex);
+	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
+	info.getVertexInputLayoutInfo().defineAttribute(1, 1, vk::Format::eR32G32Sfloat, offsetof(MaterialVertexData, uv));
+	info.getVertexInputLayoutInfo().defineAttribute(1, 2, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertexData, normal));
+	info.getVertexInputLayoutInfo().defineAttribute(1, 3, vk::Format::eR32G32B32A32Sfloat, offsetof(MaterialVertexData, tangent));
 
 	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
 
