@@ -199,7 +199,7 @@ glm::mat4 Transform::calcCustomLocalToWorldMatrix(bool translate, bool rotate, b
 
 	if (translate)
 	{
-		glm::translate(result, getWorldPosition());
+		result *= glm::translate(getWorldPosition());
 	}
 
 	if (rotate)
@@ -209,7 +209,7 @@ glm::mat4 Transform::calcCustomLocalToWorldMatrix(bool translate, bool rotate, b
 
 	if (scale)
 	{
-		glm::scale(result, getWorldScale());
+		result *= glm::scale(getWorldScale());
 	}
 
 	return result;
@@ -226,7 +226,7 @@ glm::mat4 Transform::calcCustomLocalToParentMatrix(bool translate, bool rotate, 
 
 	if (translate)
 	{
-		glm::translate(result, getLocalPosition());
+		result *= glm::translate(getLocalPosition());
 	}
 
 	if (rotate)
@@ -236,7 +236,7 @@ glm::mat4 Transform::calcCustomLocalToParentMatrix(bool translate, bool rotate, 
 
 	if (scale)
 	{
-		glm::scale(result, getLocalScale());
+		result *= glm::scale(getLocalScale());
 	}
 
 	return result;
