@@ -14,6 +14,8 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKSwapchain.h"
 #include "Cyph3D/Window.h"
+#include "VKObject/Fence/VKFence.h"
+#include "VKObject/Semaphore/VKSemaphore.h"
 
 #include <GLFW/glfw3.h>
 
@@ -66,6 +68,17 @@ void Engine::init()
 
 void Engine::run()
 {
+	vk::FenceCreateInfo fenceCreateInfo;
+	std::shared_ptr<VKFence> acquireFence = VKFence::create(*_vkContext, fenceCreateInfo);
+
+	std::vector<std::shared_ptr<VKSemaphore>> presentSemaphores;
+	presentSemaphores.reserve(3);
+	for (int i = 0; i < 3; i++)
+	{
+		vk::SemaphoreCreateInfo semaphoreCreateInfo;
+		presentSemaphores.emplace_back(VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo));
+	}
+
 	while (!_window->shouldClose())
 	{
 		_vkContext->onNewFrame();
@@ -74,7 +87,10 @@ void Engine::run()
 		_vkContext->getDefaultCommandBuffer()->waitExecution();
 		_vkContext->getDefaultCommandBuffer()->reset();
 
-		VKSwapchain::NextImageInfo nextImageInfo = _window->getSwapchain().retrieveNextImage();
+		const std::shared_ptr<VKSwapchainImage>& image = _window->getSwapchain().retrieveNextImage(*acquireFence);
+
+		acquireFence->wait();
+		acquireFence->reset();
 
 		_timer.onNewFrame();
 
@@ -85,8 +101,10 @@ void Engine::run()
 
 		_scene->onUpdate();
 
-		const std::shared_ptr<VKSemaphore>& renderFinishedSemaphore = UIHelper::render(nextImageInfo.image->getImage(), nextImageInfo.imageAvailableSemaphore);
-		if (!_vkContext->getMainQueue().present(nextImageInfo.image, renderFinishedSemaphore))
+		const std::shared_ptr<VKSemaphore>& presentSemaphore = presentSemaphores[image->getIndex()];
+		UIHelper::render(image->getImage(), presentSemaphore);
+
+		if (!_vkContext->getMainQueue().present(image, presentSemaphore))
 		{
 			glm::uvec2 surfaceSize = _window->getSurfaceSize();
 
@@ -97,8 +115,17 @@ void Engine::run()
 			}
 
 			_window->recreateSwapchain();
+			_vkContext->getDevice().waitIdle();
+			presentSemaphores.clear();
+			for (int i = 0; i < 3; i++)
+			{
+				vk::SemaphoreCreateInfo semaphoreCreateInfo;
+				presentSemaphores.emplace_back(VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo));
+			}
 		}
 	}
+
+	_vkContext->getDevice().waitIdle();
 }
 
 void Engine::shutdown()

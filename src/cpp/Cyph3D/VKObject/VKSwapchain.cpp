@@ -5,6 +5,7 @@
 #include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
 #include "Cyph3D/VKObject/VKContext.h"
+#include "Fence/VKFence.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -64,7 +65,6 @@ VKSwapchain::VKSwapchain(VKContext& context, vk::SurfaceKHR surface, VKSwapchain
 	VKObject(context)
 {
 	createSwapchain(surface, oldSwapchain);
-	createSemaphores();
 }
 
 VKSwapchain::~VKSwapchain()
@@ -72,21 +72,17 @@ VKSwapchain::~VKSwapchain()
 	_context.getDevice().destroySwapchainKHR(_swapchain);
 }
 
-VKSwapchain::NextImageInfo VKSwapchain::retrieveNextImage()
+const std::shared_ptr<VKSwapchainImage>& VKSwapchain::retrieveNextImage(VKFence& fence)
 {
-	const std::shared_ptr<VKSemaphore>& semaphore = _semaphores[_nextIndex];
 	_nextIndex = (_nextIndex + 1) % _swapchainImages.size();
 
-	auto [result, imageIndex] = _context.getDevice().acquireNextImageKHR(_swapchain, UINT64_MAX, semaphore->getHandle(), VK_NULL_HANDLE);
+	auto [result, imageIndex] = _context.getDevice().acquireNextImageKHR(_swapchain, UINT64_MAX, VK_NULL_HANDLE, fence.getHandle());
 	if (result == vk::Result::eSuboptimalKHR)
 	{
 		Logger::warning("Suboptimal swapchain");
 	}
 
-	return {
-		.image = _swapchainImages[imageIndex],
-		.imageAvailableSemaphore = semaphore
-	};
+	return _swapchainImages[imageIndex];
 }
 
 const vk::SwapchainKHR& VKSwapchain::getHandle()
@@ -145,16 +141,5 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 			*this,
 			i
 		));
-	}
-}
-
-void VKSwapchain::createSemaphores()
-{
-	vk::SemaphoreCreateInfo semaphoreCreateInfo;
-
-	_semaphores.reserve(_swapchainImages.size());
-	for (int i = 0; i < _swapchainImages.size(); i++)
-	{
-		_semaphores.push_back(VKSemaphore::create(_context, semaphoreCreateInfo));
 	}
 }

@@ -33,8 +33,6 @@ bool UIHelper::_dockingLayoutInitialized = false;
 
 std::unique_ptr<ImGuiVulkanBackend> UIHelper::_vulkanBackend;
 
-std::shared_ptr<VKSemaphore> UIHelper::_presentSemaphore;
-
 void UIHelper::init()
 {
 	_context = ImGui::CreateContext();
@@ -55,12 +53,9 @@ void UIHelper::init()
 	_vulkanBackend = std::make_unique<ImGuiVulkanBackend>();
 
 	UIViewport::init();
-
-	vk::SemaphoreCreateInfo semaphoreCreateInfo;
-	_presentSemaphore = VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo);
 }
 
-const std::shared_ptr<VKSemaphore>& UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std::shared_ptr<VKSemaphore>& imageAvailableSemaphore)
+void UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std::shared_ptr<VKSemaphore>& renderFinishedSemaphore)
 {
 	ImGuiID dockspaceId = ImGui::DockSpaceOverViewport();
 
@@ -106,21 +101,15 @@ const std::shared_ptr<VKSemaphore>& UIHelper::render(const std::shared_ptr<VKIma
 
 	Engine::getVKContext().getMainQueue().submit(
 		commandBuffer,
+		{},
 		{
-			{imageAvailableSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput},
-		},
-		{
-			{_presentSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput},
+			{renderFinishedSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput},
 		}
 	);
-
-	return _presentSemaphore;
 }
 
 void UIHelper::shutdown()
 {
-	_presentSemaphore = {};
-
 	UIViewport::shutdown();
 	_vulkanBackend.reset();
 	ImGui_ImplGlfw_Shutdown();

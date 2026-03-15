@@ -17,7 +17,7 @@ class UIHelper
 {
 public:
 	static void init();
-	static const std::shared_ptr<VKSemaphore>& render(const std::shared_ptr<VKImage>& destImage, const std::shared_ptr<VKSemaphore>& imageAvailableSemaphore);
+	static void render(const std::shared_ptr<VKImage>& destImage, const std::shared_ptr<VKSemaphore>& renderFinishedSemaphore);
 	static void shutdown();
 	static void onNewFrame();
 
@@ -30,8 +30,6 @@ private:
 	static bool _dockingLayoutInitialized;
 
 	static std::unique_ptr<ImGuiVulkanBackend> _vulkanBackend;
-
-	static std::shared_ptr<VKSemaphore> _presentSemaphore;
 
 	static void initDockingLayout(ImGuiID dockspaceId);
 	static void initStyles();
