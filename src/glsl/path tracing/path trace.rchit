@@ -245,11 +245,21 @@ void main()
 
 	hitPayload.rayPosition = offsetRay(position, geometryNormal);
 
-	vec3 localRayDir = worldToTangent * hitPayload.rayDirection;
-	float alpha = roughness * roughness;
-	vec2 alpha2D = vec2(alpha, alpha);
 	vec4 rand = getRandom();
-	vec3 microfacetNormal = normalize(tangentToWorld * sampleGGXVNDF(-localRayDir, alpha2D, rand.xy));
+	vec3 localMicrofacetNormal;
+	if (roughness > 0.0)
+	{
+		vec3 localRayDir = worldToTangent * hitPayload.rayDirection;
+		float alpha = roughness * roughness;
+		vec2 alpha2D = vec2(alpha, alpha);
+		localMicrofacetNormal = sampleGGXVNDF(-localRayDir, alpha2D, rand.xy);
+	}
+	else
+	{
+		localMicrofacetNormal = vec3(0.0, 0.0, 1.0);
+	}
+
+	vec3 microfacetNormal = normalize(tangentToWorld * localMicrofacetNormal);
 
 	float NdotL = max(dot(microfacetNormal, -hitPayload.rayDirection), 0.0);
 
