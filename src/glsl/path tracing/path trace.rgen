@@ -18,8 +18,7 @@ struct HitPayload
 	vec3 rayDirection;
 };
 
-layout(set = 1, binding = 0) uniform accelerationStructureEXT u_topLevelAS;
-layout(set = 1, binding = 1, r64ui) uniform u64image2D u_color[3];
+layout(set = 1, binding = 0, r64ui) uniform u64image2D u_color[3];
 
 layout(shaderRecordEXT) buffer uniforms
 {
@@ -32,6 +31,7 @@ layout(shaderRecordEXT) buffer uniforms
 
 layout(push_constant) uniform constants
 {
+	uvec2 u_topLevelAS;
 	uint u_batchIndex;
 	uint u_sampleCount;
 	bool u_resetAccumulation;
@@ -84,17 +84,17 @@ void main()
 		for (int d = 0; d < MAX_DEPTH; d++)
 		{
 			traceRayEXT(
-				u_topLevelAS,            // acceleration structure
-				gl_RayFlagsOpaqueEXT,    // rayFlags
-				0xFF,                    // cullMask
-				0,                       // sbtRecordOffset (ray type)
-				1,                       // sbtRecordStride (number of ray types
-				0,                       // missIndex
-				hitPayload.rayPosition,  // ray origin
-				0.0,                     // ray min range
-				hitPayload.rayDirection, // ray direction
-				10000.0,                 // ray max range
-				0                        // payload (location = 0)
+				accelerationStructureEXT(u_topLevelAS), // acceleration structure
+				gl_RayFlagsOpaqueEXT,                   // rayFlags
+				0xFF,                                   // cullMask
+				0,                                      // sbtRecordOffset (ray type)
+				1,                                      // sbtRecordStride (number of ray types)
+				0,                                      // missIndex
+				hitPayload.rayPosition,                 // ray origin
+				0.0,                                    // ray min range
+				hitPayload.rayDirection,                // ray direction
+				10000.0,                                // ray max range
+				0                                       // payload (location = 0)
 			);
 
 			if (!hitPayload.hit)

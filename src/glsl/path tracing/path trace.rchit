@@ -69,6 +69,7 @@ layout(shaderRecordEXT) buffer uniforms
 
 layout(push_constant) uniform constants
 {
+	uvec2 u_topLevelAS;
 	uint u_batchIndex;
 	uint u_sampleCount;
 	bool u_resetAccumulation;

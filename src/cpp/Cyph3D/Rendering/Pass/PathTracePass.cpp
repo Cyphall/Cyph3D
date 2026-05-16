@@ -74,10 +74,9 @@ PathTracePassOutput PathTracePass::onRender(const std::shared_ptr<VKCommandBuffe
 
 		_descriptorSet = VKDescriptorSet::create(Engine::getVKContext(), info);
 
-		_descriptorSet->bindDescriptor(0, _tlas);
 		for (int i = 0; i < 3; i++)
 		{
-			_descriptorSet->bindDescriptor(1, _rawRenderImage[i], i);
+			_descriptorSet->bindDescriptor(0, _rawRenderImage[i], i);
 		}
 	}
 
@@ -99,12 +98,14 @@ PathTracePassOutput PathTracePass::onRender(const std::shared_ptr<VKCommandBuffe
 	commandBuffer->bindDescriptorSet(1, _descriptorSet);
 
 	FramePushConstants framePushConstants{
+		.topLevelAS = std::bit_cast<glm::uvec2>(_tlas->getDeviceAddress()),
 		.batchIndex = _batchIndex,
 		.sampleCount = input.sampleCount,
 		.resetAccumulation = _accumulatedSamples == 0
 	};
 
 	commandBuffer->pushConstants(framePushConstants);
+	commandBuffer->addExternallyUsedObject(_tlas);
 
 	commandBuffer->traceRays(_sbt, _size);
 
@@ -232,7 +233,6 @@ void PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuff
 void PathTracePass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(false);
-	info.addBinding(vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR);
 	info.addBinding(vk::DescriptorType::eStorageImage, 3, vk::ShaderStageFlagBits::eRaygenKHR);
 
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);

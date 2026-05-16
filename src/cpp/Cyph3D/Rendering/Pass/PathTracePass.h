@@ -68,6 +68,7 @@ private:
 
 	struct FramePushConstants
 	{
+		GLSL_uvec2 topLevelAS;
 		GLSL_uint batchIndex;
 		GLSL_uint sampleCount;
 		GLSL_bool resetAccumulation;
