@@ -12,8 +12,8 @@ const float TWO_PI = PI * 2.0;
 
 struct HitPayload
 {
-	uint randomOffset;
 	dvec3 light;
+	uint randomOffset;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
