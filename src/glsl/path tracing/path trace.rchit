@@ -13,7 +13,7 @@ const float TWO_PI = PI * 2.0;
 struct HitPayload
 {
 	uint randomOffset;
-    dvec3 light;
+	dvec3 light;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
@@ -34,7 +34,7 @@ struct MaterialVertex
 
 layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer PositionVertexBuffer
 {
-    PositionVertex vertices[];
+	PositionVertex vertices[];
 };
 
 layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer MaterialVertexBuffer
@@ -52,8 +52,8 @@ layout(set = 0, binding = 0) uniform sampler2D u_textures[];
 layout(shaderRecordEXT) buffer uniforms
 {
 	mat4 u_normalMatrix;
-    PositionVertexBuffer u_positionVertexBuffer;
-    MaterialVertexBuffer u_materialVertexBuffer;
+	PositionVertexBuffer u_positionVertexBuffer;
+	MaterialVertexBuffer u_materialVertexBuffer;
 	IndexBuffer u_indexBuffer;
 	int u_albedoIndex;
 	int u_normalIndex;
@@ -184,9 +184,9 @@ void main()
 
 	uvec3 indices = u_indexBuffer.indices[gl_PrimitiveID];
 
-    PositionVertex pv1 = u_positionVertexBuffer.vertices[indices.x];
-    PositionVertex pv2 = u_positionVertexBuffer.vertices[indices.y];
-    PositionVertex pv3 = u_positionVertexBuffer.vertices[indices.z];
+	PositionVertex pv1 = u_positionVertexBuffer.vertices[indices.x];
+	PositionVertex pv2 = u_positionVertexBuffer.vertices[indices.y];
+	PositionVertex pv3 = u_positionVertexBuffer.vertices[indices.z];
 
 	MaterialVertex mv1 = u_materialVertexBuffer.vertices[indices.x];
 	MaterialVertex mv2 = u_materialVertexBuffer.vertices[indices.y];

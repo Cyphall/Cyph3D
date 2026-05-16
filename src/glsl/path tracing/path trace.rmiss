@@ -8,7 +8,7 @@
 struct HitPayload
 {
 	uint randomOffset;
-    dvec3 light;
+	dvec3 light;
 	vec3 throughput;
 	bool hit;
 	vec3 rayPosition;
