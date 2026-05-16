@@ -15,14 +15,9 @@ public:
 
 	const VKRayTracingPipelineInfo& getInfo() const;
 
-	const std::array<std::byte, 32>& getRaygenGroupHandle(uint32_t index) const;
-	size_t getRaygenGroupCount() const;
-
-	const std::array<std::byte, 32>& getTriangleHitGroupHandle(uint32_t index) const;
-	size_t getTriangleHitGroupCount() const;
-
-	const std::array<std::byte, 32>& getMissGroupHandle(uint32_t index) const;
-	size_t getMissGroupCount() const;
+	std::span<const std::byte> getRaygenGroupHandle(uint32_t index) const;
+	std::span<const std::byte> getTriangleHitGroupHandle(uint32_t index) const;
+	std::span<const std::byte> getMissGroupHandle(uint32_t index) const;
 
 	vk::PipelineBindPoint getPipelineType() const override;
 	const std::shared_ptr<VKPipelineLayout>& getPipelineLayout() const override;
@@ -32,7 +27,11 @@ private:
 
 	VKRayTracingPipelineInfo _info;
 
-	std::vector<std::array<std::byte, 32>> _raygenGroupsHandles;
-	std::vector<std::array<std::byte, 32>> _triangleHitGroupsHandles;
-	std::vector<std::array<std::byte, 32>> _missGroupsHandles;
+	size_t _raygenGroupOffset;
+	size_t _triangleHitGroupOffset;
+	size_t _missGroupOffset;
+
+	std::vector<std::byte> _groupsHandles;
+
+	std::span<const std::byte> getGroupHandle(uint32_t index) const;
 };

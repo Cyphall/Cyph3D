@@ -105,32 +105,19 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracin
 
 	_pipeline = _context.getDevice().createRayTracingPipelineKHR({}, VK_NULL_HANDLE, pipelineCreateInfo).value;
 
-	_raygenGroupsHandles.resize(_info.getRaygenGroupsInfos().size());
-	_context.getDevice().getRayTracingShaderGroupHandlesKHR(
-		_pipeline,
-		0,
-		_info.getRaygenGroupsInfos().size(),
-		_raygenGroupsHandles.size() * 32,
-		_raygenGroupsHandles.data()
-	);
+	uint32_t groupCount = 0;
 
-	_triangleHitGroupsHandles.resize(_info.getTriangleHitGroupsInfos().size());
-	_context.getDevice().getRayTracingShaderGroupHandlesKHR(
-		_pipeline,
-		_info.getRaygenGroupsInfos().size(),
-		_info.getTriangleHitGroupsInfos().size(),
-		_triangleHitGroupsHandles.size() * 32,
-		_triangleHitGroupsHandles.data()
-	);
+	_raygenGroupOffset = groupCount;
+	groupCount += _info.getRaygenGroupsInfos().size();
 
-	_missGroupsHandles.resize(_info.getMissGroupsInfos().size());
-	_context.getDevice().getRayTracingShaderGroupHandlesKHR(
-		_pipeline,
-		_info.getRaygenGroupsInfos().size() + _info.getTriangleHitGroupsInfos().size(),
-		_info.getMissGroupsInfos().size(),
-		_missGroupsHandles.size() * 32,
-		_missGroupsHandles.data()
-	);
+	_triangleHitGroupOffset = groupCount;
+	groupCount += _info.getTriangleHitGroupsInfos().size();
+
+	_missGroupOffset = groupCount;
+	groupCount += _info.getMissGroupsInfos().size();
+
+	_groupsHandles.resize(groupCount * context.getRayTracingPipelineProperties().shaderGroupHandleSize);
+	_context.getDevice().getRayTracingShaderGroupHandlesKHR(_pipeline, 0, groupCount, _groupsHandles.size(), _groupsHandles.data());
 }
 
 VKRayTracingPipeline::~VKRayTracingPipeline()
@@ -143,34 +130,19 @@ const VKRayTracingPipelineInfo& VKRayTracingPipeline::getInfo() const
 	return _info;
 }
 
-const std::array<std::byte, 32>& VKRayTracingPipeline::getRaygenGroupHandle(uint32_t index) const
+std::span<const std::byte> VKRayTracingPipeline::getRaygenGroupHandle(uint32_t index) const
 {
-	return _raygenGroupsHandles[index];
+	return getGroupHandle(_raygenGroupOffset + index);
 }
 
-size_t VKRayTracingPipeline::getRaygenGroupCount() const
+std::span<const std::byte> VKRayTracingPipeline::getTriangleHitGroupHandle(uint32_t index) const
 {
-	return _raygenGroupsHandles.size();
+	return getGroupHandle(_triangleHitGroupOffset + index);
 }
 
-const std::array<std::byte, 32>& VKRayTracingPipeline::getTriangleHitGroupHandle(uint32_t index) const
+std::span<const std::byte> VKRayTracingPipeline::getMissGroupHandle(uint32_t index) const
 {
-	return _triangleHitGroupsHandles[index];
-}
-
-size_t VKRayTracingPipeline::getTriangleHitGroupCount() const
-{
-	return _triangleHitGroupsHandles.size();
-}
-
-const std::array<std::byte, 32>& VKRayTracingPipeline::getMissGroupHandle(uint32_t index) const
-{
-	return _missGroupsHandles[index];
-}
-
-size_t VKRayTracingPipeline::getMissGroupCount() const
-{
-	return _missGroupsHandles.size();
+	return getGroupHandle(_missGroupOffset + index);
 }
 
 vk::PipelineBindPoint VKRayTracingPipeline::getPipelineType() const
@@ -181,4 +153,11 @@ vk::PipelineBindPoint VKRayTracingPipeline::getPipelineType() const
 const std::shared_ptr<VKPipelineLayout>& VKRayTracingPipeline::getPipelineLayout() const
 {
 	return _info.getPipelineLayout();
+}
+
+std::span<const std::byte> VKRayTracingPipeline::getGroupHandle(uint32_t index) const
+{
+	uint32_t shaderHandleSize = _context.getRayTracingPipelineProperties().shaderGroupHandleSize;
+	size_t offset = index * shaderHandleSize;
+	return {_groupsHandles.data() + offset, shaderHandleSize};
 }

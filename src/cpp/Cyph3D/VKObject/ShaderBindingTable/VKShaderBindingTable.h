@@ -34,13 +34,15 @@ private:
 
 	std::shared_ptr<VKBuffer<std::byte>> _buffer;
 
-	vk::DeviceAddress _raygenSBTAddress = 0;
-	vk::DeviceSize _raygenSBTSize = 0;
-	vk::DeviceSize _raygenSBTStride = 0;
-	vk::DeviceAddress _triangleHitSBTAddress = 0;
-	vk::DeviceSize _triangleHitSBTSize = 0;
-	vk::DeviceSize _triangleHitSBTStride = 0;
-	vk::DeviceAddress _missSBTAddress = 0;
-	vk::DeviceSize _missSBTSize = 0;
-	vk::DeviceSize _missSBTStride = 0;
+	vk::DeviceAddress _raygenSBTAddress;
+	vk::DeviceSize _raygenSBTSize;
+	vk::DeviceSize _raygenSBTStride;
+
+	vk::DeviceAddress _triangleHitSBTAddress;
+	vk::DeviceSize _triangleHitSBTSize;
+	vk::DeviceSize _triangleHitSBTStride;
+
+	vk::DeviceAddress _missSBTAddress;
+	vk::DeviceSize _missSBTSize;
+	vk::DeviceSize _missSBTStride;
 };

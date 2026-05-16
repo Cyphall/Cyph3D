@@ -1,21 +1,45 @@
 #include "VKShaderBindingTableInfo.h"
 
-VKShaderBindingTableInfo::VKShaderBindingTableInfo(const std::array<std::byte, 32>& raygenGroupHandle):
+VKShaderBindingTableInfo::Record::Record(std::span<const std::byte> groupHandle, const void* uniformData, size_t uniformSize):
+	groupHandle(groupHandle)
+{
+	uniforms.resize(uniformSize);
+	std::memcpy(uniforms.data(), uniformData, uniformSize);
+}
+
+VKShaderBindingTableInfo::VKShaderBindingTableInfo(std::span<const std::byte> raygenGroupHandle):
 	VKShaderBindingTableInfo(raygenGroupHandle, nullptr, 0)
 {
 }
 
-const std::vector<std::byte>& VKShaderBindingTableInfo::getRaygenRecord() const
+VKShaderBindingTableInfo::VKShaderBindingTableInfo(std::span<const std::byte> raygenGroupHandle, const void* raygenUniformData, size_t raygenUniformSize):
+	_raygenRecord(raygenGroupHandle, raygenUniformData, raygenUniformSize)
+{
+	_maxRaygenRecordSize = std::max(_maxRaygenRecordSize, raygenGroupHandle.size() + raygenUniformSize);
+}
+
+const VKShaderBindingTableInfo::Record& VKShaderBindingTableInfo::getRaygenRecord() const
 {
 	return _raygenRecord;
 }
 
-void VKShaderBindingTableInfo::addTriangleHitRecord(uint32_t recordIndex, uint32_t rayType, const std::array<std::byte, 32>& triangleHitGroupHandle)
+const size_t& VKShaderBindingTableInfo::getMaxRaygenRecordSize() const
 {
-	addTriangleHitRecord(recordIndex, rayType, triangleHitGroupHandle, nullptr, 0);
+	return _maxRaygenRecordSize;
 }
 
-const std::vector<std::vector<std::vector<std::byte>>>& VKShaderBindingTableInfo::getTriangleHitRecords() const
+void VKShaderBindingTableInfo::addTriangleHitRecord(std::span<const std::byte> triangleHitGroupHandle)
+{
+	addTriangleHitRecord(triangleHitGroupHandle, nullptr, 0);
+}
+
+void VKShaderBindingTableInfo::addTriangleHitRecord(std::span<const std::byte> triangleHitGroupHandle, const void* triangleHitUniformData, size_t triangleHitUniformSize)
+{
+	_triangleHitRecords.emplace_back(triangleHitGroupHandle, triangleHitUniformData, triangleHitUniformSize);
+	_maxTrignaleHitRecordSize = std::max(_maxTrignaleHitRecordSize, triangleHitGroupHandle.size() + triangleHitUniformSize);
+}
+
+const std::vector<VKShaderBindingTableInfo::Record>& VKShaderBindingTableInfo::getTriangleHitRecords() const
 {
 	return _triangleHitRecords;
 }
@@ -25,12 +49,18 @@ const size_t& VKShaderBindingTableInfo::getMaxTriangleHitRecordSize() const
 	return _maxTrignaleHitRecordSize;
 }
 
-void VKShaderBindingTableInfo::addMissRecord(const std::array<std::byte, 32>& missGroupHandle)
+void VKShaderBindingTableInfo::addMissRecord(std::span<const std::byte> missGroupHandle)
 {
 	addMissRecord(missGroupHandle, nullptr, 0);
 }
 
-const std::vector<std::vector<std::byte>>& VKShaderBindingTableInfo::getMissRecords() const
+void VKShaderBindingTableInfo::addMissRecord(std::span<const std::byte> missGroupHandle, const void* missUniformData, size_t missUniformSize)
+{
+	_missRecords.emplace_back(missGroupHandle, missUniformData, missUniformSize);
+	_maxMissRecordSize = std::max(_maxMissRecordSize, missGroupHandle.size() + missUniformSize);
+}
+
+const std::vector<VKShaderBindingTableInfo::Record>& VKShaderBindingTableInfo::getMissRecords() const
 {
 	return _missRecords;
 }
@@ -38,45 +68,4 @@ const std::vector<std::vector<std::byte>>& VKShaderBindingTableInfo::getMissReco
 const size_t& VKShaderBindingTableInfo::getMaxMissRecordSize() const
 {
 	return _maxMissRecordSize;
-}
-
-VKShaderBindingTableInfo::VKShaderBindingTableInfo(const std::array<std::byte, 32>& raygenGroupHandle, const void* uniformData, size_t uniformSize)
-{
-	_raygenRecord.resize(32 + uniformSize);
-	std::copy_n(raygenGroupHandle.data(), raygenGroupHandle.size(), _raygenRecord.data());
-	std::memcpy(_raygenRecord.data() + raygenGroupHandle.size(), uniformData, uniformSize);
-}
-
-void VKShaderBindingTableInfo::addTriangleHitRecord(uint32_t recordIndex, uint32_t rayType, const std::array<std::byte, 32>& triangleHitGroupHandle, const void* uniformData, size_t uniformSize)
-{
-	if (_triangleHitRecords.size() <= recordIndex)
-	{
-		_triangleHitRecords.resize(recordIndex + 1);
-	}
-
-	std::vector<std::vector<std::byte>>& recordGroup = _triangleHitRecords[recordIndex];
-
-	if (recordGroup.size() <= rayType)
-	{
-		recordGroup.resize(rayType + 1);
-	}
-
-	std::vector<std::byte>& record = recordGroup[rayType];
-
-	record.resize(32 + uniformSize);
-	std::copy_n(triangleHitGroupHandle.data(), triangleHitGroupHandle.size(), record.data());
-	std::memcpy(record.data() + triangleHitGroupHandle.size(), uniformData, uniformSize);
-
-	_maxTrignaleHitRecordSize = std::max(_maxTrignaleHitRecordSize, record.size());
-}
-
-void VKShaderBindingTableInfo::addMissRecord(const std::array<std::byte, 32>& missGroupHandle, const void* uniformData, size_t uniformSize)
-{
-	std::vector<std::byte>& record = _missRecords.emplace_back();
-
-	record.resize(32 + uniformSize);
-	std::copy_n(missGroupHandle.data(), missGroupHandle.size(), record.data());
-	std::memcpy(record.data() + missGroupHandle.size(), uniformData, uniformSize);
-
-	_maxMissRecordSize = std::max(_maxMissRecordSize, record.size());
 }

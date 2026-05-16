@@ -33,7 +33,7 @@ public:
 	explicit PathTracePass(const glm::uvec2& size);
 
 private:
-	struct CameraUniforms
+	struct RayGenUniforms
 	{
 		GLSL_vec3 cameraPosition;
 		GLSL_vec3 cameraRayTL;
@@ -42,13 +42,7 @@ private:
 		GLSL_vec3 cameraRayBR;
 	};
 
-	struct CubemapSkyboxUniforms
-	{
-		GLSL_uint skyboxIndex;
-		GLSL_mat4 skyboxRotation;
-	};
-
-	struct ObjectUniforms
+	struct RayClosestHitUniforms
 	{
 		GLSL_mat4 normalMatrix;
 		GLSL_DeviceAddress positionVertexBuffer;
@@ -64,6 +58,13 @@ private:
 		GLSL_float roughnessValue;
 		GLSL_float metalnessValue;
 		GLSL_float emissiveScale;
+	};
+
+	struct RayMissUniforms
+	{
+		GLSL_bool hasSkybox;
+		GLSL_uint skyboxIndex;
+		GLSL_mat4 skyboxRotation;
 	};
 
 	struct FramePushConstants

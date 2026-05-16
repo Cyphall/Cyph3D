@@ -19,6 +19,7 @@ layout(set = 0, binding = 0) uniform samplerCube u_textures[];
 
 layout(shaderRecordEXT) buffer uniforms
 {
+	bool u_hasSkybox;
 	uint u_skyboxIndex;
 	mat4 u_skyboxRotation;
 };
@@ -27,12 +28,16 @@ layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 
 void main()
 {
-	vec3 rayDir = gl_WorldRayDirectionEXT;
-	rayDir *= vec3(1, 1, -1);
-	rayDir = (u_skyboxRotation * vec4(rayDir, 1.0)).xyz;
-	vec3 skyboxColor = texture(u_textures[u_skyboxIndex], rayDir).rgb;
+	if (u_hasSkybox)
+	{
+		vec3 rayDir = gl_WorldRayDirectionEXT;
+		rayDir *= vec3(1, 1, -1);
+		rayDir = (u_skyboxRotation * vec4(rayDir, 1.0)).xyz;
+		vec3 skyboxColor = texture(u_textures[u_skyboxIndex], rayDir).rgb;
 
-	hitPayload.light += dvec3(hitPayload.throughput * skyboxColor);
+		hitPayload.light += dvec3(hitPayload.throughput * skyboxColor);
+	}
+
 	hitPayload.hit = false;
 	hitPayload.rayPosition = vec3(0);
 	hitPayload.rayDirection = vec3(0);

@@ -85,16 +85,16 @@ void main()
 		{
 			traceRayEXT(
 				accelerationStructureEXT(u_topLevelAS), // acceleration structure
-				gl_RayFlagsOpaqueEXT,                   // rayFlags
-				0xFF,                                   // cullMask
-				0,                                      // sbtRecordOffset (ray type)
-				1,                                      // sbtRecordStride (number of ray types)
-				0,                                      // missIndex
+				gl_RayFlagsOpaqueEXT,                   // ray flags
+				0xFF,                                   // cull mask
+				0,                                      // sbt record offset
+				0,                                      // sbt record stride
+				0,                                      // miss index
 				hitPayload.rayPosition,                 // ray origin
 				0.0,                                    // ray min range
 				hitPayload.rayDirection,                // ray direction
 				10000.0,                                // ray max range
-				0                                       // payload (location = 0)
+				0                                       // payload location
 			);
 
 			if (!hitPayload.hit)

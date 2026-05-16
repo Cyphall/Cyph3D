@@ -6,47 +6,61 @@
 class VKShaderBindingTableInfo
 {
 public:
-	explicit VKShaderBindingTableInfo(const std::array<std::byte, 32>& raygenGroupHandle);
+	struct Record
+	{
+		std::span<const std::byte> groupHandle;
+		std::vector<std::byte> uniforms;
+
+		Record() = default;
+
+		explicit Record(std::span<const std::byte> groupHandle, const void* uniformData, size_t uniformSize);
+	};
+
+	explicit VKShaderBindingTableInfo(std::span<const std::byte> raygenGroupHandle);
 
 	template<typename TUniforms>
-	VKShaderBindingTableInfo(const std::array<std::byte, 32>& raygenGroupHandle, const TUniforms& uniforms):
-		VKShaderBindingTableInfo(raygenGroupHandle, &uniforms, sizeof(TUniforms))
+	VKShaderBindingTableInfo(std::span<const std::byte> raygenGroupHandle, const TUniforms& raygenUniforms):
+		VKShaderBindingTableInfo(raygenGroupHandle, &raygenUniforms, sizeof(TUniforms))
 	{
 	}
 
-	const std::vector<std::byte>& getRaygenRecord() const;
+	explicit VKShaderBindingTableInfo(std::span<const std::byte> raygenGroupHandle, const void* raygenUniformData, size_t raygenUniformSize);
 
-	void addTriangleHitRecord(uint32_t recordIndex, uint32_t rayType, const std::array<std::byte, 32>& triangleHitGroupHandle);
+	const Record& getRaygenRecord() const;
+	const size_t& getMaxRaygenRecordSize() const;
+
+	void addTriangleHitRecord(std::span<const std::byte> triangleHitGroupHandle);
 
 	template<typename TUniforms>
-	void addTriangleHitRecord(uint32_t recordIndex, uint32_t rayType, const std::array<std::byte, 32>& triangleHitGroupHandle, const TUniforms& uniforms)
+	void addTriangleHitRecord(std::span<const std::byte> triangleHitGroupHandle, const TUniforms& triangleHitUniforms)
 	{
-		addTriangleHitRecord(recordIndex, rayType, triangleHitGroupHandle, &uniforms, sizeof(TUniforms));
+		addTriangleHitRecord(triangleHitGroupHandle, &triangleHitUniforms, sizeof(TUniforms));
 	}
 
-	const std::vector<std::vector<std::vector<std::byte>>>& getTriangleHitRecords() const;
+	void addTriangleHitRecord(std::span<const std::byte> triangleHitGroupHandle, const void* triangleHitUniformData, size_t triangleHitUniformSize);
+
+	const std::vector<Record>& getTriangleHitRecords() const;
 	const size_t& getMaxTriangleHitRecordSize() const;
 
-	void addMissRecord(const std::array<std::byte, 32>& missGroupHandle);
+	void addMissRecord(std::span<const std::byte> missGroupHandle);
 
 	template<typename TUniforms>
-	void addMissRecord(const std::array<std::byte, 32>& missGroupHandle, const TUniforms& uniforms)
+	void addMissRecord(std::span<const std::byte> missGroupHandle, const TUniforms& missUniforms)
 	{
-		addMissRecord(missGroupHandle, &uniforms, sizeof(TUniforms));
+		addMissRecord(missGroupHandle, &missUniforms, sizeof(TUniforms));
 	}
 
-	const std::vector<std::vector<std::byte>>& getMissRecords() const;
+	void addMissRecord(std::span<const std::byte> missGroupHandle, const void* missUniformData, size_t missUniformSize);
+
+	const std::vector<Record>& getMissRecords() const;
 	const size_t& getMaxMissRecordSize() const;
 
 private:
-	std::vector<std::byte> _raygenRecord;
-	std::vector<std::vector<std::vector<std::byte>>> _triangleHitRecords;
-	std::vector<std::vector<std::byte>> _missRecords;
+	Record _raygenRecord;
+	std::vector<Record> _triangleHitRecords;
+	std::vector<Record> _missRecords;
 
+	size_t _maxRaygenRecordSize = 0;
 	size_t _maxTrignaleHitRecordSize = 0;
 	size_t _maxMissRecordSize = 0;
-
-	explicit VKShaderBindingTableInfo(const std::array<std::byte, 32>& raygenGroupHandle, const void* uniformData, size_t uniformSize);
-	void addTriangleHitRecord(uint32_t recordIndex, uint32_t rayType, const std::array<std::byte, 32>& triangleHitGroupHandle, const void* uniformData, size_t uniformSize);
-	void addMissRecord(const std::array<std::byte, 32>& missGroupHandle, const void* uniformData, size_t uniformSize);
 };

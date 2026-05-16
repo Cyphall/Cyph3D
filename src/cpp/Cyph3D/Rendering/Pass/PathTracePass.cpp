@@ -177,7 +177,7 @@ void PathTracePass::setupTLAS(const std::shared_ptr<VKCommandBuffer>& commandBuf
 
 void PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
 {
-	CameraUniforms cameraUniforms{
+	RayGenUniforms rayGenUniforms{
 		.cameraPosition = input.camera.getPosition(),
 		.cameraRayTL = input.camera.getCornerRays()[0],
 		.cameraRayTR = input.camera.getCornerRays()[1],
@@ -185,13 +185,13 @@ void PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuff
 		.cameraRayBR = input.camera.getCornerRays()[3]
 	};
 
-	VKShaderBindingTableInfo info(_pipeline->getRaygenGroupHandle(0), cameraUniforms);
+	VKShaderBindingTableInfo info(_pipeline->getRaygenGroupHandle(0), rayGenUniforms);
 
 	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 	{
 		const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
 
-		ObjectUniforms objectUniforms{
+		RayClosestHitUniforms rayClosestHitUniforms{
 			.normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix())),
 			.positionVertexBuffer = model.mesh.getPositionVertexBuffer()->getDeviceAddress(),
 			.materialVertexBuffer = model.mesh.getMaterialVertexBuffer()->getDeviceAddress(),
@@ -208,24 +208,22 @@ void PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuff
 			.emissiveScale = model.material.getEmissiveScale()
 		};
 
-		info.addTriangleHitRecord(i, 0, _pipeline->getTriangleHitGroupHandle(0), objectUniforms);
+		info.addTriangleHitRecord(_pipeline->getTriangleHitGroupHandle(0), rayClosestHitUniforms);
 	}
+
+	RayMissUniforms rayMissUniforms{
+		.hasSkybox = false,
+	};
 
 	SkyboxAsset* skybox = Engine::getScene().getSkybox();
-
 	if (skybox && skybox->isLoaded())
 	{
-		CubemapSkyboxUniforms cubemapSkyboxUniforms{
-			.skyboxIndex = skybox->getCubemap()->getBindlessIndex(),
-			.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0))
-		};
+		rayMissUniforms.hasSkybox = true;
+		rayMissUniforms.skyboxIndex = skybox->getCubemap()->getBindlessIndex();
+		rayMissUniforms.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
+	}
 
-		info.addMissRecord(_pipeline->getMissGroupHandle(1), cubemapSkyboxUniforms);
-	}
-	else
-	{
-		info.addMissRecord(_pipeline->getMissGroupHandle(0));
-	}
+	info.addMissRecord(_pipeline->getMissGroupHandle(0), rayMissUniforms);
 
 	_sbt = VKShaderBindingTable::create(Engine::getVKContext(), info);
 }
@@ -254,8 +252,7 @@ void PathTracePass::createPipeline()
 
 	info.addRaygenGroupsInfos("path tracing/path trace.rgen");
 	info.addTriangleHitGroupsInfos("path tracing/path trace.rchit", std::nullopt);
-	info.addMissGroupsInfos("path tracing/black skybox.rmiss");
-	info.addMissGroupsInfos("path tracing/cubemap skybox.rmiss");
+	info.addMissGroupsInfos("path tracing/path trace.rmiss");
 
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }
