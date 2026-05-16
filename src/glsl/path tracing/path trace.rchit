@@ -264,12 +264,12 @@ void main()
 
 	float NdotL = max(dot(microfacetNormal, -hitPayload.rayDirection), 0.0);
 
-	vec3 dielectricDiffuseWeight;
-	vec3 dielectricSpecularWeight;
+	vec3 dielectricDiffuseWeight = vec3(0);
+	vec3 dielectricSpecularWeight = vec3(0);
 	if (metalness < 1.0) dielectricBRDF(NdotL, dielectricDiffuseWeight, dielectricSpecularWeight);
 
-	vec3 conductorDiffuseWeight;
-	vec3 conductorSpecularWeight;
+	vec3 conductorDiffuseWeight = vec3(0);
+	vec3 conductorSpecularWeight = vec3(0);
 	if (metalness > 0.0) conductorBRDF(albedo, NdotL, conductorDiffuseWeight, conductorSpecularWeight);
 
 	if (rand.z > 0.5)
