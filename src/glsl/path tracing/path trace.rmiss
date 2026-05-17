@@ -40,5 +40,8 @@ void main()
 		hitPayload.emitted = skyboxColor;
 	}
 
+	hitPayload.weight = vec3(0);
 	hitPayload.hit = false;
+	hitPayload.rayPosition = vec3(0);
+	hitPayload.rayDirection = vec3(0);
 }
