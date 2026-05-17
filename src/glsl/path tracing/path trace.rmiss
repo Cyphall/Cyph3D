@@ -22,7 +22,7 @@ layout(shaderRecordEXT, scalar) buffer uniforms
 {
 	bool u_hasSkybox;
 	uint u_skyboxIndex;
-	mat4 u_skyboxRotation;
+	mat3 u_skyboxRotation;
 };
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
@@ -34,7 +34,7 @@ void main()
 	{
 		vec3 rayDir = gl_WorldRayDirectionEXT;
 		rayDir *= vec3(1, 1, -1);
-		rayDir = (u_skyboxRotation * vec4(rayDir, 1.0)).xyz;
+		rayDir = u_skyboxRotation * rayDir;
 		vec3 skyboxColor = texture(u_textures[u_skyboxIndex], rayDir).rgb;
 
 		hitPayload.emitted = skyboxColor;

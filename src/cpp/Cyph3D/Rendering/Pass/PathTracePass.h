@@ -63,7 +63,7 @@ private:
 	{
 		vk::Bool32 hasSkybox;
 		uint32_t skyboxIndex;
-		glm::mat4 skyboxRotation;
+		glm::mat3 skyboxRotation;
 	};
 
 	struct FramePushConstants
