@@ -3,18 +3,19 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Window.h"
 
-#include <GLFW/glfw3.h>
-#include <spdlog/spdlog.h>
-
-#undef APIENTRY
 #include <filesystem>
 #include <fstream>
-#include <ios>
-#include <ShlObj_core.h>
-#include <ShObjIdl_core.h>
+#include <spdlog/spdlog.h>
 
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
+#if defined(_WIN32)
+#	define GLFW_EXPOSE_NATIVE_WIN32
+#elif defined(__APPLE__)
+#	define GLFW_EXPOSE_NATIVE_COCOA
+#else
+#	define GLFW_EXPOSE_NATIVE_X11
+#	define GLFW_EXPOSE_NATIVE_WAYLAND
+#endif
+#include <nfd_glfw3.h>
 
 static std::filesystem::path rootDirectoryPath = std::filesystem::current_path();
 static std::filesystem::path assetDirectoryPath = rootDirectoryPath / "assets";
@@ -58,179 +59,69 @@ std::ofstream FileHelper::openFileForWriting(const std::filesystem::path& path)
 	return file;
 }
 
-std::optional<std::filesystem::path> FileHelper::fileDialogOpen(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder)
+std::optional<std::filesystem::path> FileHelper::fileDialogOpen(std::span<const nfdfilteritem_t> allowedFileTypes, const std::filesystem::path& defaultFolder)
 {
 	std::optional<std::filesystem::path> res;
 
-	IFileOpenDialog* pfd;
+	nfdwindowhandle_t handle{};
+	NFD_GetNativeWindowFromGLFWWindow(Engine::getWindow().getHandle(), &handle);
 
-	HRESULT hr = CoCreateInstance(
-		CLSID_FileOpenDialog,
-		nullptr,
-		CLSCTX_INPROC_SERVER,
-		IID_PPV_ARGS(&pfd)
+	NFD::UniquePath dialogPath;
+	nfdresult_t result = NFD::OpenDialog(
+		dialogPath,
+		allowedFileTypes.data(),
+		allowedFileTypes.size(),
+		std::filesystem::absolute(defaultFolder).generic_string().c_str(),
+		handle
 	);
 
-	if (SUCCEEDED(hr))
+	switch (result)
 	{
-		std::vector<COMDLG_FILTERSPEC> fileTypes;
-		fileTypes.reserve(allowedFileTypes.size());
-		for (const FileDialogFilter& fileType : allowedFileTypes)
-		{
-			COMDLG_FILTERSPEC& filter = fileTypes.emplace_back();
-			filter.pszName = fileType.fileTypeDisplayName;
-			filter.pszSpec = fileType.fileTypeExtensions;
-		}
-
-		hr = pfd->SetFileTypes(fileTypes.size(), fileTypes.data());
-
-		if (SUCCEEDED(hr))
-		{
-			IShellItem* defaultFolderItem;
-			hr = SHCreateItemFromParsingName(absolute(defaultFolder).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFolderItem));
-
-			if (SUCCEEDED(hr))
-			{
-				hr = pfd->SetFolder(defaultFolderItem);
-
-				if (SUCCEEDED(hr))
-				{
-					hr = pfd->Show(glfwGetWin32Window(Engine::getWindow().getHandle()));
-
-					if (SUCCEEDED(hr))
-					{
-						IShellItem* item;
-						hr = pfd->GetResult(&item);
-
-						if (SUCCEEDED(hr))
-						{
-							LPWSTR filePathStrRaw;
-							item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
-							item->Release();
-
-							res = filePathStrRaw;
-							CoTaskMemFree(filePathStrRaw);
-						}
-					}
-				}
-				defaultFolderItem->Release();
-			}
-		}
-		pfd->Release();
+	case NFD_CANCEL:
+		break;
+	case NFD_OKAY:
+		res = dialogPath.get();
+		break;
+	case NFD_ERROR:
+		throw std::runtime_error(NFD::GetError());
+	default:
+		std::terminate();
 	}
 
 	return res;
 }
 
-std::optional<std::filesystem::path> FileHelper::fileDialogSave(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName)
+std::optional<std::filesystem::path> FileHelper::fileDialogSave(std::span<const nfdfilteritem_t> allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName)
 {
 	std::optional<std::filesystem::path> res;
 
-	IFileSaveDialog* pfd;
+	nfdwindowhandle_t handle{};
+	NFD_GetNativeWindowFromGLFWWindow(Engine::getWindow().getHandle(), &handle);
 
-	HRESULT hr = CoCreateInstance(
-		CLSID_FileSaveDialog,
-		nullptr,
-		CLSCTX_INPROC_SERVER,
-		IID_PPV_ARGS(&pfd)
+	NFD::UniquePath dialogPath;
+	nfdresult_t result = NFD::SaveDialog(
+		dialogPath,
+		allowedFileTypes.data(),
+		allowedFileTypes.size(),
+		std::filesystem::absolute(defaultFolder).generic_string().c_str(),
+		defaultName.c_str(),
+		handle
 	);
 
-	if (SUCCEEDED(hr))
+	switch (result)
 	{
-		std::vector<COMDLG_FILTERSPEC> fileTypes;
-		fileTypes.reserve(allowedFileTypes.size());
-		for (const FileDialogFilter& fileType : allowedFileTypes)
-		{
-			COMDLG_FILTERSPEC& filter = fileTypes.emplace_back();
-			filter.pszName = fileType.fileTypeDisplayName;
-			filter.pszSpec = fileType.fileTypeExtensions;
-		}
-
-		hr = pfd->SetFileTypes(fileTypes.size(), fileTypes.data());
-
-		if (SUCCEEDED(hr))
-		{
-			IShellItem* defaultFolderItem;
-			hr = SHCreateItemFromParsingName(absolute(defaultFolder).wstring().c_str(), nullptr, IID_PPV_ARGS(&defaultFolderItem));
-
-			if (SUCCEEDED(hr))
-			{
-				hr = pfd->SetFolder(defaultFolderItem);
-
-				if (SUCCEEDED(hr))
-				{
-					hr = pfd->SetDefaultExtension(fileTypes[0].pszName);
-
-					if (SUCCEEDED(hr))
-					{
-						std::filesystem::path defaultFileName(defaultName);
-						hr = pfd->SetFileName(defaultFileName.wstring().c_str());
-
-						if (SUCCEEDED(hr))
-						{
-							hr = pfd->Show(glfwGetWin32Window(Engine::getWindow().getHandle()));
-
-							if (SUCCEEDED(hr))
-							{
-								IShellItem* item;
-								hr = pfd->GetResult(&item);
-
-								if (SUCCEEDED(hr))
-								{
-									LPWSTR filePathStrRaw;
-									item->GetDisplayName(SIGDN_FILESYSPATH, &filePathStrRaw);
-									item->Release();
-
-									res = filePathStrRaw;
-									CoTaskMemFree(filePathStrRaw);
-								}
-							}
-						}
-					}
-				}
-				defaultFolderItem->Release();
-			}
-		}
-		pfd->Release();
+	case NFD_CANCEL:
+		break;
+	case NFD_OKAY:
+		res = dialogPath.get();
+		break;
+	case NFD_ERROR:
+		throw std::runtime_error(NFD::GetError());
+	default:
+		std::terminate();
 	}
 
 	return res;
-}
-
-void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folder, const std::vector<std::filesystem::path>& entries)
-{
-	PIDLIST_ABSOLUTE folderID;
-	HRESULT result = SHParseDisplayName(folder.wstring().c_str(), nullptr, &folderID, 0, nullptr);
-
-	if (FAILED(result))
-	{
-		spdlog::error("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result));
-		return;
-	}
-
-	std::vector<LPCITEMIDLIST> entriesID;
-	entriesID.reserve(entries.size());
-
-	for (const std::filesystem::path& entry : entries)
-	{
-		LPITEMIDLIST entryID;
-		result = SHParseDisplayName(entry.wstring().c_str(), nullptr, &entryID, 0, nullptr);
-
-		if (FAILED(result))
-		{
-			spdlog::error("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result));
-			return;
-		}
-
-		entriesID.emplace_back(entryID);
-	}
-
-	result = SHOpenFolderAndSelectItems(folderID, entriesID.size(), entriesID.data(), 0);
-
-	if (FAILED(result))
-	{
-		spdlog::error("Could not open folder in explorer and select entries: {}", std::system_category().message(result));
-	}
 }
 
 const std::filesystem::path& FileHelper::getRootDirectoryPath()
@@ -265,10 +156,10 @@ bool FileHelper::isAssetPath(const std::filesystem::path& path)
 
 void FileHelper::init()
 {
-	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	NFD::Init();
 }
 
 void FileHelper::shutdown()
 {
-	CoUninitialize();
+	NFD::Quit();
 }

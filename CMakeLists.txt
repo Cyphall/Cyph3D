@@ -424,3 +424,8 @@ target_link_libraries(Cyph3D PRIVATE half)
 
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE spdlog::spdlog)
+
+# ---- Dependency: btzy/nativefiledialog-extended ----
+
+find_package(nfd CONFIG REQUIRED)
+target_link_libraries(Cyph3D PRIVATE nfd::nfd)

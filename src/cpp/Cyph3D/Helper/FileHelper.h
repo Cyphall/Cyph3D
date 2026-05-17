@@ -3,15 +3,10 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
+#include <nfd.hpp>
 #include <optional>
 #include <string>
 #include <vector>
-
-struct FileDialogFilter
-{
-	const wchar_t* fileTypeDisplayName;
-	const wchar_t* fileTypeExtensions;
-};
 
 class FileHelper
 {
@@ -24,9 +19,8 @@ public:
 	static std::ifstream openFileForReading(const std::filesystem::path& path);
 	static std::ofstream openFileForWriting(const std::filesystem::path& path);
 
-	static std::optional<std::filesystem::path> fileDialogOpen(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder);
-	static std::optional<std::filesystem::path> fileDialogSave(const std::vector<FileDialogFilter>& allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName);
-	static void openExplorerAndSelectEntries(const std::filesystem::path& folder, const std::vector<std::filesystem::path>& entries);
+	static std::optional<std::filesystem::path> fileDialogOpen(std::span<const nfdfilteritem_t> allowedFileTypes, const std::filesystem::path& defaultFolder);
+	static std::optional<std::filesystem::path> fileDialogSave(std::span<const nfdfilteritem_t> allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName);
 
 	static const std::filesystem::path& getRootDirectoryPath();
 	static const std::filesystem::path& getAssetDirectoryPath();

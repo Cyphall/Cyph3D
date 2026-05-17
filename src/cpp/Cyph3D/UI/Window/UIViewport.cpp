@@ -479,16 +479,7 @@ void UIViewport::drawRenderToFilePopup()
 		}
 		else if (_renderToFileData->status == RenderToFileStatus::eSaveFinished)
 		{
-			bool close = ImGui::Button("Close");
-			ImGui::SameLine();
-			bool openInExplorer = ImGui::Button("Open in Explorer");
-
-			if (openInExplorer)
-			{
-				FileHelper::openExplorerAndSelectEntries(_renderToFileData->outputFile.parent_path(), {_renderToFileData->outputFile});
-			}
-
-			if (openInExplorer || close)
+			if (ImGui::Button("Close"))
 			{
 				ImGui::CloseCurrentPopup();
 				_renderToFileData.reset();
@@ -506,18 +497,14 @@ bool UIViewport::isFullscreen()
 
 void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 {
-	// clang-format off
-	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
-		FileDialogFilter{
-			.fileTypeDisplayName = L"PNG Image",
-			.fileTypeExtensions = L"*.png"
-		},
-		FileDialogFilter{
-			.fileTypeDisplayName = L"JPG Image",
-			.fileTypeExtensions = L"*.jpg"
-		}
-	}, ".", "render");
-	// clang-format on
+	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave(
+		{{
+			{"PNG Image", "png"},
+			{"JPG Image", "jpg"},
+		}},
+		".",
+		"render"
+	);
 
 	if (!filePath)
 	{

@@ -26,14 +26,12 @@ void UIMenuBar::show()
 
 			if (ImGui::MenuItem("Open Scene"))
 			{
-				// clang-format off
-				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogOpen({
-					FileDialogFilter{
-						.fileTypeDisplayName = L"Cyph3D Scene",
-						.fileTypeExtensions = L"*.c3dscene"
-					}
-				}, "assets/scenes");
-				// clang-format on
+				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogOpen(
+					{{
+						{"Cyph3D Scene", "c3dscene"},
+					}},
+					"assets/scenes"
+				);
 
 				if (filePath.has_value())
 				{
@@ -50,14 +48,13 @@ void UIMenuBar::show()
 
 			if (ImGui::MenuItem("Save Scene"))
 			{
-				// clang-format off
-				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave({
-					FileDialogFilter{
-						.fileTypeDisplayName = L"Cyph3D Scene",
-						.fileTypeExtensions = L"*.c3dscene"
-					}
-				}, "assets/scenes", Engine::getScene().getName());
-				// clang-format on
+				std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave(
+					{{
+						{"Cyph3D Scene", "c3dscene"},
+					}},
+					"assets/scenes",
+					Engine::getScene().getName()
+				);
 
 				if (filePath.has_value())
 				{
