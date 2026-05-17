@@ -529,7 +529,7 @@ void VKContext::createMessenger()
 	vk::DebugUtilsMessengerCreateInfoEXT createInfo;
 	createInfo.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 	createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
-	createInfo.pfnUserCallback = reinterpret_cast<PFN_vkDebugUtilsMessengerCallbackEXT>(messageCallback);
+	createInfo.pfnUserCallback = &messageCallback;
 	createInfo.pUserData = nullptr; // Optional
 
 	_messenger = _instance.createDebugUtilsMessengerEXT(createInfo);

@@ -39,18 +39,18 @@
     },
     {
       "name": "vulkan-headers",
-      "version>=": "1.3.290.0#0"
+      "version>=": "1.4.341.0#0"
     },
     {
       "name": "glslang",
-      "version>=": "14.3.0#0",
+      "version>=": "16.2.0#0",
       "features": [
         "tools"
       ]
     },
     {
       "name": "vulkan-memory-allocator",
-      "version>=": "3.1.0#0"
+      "version>=": "3.3.0#0"
     },
     {
       "name": "cmakerc",
