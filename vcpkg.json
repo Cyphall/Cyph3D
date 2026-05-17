@@ -15,14 +15,13 @@
     "vulkan-memory-allocator",
     "bshoshany-thread-pool",
     "nativefiledialog-extended",
+    "cmakerc",
     {
       "name": "glslang",
       "features": [
         "tools"
-      ],
-      "host": true
+      ]
     },
-    "cmakerc",
     {
       "name": "spdlog",
       "default-features": false
