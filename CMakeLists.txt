@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 set(CMAKE_ISPC_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/tools/ispc/ispc.exe")
 
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob3 /DNDEBUG")
