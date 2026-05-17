@@ -3,7 +3,6 @@
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Helper/ThreadHelper.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/UIHelper.h"
@@ -54,7 +53,7 @@ void Engine::init()
 
 	_window = std::make_unique<Window>();
 
-	_assetManager = std::make_unique<AssetManager>(std::max(ThreadHelper::getPhysicalCoreCount() - 1, 1));
+	_assetManager = std::make_unique<AssetManager>();
 
 	MaterialAsset::initDefaultAndMissing();
 	MeshAsset::initDefaultAndMissing();

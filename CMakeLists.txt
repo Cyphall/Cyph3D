@@ -47,6 +47,7 @@ add_executable(Cyph3D)
 
 target_sources(Cyph3D PRIVATE
 	"src/cpp/Cyph3D/Asset/AssetManager.cpp"
+	"src/cpp/Cyph3D/Asset/AssetManagerWorkerData.cpp"
 	"src/cpp/Cyph3D/Asset/BindlessTextureManager.cpp"
 	"src/cpp/Cyph3D/Asset/Processing/AssetProcessingCacheDatabase.cpp"
 	"src/cpp/Cyph3D/Asset/Processing/AssetProcessor.cpp"
@@ -71,7 +72,6 @@ target_sources(Cyph3D PRIVATE
 	"src/cpp/Cyph3D/Helper/ImGuiHelper.cpp"
 	"src/cpp/Cyph3D/Helper/JsonHelper.cpp"
 	"src/cpp/Cyph3D/Helper/MathHelper.cpp"
-	"src/cpp/Cyph3D/Helper/ThreadHelper.cpp"
 	"src/cpp/Cyph3D/Iterator/ComponentConstIterator.cpp"
 	"src/cpp/Cyph3D/Iterator/ComponentIterator.cpp"
 	"src/cpp/Cyph3D/Iterator/EntityConstIterator.cpp"
@@ -183,7 +183,6 @@ target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 	"src/cpp/Cyph3D/Helper/ImGuiHelper.h"
 	"src/cpp/Cyph3D/Helper/JsonHelper.h"
 	"src/cpp/Cyph3D/Helper/MathHelper.h"
-	"src/cpp/Cyph3D/Helper/ThreadHelper.h"
 	"src/cpp/Cyph3D/Helper/VectorHelper.h"
 	"src/cpp/Cyph3D/Iterator/ComponentConstIterator.h"
 	"src/cpp/Cyph3D/Iterator/ComponentIterator.h"
@@ -393,8 +392,10 @@ target_link_libraries(Cyph3D PRIVATE GPUOpen::VulkanMemoryAllocator)
 
 # ---- Dependency: bshoshany/thread-pool ----
 
-add_subdirectory("vendor/bs-thread-pool/v3.3.0")
-target_link_libraries(Cyph3D PRIVATE bs-thread-pool)
+find_path(BSHOSHANY_THREAD_POOL_INCLUDE_DIRS "BS_thread_pool.hpp")
+target_include_directories(Cyph3D PRIVATE ${BSHOSHANY_THREAD_POOL_INCLUDE_DIRS})
+
+target_compile_definitions(Cyph3D PRIVATE BS_THREAD_POOL_NATIVE_EXTENSIONS)
 
 # ---- Dependency: ocornut/imgui ----
 

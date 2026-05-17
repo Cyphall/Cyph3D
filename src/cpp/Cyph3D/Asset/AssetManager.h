@@ -18,8 +18,7 @@ class VKSampler;
 class AssetManager
 {
 public:
-	explicit AssetManager(int threadCount);
-	~AssetManager();
+	explicit AssetManager();
 
 	const std::shared_ptr<VKSampler>& getTextureSampler();
 	const std::shared_ptr<VKSampler>& getCubemapSampler();
@@ -40,7 +39,7 @@ public:
 	template<typename TTask, typename... TArgs>
 	void addThreadPoolTask(TTask&& task, TArgs&&... args)
 	{
-		_threadPool.push_task(std::forward<TTask>(task), std::forward<TArgs>(args)...);
+		_threadPool.detach_task(std::bind(std::forward<TTask>(task), std::forward<TArgs>(args)...));
 	}
 
 private:
@@ -57,5 +56,5 @@ private:
 	std::unordered_map<MaterialAssetSignature, std::unique_ptr<MaterialAsset>> _materials;
 	std::unordered_map<SkyboxAssetSignature, std::unique_ptr<SkyboxAsset>> _skyboxes;
 
-	BS::thread_pool<AssetManagerWorkerData> _threadPool;
+	BS::light_thread_pool _threadPool;
 };

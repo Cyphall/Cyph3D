@@ -28,9 +28,9 @@ const uint32_t& TextureAsset::getBindlessIndex() const
 	return _bindlessIndex;
 }
 
-void TextureAsset::load_async(AssetManagerWorkerData& workerData)
+void TextureAsset::load_async()
 {
-	ImageData imageData = _manager.getAssetProcessor().readImageData(workerData, _signature.path, _signature.type);
+	ImageData imageData = _manager.getAssetProcessor().readImageData(_signature.path, _signature.type);
 
 	Logger::info("Uploading texture [{} ({})]...", _signature.path, magic_enum::enum_name(_signature.type));
 
@@ -67,15 +67,15 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 
 	// upload staging buffer to texture
-	workerData.transferCommandBuffer->begin();
+	assetTransferCommandBuffer->begin();
 
-	workerData.transferCommandBuffer->bufferMemoryBarrier(
+	assetTransferCommandBuffer->bufferMemoryBarrier(
 		stagingBuffer,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferRead
 	);
 
-	workerData.transferCommandBuffer->imageMemoryBarrier(
+	assetTransferCommandBuffer->imageMemoryBarrier(
 		_image,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
@@ -85,24 +85,24 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 	vk::DeviceSize bufferOffset = 0;
 	for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
 	{
-		workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, 0, i);
+		assetTransferCommandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, 0, i);
 		bufferOffset += _image->getLevelByteSize(i);
 	}
 
-	workerData.transferCommandBuffer->releaseImageOwnership(
+	assetTransferCommandBuffer->releaseImageOwnership(
 		_image,
 		Engine::getVKContext().getMainQueue(),
 		vk::ImageLayout::eReadOnlyOptimal
 	);
 
-	workerData.transferCommandBuffer->end();
+	assetTransferCommandBuffer->end();
 
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
+	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
 
-	workerData.transferCommandBuffer->waitExecution();
-	workerData.transferCommandBuffer->reset();
+	assetTransferCommandBuffer->waitExecution();
+	assetTransferCommandBuffer->reset();
 
-	workerData.graphicsCommandBuffer->begin();
+	assetGraphicsCommandBuffer->begin();
 
 	vk::PipelineStageFlags2 nextUsageStages = vk::PipelineStageFlagBits2::eFragmentShader;
 	if (Engine::getVKContext().isRayTracingSupported())
@@ -110,7 +110,7 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		nextUsageStages |= vk::PipelineStageFlagBits2::eRayTracingShaderKHR;
 	}
 
-	workerData.graphicsCommandBuffer->acquireImageOwnership(
+	assetGraphicsCommandBuffer->acquireImageOwnership(
 		_image,
 		Engine::getVKContext().getTransferQueue(),
 		nextUsageStages,
@@ -118,12 +118,12 @@ void TextureAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::ImageLayout::eReadOnlyOptimal
 	);
 
-	workerData.graphicsCommandBuffer->end();
+	assetGraphicsCommandBuffer->end();
 
-	Engine::getVKContext().getMainQueue().submit(workerData.graphicsCommandBuffer, {}, {});
+	Engine::getVKContext().getMainQueue().submit(assetGraphicsCommandBuffer, {}, {});
 
-	workerData.graphicsCommandBuffer->waitExecution();
-	workerData.graphicsCommandBuffer->reset();
+	assetGraphicsCommandBuffer->waitExecution();
+	assetGraphicsCommandBuffer->reset();
 
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getTextureSampler());

@@ -73,9 +73,9 @@ MeshAsset* MeshAsset::getMissingMesh()
 	return _missingMesh;
 }
 
-void MeshAsset::load_async(AssetManagerWorkerData& workerData)
+void MeshAsset::load_async()
 {
-	MeshData meshData = _manager.getAssetProcessor().readMeshData(workerData, _signature.path);
+	MeshData meshData = _manager.getAssetProcessor().readMeshData(_signature.path);
 
 	Logger::info("Uploading mesh [{}]...", _signature.path);
 
@@ -166,59 +166,59 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		// Build temporary acceleration structure and query compact size
 
-		workerData.computeCommandBuffer->begin();
+		assetComputeCommandBuffer->begin();
 
-		workerData.computeCommandBuffer->bufferMemoryBarrier(
+		assetComputeCommandBuffer->bufferMemoryBarrier(
 			temporaryAccelerationStructure->getBackingBuffer(),
 			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 			vk::AccessFlagBits2::eAccelerationStructureWriteKHR
 		);
 
-		workerData.computeCommandBuffer->bufferMemoryBarrier(
+		assetComputeCommandBuffer->bufferMemoryBarrier(
 			scratchBuffer,
 			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR | vk::AccessFlagBits2::eAccelerationStructureWriteKHR
 		);
 
-		workerData.computeCommandBuffer->bufferMemoryBarrier(
+		assetComputeCommandBuffer->bufferMemoryBarrier(
 			_positionVertexBuffer,
 			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR
 		);
 
-		workerData.computeCommandBuffer->bufferMemoryBarrier(
+		assetComputeCommandBuffer->bufferMemoryBarrier(
 			_indexBuffer,
 			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR
 		);
 
-		workerData.computeCommandBuffer->buildBottomLevelAccelerationStructure(temporaryAccelerationStructure, scratchBuffer, buildInfo);
+		assetComputeCommandBuffer->buildBottomLevelAccelerationStructure(temporaryAccelerationStructure, scratchBuffer, buildInfo);
 
-		workerData.computeCommandBuffer->bufferMemoryBarrier(
+		assetComputeCommandBuffer->bufferMemoryBarrier(
 			temporaryAccelerationStructure->getBackingBuffer(),
 			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR
 		);
 
-		workerData.computeCommandBuffer->releaseBufferOwnership(
+		assetComputeCommandBuffer->releaseBufferOwnership(
 			_positionVertexBuffer,
 			Engine::getVKContext().getMainQueue()
 		);
 
-		workerData.computeCommandBuffer->releaseBufferOwnership(
+		assetComputeCommandBuffer->releaseBufferOwnership(
 			_indexBuffer,
 			Engine::getVKContext().getMainQueue()
 		);
 
 		std::shared_ptr<VKAccelerationStructureCompactedSizeQuery> compactedSizeQuery = VKAccelerationStructureCompactedSizeQuery::create(Engine::getVKContext());
-		workerData.computeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
+		assetComputeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
 
-		workerData.computeCommandBuffer->end();
+		assetComputeCommandBuffer->end();
 
-		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
+		Engine::getVKContext().getComputeQueue().submit(assetComputeCommandBuffer, {}, {});
 
-		workerData.computeCommandBuffer->waitExecution();
-		workerData.computeCommandBuffer->reset();
+		assetComputeCommandBuffer->waitExecution();
+		assetComputeCommandBuffer->reset();
 
 		// Create temporary acceleration structure
 
@@ -232,92 +232,92 @@ void MeshAsset::load_async(AssetManagerWorkerData& workerData)
 
 		// Compact acceleration structure
 
-		workerData.computeCommandBuffer->begin();
+		assetComputeCommandBuffer->begin();
 
-		workerData.computeCommandBuffer->bufferMemoryBarrier(
+		assetComputeCommandBuffer->bufferMemoryBarrier(
 			_accelerationStructure->getBackingBuffer(),
 			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
 			vk::AccessFlagBits2::eAccelerationStructureWriteKHR
 		);
 
-		workerData.computeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);
+		assetComputeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);
 
-		workerData.computeCommandBuffer->releaseBufferOwnership(
+		assetComputeCommandBuffer->releaseBufferOwnership(
 			_accelerationStructure->getBackingBuffer(),
 			Engine::getVKContext().getMainQueue()
 		);
 
-		workerData.computeCommandBuffer->end();
+		assetComputeCommandBuffer->end();
 
-		Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
+		Engine::getVKContext().getComputeQueue().submit(assetComputeCommandBuffer, {}, {});
 
-		workerData.computeCommandBuffer->waitExecution();
-		workerData.computeCommandBuffer->reset();
+		assetComputeCommandBuffer->waitExecution();
+		assetComputeCommandBuffer->reset();
 
-		workerData.graphicsCommandBuffer->begin();
+		assetGraphicsCommandBuffer->begin();
 
-		workerData.graphicsCommandBuffer->acquireBufferOwnership(
+		assetGraphicsCommandBuffer->acquireBufferOwnership(
 			_positionVertexBuffer,
 			Engine::getVKContext().getComputeQueue(),
 			vk::PipelineStageFlagBits2::eVertexAttributeInput,
 			vk::AccessFlagBits2::eVertexAttributeRead
 		);
 
-		workerData.graphicsCommandBuffer->acquireBufferOwnership(
+		assetGraphicsCommandBuffer->acquireBufferOwnership(
 			_indexBuffer,
 			Engine::getVKContext().getComputeQueue(),
 			vk::PipelineStageFlagBits2::eIndexInput | vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 			vk::AccessFlagBits2::eIndexRead | vk::AccessFlagBits2::eShaderStorageRead
 		);
 
-		workerData.graphicsCommandBuffer->acquireBufferOwnership(
+		assetGraphicsCommandBuffer->acquireBufferOwnership(
 			_accelerationStructure->getBackingBuffer(),
 			Engine::getVKContext().getComputeQueue(),
 			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 			vk::AccessFlagBits2::eAccelerationStructureReadKHR
 		);
 
-		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
+		assetGraphicsCommandBuffer->bufferMemoryBarrier(
 			_materialVertexBuffer,
 			vk::PipelineStageFlagBits2::eVertexAttributeInput | vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
 			vk::AccessFlagBits2::eVertexAttributeRead | vk::AccessFlagBits2::eShaderStorageRead
 		);
 
-		workerData.graphicsCommandBuffer->end();
+		assetGraphicsCommandBuffer->end();
 
-		Engine::getVKContext().getMainQueue().submit(workerData.graphicsCommandBuffer, {}, {});
+		Engine::getVKContext().getMainQueue().submit(assetGraphicsCommandBuffer, {}, {});
 
-		workerData.graphicsCommandBuffer->waitExecution();
-		workerData.graphicsCommandBuffer->reset();
+		assetGraphicsCommandBuffer->waitExecution();
+		assetGraphicsCommandBuffer->reset();
 	}
 	else
 	{
-		workerData.graphicsCommandBuffer->begin();
+		assetGraphicsCommandBuffer->begin();
 
-		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
+		assetGraphicsCommandBuffer->bufferMemoryBarrier(
 			_positionVertexBuffer,
 			vk::PipelineStageFlagBits2::eVertexAttributeInput,
 			vk::AccessFlagBits2::eVertexAttributeRead
 		);
 
-		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
+		assetGraphicsCommandBuffer->bufferMemoryBarrier(
 			_materialVertexBuffer,
 			vk::PipelineStageFlagBits2::eVertexAttributeInput,
 			vk::AccessFlagBits2::eVertexAttributeRead
 		);
 
-		workerData.graphicsCommandBuffer->bufferMemoryBarrier(
+		assetGraphicsCommandBuffer->bufferMemoryBarrier(
 			_indexBuffer,
 			vk::PipelineStageFlagBits2::eIndexInput,
 			vk::AccessFlagBits2::eIndexRead
 		);
 
-		workerData.graphicsCommandBuffer->end();
+		assetGraphicsCommandBuffer->end();
 
-		Engine::getVKContext().getMainQueue().submit(workerData.graphicsCommandBuffer, {}, {});
+		Engine::getVKContext().getMainQueue().submit(assetGraphicsCommandBuffer, {}, {});
 
-		workerData.graphicsCommandBuffer->waitExecution();
-		workerData.graphicsCommandBuffer->reset();
+		assetGraphicsCommandBuffer->waitExecution();
+		assetGraphicsCommandBuffer->reset();
 	}
 
 	_boundingBoxMin = meshData.boundingBoxMin;

@@ -28,7 +28,7 @@ const uint32_t& CubemapAsset::getBindlessIndex() const
 	return _bindlessIndex;
 }
 
-void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
+void CubemapAsset::load_async()
 {
 	std::reference_wrapper<std::string> paths[6] = {
 		_signature.xposPath,
@@ -44,7 +44,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	std::array<std::vector<std::vector<std::byte>>, 6> faces;
 	if (!_signature.equirectangularPath.empty())
 	{
-		EquirectangularSkyboxData equirectangularSkyboxData = _manager.getAssetProcessor().readEquirectangularSkyboxData(workerData, _signature.equirectangularPath);
+		EquirectangularSkyboxData equirectangularSkyboxData = _manager.getAssetProcessor().readEquirectangularSkyboxData(_signature.equirectangularPath);
 		format = equirectangularSkyboxData.format;
 		size = equirectangularSkyboxData.size;
 		faces = std::move(equirectangularSkyboxData.faces);
@@ -54,7 +54,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		uint32_t levels;
 		for (uint32_t i = 0; i < 6; i++)
 		{
-			ImageData imageData = _manager.getAssetProcessor().readImageData(workerData, paths[i].get(), _signature.type);
+			ImageData imageData = _manager.getAssetProcessor().readImageData(paths[i].get(), _signature.type);
 			faces[i] = std::move(imageData.levels);
 
 			if (i == 0)
@@ -146,15 +146,15 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	}
 
 	// upload staging buffer to texture
-	workerData.transferCommandBuffer->begin();
+	assetTransferCommandBuffer->begin();
 
-	workerData.transferCommandBuffer->bufferMemoryBarrier(
+	assetTransferCommandBuffer->bufferMemoryBarrier(
 		stagingBuffer,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferRead
 	);
 
-	workerData.transferCommandBuffer->imageMemoryBarrier(
+	assetTransferCommandBuffer->imageMemoryBarrier(
 		_image,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
@@ -166,25 +166,25 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 	{
 		for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
 		{
-			workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, face, i);
+			assetTransferCommandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, face, i);
 			bufferOffset += _image->getLevelByteSize(i);
 		}
 	}
 
-	workerData.transferCommandBuffer->releaseImageOwnership(
+	assetTransferCommandBuffer->releaseImageOwnership(
 		_image,
 		Engine::getVKContext().getMainQueue(),
 		vk::ImageLayout::eReadOnlyOptimal
 	);
 
-	workerData.transferCommandBuffer->end();
+	assetTransferCommandBuffer->end();
 
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
+	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
 
-	workerData.transferCommandBuffer->waitExecution();
-	workerData.transferCommandBuffer->reset();
+	assetTransferCommandBuffer->waitExecution();
+	assetTransferCommandBuffer->reset();
 
-	workerData.graphicsCommandBuffer->begin();
+	assetGraphicsCommandBuffer->begin();
 
 	vk::PipelineStageFlags2 nextUsageStages = vk::PipelineStageFlagBits2::eFragmentShader;
 	if (Engine::getVKContext().isRayTracingSupported())
@@ -192,7 +192,7 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		nextUsageStages |= vk::PipelineStageFlagBits2::eRayTracingShaderKHR;
 	}
 
-	workerData.graphicsCommandBuffer->acquireImageOwnership(
+	assetGraphicsCommandBuffer->acquireImageOwnership(
 		_image,
 		Engine::getVKContext().getMainQueue(),
 		nextUsageStages,
@@ -200,12 +200,12 @@ void CubemapAsset::load_async(AssetManagerWorkerData& workerData)
 		vk::ImageLayout::eReadOnlyOptimal
 	);
 
-	workerData.graphicsCommandBuffer->end();
+	assetGraphicsCommandBuffer->end();
 
-	Engine::getVKContext().getMainQueue().submit(workerData.graphicsCommandBuffer, {}, {});
+	Engine::getVKContext().getMainQueue().submit(assetGraphicsCommandBuffer, {}, {});
 
-	workerData.graphicsCommandBuffer->waitExecution();
-	workerData.graphicsCommandBuffer->reset();
+	assetGraphicsCommandBuffer->waitExecution();
+	assetGraphicsCommandBuffer->reset();
 
 	// set texture to bindless descriptor set
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getCubemapSampler());

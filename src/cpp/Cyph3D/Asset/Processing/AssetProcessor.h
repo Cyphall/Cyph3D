@@ -10,9 +10,9 @@ struct AssetManagerWorkerData;
 class AssetProcessor
 {
 public:
-	ImageData readImageData(AssetManagerWorkerData& workerData, std::string_view path, ImageType type);
-	MeshData readMeshData(AssetManagerWorkerData& workerData, std::string_view path);
-	EquirectangularSkyboxData readEquirectangularSkyboxData(AssetManagerWorkerData& workerData, std::string_view path);
+	ImageData readImageData(std::string_view path, ImageType type);
+	MeshData readMeshData(std::string_view path);
+	EquirectangularSkyboxData readEquirectangularSkyboxData(std::string_view path);
 
 private:
 	AssetProcessingCacheDatabase _database;

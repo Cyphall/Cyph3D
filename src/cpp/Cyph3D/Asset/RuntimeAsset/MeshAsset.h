@@ -53,7 +53,7 @@ private:
 
 	MeshAsset(AssetManager& manager, const MeshAssetSignature& signature);
 
-	void load_async(AssetManagerWorkerData& workerData);
+	void load_async();
 
 	std::shared_ptr<VKBuffer<PositionVertexData>> _positionVertexBuffer;
 	std::shared_ptr<VKBuffer<MaterialVertexData>> _materialVertexBuffer;

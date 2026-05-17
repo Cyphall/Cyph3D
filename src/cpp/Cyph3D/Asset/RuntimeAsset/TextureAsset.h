@@ -44,7 +44,7 @@ private:
 
 	TextureAsset(AssetManager& manager, const TextureAssetSignature& signature);
 
-	void load_async(AssetManagerWorkerData& workerData);
+	void load_async();
 
 	std::shared_ptr<VKImage> _image;
 	uint32_t _bindlessIndex;

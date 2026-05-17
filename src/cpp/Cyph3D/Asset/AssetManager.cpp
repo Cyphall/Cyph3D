@@ -5,18 +5,27 @@
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-static AssetManagerWorkerData threadInit()
+static void threadInit()
 {
-	return {
-		.graphicsCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getMainQueue()),
-		.computeCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getComputeQueue()),
-		.transferCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getTransferQueue())
-	};
+	BS::this_thread::set_os_thread_priority(BS::os_thread_priority::below_normal);
+
+	assetGraphicsCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getMainQueue());
+	assetComputeCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getComputeQueue());
+	assetTransferCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getTransferQueue());
 }
 
-AssetManager::AssetManager(int threadCount):
-	_threadPool(threadInit, threadCount)
+static void threadShutdown()
 {
+	assetGraphicsCommandBuffer.reset();
+	assetComputeCommandBuffer.reset();
+	assetTransferCommandBuffer.reset();
+}
+
+AssetManager::AssetManager():
+	_threadPool(threadInit)
+{
+	_threadPool.set_cleanup_func(threadShutdown);
+
 	{
 		vk::SamplerCreateInfo createInfo;
 		createInfo.flags = {};
@@ -60,12 +69,6 @@ AssetManager::AssetManager(int threadCount):
 
 		_cubemapSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 	}
-}
-
-AssetManager::~AssetManager()
-{
-	_threadPool.pause();
-	_threadPool.wait_for_tasks();
 }
 
 const std::shared_ptr<VKSampler>& AssetManager::getTextureSampler()

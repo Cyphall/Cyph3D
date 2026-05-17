@@ -1,19 +1,19 @@
 #include "AssetProcessor.h"
 
-ImageData AssetProcessor::readImageData(AssetManagerWorkerData& workerData, std::string_view path, ImageType type)
+ImageData AssetProcessor::readImageData(std::string_view path, ImageType type)
 {
 	std::string cachePath = _database.getImageCachePath(path, type);
-	return _imageProcessor.readImageData(workerData, path, type, cachePath);
+	return _imageProcessor.readImageData(path, type, cachePath);
 }
 
-MeshData AssetProcessor::readMeshData(AssetManagerWorkerData& workerData, std::string_view path)
+MeshData AssetProcessor::readMeshData(std::string_view path)
 {
 	std::string cachePath = _database.getMeshCachePath(path);
-	return _meshProcessor.readMeshData(workerData, path, cachePath);
+	return _meshProcessor.readMeshData(path, cachePath);
 }
 
-EquirectangularSkyboxData AssetProcessor::readEquirectangularSkyboxData(AssetManagerWorkerData& workerData, std::string_view path)
+EquirectangularSkyboxData AssetProcessor::readEquirectangularSkyboxData(std::string_view path)
 {
 	std::string cachePath = _database.getEquirectangularSkyboxCachePath(path);
-	return _equirectangularSkyboxProcessor.readEquirectangularSkyboxData(workerData, path, cachePath);
+	return _equirectangularSkyboxProcessor.readEquirectangularSkyboxData(path, cachePath);
 }

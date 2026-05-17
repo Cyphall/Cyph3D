@@ -1,5 +1,6 @@
 #include "EquirectangularSkyboxProcessor.h"
 
+#include "Cyph3D/Asset/AssetManagerWorkerData.h"
 #include "Cyph3D/Asset/Processing/ImageCompressor.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/FileHelper.h"
@@ -190,7 +191,7 @@ EquirectangularSkyboxProcessor::EquirectangularSkyboxProcessor()
 	}
 }
 
-EquirectangularSkyboxData EquirectangularSkyboxProcessor::readEquirectangularSkyboxData(AssetManagerWorkerData& workerData, std::string_view path, std::string_view cachePath)
+EquirectangularSkyboxData EquirectangularSkyboxProcessor::readEquirectangularSkyboxData(std::string_view path, std::string_view cachePath)
 {
 	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
 	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;
@@ -208,21 +209,21 @@ EquirectangularSkyboxData EquirectangularSkyboxProcessor::readEquirectangularSky
 		{
 			Logger::warning("Could not load equirectangular skybox [{}] from cache. Reprocessing...", path);
 			std::filesystem::remove(cacheAbsolutePath);
-			equirectangularSkyboxData = processEquirectangularSkybox(workerData, absolutePath, cacheAbsolutePath);
+			equirectangularSkyboxData = processEquirectangularSkybox(absolutePath, cacheAbsolutePath);
 			Logger::info("Equirectangular skybox [{}] reprocessed succesfully", path);
 		}
 	}
 	else
 	{
 		Logger::info("Processing equirectangular skybox [{}]", path);
-		equirectangularSkyboxData = processEquirectangularSkybox(workerData, absolutePath, cacheAbsolutePath);
+		equirectangularSkyboxData = processEquirectangularSkybox(absolutePath, cacheAbsolutePath);
 		Logger::info("Equirectangular skybox [{}] processed succesfully", path);
 	}
 
 	return equirectangularSkyboxData;
 }
 
-EquirectangularSkyboxData EquirectangularSkyboxProcessor::processEquirectangularSkybox(AssetManagerWorkerData& workerData, const std::filesystem::path& input, const std::filesystem::path& output)
+EquirectangularSkyboxData EquirectangularSkyboxProcessor::processEquirectangularSkybox(const std::filesystem::path& input, const std::filesystem::path& output)
 {
 	StbImage::Channels requiredChannels = StbImage::Channels::eRedGreenBlueAlpha;
 	StbImage::BitDepthFlags supportedBitDepth = StbImage::BitDepthFlags::e8 | StbImage::BitDepthFlags::e32;
@@ -265,7 +266,7 @@ EquirectangularSkyboxData EquirectangularSkyboxProcessor::processEquirectangular
 		data = {image.getPtr(), image.getByteSize()};
 	}
 
-	EquirectangularSkyboxData imageData = genCubemapAndMipmaps(workerData, cubemapAndMipmapGenFormat, image.getSize(), data, isMipmapGenFormatSrgb);
+	EquirectangularSkyboxData imageData = genCubemapAndMipmaps(cubemapAndMipmapGenFormat, image.getSize(), data, isMipmapGenFormatSrgb);
 
 	if (compressionFormat != vk::Format::eUndefined)
 	{
@@ -277,7 +278,7 @@ EquirectangularSkyboxData EquirectangularSkyboxProcessor::processEquirectangular
 	return imageData;
 }
 
-static std::shared_ptr<VKImage> uploadEquirectangularImage(AssetManagerWorkerData& workerData, vk::Format format, glm::uvec2 size, std::span<const std::byte> data)
+static std::shared_ptr<VKImage> uploadEquirectangularImage(vk::Format format, glm::uvec2 size, std::span<const std::byte> data)
 {
 	// create staging buffer
 	VKBufferInfo stagingBufferInfo(data.size_bytes(), vk::BufferUsageFlagBits::eTransferSrc);
@@ -303,40 +304,40 @@ static std::shared_ptr<VKImage> uploadEquirectangularImage(AssetManagerWorkerDat
 	std::shared_ptr<VKImage> image = VKImage::create(Engine::getVKContext(), imageInfo);
 
 	// upload staging buffer to texture
-	workerData.transferCommandBuffer->begin();
+	assetTransferCommandBuffer->begin();
 
-	workerData.transferCommandBuffer->bufferMemoryBarrier(
+	assetTransferCommandBuffer->bufferMemoryBarrier(
 		stagingBuffer,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferRead
 	);
 
-	workerData.transferCommandBuffer->imageMemoryBarrier(
+	assetTransferCommandBuffer->imageMemoryBarrier(
 		image,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
 		vk::ImageLayout::eTransferDstOptimal
 	);
 
-	workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, 0, image, 0, 0);
+	assetTransferCommandBuffer->copyBufferToImage(stagingBuffer, 0, image, 0, 0);
 
-	workerData.transferCommandBuffer->releaseImageOwnership(
+	assetTransferCommandBuffer->releaseImageOwnership(
 		image,
 		Engine::getVKContext().getComputeQueue(),
 		vk::ImageLayout::eReadOnlyOptimal
 	);
 
-	workerData.transferCommandBuffer->end();
+	assetTransferCommandBuffer->end();
 
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
+	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
 
-	workerData.transferCommandBuffer->waitExecution();
-	workerData.transferCommandBuffer->reset();
+	assetTransferCommandBuffer->waitExecution();
+	assetTransferCommandBuffer->reset();
 
 	return image;
 }
 
-std::shared_ptr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetManagerWorkerData& workerData, vk::Format format, const std::shared_ptr<VKImage>& equirectangularTexture)
+std::shared_ptr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(vk::Format format, const std::shared_ptr<VKImage>& equirectangularTexture)
 {
 	glm::uvec2 cubemapSize(equirectangularTexture->getInfo().getSize().y / 2);
 
@@ -363,9 +364,9 @@ std::shared_ptr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetMa
 	glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 10.0f);
 	projection[1][1] *= -1;
 
-	workerData.computeCommandBuffer->begin();
+	assetComputeCommandBuffer->begin();
 
-	workerData.computeCommandBuffer->acquireImageOwnership(
+	assetComputeCommandBuffer->acquireImageOwnership(
 		equirectangularTexture,
 		Engine::getVKContext().getTransferQueue(),
 		vk::PipelineStageFlagBits2::eComputeShader,
@@ -373,7 +374,7 @@ std::shared_ptr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetMa
 		vk::ImageLayout::eReadOnlyOptimal
 	);
 
-	workerData.computeCommandBuffer->imageMemoryBarrier(
+	assetComputeCommandBuffer->imageMemoryBarrier(
 		cubemapTexture,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageWrite,
@@ -382,13 +383,13 @@ std::shared_ptr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetMa
 		{0, 0}
 	);
 
-	workerData.computeCommandBuffer->bindPipeline(_cubemapPipeline);
+	assetComputeCommandBuffer->bindPipeline(_cubemapPipeline);
 
-	workerData.computeCommandBuffer->pushDescriptor(0, 0, equirectangularTexture, _cubemapSampler);
+	assetComputeCommandBuffer->pushDescriptor(0, 0, equirectangularTexture, _cubemapSampler);
 
 	for (int i = 0; i < 6; i++)
 	{
-		workerData.computeCommandBuffer->pushDescriptor(
+		assetComputeCommandBuffer->pushDescriptor(
 			0,
 			1,
 			cubemapTexture,
@@ -398,36 +399,31 @@ std::shared_ptr<VKImage> EquirectangularSkyboxProcessor::generateCubemap(AssetMa
 			cubemapTexture->getInfo().getFormat()
 		);
 
-		workerData.computeCommandBuffer->pushConstants(CubemapPushConstantData{
-			.viewProjectionInv = glm::inverse(projection * views[i])
-		});
+		assetComputeCommandBuffer->pushConstants(CubemapPushConstantData{.viewProjectionInv = glm::inverse(projection * views[i])});
 
 		glm::uvec2 dstSize = cubemapTexture->getSize(0);
-		workerData.computeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
+		assetComputeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
 	}
 
-	workerData.computeCommandBuffer->end();
+	assetComputeCommandBuffer->end();
 
-	Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
+	Engine::getVKContext().getComputeQueue().submit(assetComputeCommandBuffer, {}, {});
 
-	workerData.computeCommandBuffer->waitExecution();
-	workerData.computeCommandBuffer->reset();
+	assetComputeCommandBuffer->waitExecution();
+	assetComputeCommandBuffer->reset();
 
 	return cubemapTexture;
 }
 
-void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& workerData, const std::shared_ptr<VKImage>& cubemapTexture, bool isSrgb)
+void EquirectangularSkyboxProcessor::generateMipmaps(const std::shared_ptr<VKImage>& cubemapTexture, bool isSrgb)
 {
-	workerData.computeCommandBuffer->begin();
+	assetComputeCommandBuffer->begin();
 
-	workerData.computeCommandBuffer->bindPipeline(_mipmapPipeline);
+	assetComputeCommandBuffer->bindPipeline(_mipmapPipeline);
 
-	workerData.computeCommandBuffer->pushConstants(MipmapPushConstantData{
-		.srgb = isSrgb,
-		.reduceMode = 0
-	});
+	assetComputeCommandBuffer->pushConstants(MipmapPushConstantData{.srgb = isSrgb, .reduceMode = 0});
 
-	workerData.computeCommandBuffer->imageMemoryBarrier(
+	assetComputeCommandBuffer->imageMemoryBarrier(
 		cubemapTexture,
 		vk::PipelineStageFlagBits2::eComputeShader,
 		vk::AccessFlagBits2::eShaderStorageRead,
@@ -438,7 +434,7 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 
 	for (int level = 1; level < cubemapTexture->getInfo().getLevels(); level++)
 	{
-		workerData.computeCommandBuffer->imageMemoryBarrier(
+		assetComputeCommandBuffer->imageMemoryBarrier(
 			cubemapTexture,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageWrite,
@@ -449,7 +445,7 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 
 		for (int face = 0; face < 6; face++)
 		{
-			workerData.computeCommandBuffer->pushDescriptor(
+			assetComputeCommandBuffer->pushDescriptor(
 				0,
 				0,
 				cubemapTexture,
@@ -459,7 +455,7 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 				cubemapTexture->getInfo().getFormat()
 			);
 
-			workerData.computeCommandBuffer->pushDescriptor(
+			assetComputeCommandBuffer->pushDescriptor(
 				0,
 				1,
 				cubemapTexture,
@@ -470,10 +466,10 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 			);
 
 			glm::uvec2 dstSize = cubemapTexture->getSize(level);
-			workerData.computeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
+			assetComputeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
 		}
 
-		workerData.computeCommandBuffer->imageMemoryBarrier(
+		assetComputeCommandBuffer->imageMemoryBarrier(
 			cubemapTexture,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
@@ -483,21 +479,21 @@ void EquirectangularSkyboxProcessor::generateMipmaps(AssetManagerWorkerData& wor
 		);
 	}
 
-	workerData.computeCommandBuffer->releaseImageOwnership(
+	assetComputeCommandBuffer->releaseImageOwnership(
 		cubemapTexture,
 		Engine::getVKContext().getTransferQueue(),
 		vk::ImageLayout::eTransferSrcOptimal
 	);
 
-	workerData.computeCommandBuffer->end();
+	assetComputeCommandBuffer->end();
 
-	Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
+	Engine::getVKContext().getComputeQueue().submit(assetComputeCommandBuffer, {}, {});
 
-	workerData.computeCommandBuffer->waitExecution();
-	workerData.computeCommandBuffer->reset();
+	assetComputeCommandBuffer->waitExecution();
+	assetComputeCommandBuffer->reset();
 }
 
-static EquirectangularSkyboxData downloadCubemapTexture(AssetManagerWorkerData& workerData, const std::shared_ptr<VKImage>& cubemapTexture)
+static EquirectangularSkyboxData downloadCubemapTexture(const std::shared_ptr<VKImage>& cubemapTexture)
 {
 	// create staging buffer
 	VKBufferInfo stagingBufferInfo(cubemapTexture->getLayerByteSize() * 6, vk::BufferUsageFlagBits::eTransferDst);
@@ -507,9 +503,9 @@ static EquirectangularSkyboxData downloadCubemapTexture(AssetManagerWorkerData& 
 
 	std::shared_ptr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), stagingBufferInfo);
 
-	workerData.transferCommandBuffer->begin();
+	assetTransferCommandBuffer->begin();
 
-	workerData.transferCommandBuffer->acquireImageOwnership(
+	assetTransferCommandBuffer->acquireImageOwnership(
 		cubemapTexture,
 		Engine::getVKContext().getComputeQueue(),
 		vk::PipelineStageFlagBits2::eTransfer,
@@ -517,7 +513,7 @@ static EquirectangularSkyboxData downloadCubemapTexture(AssetManagerWorkerData& 
 		vk::ImageLayout::eTransferSrcOptimal
 	);
 
-	workerData.transferCommandBuffer->bufferMemoryBarrier(
+	assetTransferCommandBuffer->bufferMemoryBarrier(
 		stagingBuffer,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite
@@ -528,17 +524,17 @@ static EquirectangularSkyboxData downloadCubemapTexture(AssetManagerWorkerData& 
 	{
 		for (int level = 0; level < cubemapTexture->getInfo().getLevels(); level++)
 		{
-			workerData.transferCommandBuffer->copyImageToBuffer(cubemapTexture, face, level, stagingBuffer, bufferOffset);
+			assetTransferCommandBuffer->copyImageToBuffer(cubemapTexture, face, level, stagingBuffer, bufferOffset);
 			bufferOffset += cubemapTexture->getLevelByteSize(level);
 		}
 	}
 
-	workerData.transferCommandBuffer->end();
+	assetTransferCommandBuffer->end();
 
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
+	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
 
-	workerData.transferCommandBuffer->waitExecution();
-	workerData.transferCommandBuffer->reset();
+	assetTransferCommandBuffer->waitExecution();
+	assetTransferCommandBuffer->reset();
 
 	EquirectangularSkyboxData equirectangularSkyboxData;
 	equirectangularSkyboxData.format = cubemapTexture->getInfo().getFormat();
@@ -561,10 +557,10 @@ static EquirectangularSkyboxData downloadCubemapTexture(AssetManagerWorkerData& 
 	return equirectangularSkyboxData;
 }
 
-EquirectangularSkyboxData EquirectangularSkyboxProcessor::genCubemapAndMipmaps(AssetManagerWorkerData& workerData, vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb)
+EquirectangularSkyboxData EquirectangularSkyboxProcessor::genCubemapAndMipmaps(vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb)
 {
-	std::shared_ptr<VKImage> equirectangularTexture = uploadEquirectangularImage(workerData, format, size, data);
-	std::shared_ptr<VKImage> cubemapTexture = generateCubemap(workerData, format, equirectangularTexture);
-	generateMipmaps(workerData, cubemapTexture, isSrgb);
-	return downloadCubemapTexture(workerData, cubemapTexture);
+	std::shared_ptr<VKImage> equirectangularTexture = uploadEquirectangularImage(format, size, data);
+	std::shared_ptr<VKImage> cubemapTexture = generateCubemap(format, equirectangularTexture);
+	generateMipmaps(cubemapTexture, isSrgb);
+	return downloadCubemapTexture(cubemapTexture);
 }

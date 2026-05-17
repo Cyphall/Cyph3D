@@ -1,5 +1,6 @@
 #include "ImageProcessor.h"
 
+#include "Cyph3D/Asset/AssetManagerWorkerData.h"
 #include "Cyph3D/Asset/Processing/ImageCompressor.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/FileHelper.h"
@@ -147,7 +148,7 @@ ImageProcessor::ImageProcessor()
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
 }
 
-ImageData ImageProcessor::readImageData(AssetManagerWorkerData& workerData, std::string_view path, ImageType type, std::string_view cachePath)
+ImageData ImageProcessor::readImageData(std::string_view path, ImageType type, std::string_view cachePath)
 {
 	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
 	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;
@@ -165,21 +166,21 @@ ImageData ImageProcessor::readImageData(AssetManagerWorkerData& workerData, std:
 		{
 			Logger::warning("Could not load image [{} ({})] from cache. Reprocessing...", path, magic_enum::enum_name(type));
 			std::filesystem::remove(cacheAbsolutePath);
-			imageData = processImage(workerData, absolutePath, cacheAbsolutePath, type);
+			imageData = processImage(absolutePath, cacheAbsolutePath, type);
 			Logger::info("Image [{} ({})] reprocessed succesfully", path, magic_enum::enum_name(type));
 		}
 	}
 	else
 	{
 		Logger::info("Processing image [{} ({})]", path, magic_enum::enum_name(type));
-		imageData = processImage(workerData, absolutePath, cacheAbsolutePath, type);
+		imageData = processImage(absolutePath, cacheAbsolutePath, type);
 		Logger::info("Image [{} ({})] processed succesfully", path, magic_enum::enum_name(type));
 	}
 
 	return imageData;
 }
 
-ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const std::filesystem::path& input, const std::filesystem::path& output, ImageType type)
+ImageData ImageProcessor::processImage(const std::filesystem::path& input, const std::filesystem::path& output, ImageType type)
 {
 	StbImage::Channels requiredChannels;
 	StbImage::BitDepthFlags supportedBitDepth;
@@ -291,7 +292,7 @@ ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const
 		data = {image.getPtr(), image.getByteSize()};
 	}
 
-	ImageData imageData = genMipmaps(workerData, mipmapGenFormat, image.getSize(), data, isMipmapGenFormatSrgb);
+	ImageData imageData = genMipmaps(mipmapGenFormat, image.getSize(), data, isMipmapGenFormatSrgb);
 
 	if (compressionFormat != vk::Format::eUndefined)
 	{
@@ -303,7 +304,7 @@ ImageData ImageProcessor::processImage(AssetManagerWorkerData& workerData, const
 	return imageData;
 }
 
-ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb)
+ImageData ImageProcessor::genMipmaps(vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb)
 {
 	// create texture
 	VKImageInfo imageInfo(
@@ -329,15 +330,15 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	std::copy_n(data.data(), texture->getLevelByteSize(0), stagingBuffer->getHostPointer());
 
 	// upload staging buffer to texture
-	workerData.transferCommandBuffer->begin();
+	assetTransferCommandBuffer->begin();
 
-	workerData.transferCommandBuffer->bufferMemoryBarrier(
+	assetTransferCommandBuffer->bufferMemoryBarrier(
 		stagingBuffer,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferRead
 	);
 
-	workerData.transferCommandBuffer->imageMemoryBarrier(
+	assetTransferCommandBuffer->imageMemoryBarrier(
 		texture,
 		vk::PipelineStageFlagBits2::eCopy,
 		vk::AccessFlagBits2::eTransferWrite,
@@ -346,9 +347,9 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		{0, 0}
 	);
 
-	workerData.transferCommandBuffer->copyBufferToImage(stagingBuffer, 0, texture, 0, 0);
+	assetTransferCommandBuffer->copyBufferToImage(stagingBuffer, 0, texture, 0, 0);
 
-	workerData.transferCommandBuffer->releaseImageOwnership(
+	assetTransferCommandBuffer->releaseImageOwnership(
 		texture,
 		Engine::getVKContext().getComputeQueue(),
 		vk::ImageLayout::eGeneral,
@@ -356,25 +357,25 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		{0, 0}
 	);
 
-	workerData.transferCommandBuffer->end();
+	assetTransferCommandBuffer->end();
 
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
+	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
 
-	workerData.transferCommandBuffer->waitExecution();
-	workerData.transferCommandBuffer->reset();
+	assetTransferCommandBuffer->waitExecution();
+	assetTransferCommandBuffer->reset();
 
 	// generate mipmaps
-	workerData.computeCommandBuffer->begin();
+	assetComputeCommandBuffer->begin();
 
-	workerData.computeCommandBuffer->bindPipeline(_pipeline);
+	assetComputeCommandBuffer->bindPipeline(_pipeline);
 
 	PushConstantData pushConstantData{
 		.srgb = isSrgb,
 		.reduceMode = 0
 	};
-	workerData.computeCommandBuffer->pushConstants(pushConstantData);
+	assetComputeCommandBuffer->pushConstants(pushConstantData);
 
-	workerData.computeCommandBuffer->acquireImageOwnership(
+	assetComputeCommandBuffer->acquireImageOwnership(
 		texture,
 		Engine::getVKContext().getTransferQueue(),
 		vk::PipelineStageFlagBits2::eComputeShader,
@@ -386,7 +387,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 
 	for (int i = 1; i < texture->getInfo().getLevels(); i++)
 	{
-		workerData.computeCommandBuffer->imageMemoryBarrier(
+		assetComputeCommandBuffer->imageMemoryBarrier(
 			texture,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageWrite,
@@ -395,7 +396,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 			{i, i}
 		);
 
-		workerData.computeCommandBuffer->pushDescriptor(
+		assetComputeCommandBuffer->pushDescriptor(
 			0,
 			0,
 			texture,
@@ -405,7 +406,7 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 			texture->getInfo().getFormat()
 		);
 
-		workerData.computeCommandBuffer->pushDescriptor(
+		assetComputeCommandBuffer->pushDescriptor(
 			0,
 			1,
 			texture,
@@ -416,9 +417,9 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		);
 
 		glm::uvec2 dstSize = texture->getSize(i);
-		workerData.computeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
+		assetComputeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
 
-		workerData.computeCommandBuffer->imageMemoryBarrier(
+		assetComputeCommandBuffer->imageMemoryBarrier(
 			texture,
 			vk::PipelineStageFlagBits2::eComputeShader,
 			vk::AccessFlagBits2::eShaderStorageRead,
@@ -428,23 +429,23 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 		);
 	}
 
-	workerData.computeCommandBuffer->releaseImageOwnership(
+	assetComputeCommandBuffer->releaseImageOwnership(
 		texture,
 		Engine::getVKContext().getTransferQueue(),
 		vk::ImageLayout::eTransferSrcOptimal
 	);
 
-	workerData.computeCommandBuffer->end();
+	assetComputeCommandBuffer->end();
 
-	Engine::getVKContext().getComputeQueue().submit(workerData.computeCommandBuffer, {}, {});
+	Engine::getVKContext().getComputeQueue().submit(assetComputeCommandBuffer, {}, {});
 
-	workerData.computeCommandBuffer->waitExecution();
-	workerData.computeCommandBuffer->reset();
+	assetComputeCommandBuffer->waitExecution();
+	assetComputeCommandBuffer->reset();
 
 	// download texture to staging buffer
-	workerData.transferCommandBuffer->begin();
+	assetTransferCommandBuffer->begin();
 
-	workerData.transferCommandBuffer->acquireImageOwnership(
+	assetTransferCommandBuffer->acquireImageOwnership(
 		texture,
 		Engine::getVKContext().getComputeQueue(),
 		vk::PipelineStageFlagBits2::eCopy,
@@ -455,16 +456,16 @@ ImageData ImageProcessor::genMipmaps(AssetManagerWorkerData& workerData, vk::For
 	vk::DeviceSize bufferOffset = texture->getLevelByteSize(0);
 	for (uint32_t i = 1; i < texture->getInfo().getLevels(); i++)
 	{
-		workerData.transferCommandBuffer->copyImageToBuffer(texture, 0, i, stagingBuffer, bufferOffset);
+		assetTransferCommandBuffer->copyImageToBuffer(texture, 0, i, stagingBuffer, bufferOffset);
 		bufferOffset += texture->getLevelByteSize(i);
 	}
 
-	workerData.transferCommandBuffer->end();
+	assetTransferCommandBuffer->end();
 
-	Engine::getVKContext().getTransferQueue().submit(workerData.transferCommandBuffer, {}, {});
+	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
 
-	workerData.transferCommandBuffer->waitExecution();
-	workerData.transferCommandBuffer->reset();
+	assetTransferCommandBuffer->waitExecution();
+	assetTransferCommandBuffer->reset();
 
 	ImageData imageData;
 	imageData.format = format;

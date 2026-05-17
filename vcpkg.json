@@ -55,6 +55,10 @@
     {
       "name": "cmakerc",
       "version>=": "2023-07-24#0"
+    },
+    {
+      "name": "bshoshany-thread-pool",
+      "version>=": "5.1.0#0"
     }
   ]
 }

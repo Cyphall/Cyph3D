@@ -56,7 +56,7 @@ private:
 
 	CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature);
 
-	void load_async(AssetManagerWorkerData& workerData);
+	void load_async();
 
 	std::shared_ptr<VKImage> _image;
 	uint32_t _bindlessIndex;
