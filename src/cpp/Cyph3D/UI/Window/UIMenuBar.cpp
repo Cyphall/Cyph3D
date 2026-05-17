@@ -32,7 +32,7 @@ void UIMenuBar::show()
 						.fileTypeDisplayName = L"Cyph3D Scene",
 						.fileTypeExtensions = L"*.c3dscene"
 					}
-				}, "resources/scenes");
+				}, "assets/scenes");
 				// clang-format on
 
 				if (filePath.has_value())
@@ -56,7 +56,7 @@ void UIMenuBar::show()
 						.fileTypeDisplayName = L"Cyph3D Scene",
 						.fileTypeExtensions = L"*.c3dscene"
 					}
-				}, "resources/scenes", Engine::getScene().getName());
+				}, "assets/scenes", Engine::getScene().getName());
 				// clang-format on
 
 				if (filePath.has_value())
