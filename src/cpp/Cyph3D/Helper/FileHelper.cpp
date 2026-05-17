@@ -1,10 +1,10 @@
 #include "FileHelper.h"
 
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Window.h"
 
 #include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h>
 
 #undef APIENTRY
 #include <filesystem>
@@ -204,7 +204,7 @@ void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folde
 
 	if (FAILED(result))
 	{
-		Logger::error("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result));
+		spdlog::error("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result));
 		return;
 	}
 
@@ -218,7 +218,7 @@ void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folde
 
 		if (FAILED(result))
 		{
-			Logger::error("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result));
+			spdlog::error("Could not translate path {} to Win32 entry ID: {}", folder.generic_string(), std::system_category().message(result));
 			return;
 		}
 
@@ -229,7 +229,7 @@ void FileHelper::openExplorerAndSelectEntries(const std::filesystem::path& folde
 
 	if (FAILED(result))
 	{
-		Logger::error("Could not open folder in explorer and select entries: {}", std::system_category().message(result));
+		spdlog::error("Could not open folder in explorer and select entries: {}", std::system_category().message(result));
 	}
 }
 

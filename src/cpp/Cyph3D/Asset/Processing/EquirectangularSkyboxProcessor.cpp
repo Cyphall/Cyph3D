@@ -4,7 +4,6 @@
 #include "Cyph3D/Asset/Processing/ImageCompressor.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/StbImage.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
@@ -19,6 +18,7 @@
 #include <filesystem>
 #include <glm/gtc/matrix_transform.hpp>
 #include <half.hpp>
+#include <spdlog/spdlog.h>
 
 struct MipmapPushConstantData
 {
@@ -200,24 +200,24 @@ EquirectangularSkyboxData EquirectangularSkyboxProcessor::readEquirectangularSky
 
 	if (std::filesystem::exists(cacheAbsolutePath))
 	{
-		Logger::info("Loading equirectangular skybox [{}] from cache...", path);
+		spdlog::info("Loading equirectangular skybox [{}] from cache...", path);
 		if (readProcessedEquirectangularSkybox(cacheAbsolutePath, equirectangularSkyboxData))
 		{
-			Logger::info("Equirectangular skybox [{}] loaded from cache succesfully", path);
+			spdlog::info("Equirectangular skybox [{}] loaded from cache succesfully", path);
 		}
 		else
 		{
-			Logger::warning("Could not load equirectangular skybox [{}] from cache. Reprocessing...", path);
+			spdlog::warn("Could not load equirectangular skybox [{}] from cache. Reprocessing...", path);
 			std::filesystem::remove(cacheAbsolutePath);
 			equirectangularSkyboxData = processEquirectangularSkybox(absolutePath, cacheAbsolutePath);
-			Logger::info("Equirectangular skybox [{}] reprocessed succesfully", path);
+			spdlog::info("Equirectangular skybox [{}] reprocessed succesfully", path);
 		}
 	}
 	else
 	{
-		Logger::info("Processing equirectangular skybox [{}]", path);
+		spdlog::info("Processing equirectangular skybox [{}]", path);
 		equirectangularSkyboxData = processEquirectangularSkybox(absolutePath, cacheAbsolutePath);
-		Logger::info("Equirectangular skybox [{}] processed succesfully", path);
+		spdlog::info("Equirectangular skybox [{}] processed succesfully", path);
 	}
 
 	return equirectangularSkyboxData;

@@ -1,11 +1,11 @@
 #include "MeshProcessor.h"
 
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Logging/Logger.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <spdlog/spdlog.h>
 
 static void writeProcessedMesh(const std::filesystem::path& path, const MeshData& meshData)
 {
@@ -108,24 +108,24 @@ MeshData MeshProcessor::readMeshData(std::string_view path, std::string_view cac
 
 	if (std::filesystem::exists(cacheAbsolutePath))
 	{
-		Logger::info("Loading mesh [{}] from cache...", path);
+		spdlog::info("Loading mesh [{}] from cache...", path);
 		if (readProcessedMesh(cacheAbsolutePath, meshData))
 		{
-			Logger::info("Mesh [{}] loaded from cache succesfully", path);
+			spdlog::info("Mesh [{}] loaded from cache succesfully", path);
 		}
 		else
 		{
-			Logger::warning("Could not load mesh [{}] from cache. Reprocessing...", path);
+			spdlog::warn("Could not load mesh [{}] from cache. Reprocessing...", path);
 			std::filesystem::remove(cacheAbsolutePath);
 			meshData = processMesh(absolutePath, cacheAbsolutePath);
-			Logger::info("Mesh [{}] reprocessed succesfully", path);
+			spdlog::info("Mesh [{}] reprocessed succesfully", path);
 		}
 	}
 	else
 	{
-		Logger::info("Processing mesh [{}]", path);
+		spdlog::info("Processing mesh [{}]", path);
 		meshData = processMesh(absolutePath, cacheAbsolutePath);
-		Logger::info("Mesh [{}] processed succesfully", path);
+		spdlog::info("Mesh [{}] processed succesfully", path);
 	}
 
 	return meshData;

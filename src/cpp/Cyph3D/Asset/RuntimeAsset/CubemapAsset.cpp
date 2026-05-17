@@ -2,13 +2,13 @@
 
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
 #include <magic_enum.hpp>
+#include <spdlog/spdlog.h>
 
 CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature):
 	GPUAsset(manager, signature)
@@ -77,11 +77,11 @@ void CubemapAsset::load_async()
 
 	if (!_signature.equirectangularPath.empty())
 	{
-		Logger::info("Uploading cubemap [equirectangular: {}]...", _signature.equirectangularPath);
+		spdlog::info("Uploading cubemap [equirectangular: {}]...", _signature.equirectangularPath);
 	}
 	else
 	{
-		Logger::info(
+		spdlog::info(
 			"Uploading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
 			_signature.xposPath,
 			_signature.xnegPath,
@@ -215,11 +215,11 @@ void CubemapAsset::load_async()
 	_loaded = true;
 	if (!_signature.equirectangularPath.empty())
 	{
-		Logger::info("Cubemap [equirectangular: {}] uploaded succesfully", _signature.equirectangularPath);
+		spdlog::info("Cubemap [equirectangular: {}] uploaded succesfully", _signature.equirectangularPath);
 	}
 	else
 	{
-		Logger::info(
+		spdlog::info(
 			"Cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})] uploaded succesfully",
 			_signature.xposPath,
 			_signature.xnegPath,

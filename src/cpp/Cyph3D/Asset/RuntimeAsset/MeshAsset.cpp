@@ -2,13 +2,14 @@
 
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
 #include "Cyph3D/VKObject/AccelerationStructure/VKBottomLevelAccelerationStructureBuildInfo.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
+
+#include <spdlog/spdlog.h>
 
 MeshAsset* MeshAsset::_defaultMesh = nullptr;
 MeshAsset* MeshAsset::_missingMesh = nullptr;
@@ -77,7 +78,7 @@ void MeshAsset::load_async()
 {
 	MeshData meshData = _manager.getAssetProcessor().readMeshData(_signature.path);
 
-	Logger::info("Uploading mesh [{}]...", _signature.path);
+	spdlog::info("Uploading mesh [{}]...", _signature.path);
 
 	{
 		vk::BufferUsageFlags positionVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
@@ -324,7 +325,7 @@ void MeshAsset::load_async()
 	_boundingBoxMax = meshData.boundingBoxMax;
 
 	_loaded = true;
-	Logger::info("Mesh [{}] uploaded succesfully", _signature.path);
+	spdlog::info("Mesh [{}] uploaded succesfully", _signature.path);
 
 	_changed();
 }

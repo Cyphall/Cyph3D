@@ -1,6 +1,5 @@
 #include "VKContext.h"
 
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
@@ -8,6 +7,7 @@
 #include <fstream>
 #include <GLFW/glfw3.h>
 #include <memory>
+#include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
@@ -35,16 +35,16 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSev
 	switch (messageSeverity)
 	{
 	case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
-		Logger::error(messageData->pMessage);
+		spdlog::error(messageData->pMessage);
 		break;
 	case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
-		Logger::warning(messageData->pMessage);
+		spdlog::warn(messageData->pMessage);
 		break;
 	case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
-		Logger::info(messageData->pMessage);
+		spdlog::info(messageData->pMessage);
 		break;
 	case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
-		Logger::debug(messageData->pMessage);
+		spdlog::debug(messageData->pMessage);
 		break;
 	}
 

@@ -4,7 +4,6 @@
 #include "Cyph3D/Asset/Processing/ImageCompressor.h"
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/StbImage.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
@@ -17,6 +16,7 @@
 #include <filesystem>
 #include <half.hpp>
 #include <magic_enum.hpp>
+#include <spdlog/spdlog.h>
 
 struct PushConstantData
 {
@@ -157,24 +157,24 @@ ImageData ImageProcessor::readImageData(std::string_view path, ImageType type, s
 
 	if (std::filesystem::exists(cacheAbsolutePath))
 	{
-		Logger::info("Loading image [{} ({})] from cache...", path, magic_enum::enum_name(type));
+		spdlog::info("Loading image [{} ({})] from cache...", path, magic_enum::enum_name(type));
 		if (readProcessedImage(cacheAbsolutePath, imageData))
 		{
-			Logger::info("Image [{} ({})] loaded from cache succesfully", path, magic_enum::enum_name(type));
+			spdlog::info("Image [{} ({})] loaded from cache succesfully", path, magic_enum::enum_name(type));
 		}
 		else
 		{
-			Logger::warning("Could not load image [{} ({})] from cache. Reprocessing...", path, magic_enum::enum_name(type));
+			spdlog::warn("Could not load image [{} ({})] from cache. Reprocessing...", path, magic_enum::enum_name(type));
 			std::filesystem::remove(cacheAbsolutePath);
 			imageData = processImage(absolutePath, cacheAbsolutePath, type);
-			Logger::info("Image [{} ({})] reprocessed succesfully", path, magic_enum::enum_name(type));
+			spdlog::info("Image [{} ({})] reprocessed succesfully", path, magic_enum::enum_name(type));
 		}
 	}
 	else
 	{
-		Logger::info("Processing image [{} ({})]", path, magic_enum::enum_name(type));
+		spdlog::info("Processing image [{} ({})]", path, magic_enum::enum_name(type));
 		imageData = processImage(absolutePath, cacheAbsolutePath, type);
-		Logger::info("Image [{} ({})] processed succesfully", path, magic_enum::enum_name(type));
+		spdlog::info("Image [{} ({})] processed succesfully", path, magic_enum::enum_name(type));
 	}
 
 	return imageData;

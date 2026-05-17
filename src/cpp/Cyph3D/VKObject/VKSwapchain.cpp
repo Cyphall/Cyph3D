@@ -1,6 +1,5 @@
 #include "VKSwapchain.h"
 
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Image/VKSwapchainImage.h"
 #include "Cyph3D/VKObject/Semaphore/VKSemaphore.h"
@@ -9,6 +8,7 @@
 
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 struct SwapChainSupportDetails
 {
@@ -51,7 +51,7 @@ static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDev
 		}
 	}
 
-	Logger::error("Could not find a preferred surface format");
+	spdlog::error("Could not find a preferred surface format");
 
 	return supportedSurfaceFormats[0];
 }
@@ -79,7 +79,7 @@ const std::shared_ptr<VKSwapchainImage>& VKSwapchain::retrieveNextImage(VKFence&
 	auto [result, imageIndex] = _context.getDevice().acquireNextImageKHR(_swapchain, UINT64_MAX, VK_NULL_HANDLE, fence.getHandle());
 	if (result == vk::Result::eSuboptimalKHR)
 	{
-		Logger::warning("Suboptimal swapchain");
+		spdlog::warn("Suboptimal swapchain");
 	}
 
 	return _swapchainImages[imageIndex];

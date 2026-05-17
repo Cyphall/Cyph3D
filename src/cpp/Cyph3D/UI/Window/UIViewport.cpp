@@ -3,7 +3,6 @@
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Rendering/SceneRenderer/PathTracingSceneRenderer.h"
 #include "Cyph3D/Rendering/SceneRenderer/RasterizationSceneRenderer.h"
 #include "Cyph3D/Scene/Scene.h"
@@ -18,6 +17,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 #include <magic_enum.hpp>
+#include <spdlog/spdlog.h>
 #include <stb_image_write.h>
 
 enum class RenderToFileStatus
@@ -247,7 +247,7 @@ void UIViewport::show()
 				}
 				else
 				{
-					Logger::error("Could not save render to file, no rendered image has been created yet");
+					spdlog::error("Could not save render to file, no rendered image has been created yet");
 				}
 
 				_renderToFileData->status = RenderToFileStatus::eSaveFinished;

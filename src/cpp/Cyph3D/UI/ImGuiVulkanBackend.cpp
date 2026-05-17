@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Engine.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
@@ -18,6 +17,8 @@
 #include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/VKObject/VKSwapchain.h"
 #include "Cyph3D/Window.h"
+
+#include <spdlog/spdlog.h>
 
 ImGuiVulkanBackend::ImGuiVulkanBackend()
 {
@@ -118,7 +119,7 @@ void ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const std::s
 
 				if (texture->getState(0, 0).layout != vk::ImageLayout::eReadOnlyOptimal)
 				{
-					Logger::error("VKImage passed to ImGui has the wrong layout");
+					spdlog::error("VKImage passed to ImGui has the wrong layout");
 				}
 
 				if (texture.get() == _fontsTexture.get())

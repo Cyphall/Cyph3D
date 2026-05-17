@@ -1,5 +1,6 @@
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Logging/Logger.h"
+
+#include <spdlog/spdlog.h>
 
 int main(int argc, char** argv)
 {
@@ -11,7 +12,7 @@ int main(int argc, char** argv)
 	}
 	catch (const std::exception& e)
 	{
-		Logger::error(e.what());
+		spdlog::error(e.what());
 		system("pause");
 		return EXIT_FAILURE;
 	}

@@ -9,12 +9,12 @@
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Iterator/EntityConstIterator.h"
 #include "Cyph3D/Iterator/EntityIterator.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/ObjectSerialization.h"
 #include "Cyph3D/Scene/Camera.h"
 #include "Cyph3D/UI/Window/UIViewport.h"
 
 #include <glm/gtc/type_ptr.hpp>
+#include <spdlog/spdlog.h>
 
 std::atomic_uint64_t Scene::_changeVersion = 0;
 
@@ -198,7 +198,7 @@ void Scene::load(const std::filesystem::path& path)
 		nlohmann::ordered_json& jsonSkybox = jsonRoot["skybox"];
 		if (!jsonSkybox.is_null())
 		{
-			Logger::info("Scene deseralization: converting skybox identifier from version 1.");
+			spdlog::info("Scene deseralization: converting skybox identifier from version 1.");
 			std::string oldName = jsonSkybox["name"].get<std::string>();
 			std::string newFileName = std::filesystem::path(oldName).filename().generic_string();
 			std::string convertedPath = std::format("skyboxes/{}/{}.c3dskybox", oldName, newFileName);
@@ -208,7 +208,7 @@ void Scene::load(const std::filesystem::path& path)
 			}
 			else
 			{
-				Logger::warning("Scene deseralization: unable to convert skybox identifier from version 1.");
+				spdlog::warn("Scene deseralization: unable to convert skybox identifier from version 1.");
 			}
 
 			scene->setSkyboxRotation(jsonSkybox["rotation"].get<float>());

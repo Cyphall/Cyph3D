@@ -77,7 +77,6 @@ target_sources(Cyph3D PRIVATE
 	"src/cpp/Cyph3D/Iterator/EntityConstIterator.cpp"
 	"src/cpp/Cyph3D/Iterator/EntityIterator.cpp"
 	"src/cpp/Cyph3D/LibImpl.cpp"
-	"src/cpp/Cyph3D/Logging/Logger.cpp"
 	"src/cpp/Cyph3D/Main.cpp"
 	"src/cpp/Cyph3D/ObjectSerialization.cpp"
 	"src/cpp/Cyph3D/Rendering/Pass/BloomPass.cpp"
@@ -188,7 +187,6 @@ target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 	"src/cpp/Cyph3D/Iterator/ComponentIterator.h"
 	"src/cpp/Cyph3D/Iterator/EntityConstIterator.h"
 	"src/cpp/Cyph3D/Iterator/EntityIterator.h"
-	"src/cpp/Cyph3D/Logging/Logger.h"
 	"src/cpp/Cyph3D/ObjectSerialization.h"
 	"src/cpp/Cyph3D/Rendering/Pass/BloomPass.h"
 	"src/cpp/Cyph3D/Rendering/Pass/ExposurePass.h"
@@ -421,3 +419,8 @@ target_link_libraries(Cyph3D PRIVATE ISPCTextureCompressor)
 
 add_subdirectory("vendor/half/v2.2.0")
 target_link_libraries(Cyph3D PRIVATE half)
+
+# ---- Dependency: gabime/spdlog ----
+
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(Cyph3D PRIVATE spdlog::spdlog)

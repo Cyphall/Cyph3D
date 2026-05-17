@@ -2,13 +2,13 @@
 
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
 #include <magic_enum.hpp>
+#include <spdlog/spdlog.h>
 
 TextureAsset::TextureAsset(AssetManager& manager, const TextureAssetSignature& signature):
 	GPUAsset(manager, signature)
@@ -32,7 +32,7 @@ void TextureAsset::load_async()
 {
 	ImageData imageData = _manager.getAssetProcessor().readImageData(_signature.path, _signature.type);
 
-	Logger::info("Uploading texture [{} ({})]...", _signature.path, magic_enum::enum_name(_signature.type));
+	spdlog::info("Uploading texture [{} ({})]...", _signature.path, magic_enum::enum_name(_signature.type));
 
 	// create texture
 	VKImageInfo imageInfo(
@@ -129,7 +129,7 @@ void TextureAsset::load_async()
 	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getTextureSampler());
 
 	_loaded = true;
-	Logger::info("Texture [{} ({})] uploaded succesfully", _signature.path, magic_enum::enum_name(_signature.type));
+	spdlog::info("Texture [{} ({})] uploaded succesfully", _signature.path, magic_enum::enum_name(_signature.type));
 
 	_changed();
 }

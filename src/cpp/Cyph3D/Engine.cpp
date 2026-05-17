@@ -3,7 +3,6 @@
 #include "Cyph3D/Asset/AssetManager.h"
 #include "Cyph3D/Entity/Entity.h"
 #include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/Scene/Scene.h"
 #include "Cyph3D/UI/UIHelper.h"
 #include "Cyph3D/UI/Window/UIInspector.h"
@@ -17,6 +16,10 @@
 #include "VKObject/Semaphore/VKSemaphore.h"
 
 #include <GLFW/glfw3.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/callback_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 std::unique_ptr<VKContext> Engine::_vkContext;
 std::unique_ptr<Window> Engine::_window;
@@ -25,12 +28,50 @@ std::unique_ptr<Scene> Engine::_scene;
 
 Timer Engine::_timer;
 
+static void initLogger(spdlog::level::level_enum logLevel)
+{
+	std::vector<spdlog::sink_ptr> sinks;
+
+	{
+		auto& fileSink = sinks.emplace_back(
+			std::make_shared<spdlog::sinks::basic_file_sink_mt>("Cyph3D.log")
+		);
+		fileSink->set_level(spdlog::level::trace);
+	}
+
+	{
+		auto& stdoutColorSink = sinks.emplace_back(
+			std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
+		);
+		stdoutColorSink->set_level(spdlog::level::trace);
+	}
+
+	{
+		auto& breakpointSink = sinks.emplace_back(
+			std::make_shared<spdlog::sinks::callback_sink_mt>(
+				[](const spdlog::details::log_msg&)
+				{
+					volatile int dummy = 0;
+					(void)dummy;
+				}
+			)
+		);
+		breakpointSink->set_level(spdlog::level::err);
+	}
+
+	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("", sinks.begin(), sinks.end());
+	logger->set_level(logLevel);
+	logger->flush_on(spdlog::level::err);
+
+	spdlog::set_default_logger(std::move(logger));
+}
+
 void Engine::init()
 {
 #if defined(_DEBUG)
-	Logger::init(Logger::LogLevel::eDebug);
+	initLogger(spdlog::level::debug);
 #else
-	Logger::init(Logger::LogLevel::eInfo);
+	initLogger(spdlog::level::info);
 #endif
 
 	glfwInit();
@@ -38,7 +79,7 @@ void Engine::init()
 	glfwSetErrorCallback(
 		[](int code, const char* message)
 		{
-			Logger::error(message);
+			spdlog::error(message);
 		}
 	);
 
@@ -48,8 +89,8 @@ void Engine::init()
 	vk::PhysicalDeviceProperties2 properties;
 	properties.pNext = &driverProperties;
 	_vkContext->getPhysicalDevice().getProperties2(&properties);
-	Logger::info("GPU: {}", static_cast<std::string_view>(properties.properties.deviceName));
-	Logger::info("Driver: {} {}", static_cast<std::string_view>(driverProperties.driverName), static_cast<std::string_view>(driverProperties.driverInfo));
+	spdlog::info("GPU: {}", static_cast<std::string_view>(properties.properties.deviceName));
+	spdlog::info("Driver: {} {}", static_cast<std::string_view>(driverProperties.driverName), static_cast<std::string_view>(driverProperties.driverInfo));
 
 	_window = std::make_unique<Window>();
 
@@ -138,6 +179,7 @@ void Engine::shutdown()
 	_window.reset();
 	_vkContext.reset();
 	glfwTerminate();
+	spdlog::shutdown();
 }
 
 VKContext& Engine::getVKContext()
