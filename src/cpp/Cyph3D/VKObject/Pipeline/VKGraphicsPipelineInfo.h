@@ -5,8 +5,8 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineVertexInputLayoutInfo.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineViewport.h"
 
-#include <string>
 #include <optional>
+#include <string>
 #include <vulkan/vulkan.hpp>
 
 class VKPipelineLayout;

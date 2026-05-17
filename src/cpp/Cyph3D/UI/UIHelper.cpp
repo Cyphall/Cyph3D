@@ -16,11 +16,11 @@
 #include "Cyph3D/VKObject/VKDynamic.h"
 #include "Cyph3D/Window.h"
 
+#include <cmrc/cmrc.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
-#include <cmrc/cmrc.hpp>
 
 CMRC_DECLARE(resources);
 

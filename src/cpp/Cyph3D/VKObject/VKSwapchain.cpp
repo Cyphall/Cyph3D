@@ -133,13 +133,15 @@ void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapch
 	_swapchainImages.reserve(swapchainImages.size());
 	for (int i = 0; i < swapchainImages.size(); i++)
 	{
-		_swapchainImages.push_back(VKSwapchainImage::create(
-			_context,
-			swapchainImages[i],
-			createInfo.imageFormat,
-			glm::uvec2(createInfo.imageExtent.width, createInfo.imageExtent.height),
-			*this,
-			i
-		));
+		_swapchainImages.push_back(
+			VKSwapchainImage::create(
+				_context,
+				swapchainImages[i],
+				createInfo.imageFormat,
+				glm::uvec2(createInfo.imageExtent.width, createInfo.imageExtent.height),
+				*this,
+				i
+			)
+		);
 	}
 }

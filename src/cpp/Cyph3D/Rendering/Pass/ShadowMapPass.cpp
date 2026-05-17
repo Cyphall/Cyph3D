@@ -308,12 +308,14 @@ void ShadowMapPass::renderDirectionalShadowMap(
 
 	commandBuffer->endRendering();
 
-	_directionalShadowMapInfos.push_back(DirectionalShadowMapInfo{
-		.worldSize = worldSize,
-		.worldDepth = worldDepth,
-		.viewProjection = viewProjection,
-		.image = shadowMap
-	});
+	_directionalShadowMapInfos.push_back(
+		DirectionalShadowMapInfo{
+			.worldSize = worldSize,
+			.worldDepth = worldDepth,
+			.viewProjection = viewProjection,
+			.image = shadowMap,
+		}
+	);
 }
 
 void ShadowMapPass::renderPointShadowMap(
@@ -398,7 +400,9 @@ void ShadowMapPass::renderPointShadowMap(
 		commandBuffer->endRendering();
 	}
 
-	_pointShadowMapInfos.push_back(PointShadowMapInfo{
-		.image = shadowMap
-	});
+	_pointShadowMapInfos.push_back(
+		PointShadowMapInfo{
+			.image = shadowMap,
+		}
+	);
 }

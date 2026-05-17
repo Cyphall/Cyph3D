@@ -110,15 +110,17 @@ void CubemapAsset::load_async()
 	}
 	else
 	{
-		imageInfo.setName(std::format(
-			"{}|{}|{}|{}|{}|{}",
-			_signature.xposPath,
-			_signature.xnegPath,
-			_signature.yposPath,
-			_signature.ynegPath,
-			_signature.zposPath,
-			_signature.znegPath
-		));
+		imageInfo.setName(
+			std::format(
+				"{}|{}|{}|{}|{}|{}",
+				_signature.xposPath,
+				_signature.xnegPath,
+				_signature.yposPath,
+				_signature.ynegPath,
+				_signature.zposPath,
+				_signature.znegPath
+			)
+		);
 	}
 
 	_image = VKImage::create(Engine::getVKContext(), imageInfo);

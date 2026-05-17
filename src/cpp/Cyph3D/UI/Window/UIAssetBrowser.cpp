@@ -112,11 +112,13 @@ public:
 					}
 				}
 
-				_entries.emplace(std::make_unique<Entry>(
-					entry.path(),
-					entryType,
-					this
-				));
+				_entries.emplace(
+					std::make_unique<Entry>(
+						entry.path(),
+						entryType,
+						this
+					)
+				);
 			}
 		}
 	}
