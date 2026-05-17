@@ -7,9 +7,9 @@
 
 struct HitPayload
 {
-	dvec3 light;
 	uint randomOffset;
-	vec3 throughput;
+	vec3 emitted;
+	vec3 weight;
 	bool hit;
 	vec3 rayPosition;
 	vec3 rayDirection;
@@ -28,6 +28,7 @@ layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 
 void main()
 {
+	hitPayload.emitted = vec3(0);
 	if (u_hasSkybox)
 	{
 		vec3 rayDir = gl_WorldRayDirectionEXT;
@@ -35,10 +36,8 @@ void main()
 		rayDir = (u_skyboxRotation * vec4(rayDir, 1.0)).xyz;
 		vec3 skyboxColor = texture(u_textures[u_skyboxIndex], rayDir).rgb;
 
-		hitPayload.light += dvec3(hitPayload.throughput * skyboxColor);
+		hitPayload.emitted = skyboxColor;
 	}
 
 	hitPayload.hit = false;
-	hitPayload.rayPosition = vec3(0);
-	hitPayload.rayDirection = vec3(0);
 }

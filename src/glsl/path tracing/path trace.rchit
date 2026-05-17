@@ -12,9 +12,9 @@ const float TWO_PI = PI * 2.0;
 
 struct HitPayload
 {
-	dvec3 light;
 	uint randomOffset;
-	vec3 throughput;
+	vec3 emitted;
+	vec3 weight;
 	bool hit;
 	vec3 rayPosition;
 	vec3 rayDirection;
@@ -239,7 +239,7 @@ void main()
 	mat3 worldToTangent = transpose(tangentToWorld);
 
 
-	hitPayload.light += dvec3(hitPayload.throughput * albedo * emissive);
+	hitPayload.emitted = albedo * emissive;
 
 
 	hitPayload.hit = true;
@@ -280,9 +280,9 @@ void main()
 
 		vec3 dielectric = dielectricSpecularWeight;
 		vec3 conductor  = conductorSpecularWeight;
-		hitPayload.throughput *= mix(dielectric, conductor, metalness);
+		hitPayload.weight = mix(dielectric, conductor, metalness);
 
-		hitPayload.throughput *= 2.0;
+		hitPayload.weight *= 2.0;
 	}
 	else
 	{
@@ -292,8 +292,8 @@ void main()
 
 		vec3 dielectric = albedo * dielectricDiffuseWeight;
 		vec3 conductor  = albedo * conductorDiffuseWeight;
-		hitPayload.throughput *= mix(dielectric, conductor, metalness);
+		hitPayload.weight = mix(dielectric, conductor, metalness);
 
-		hitPayload.throughput *= 2.0;
+		hitPayload.weight *= 2.0;
 	}
 }

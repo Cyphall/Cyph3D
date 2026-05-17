@@ -10,9 +10,9 @@
 
 struct HitPayload
 {
-	dvec3 light;
 	uint randomOffset;
-	vec3 throughput;
+	vec3 emitted;
+	vec3 weight;
 	bool hit;
 	vec3 rayPosition;
 	vec3 rayDirection;
@@ -56,8 +56,8 @@ vec4 getRandom()
 void main()
 {
 	hitPayload.randomOffset = 0;
-	hitPayload.light = dvec3(0);
 
+	dvec3 light = dvec3(0);
 	if (!u_resetAccumulation)
 	{
 		u64vec3 totalLightEncoded = u64vec3(
@@ -66,12 +66,13 @@ void main()
 			imageLoad(u_color[2], ivec2(gl_LaunchIDEXT.xy)).r
 		);
 
-		hitPayload.light = uint64BitsToDouble(totalLightEncoded);
+		light = uint64BitsToDouble(totalLightEncoded);
 	}
 
 	for (int s = 0; s < u_sampleCount; s++)
 	{
-		hitPayload.throughput = vec3(1);
+		vec3 throughput = vec3(1);
+
 		hitPayload.rayPosition = u_position;
 
 		vec2 PS_rayPos = vec2(gl_LaunchIDEXT.xy) + 0.5 + (getRandom().xy - 0.5);
@@ -97,14 +98,18 @@ void main()
 				0                                       // payload location
 			);
 
+			light += dvec3(throughput * hitPayload.emitted);
+
 			if (!hitPayload.hit)
 			{
 				break;
 			}
+
+			throughput *= hitPayload.weight;
 		}
 	}
 
-	u64vec3 totalLightEncoded = doubleBitsToUint64(hitPayload.light);
+	u64vec3 totalLightEncoded = doubleBitsToUint64(light);
 
 	imageStore(u_color[0], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLightEncoded.r, 0, 0, 0));
 	imageStore(u_color[1], ivec2(gl_LaunchIDEXT.xy), u64vec4(totalLightEncoded.g, 0, 0, 0));
