@@ -1,4 +1,6 @@
 #version 460 core
+
+#extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_nonuniform_qualifier : require
 
 /* ------ consts ------ */
@@ -59,24 +61,24 @@ layout(location = 0) in V2F
 /* ------ uniforms ------ */
 layout(set = 0, binding = 0) uniform sampler2D u_textures[];
 
-layout(std430, set = 1, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere1
+layout(set = 1, binding = 0, scalar) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere1
 {
 	DirectionalLightUniforms u_directionalLightUniforms[];
 };
 layout(set = 1, binding = 1) uniform sampler2DShadow u_directionalLightTextures[];
 
-layout(std430, set = 2, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere2
+layout(set = 2, binding = 0, scalar) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere2
 {
 	PointLightUniforms u_pointLightUniforms[];
 };
 layout(set = 2, binding = 1) uniform samplerCubeShadow u_pointLightTextures[];
 
-layout(std430, set = 3, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere3
+layout(set = 3, binding = 0, scalar) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere3
 {
 	ObjectUniforms u_objectUniforms;
 };
 
-layout(push_constant) uniform constants
+layout(push_constant, scalar) uniform constants
 {
 	vec3 u_viewPos;
 	uint u_frameIndex;

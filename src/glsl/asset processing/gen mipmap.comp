@@ -1,10 +1,12 @@
 #version 460 core
+
+#extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_shader_image_load_formatted : require
 
 layout(set = 0, binding = 0) uniform readonly image2D u_input;
 layout(set = 0, binding = 1) uniform writeonly image2D u_output;
 
-layout(push_constant) uniform constants
+layout(push_constant, scalar) uniform constants
 {
 	bool u_srgb;
 	uint u_reduceMode;

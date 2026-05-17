@@ -1,5 +1,7 @@
 #version 460 core
 
+#extension GL_EXT_scalar_block_layout : require
+
 struct ObjectUniforms
 {
 	mat4 normalMatrix;
@@ -23,7 +25,7 @@ layout(location = 1) in vec2 a_uv;
 layout(location = 2) in vec3 a_normal;
 layout(location = 3) in vec4 a_tangent;
 
-layout(std430, set = 3, binding = 0) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere4
+layout(set = 3, binding = 0, scalar) readonly buffer UselessNameBecauseItIsNeverUsedAnywhere4
 {
 	ObjectUniforms u_objectUniforms;
 };

@@ -25,8 +25,8 @@ public:
 private:
 	struct PushConstantData
 	{
-		alignas(4) glm::vec2 scale;
-		alignas(4) glm::vec2 offset;
+		glm::vec2 scale;
+		glm::vec2 offset;
 	};
 
 	std::shared_ptr<VKSampler> _textureSampler;

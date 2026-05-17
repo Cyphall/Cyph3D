@@ -1,10 +1,12 @@
 #version 460 core
 
+#extension GL_EXT_scalar_block_layout : require
+
 layout(location = 0) in vec2 i_position;
 layout(location = 1) in vec2 i_uv;
 layout(location = 2) in vec4 i_color;
 
-layout(push_constant) uniform constants
+layout(push_constant, scalar) uniform constants
 {
 	vec2 u_scale;
 	vec2 u_translate;

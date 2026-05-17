@@ -1,5 +1,6 @@
 #version 460 core
 
+#extension GL_EXT_scalar_block_layout : require
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing : require
 #extension GL_ARB_gpu_shader_fp64 : require
@@ -17,7 +18,7 @@ struct HitPayload
 
 layout(set = 0, binding = 0) uniform samplerCube u_textures[];
 
-layout(shaderRecordEXT) buffer uniforms
+layout(shaderRecordEXT, scalar) buffer uniforms
 {
 	bool u_hasSkybox;
 	uint u_skyboxIndex;

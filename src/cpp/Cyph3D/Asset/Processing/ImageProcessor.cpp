@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Asset/Processing/ImageCompressor.h"
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/StbImage.h"
@@ -20,8 +19,8 @@
 
 struct PushConstantData
 {
-	GLSL_bool srgb;
-	GLSL_uint reduceMode;
+	vk::Bool32 srgb;
+	uint32_t reduceMode;
 };
 
 static void writeProcessedImage(const std::filesystem::path& path, const ImageData& imageData)

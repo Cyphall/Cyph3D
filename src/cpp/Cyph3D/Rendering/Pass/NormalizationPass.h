@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class VKDescriptorSetLayout;
@@ -28,7 +27,7 @@ public:
 private:
 	struct PushConstantData
 	{
-		GLSL_uint accumulatedSamples;
+		uint32_t accumulatedSamples;
 	};
 
 	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;

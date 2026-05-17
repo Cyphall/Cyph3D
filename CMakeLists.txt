@@ -179,7 +179,6 @@ target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 	"src/cpp/Cyph3D/Entity/Component/PointLight.h"
 	"src/cpp/Cyph3D/Entity/Entity.h"
 	"src/cpp/Cyph3D/Enums/ResourceType.h"
-	"src/cpp/Cyph3D/GLSL_types.h"
 	"src/cpp/Cyph3D/HashBuilder.h"
 	"src/cpp/Cyph3D/Helper/FileHelper.h"
 	"src/cpp/Cyph3D/Helper/ImGuiHelper.h"

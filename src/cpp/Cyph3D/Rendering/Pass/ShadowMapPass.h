@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/Rendering/RenderRegistry.h"
 #include "Cyph3D/Rendering/ShadowMapManager.h"
@@ -47,19 +46,20 @@ public:
 private:
 	struct DirectionalLightPushConstantData
 	{
-		GLSL_mat4 mvp;
+		glm::mat4 mvp;
 	};
 
-	struct PointLightUniforms
+	//FIXME: properly align storage buffer offset
+	struct alignas(16) PointLightUniforms
 	{
-		GLSL_mat4 viewProjection;
-		GLSL_vec3 lightPos;
-		GLSL_float maxDistance;
+		glm::mat4 viewProjection;
+		glm::vec3 lightPos;
+		float maxDistance;
 	};
 
 	struct PointLightPushConstantData
 	{
-		GLSL_mat4 model;
+		glm::mat4 model;
 	};
 
 	ShadowMapManager _shadowMapManager;

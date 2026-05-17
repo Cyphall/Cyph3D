@@ -1,4 +1,6 @@
 #version 460 core
+
+#extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_nonuniform_qualifier : require
 
 layout(location = 0) in V2F
@@ -6,7 +8,7 @@ layout(location = 0) in V2F
 	vec3 i_texCoords;
 };
 
-layout(push_constant) uniform constants
+layout(push_constant, scalar) uniform constants
 {
 	mat4 u_mvp;
 	uint u_textureIndex;

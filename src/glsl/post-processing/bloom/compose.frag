@@ -1,5 +1,7 @@
 #version 460 core
 
+#extension GL_EXT_scalar_block_layout : require
+
 layout(location = 0) in V2F
 {
 	vec2 i_texCoords;
@@ -8,7 +10,7 @@ layout(location = 0) in V2F
 layout(set = 0, binding = 0) uniform sampler2D u_srcATexture;
 layout(set = 0, binding = 1) uniform sampler2D u_srcBTexture;
 
-layout(push_constant) uniform constants
+layout(push_constant, scalar) uniform constants
 {
 	float u_factor;
 };

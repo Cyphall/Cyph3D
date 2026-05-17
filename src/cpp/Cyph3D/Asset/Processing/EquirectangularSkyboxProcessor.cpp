@@ -2,7 +2,6 @@
 
 #include "Cyph3D/Asset/Processing/ImageCompressor.h"
 #include "Cyph3D/Engine.h"
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Helper/FileHelper.h"
 #include "Cyph3D/Logging/Logger.h"
 #include "Cyph3D/StbImage.h"
@@ -22,13 +21,13 @@
 
 struct MipmapPushConstantData
 {
-	GLSL_bool srgb;
-	GLSL_uint reduceMode;
+	vk::Bool32 srgb;
+	uint32_t reduceMode;
 };
 
 struct CubemapPushConstantData
 {
-	GLSL_mat4 viewProjectionInv;
+	glm::mat4 viewProjectionInv;
 };
 
 static void writeProcessedEquirectangularSkybox(const std::filesystem::path& path, const EquirectangularSkyboxData& equirectangularSkyboxData)

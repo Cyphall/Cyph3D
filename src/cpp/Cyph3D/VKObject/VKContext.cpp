@@ -659,6 +659,7 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 	features.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingPartiallyBound = true;
 	features.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingVariableDescriptorCount = true;
 	features.get<vk::PhysicalDeviceVulkan12Features>().runtimeDescriptorArray = true;
+	features.get<vk::PhysicalDeviceVulkan12Features>().scalarBlockLayout = true;
 	features.get<vk::PhysicalDeviceVulkan12Features>().hostQueryReset = true;
 	features.get<vk::PhysicalDeviceVulkan12Features>().bufferDeviceAddress = true;
 	features.get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering = true;
@@ -675,7 +676,6 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 
 		features.get<vk::PhysicalDeviceFeatures2>().features.shaderInt64 = true;
 		features.get<vk::PhysicalDeviceFeatures2>().features.shaderFloat64 = true;
-		features.get<vk::PhysicalDeviceVulkan12Features>().scalarBlockLayout = true;
 		features.get<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>().accelerationStructure = true;
 		features.get<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>().rayTracingPipeline = true;
 		features.get<vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR>().rayTracingMaintenance1 = true;

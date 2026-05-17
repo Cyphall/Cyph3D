@@ -1,11 +1,13 @@
 #version 460 core
 
+#extension GL_EXT_scalar_block_layout : require
+
 layout(location = 0) in V2F
 {
 	vec3 i_fragPos;
 };
 
-layout(std430, set = 0, binding = 0) readonly buffer uniforms
+layout(set = 0, binding = 0, scalar) readonly buffer uniforms
 {
 	mat4 u_viewProjection;
 	vec3 u_lightPos;

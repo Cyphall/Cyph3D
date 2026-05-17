@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
-
 #include <glm/glm.hpp>
 #include <imgui.h>
 
@@ -27,8 +25,8 @@ public:
 private:
 	struct PushConstantData
 	{
-		GLSL_mat4 mvp;
-		GLSL_int objectIndex;
+		glm::mat4 mvp;
+		int32_t objectIndex;
 	};
 
 	glm::uvec2 _currentSize = {0, 0};

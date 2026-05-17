@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class Camera;
@@ -29,7 +28,7 @@ public:
 private:
 	struct PushConstantData
 	{
-		GLSL_float exposure;
+		float exposure;
 	};
 
 	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;

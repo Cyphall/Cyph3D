@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class Camera;
@@ -35,8 +34,8 @@ private:
 
 	struct PushConstantData
 	{
-		GLSL_mat4 mvp;
-		GLSL_uint textureIndex;
+		glm::mat4 mvp;
+		uint32_t textureIndex;
 	};
 
 	std::shared_ptr<VKPipelineLayout> _pipelineLayout;

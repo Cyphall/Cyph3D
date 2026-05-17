@@ -1,11 +1,11 @@
 #version 460 core
 
+#extension GL_EXT_scalar_block_layout : require
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing : require
 #extension GL_ARB_gpu_shader_fp64 : require
 #extension GL_EXT_nonuniform_qualifier : require
 #extension GL_EXT_buffer_reference : require
-#extension GL_EXT_scalar_block_layout : require
 
 const float PI = 3.14159265359;
 const float TWO_PI = PI * 2.0;
@@ -49,7 +49,7 @@ layout(buffer_reference, scalar, buffer_reference_align = 4) readonly buffer Ind
 
 layout(set = 0, binding = 0) uniform sampler2D u_textures[];
 
-layout(shaderRecordEXT) buffer uniforms
+layout(shaderRecordEXT, scalar) buffer uniforms
 {
 	mat4 u_normalMatrix;
 	PositionVertexBuffer u_positionVertexBuffer;
@@ -67,7 +67,7 @@ layout(shaderRecordEXT) buffer uniforms
 	float u_emissiveScale;
 };
 
-layout(push_constant) uniform constants
+layout(push_constant, scalar) uniform constants
 {
 	uvec2 u_topLevelAS;
 	uint u_batchIndex;

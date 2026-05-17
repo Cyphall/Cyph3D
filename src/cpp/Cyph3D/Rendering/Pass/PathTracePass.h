@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 struct RenderRegistry;
@@ -35,44 +34,44 @@ public:
 private:
 	struct RayGenUniforms
 	{
-		GLSL_vec3 cameraPosition;
-		GLSL_vec3 cameraRayTL;
-		GLSL_vec3 cameraRayTR;
-		GLSL_vec3 cameraRayBL;
-		GLSL_vec3 cameraRayBR;
+		glm::vec3 cameraPosition;
+		glm::vec3 cameraRayTL;
+		glm::vec3 cameraRayTR;
+		glm::vec3 cameraRayBL;
+		glm::vec3 cameraRayBR;
 	};
 
 	struct RayClosestHitUniforms
 	{
-		GLSL_mat4 normalMatrix;
-		GLSL_DeviceAddress positionVertexBuffer;
-		GLSL_DeviceAddress materialVertexBuffer;
-		GLSL_DeviceAddress indexBuffer;
-		GLSL_int albedoIndex;
-		GLSL_int normalIndex;
-		GLSL_int roughnessIndex;
-		GLSL_int metalnessIndex;
-		GLSL_int displacementIndex;
-		GLSL_int emissiveIndex;
-		GLSL_vec3 albedoValue;
-		GLSL_float roughnessValue;
-		GLSL_float metalnessValue;
-		GLSL_float emissiveScale;
+		glm::mat4 normalMatrix;
+		vk::DeviceAddress positionVertexBuffer;
+		vk::DeviceAddress materialVertexBuffer;
+		vk::DeviceAddress indexBuffer;
+		int32_t albedoIndex;
+		int32_t normalIndex;
+		int32_t roughnessIndex;
+		int32_t metalnessIndex;
+		int32_t displacementIndex;
+		int32_t emissiveIndex;
+		glm::vec3 albedoValue;
+		float roughnessValue;
+		float metalnessValue;
+		float emissiveScale;
 	};
 
 	struct RayMissUniforms
 	{
-		GLSL_bool hasSkybox;
-		GLSL_uint skyboxIndex;
-		GLSL_mat4 skyboxRotation;
+		vk::Bool32 hasSkybox;
+		uint32_t skyboxIndex;
+		glm::mat4 skyboxRotation;
 	};
 
 	struct FramePushConstants
 	{
-		GLSL_uvec2 topLevelAS;
-		GLSL_uint batchIndex;
-		GLSL_uint sampleCount;
-		GLSL_bool resetAccumulation;
+		glm::uvec2 topLevelAS;
+		uint32_t batchIndex;
+		uint32_t sampleCount;
+		vk::Bool32 resetAccumulation;
 	};
 
 	std::shared_ptr<VKAccelerationStructure> _tlas;

@@ -1,4 +1,6 @@
 #version 460 core
+
+#extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_shader_image_load_formatted : require
 
 const float PI = 3.14159265359;
@@ -6,7 +8,7 @@ const float PI = 3.14159265359;
 layout(set = 0, binding = 0) uniform sampler2D u_equirectangularTexture;
 layout(set = 0, binding = 1) uniform writeonly image2D u_cubemapTexture;
 
-layout(push_constant) uniform constants
+layout(push_constant, scalar) uniform constants
 {
 	mat4 u_viewProjectionInv;
 };

@@ -1,5 +1,7 @@
 #version 460 core
 
+#extension GL_EXT_scalar_block_layout : require
+
 layout(location = 0) in V2F
 {
 	vec4 i_color;

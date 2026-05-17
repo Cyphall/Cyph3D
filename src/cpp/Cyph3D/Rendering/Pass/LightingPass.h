@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 #include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
@@ -37,50 +36,51 @@ public:
 private:
 	struct DirectionalLightUniforms
 	{
-		GLSL_vec3 fragToLightDirection;
-		GLSL_float intensity;
-		GLSL_vec3 color;
-		GLSL_bool castShadows;
-		GLSL_mat4 lightViewProjection;
-		GLSL_uint textureIndex;
-		GLSL_float shadowMapTexelWorldSize;
+		glm::vec3 fragToLightDirection;
+		float intensity;
+		glm::vec3 color;
+		vk::Bool32 castShadows;
+		glm::mat4 lightViewProjection;
+		uint32_t textureIndex;
+		float shadowMapTexelWorldSize;
 	};
 
 	struct PointLightUniforms
 	{
-		GLSL_vec3 pos;
-		GLSL_float intensity;
-		GLSL_vec3 color;
-		GLSL_bool castShadows;
-		GLSL_uint textureIndex;
-		GLSL_float maxTexelSizeAtUnitDistance;
+		glm::vec3 pos;
+		float intensity;
+		glm::vec3 color;
+		vk::Bool32 castShadows;
+		uint32_t textureIndex;
+		float maxTexelSizeAtUnitDistance;
 	};
 
-	struct ObjectUniforms
+	//FIXME: properly align storage buffer offset
+	struct alignas(16) ObjectUniforms
 	{
-		GLSL_mat4 normalMatrix;
-		GLSL_mat4 model;
-		GLSL_mat4 mvp;
-		GLSL_int albedoIndex;
-		GLSL_int normalIndex;
-		GLSL_int roughnessIndex;
-		GLSL_int metalnessIndex;
-		GLSL_int displacementIndex;
-		GLSL_int emissiveIndex;
-		GLSL_vec3 albedoValue;
-		GLSL_float roughnessValue;
-		GLSL_float metalnessValue;
-		GLSL_float displacementScale;
-		GLSL_float emissiveScale;
+		glm::mat4 normalMatrix;
+		glm::mat4 model;
+		glm::mat4 mvp;
+		int32_t albedoIndex;
+		int32_t normalIndex;
+		int32_t roughnessIndex;
+		int32_t metalnessIndex;
+		int32_t displacementIndex;
+		int32_t emissiveIndex;
+		glm::vec3 albedoValue;
+		float roughnessValue;
+		float metalnessValue;
+		float displacementScale;
+		float emissiveScale;
 	};
 
 	struct PushConstantData
 	{
-		GLSL_vec3 viewPos;
-		GLSL_uint frameIndex;
-		GLSL_int directionalLightCount;
-		GLSL_int pointLightCount;
-		GLSL_float pointLightMaxDistance;
+		glm::vec3 viewPos;
+		uint32_t frameIndex;
+		int32_t directionalLightCount;
+		int32_t pointLightCount;
+		float pointLightMaxDistance;
 	};
 
 	VKDynamic<VKResizableBuffer<DirectionalLightUniforms>> _directionalLightsUniforms;

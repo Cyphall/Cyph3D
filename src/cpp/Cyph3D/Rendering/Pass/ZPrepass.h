@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 struct RenderRegistry;
@@ -28,7 +27,7 @@ public:
 private:
 	struct PushConstantData
 	{
-		GLSL_mat4 mvp;
+		glm::mat4 mvp;
 	};
 
 	std::shared_ptr<VKPipelineLayout> _pipelineLayout;

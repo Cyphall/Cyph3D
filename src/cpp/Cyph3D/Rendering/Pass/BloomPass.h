@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cyph3D/GLSL_types.h"
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
 class Camera;
@@ -38,8 +37,8 @@ private:
 
 	struct DownsamplePushConstantData
 	{
-		GLSL_vec2 srcPixelSize;
-		GLSL_int srcLevel;
+		glm::vec2 srcPixelSize;
+		int32_t srcLevel;
 	};
 
 	std::shared_ptr<VKDescriptorSetLayout> _downsampleDescriptorSetLayout;
@@ -51,9 +50,9 @@ private:
 
 	struct UpsamplePushConstantData
 	{
-		GLSL_vec2 srcPixelSize;
-		GLSL_int srcLevel;
-		GLSL_float bloomRadius;
+		glm::vec2 srcPixelSize;
+		int32_t srcLevel;
+		float bloomRadius;
 	};
 
 	std::shared_ptr<VKDescriptorSetLayout> _upsampleDescriptorSetLayout;
@@ -65,7 +64,7 @@ private:
 
 	struct ComposePushConstantData
 	{
-		GLSL_float factor;
+		float factor;
 	};
 
 	std::shared_ptr<VKDescriptorSetLayout> _composeDescriptorSetLayout;

@@ -1,5 +1,7 @@
 #version 460 core
 
+#extension GL_EXT_scalar_block_layout : require
+
 layout(location = 0) out V2F
 {
 	vec2 o_texCoords;
