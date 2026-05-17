@@ -1,68 +1,29 @@
 {
-  "builtin-baseline": "66a252f70eebdd744c02d7ab8c1cc6fe123c70ee",
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "builtin-baseline": "2b65c20fc66eda893aa15a15a453c3cf09500b19",
   "dependencies": [
-    {
-      "name": "glfw3",
-      "version>=": "3.4#0"
-    },
-    {
-      "name": "glm",
-      "version>=": "1.0.1#3"
-    },
-    {
-      "name": "nlohmann-json",
-      "version>=": "3.11.3#1"
-    },
-    {
-      "name": "assimp",
-      "version>=": "5.4.2#0"
-    },
-    {
-      "name": "stb",
-      "version>=": "2023-04-11#1"
-    },
-    {
-      "name": "magic-enum",
-      "version>=": "0.9.6#1"
-    },
-    {
-      "name": "freetype",
-      "version>=": "2.13.2#1"
-    },
-    {
-      "name": "sqlitecpp",
-      "version>=": "3.3.1#0"
-    },
-    {
-      "name": "crossguid",
-      "version>=": "2021-10-22#3"
-    },
-    {
-      "name": "vulkan-headers",
-      "version>=": "1.4.341.0#0"
-    },
+    "glfw3",
+    "glm",
+    "nlohmann-json",
+    "assimp",
+    "stb",
+    "magic-enum",
+    "freetype",
+    "sqlitecpp",
+    "crossguid",
+    "vulkan-headers",
+    "vulkan-memory-allocator",
+    "bshoshany-thread-pool",
     {
       "name": "glslang",
-      "version>=": "16.2.0#0",
       "features": [
         "tools"
-      ]
+      ],
+      "host": true
     },
-    {
-      "name": "vulkan-memory-allocator",
-      "version>=": "3.3.0#0"
-    },
-    {
-      "name": "cmakerc",
-      "version>=": "2023-07-24#0"
-    },
-    {
-      "name": "bshoshany-thread-pool",
-      "version>=": "5.1.0#0"
-    },
+    "cmakerc",
     {
       "name": "spdlog",
-      "version>=": "1.17.0#0",
       "default-features": false
     }
   ]

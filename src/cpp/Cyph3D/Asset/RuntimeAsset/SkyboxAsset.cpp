@@ -7,7 +7,7 @@
 #include "Cyph3D/Helper/JsonHelper.h"
 #include "Cyph3D/Window.h"
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 SkyboxAsset::SkyboxAsset(AssetManager& manager, const SkyboxAssetSignature& signature):
 	RuntimeAsset(manager, signature)

@@ -15,7 +15,7 @@
 
 #include <filesystem>
 #include <half.hpp>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
 struct PushConstantData

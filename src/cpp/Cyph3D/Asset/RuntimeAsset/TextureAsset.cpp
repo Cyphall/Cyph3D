@@ -7,7 +7,7 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/Queue/VKQueue.h"
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
 TextureAsset::TextureAsset(AssetManager& manager, const TextureAssetSignature& signature):
