@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.28)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-set(CMAKE_ISPC_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/tools/ispc/ispc.exe")
-
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob3 /DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob3 /DNDEBUG")
 
@@ -321,6 +319,11 @@ install(TARGETS Cyph3D)
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/assets"
 	TYPE BIN
 )
+
+# ---- Dependency: ispc/ispc ----
+
+find_program(ISPC_EXECUTABLE ispc REQUIRED)
+set(CMAKE_ISPC_COMPILER "${ISPC_EXECUTABLE}")
 
 # ---- Dependency: nothings/stb ----
 

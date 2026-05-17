@@ -1,6 +1,5 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "builtin-baseline": "2b65c20fc66eda893aa15a15a453c3cf09500b19",
   "dependencies": [
     "glfw3",
     "glm",
@@ -16,6 +15,7 @@
     "bshoshany-thread-pool",
     "nativefiledialog-extended",
     "cmakerc",
+    "ispc",
     {
       "name": "glslang",
       "features": [

@@ -1,0 +1,13 @@
+{
+  "name": "ispc",
+  "version": "1.30.0",
+  "description": "Intel® Implicit SPMD Program Compiler",
+  "homepage": "https://github.com/ispc/ispc",
+  "license": "BSD-3-Clause",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}
