@@ -20,6 +20,8 @@
 #include <half.hpp>
 #include <spdlog/spdlog.h>
 
+namespace
+{
 struct MipmapPushConstantData
 {
 	vk::Bool32 srgb;
@@ -30,6 +32,7 @@ struct CubemapPushConstantData
 {
 	glm::mat4 viewProjectionInv;
 };
+}
 
 static void writeProcessedEquirectangularSkybox(const std::filesystem::path& path, const c3d::EquirectangularSkyboxData& equirectangularSkyboxData)
 {

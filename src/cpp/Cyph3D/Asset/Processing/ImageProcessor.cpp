@@ -18,11 +18,14 @@
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
+namespace
+{
 struct PushConstantData
 {
 	vk::Bool32 srgb;
 	uint32_t reduceMode;
 };
+}
 
 static void writeProcessedImage(const std::filesystem::path& path, const c3d::ImageData& imageData)
 {

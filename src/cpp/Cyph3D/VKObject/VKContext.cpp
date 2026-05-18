@@ -22,6 +22,8 @@ struct c3d::VKContext::HelperData
 	VKDynamic<VKCommandBuffer> defaultCommandBuffer;
 };
 
+namespace
+{
 struct PhysicalDeviceInfo
 {
 	vk::PhysicalDevice handle;
@@ -29,6 +31,7 @@ struct PhysicalDeviceInfo
 	bool coreExtensionsSupported;
 	bool rayTracingExtensionsSupported;
 };
+}
 
 static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity, vk::DebugUtilsMessageTypeFlagsEXT messageTypes, const vk::DebugUtilsMessengerCallbackDataEXT* messageData, void* userData)
 {

@@ -61,12 +61,15 @@ bool c3d::ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, con
 	return assetChanged;
 }
 
+namespace
+{
 struct GroupPanelInfo
 {
 	glm::vec2 initialCursorPos;
 	const char* label;
 	glm::vec2 labelSize;
 };
+}
 
 static std::stack<GroupPanelInfo> groupPanelInfoStack;
 
