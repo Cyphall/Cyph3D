@@ -19,7 +19,7 @@
 static constexpr float POINT_SHADOW_MAP_NEAR = 0.01f;
 static constexpr float POINT_SHADOW_MAP_FAR = 100.0f;
 
-static const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []()
+static const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []
 {
 	glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, POINT_SHADOW_MAP_NEAR, POINT_SHADOW_MAP_FAR);
 

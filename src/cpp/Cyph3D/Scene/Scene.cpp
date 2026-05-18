@@ -52,7 +52,7 @@ c3d::Entity& c3d::Scene::createEntity(Transform& parent)
 	EntityContainer& container = _entities.emplace_back();
 	container.entity = std::make_unique<Entity>(parent, *this);
 	container.entityChangedConnection = container.entity->getChangedSignal().connect(
-		[]()
+		[]
 		{
 			_changeVersion++;
 		}
@@ -125,7 +125,7 @@ void c3d::Scene::setSkybox(std::optional<std::string_view> path)
 	{
 		_skybox = Engine::getAssetManager().loadSkybox(*path);
 		_skyboxChangedConnection = _skybox->getChangedSignal().connect(
-			[]()
+			[]
 			{
 				_changeVersion++;
 			}

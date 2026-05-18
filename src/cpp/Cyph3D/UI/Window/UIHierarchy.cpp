@@ -24,7 +24,7 @@ void c3d::UIHierarchy::show()
 		{
 			if (ImGui::MenuItem("Create Entity"))
 			{
-				_task = []()
+				_task = []
 				{
 					Entity& created = Engine::getScene().createEntity(Engine::getScene().getRoot());
 					UIInspector::setSelected(&created);
