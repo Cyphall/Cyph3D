@@ -7,7 +7,9 @@
 #include <assimp/scene.h>
 #include <spdlog/spdlog.h>
 
-static void writeProcessedMesh(const std::filesystem::path& path, const c3d::MeshData& meshData)
+namespace
+{
+void writeProcessedMesh(const std::filesystem::path& path, const c3d::MeshData& meshData)
 {
 	std::filesystem::create_directories(path.parent_path());
 	std::ofstream file = c3d::FileHelper::openFileForWriting(path);
@@ -24,7 +26,7 @@ static void writeProcessedMesh(const std::filesystem::path& path, const c3d::Mes
 	c3d::FileHelper::write(file, &meshData.boundingBoxMax);
 }
 
-static bool readProcessedMesh(const std::filesystem::path& path, c3d::MeshData& meshData)
+bool readProcessedMesh(const std::filesystem::path& path, c3d::MeshData& meshData)
 {
 	std::ifstream file = c3d::FileHelper::openFileForReading(path);
 
@@ -47,7 +49,7 @@ static bool readProcessedMesh(const std::filesystem::path& path, c3d::MeshData& 
 	return true;
 }
 
-static c3d::MeshData processMesh(const std::filesystem::path& input, const std::filesystem::path& output)
+c3d::MeshData processMesh(const std::filesystem::path& input, const std::filesystem::path& output)
 {
 	c3d::MeshData meshData;
 
@@ -97,6 +99,7 @@ static c3d::MeshData processMesh(const std::filesystem::path& input, const std::
 	writeProcessedMesh(output, meshData);
 
 	return meshData;
+}
 }
 
 c3d::MeshData c3d::MeshProcessor::readMeshData(std::string_view path, std::string_view cachePath)

@@ -16,10 +16,12 @@
 
 #include <glm/gtc/matrix_inverse.hpp>
 
-static constexpr float POINT_SHADOW_MAP_NEAR = 0.01f;
-static constexpr float POINT_SHADOW_MAP_FAR = 100.0f;
+namespace
+{
+constexpr float POINT_SHADOW_MAP_NEAR = 0.01f;
+constexpr float POINT_SHADOW_MAP_FAR = 100.0f;
 
-static const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []
+const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []
 {
 	glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, POINT_SHADOW_MAP_NEAR, POINT_SHADOW_MAP_FAR);
 
@@ -28,7 +30,7 @@ static const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []
 	return projection;
 }();
 
-static glm::mat4 calcDirectionalShadowMapView(const c3d::DirectionalLight::RenderData& light)
+glm::mat4 calcDirectionalShadowMapView(const c3d::DirectionalLight::RenderData& light)
 {
 	return glm::lookAt(
 		{0, 0, 0},
@@ -37,7 +39,7 @@ static glm::mat4 calcDirectionalShadowMapView(const c3d::DirectionalLight::Rende
 	);
 }
 
-static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(const glm::mat4& view, const std::vector<c3d::ModelRenderer::RenderData>& models)
+std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(const glm::mat4& view, const std::vector<c3d::ModelRenderer::RenderData>& models)
 {
 	glm::vec3 min(std::numeric_limits<float>::max());
 	glm::vec3 max(std::numeric_limits<float>::lowest());
@@ -73,7 +75,7 @@ static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(co
 	return {projection, size.x, size.z};
 }
 
-static std::array<glm::mat4, 6> calcPointShadowMapView(const c3d::PointLight::RenderData& light)
+std::array<glm::mat4, 6> calcPointShadowMapView(const c3d::PointLight::RenderData& light)
 {
 	glm::vec3 position = light.transform.getWorldPosition();
 
@@ -85,6 +87,7 @@ static std::array<glm::mat4, 6> calcPointShadowMapView(const c3d::PointLight::Re
 		glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)),
 		glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0))
 	};
+}
 }
 
 c3d::ShadowMapPass::ShadowMapPass(glm::uvec2 size):

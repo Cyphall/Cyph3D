@@ -18,9 +18,8 @@ struct SwapChainSupportDetails
 	std::vector<vk::SurfaceFormatKHR> formats;
 	std::vector<vk::PresentModeKHR> presentModes;
 };
-}
 
-static SwapChainSupportDetails querySwapchainSupport(vk::PhysicalDevice device, vk::SurfaceKHR surface)
+SwapChainSupportDetails querySwapchainSupport(vk::PhysicalDevice device, vk::SurfaceKHR surface)
 {
 	SwapChainSupportDetails details;
 
@@ -31,7 +30,7 @@ static SwapChainSupportDetails querySwapchainSupport(vk::PhysicalDevice device, 
 	return details;
 }
 
-static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
 {
 	constexpr std::array<vk::SurfaceFormatKHR, 2> preferredSurfaceFormats = {
 		vk::SurfaceFormatKHR{
@@ -57,6 +56,7 @@ static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDev
 	spdlog::error("Could not find a preferred surface format");
 
 	return supportedSurfaceFormats[0];
+}
 }
 
 std::unique_ptr<c3d::VKSwapchain> c3d::VKSwapchain::create(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)

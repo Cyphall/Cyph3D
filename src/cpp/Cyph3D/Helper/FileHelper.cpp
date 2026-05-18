@@ -17,11 +17,14 @@
 #endif
 #include <nfd_glfw3.h>
 
-static std::filesystem::path rootDirectoryPath = std::filesystem::current_path();
-static std::filesystem::path assetDirectoryPath = rootDirectoryPath / "assets";
+namespace
+{
+std::filesystem::path rootDirectoryPath = std::filesystem::current_path();
+std::filesystem::path assetDirectoryPath = rootDirectoryPath / "assets";
 
-static std::filesystem::path cacheRootDirectoryPath = rootDirectoryPath / "cache";
-static std::filesystem::path cacheAssetDirectoryPath = cacheRootDirectoryPath / "assets";
+std::filesystem::path cacheRootDirectoryPath = rootDirectoryPath / "cache";
+std::filesystem::path cacheAssetDirectoryPath = cacheRootDirectoryPath / "assets";
+}
 
 std::string c3d::FileHelper::readAllText(const std::filesystem::path& path)
 {

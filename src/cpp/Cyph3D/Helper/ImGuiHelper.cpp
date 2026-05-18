@@ -6,6 +6,18 @@
 #include <imgui_internal.h>
 #include <stack>
 
+namespace
+{
+struct GroupPanelInfo
+{
+	glm::vec2 initialCursorPos;
+	const char* label;
+	glm::vec2 labelSize;
+};
+
+std::stack<GroupPanelInfo> groupPanelInfoStack;
+}
+
 bool c3d::ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const char* label, const char* dragDropId, std::optional<std::string_view>& result)
 {
 	ImGui::PushID(label);
@@ -60,18 +72,6 @@ bool c3d::ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, con
 
 	return assetChanged;
 }
-
-namespace
-{
-struct GroupPanelInfo
-{
-	glm::vec2 initialCursorPos;
-	const char* label;
-	glm::vec2 labelSize;
-};
-}
-
-static std::stack<GroupPanelInfo> groupPanelInfoStack;
 
 void c3d::ImGuiHelper::BeginGroupPanel(const char* label)
 {

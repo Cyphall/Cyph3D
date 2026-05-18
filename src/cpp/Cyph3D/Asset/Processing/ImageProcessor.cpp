@@ -25,9 +25,8 @@ struct PushConstantData
 	vk::Bool32 srgb;
 	uint32_t reduceMode;
 };
-}
 
-static void writeProcessedImage(const std::filesystem::path& path, const c3d::ImageData& imageData)
+void writeProcessedImage(const std::filesystem::path& path, const c3d::ImageData& imageData)
 {
 	std::filesystem::create_directories(path.parent_path());
 	std::ofstream file = c3d::FileHelper::openFileForWriting(path);
@@ -48,7 +47,7 @@ static void writeProcessedImage(const std::filesystem::path& path, const c3d::Im
 	}
 }
 
-static bool readProcessedImage(const std::filesystem::path& path, c3d::ImageData& imageData)
+bool readProcessedImage(const std::filesystem::path& path, c3d::ImageData& imageData)
 {
 	std::ifstream file = c3d::FileHelper::openFileForReading(path);
 
@@ -76,7 +75,7 @@ static bool readProcessedImage(const std::filesystem::path& path, c3d::ImageData
 	return true;
 }
 
-static std::vector<std::byte> convertRgbToRg(std::span<const std::byte> input, int bytesPerChannel)
+std::vector<std::byte> convertRgbToRg(std::span<const std::byte> input, int bytesPerChannel)
 {
 	if (input.size() % 3 != 0)
 	{
@@ -92,7 +91,7 @@ static std::vector<std::byte> convertRgbToRg(std::span<const std::byte> input, i
 	return output;
 }
 
-static std::vector<std::byte> convertFloatToHalf(std::span<const std::byte> input)
+std::vector<std::byte> convertFloatToHalf(std::span<const std::byte> input)
 {
 	std::vector<std::byte> output(input.size() / 2);
 
@@ -108,7 +107,7 @@ static std::vector<std::byte> convertFloatToHalf(std::span<const std::byte> inpu
 	return output;
 }
 
-static c3d::ImageData compressTexture(const c3d::ImageData& mipmappedImageData, vk::Format requestedFormat)
+c3d::ImageData compressTexture(const c3d::ImageData& mipmappedImageData, vk::Format requestedFormat)
 {
 	c3d::ImageData compressedImageData;
 	compressedImageData.format = requestedFormat;
@@ -127,6 +126,7 @@ static c3d::ImageData compressTexture(const c3d::ImageData& mipmappedImageData, 
 	}
 
 	return compressedImageData;
+}
 }
 
 c3d::ImageProcessor::ImageProcessor()

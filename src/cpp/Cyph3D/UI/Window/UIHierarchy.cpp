@@ -10,6 +10,30 @@
 
 #include <imgui.h>
 
+namespace
+{
+void reparent(c3d::Transform& reparented, c3d::Transform& newParent)
+{
+	// Check if the new parent is not a child of the dragged Transform
+	c3d::Transform* parent = &newParent;
+	while ((parent = parent->getParent()) != nullptr)
+	{
+		if (parent == &reparented)
+		{
+			return;
+		}
+	}
+
+	// Check if the new parent is not already the current parent
+	if (&newParent == reparented.getParent())
+	{
+		return;
+	}
+
+	reparented.setParent(&newParent);
+}
+}
+
 std::function<void()> c3d::UIHierarchy::_task;
 
 void c3d::UIHierarchy::show()
@@ -74,27 +98,6 @@ void c3d::UIHierarchy::show()
 	}
 
 	ImGui::End();
-}
-
-static void reparent(c3d::Transform& reparented, c3d::Transform& newParent)
-{
-	// Check if the new parent is not a child of the dragged Transform
-	c3d::Transform* parent = &newParent;
-	while ((parent = parent->getParent()) != nullptr)
-	{
-		if (parent == &reparented)
-		{
-			return;
-		}
-	}
-
-	// Check if the new parent is not already the current parent
-	if (&newParent == reparented.getParent())
-	{
-		return;
-	}
-
-	reparented.setParent(&newParent);
 }
 
 void c3d::UIHierarchy::addRootToTree()

@@ -21,14 +21,9 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-std::unique_ptr<c3d::VKContext> c3d::Engine::_vkContext;
-std::unique_ptr<c3d::Window> c3d::Engine::_window;
-std::unique_ptr<c3d::AssetManager> c3d::Engine::_assetManager;
-std::unique_ptr<c3d::Scene> c3d::Engine::_scene;
-
-c3d::Timer c3d::Engine::_timer;
-
-static void initLogger(spdlog::level::level_enum logLevel)
+namespace
+{
+void initLogger(spdlog::level::level_enum logLevel)
 {
 	std::vector<spdlog::sink_ptr> sinks;
 
@@ -65,6 +60,14 @@ static void initLogger(spdlog::level::level_enum logLevel)
 
 	spdlog::set_default_logger(std::move(logger));
 }
+}
+
+std::unique_ptr<c3d::VKContext> c3d::Engine::_vkContext;
+std::unique_ptr<c3d::Window> c3d::Engine::_window;
+std::unique_ptr<c3d::AssetManager> c3d::Engine::_assetManager;
+std::unique_ptr<c3d::Scene> c3d::Engine::_scene;
+
+c3d::Timer c3d::Engine::_timer;
 
 void c3d::Engine::init()
 {

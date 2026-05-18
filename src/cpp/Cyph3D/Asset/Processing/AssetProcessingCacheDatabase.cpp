@@ -7,7 +7,9 @@
 #include <sqlite3.h>
 #include <SQLiteCpp/Database.h>
 
-static xg::Guid columnToGuid(const SQLite::Column& column)
+namespace
+{
+xg::Guid columnToGuid(const SQLite::Column& column)
 {
 	if (column.getBytes() != 16)
 	{
@@ -19,6 +21,7 @@ static xg::Guid columnToGuid(const SQLite::Column& column)
 	std::copy_n(blob, guidBytes.size(), guidBytes.data());
 
 	return xg::Guid(guidBytes);
+}
 }
 
 c3d::AssetProcessingCacheDatabase::AssetProcessingCacheDatabase()

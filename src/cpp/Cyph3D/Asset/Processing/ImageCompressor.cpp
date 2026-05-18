@@ -4,7 +4,9 @@
 #include <ispc_texcomp.h>
 #include <vulkan/vulkan_format_traits.hpp>
 
-static void compressImageBC4(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
+namespace
+{
+void compressImageBC4(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
 {
 	rgba_surface src{
 		.ptr = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(uncompressedImage.data())),
@@ -18,7 +20,7 @@ static void compressImageBC4(const std::vector<std::byte>& uncompressedImage, co
 	CompressBlocksBC4(&src, dst);
 }
 
-static void compressImageBC5(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
+void compressImageBC5(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
 {
 	rgba_surface src{
 		.ptr = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(uncompressedImage.data())),
@@ -32,7 +34,7 @@ static void compressImageBC5(const std::vector<std::byte>& uncompressedImage, co
 	CompressBlocksBC5(&src, dst);
 }
 
-static void compressImageBC6(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
+void compressImageBC6(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
 {
 	bc6h_enc_settings settings{};
 	GetProfile_bc6h_veryfast(&settings);
@@ -49,7 +51,7 @@ static void compressImageBC6(const std::vector<std::byte>& uncompressedImage, co
 	CompressBlocksBC6H(&src, dst, &settings);
 }
 
-static void compressImageBC7(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
+void compressImageBC7(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, std::vector<std::byte>& compressedImage)
 {
 	bc7_enc_settings settings{};
 	GetProfile_ultrafast(&settings);
@@ -64,6 +66,7 @@ static void compressImageBC7(const std::vector<std::byte>& uncompressedImage, co
 	uint8_t* dst = reinterpret_cast<uint8_t*>(compressedImage.data());
 
 	CompressBlocksBC7(&src, dst, &settings);
+}
 }
 
 bool c3d::ImageCompressor::tryCompressImage(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, vk::Format compressedFormat, std::vector<std::byte>& compressedImage)

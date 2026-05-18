@@ -5,7 +5,9 @@
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-static void threadInit()
+namespace
+{
+void threadInit()
 {
 	BS::this_thread::set_os_thread_priority(BS::os_thread_priority::below_normal);
 
@@ -14,11 +16,12 @@ static void threadInit()
 	c3d::assetTransferCommandBuffer = c3d::VKCommandBuffer::create(c3d::Engine::getVKContext(), c3d::Engine::getVKContext().getTransferQueue());
 }
 
-static void threadShutdown()
+void threadShutdown()
 {
 	c3d::assetGraphicsCommandBuffer.reset();
 	c3d::assetComputeCommandBuffer.reset();
 	c3d::assetTransferCommandBuffer.reset();
+}
 }
 
 c3d::AssetManager::AssetManager():

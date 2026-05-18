@@ -24,6 +24,14 @@
 
 CMRC_DECLARE(resources);
 
+namespace
+{
+ImVec4 normalizeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+	return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
+}
+}
+
 ImGuiContext* c3d::UIHelper::_context = nullptr;
 
 std::unique_ptr<c3d::UIAssetBrowser> c3d::UIHelper::_assetBrowser;
@@ -156,11 +164,6 @@ void c3d::UIHelper::initDockingLayout(ImGuiID dockspaceId)
 	ImGui::DockBuilderDockWindow("Viewport", remainingId);
 
 	ImGui::DockBuilderFinish(dockspaceId);
-}
-
-static ImVec4 normalizeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-{
-	return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
 }
 
 void c3d::UIHelper::initStyles()

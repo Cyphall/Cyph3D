@@ -12,18 +12,10 @@
 #include <unordered_set>
 #include <vector>
 
-static constexpr uint32_t VULKAN_VERSION = VK_API_VERSION_1_3;
-
-VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
-
-struct c3d::VKContext::HelperData
-{
-	std::shared_ptr<VKCommandBuffer> immediateCommandBuffer;
-	VKDynamic<VKCommandBuffer> defaultCommandBuffer;
-};
-
 namespace
 {
+constexpr uint32_t VULKAN_VERSION = VK_API_VERSION_1_3;
+
 struct PhysicalDeviceInfo
 {
 	vk::PhysicalDevice handle;
@@ -31,9 +23,8 @@ struct PhysicalDeviceInfo
 	bool coreExtensionsSupported;
 	bool rayTracingExtensionsSupported;
 };
-}
 
-static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity, vk::DebugUtilsMessageTypeFlagsEXT messageTypes, const vk::DebugUtilsMessengerCallbackDataEXT* messageData, void* userData)
+VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity, vk::DebugUtilsMessageTypeFlagsEXT messageTypes, const vk::DebugUtilsMessengerCallbackDataEXT* messageData, void* userData)
 {
 	switch (messageSeverity)
 	{
@@ -54,14 +45,14 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL messageCallback(vk::DebugUtilsMessageSev
 	return false;
 }
 
-static std::vector<const char*> getRequiredInstanceLayers()
+std::vector<const char*> getRequiredInstanceLayers()
 {
 	std::vector<const char*> layers;
 
 	return layers;
 }
 
-static std::vector<const char*> getPreferredInstanceLayers()
+std::vector<const char*> getPreferredInstanceLayers()
 {
 	std::vector<const char*> layers;
 
@@ -70,7 +61,7 @@ static std::vector<const char*> getPreferredInstanceLayers()
 	return layers;
 }
 
-static std::vector<const char*> getRequiredInstanceExtensions()
+std::vector<const char*> getRequiredInstanceExtensions()
 {
 	std::vector<const char*> extensions;
 
@@ -88,7 +79,7 @@ static std::vector<const char*> getRequiredInstanceExtensions()
 	return extensions;
 }
 
-static std::vector<const char*> getPreferredInstanceExtensions()
+std::vector<const char*> getPreferredInstanceExtensions()
 {
 	std::vector<const char*> extensions;
 
@@ -97,7 +88,7 @@ static std::vector<const char*> getPreferredInstanceExtensions()
 	return extensions;
 }
 
-static std::unordered_set<std::string> getSupportedInstanceLayers()
+std::unordered_set<std::string> getSupportedInstanceLayers()
 {
 	std::unordered_set<std::string> layers;
 
@@ -109,7 +100,7 @@ static std::unordered_set<std::string> getSupportedInstanceLayers()
 	return layers;
 }
 
-static std::unordered_set<std::string> getSupportedInstanceExtensions(const std::vector<const char*>& instanceLayers)
+std::unordered_set<std::string> getSupportedInstanceExtensions(const std::vector<const char*>& instanceLayers)
 {
 	std::unordered_set<std::string> extensions;
 
@@ -129,7 +120,7 @@ static std::unordered_set<std::string> getSupportedInstanceExtensions(const std:
 	return extensions;
 }
 
-static std::vector<const char*> buildInstanceLayerList(const std::vector<const char*>& requiredInstanceLayers, const std::vector<const char*>& preferredInstanceLayers, const std::unordered_set<std::string>& supportedInstanceLayers)
+std::vector<const char*> buildInstanceLayerList(const std::vector<const char*>& requiredInstanceLayers, const std::vector<const char*>& preferredInstanceLayers, const std::unordered_set<std::string>& supportedInstanceLayers)
 {
 	std::vector<const char*> layers;
 
@@ -156,7 +147,7 @@ static std::vector<const char*> buildInstanceLayerList(const std::vector<const c
 	return layers;
 }
 
-static std::vector<const char*> buildInstanceExtensionList(const std::vector<const char*>& requiredInstanceExtensions, const std::vector<const char*>& preferredInstanceExtensions, const std::unordered_set<std::string>& supportedInstanceExtensions)
+std::vector<const char*> buildInstanceExtensionList(const std::vector<const char*>& requiredInstanceExtensions, const std::vector<const char*>& preferredInstanceExtensions, const std::unordered_set<std::string>& supportedInstanceExtensions)
 {
 	std::vector<const char*> extensions;
 
@@ -183,7 +174,7 @@ static std::vector<const char*> buildInstanceExtensionList(const std::vector<con
 	return extensions;
 }
 
-static std::vector<const char*> getRequiredDeviceCoreExtensions()
+std::vector<const char*> getRequiredDeviceCoreExtensions()
 {
 	std::vector<const char*> extensions;
 
@@ -195,7 +186,7 @@ static std::vector<const char*> getRequiredDeviceCoreExtensions()
 	return extensions;
 }
 
-static std::vector<const char*> getRequiredDeviceRayTracingExtensions()
+std::vector<const char*> getRequiredDeviceRayTracingExtensions()
 {
 	std::vector<const char*> extensions;
 
@@ -208,7 +199,7 @@ static std::vector<const char*> getRequiredDeviceRayTracingExtensions()
 	return extensions;
 }
 
-static std::unordered_set<std::string> getSupportedDeviceExtensions(vk::PhysicalDevice physicalDevice)
+std::unordered_set<std::string> getSupportedDeviceExtensions(vk::PhysicalDevice physicalDevice)
 {
 	std::unordered_set<std::string> extensions;
 
@@ -220,7 +211,7 @@ static std::unordered_set<std::string> getSupportedDeviceExtensions(vk::Physical
 	return extensions;
 }
 
-static PhysicalDeviceInfo getPhysicalDeviceInfo(
+PhysicalDeviceInfo getPhysicalDeviceInfo(
 	vk::PhysicalDevice physicalDevice,
 	const std::vector<const char*>& requiredDeviceCoreExtensions,
 	const std::vector<const char*>& requiredDeviceRayTracingExtensions
@@ -255,7 +246,7 @@ static PhysicalDeviceInfo getPhysicalDeviceInfo(
 	return physicalDeviceInfo;
 }
 
-static int calculateDeviceScore(const PhysicalDeviceInfo& physicalDevice)
+int calculateDeviceScore(const PhysicalDeviceInfo& physicalDevice)
 {
 	if (physicalDevice.properties.apiVersion < VULKAN_VERSION)
 	{
@@ -288,7 +279,7 @@ static int calculateDeviceScore(const PhysicalDeviceInfo& physicalDevice)
 	return score;
 }
 
-static const PhysicalDeviceInfo* selectPhysicalDevice(const std::vector<PhysicalDeviceInfo>& physicalDevices)
+const PhysicalDeviceInfo* selectPhysicalDevice(const std::vector<PhysicalDeviceInfo>& physicalDevices)
 {
 	const PhysicalDeviceInfo* bestPhysicalDevice = nullptr;
 	int bestPhysicalDeviceScore = 0;
@@ -304,6 +295,15 @@ static const PhysicalDeviceInfo* selectPhysicalDevice(const std::vector<Physical
 
 	return bestPhysicalDevice;
 }
+}
+
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
+
+struct c3d::VKContext::HelperData
+{
+	std::shared_ptr<VKCommandBuffer> immediateCommandBuffer;
+	VKDynamic<VKCommandBuffer> defaultCommandBuffer;
+};
 
 std::unique_ptr<c3d::VKContext> c3d::VKContext::create(int concurrentFrameCount)
 {

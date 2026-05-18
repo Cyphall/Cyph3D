@@ -10,8 +10,11 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
-static constexpr float BLOOM_RADIUS = 0.85f;
-static constexpr float BLOOM_STRENGTH = 0.15f;
+namespace
+{
+constexpr float BLOOM_RADIUS = 0.85f;
+constexpr float BLOOM_STRENGTH = 0.15f;
+}
 
 c3d::BloomPass::BloomPass(glm::uvec2 size):
 	RenderPass(size, "Bloom pass")
