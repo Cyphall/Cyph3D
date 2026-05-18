@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <cstdint>
 
 class VKDescriptorSetLayout;
