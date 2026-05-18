@@ -9,14 +9,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
-const char* const PointLight::identifier = "PointLight";
+const char* const c3d::PointLight::identifier = "PointLight";
 
-PointLight::PointLight(Entity& entity):
+c3d::PointLight::PointLight(Entity& entity):
 	LightBase(entity)
 {
 }
 
-void PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
+void c3d::PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	RenderData data{
 		.transform = getTransform(),
@@ -29,7 +29,7 @@ void PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 	renderRegistry.addRenderRequest(data);
 }
 
-void PointLight::onDrawUi()
+void c3d::PointLight::onDrawUi()
 {
 	glm::vec3 imGuiSrgbColor = getSrgbColor();
 	if (ImGui::ColorEdit3("Color", glm::value_ptr(imGuiSrgbColor)))
@@ -78,48 +78,48 @@ void PointLight::onDrawUi()
 	}
 }
 
-const char* PointLight::getIdentifier() const
+const char* c3d::PointLight::getIdentifier() const
 {
 	return identifier;
 }
 
-bool PointLight::getCastShadows() const
+bool c3d::PointLight::getCastShadows() const
 {
 	return _castShadows;
 }
 
-void PointLight::setCastShadows(bool value)
+void c3d::PointLight::setCastShadows(bool value)
 {
 	_castShadows = value;
 
 	_changed();
 }
 
-uint32_t PointLight::getResolution() const
+uint32_t c3d::PointLight::getResolution() const
 {
 	return _resolution;
 }
 
-void PointLight::setResolution(uint32_t value)
+void c3d::PointLight::setResolution(uint32_t value)
 {
 	_resolution = value;
 
 	_changed();
 }
 
-float PointLight::getRadius() const
+float c3d::PointLight::getRadius() const
 {
 	return _radius;
 }
 
-void PointLight::setRadius(float value)
+void c3d::PointLight::setRadius(float value)
 {
 	_radius = value;
 
 	_changed();
 }
 
-void PointLight::duplicate(Entity& targetEntity) const
+void c3d::PointLight::duplicate(Entity& targetEntity) const
 {
 	PointLight& newComponent = targetEntity.addComponent<PointLight>();
 	newComponent.setSrgbColor(getSrgbColor());
@@ -129,7 +129,7 @@ void PointLight::duplicate(Entity& targetEntity) const
 	newComponent.setRadius(getRadius());
 }
 
-ObjectSerialization PointLight::serialize() const
+c3d::ObjectSerialization c3d::PointLight::serialize() const
 {
 	ObjectSerialization serialization;
 	serialization.version = 2;
@@ -145,7 +145,7 @@ ObjectSerialization PointLight::serialize() const
 	return serialization;
 }
 
-void PointLight::deserialize(const ObjectSerialization& serialization)
+void c3d::PointLight::deserialize(const ObjectSerialization& serialization)
 {
 	switch (serialization.version)
 	{
@@ -160,7 +160,7 @@ void PointLight::deserialize(const ObjectSerialization& serialization)
 	}
 }
 
-void PointLight::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+void c3d::PointLight::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
 	setSrgbColor(glm::make_vec3(jsonRoot["color"].get<std::vector<float>>().data()));
 	setIntensity(jsonRoot["intensity"].get<float>());
@@ -168,7 +168,7 @@ void PointLight::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 	setResolution(jsonRoot["shadow_resolution"].get<int>());
 }
 
-void PointLight::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
+void c3d::PointLight::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
 {
 	setSrgbColor(glm::make_vec3(jsonRoot["color"].get<std::vector<float>>().data()));
 	setIntensity(jsonRoot["intensity"].get<float>());

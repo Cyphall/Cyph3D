@@ -2,30 +2,30 @@
 
 #include "Cyph3D/Entity/Entity.h"
 
-Component::Component(Entity& entity):
+c3d::Component::Component(Entity& entity):
 	_entity(entity)
 {}
 
-Entity& Component::getEntity() const
+c3d::Entity& c3d::Component::getEntity() const
 {
 	return _entity;
 }
 
-void Component::onUpdate()
+void c3d::Component::onUpdate()
 {}
 
-void Component::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
+void c3d::Component::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {}
 
-void Component::onDrawUi()
+void c3d::Component::onDrawUi()
 {}
 
-Transform& Component::getTransform() const
+c3d::Transform& c3d::Component::getTransform() const
 {
 	return getEntity().getTransform();
 }
 
-sigslot::signal<>& Component::getChangedSignal()
+sigslot::signal<>& c3d::Component::getChangedSignal()
 {
 	return _changed;
 }

@@ -4,6 +4,8 @@
 
 #include <glm/glm.hpp>
 
+namespace c3d
+{
 class LightBase : public Component
 {
 public:
@@ -23,3 +25,4 @@ private:
 	glm::vec3 _srgbColor;
 	float _intensity = 1;
 };
+}

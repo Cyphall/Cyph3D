@@ -7,12 +7,12 @@
 #include <glm/gtx/transform.hpp>
 #include <stdexcept>
 
-Transform* Transform::getParent() const
+c3d::Transform* c3d::Transform::getParent() const
 {
 	return _parent;
 }
 
-void Transform::setParent(Transform* parent)
+void c3d::Transform::setParent(Transform* parent)
 {
 	if (parent == _parent)
 		return;
@@ -53,17 +53,17 @@ void Transform::setParent(Transform* parent)
 	_changed();
 }
 
-std::vector<Transform*>& Transform::getChildren()
+std::vector<c3d::Transform*>& c3d::Transform::getChildren()
 {
 	return _children;
 }
 
-const std::vector<Transform*>& Transform::getChildren() const
+const std::vector<c3d::Transform*>& c3d::Transform::getChildren() const
 {
 	return _children;
 }
 
-void Transform::invalidateLocalCache() const
+void c3d::Transform::invalidateLocalCache() const
 {
 	if (_invalidLocalCache)
 		return;
@@ -71,7 +71,7 @@ void Transform::invalidateLocalCache() const
 	invalidateWorldCache();
 }
 
-void Transform::invalidateWorldCache() const
+void c3d::Transform::invalidateWorldCache() const
 {
 	if (_invalidWorldCache)
 		return;
@@ -83,12 +83,12 @@ void Transform::invalidateWorldCache() const
 	}
 }
 
-glm::vec3 Transform::getLocalPosition() const
+glm::vec3 c3d::Transform::getLocalPosition() const
 {
 	return _localPosition;
 }
 
-glm::vec3 Transform::getWorldPosition() const
+glm::vec3 c3d::Transform::getWorldPosition() const
 {
 	if (_invalidWorldCache)
 	{
@@ -97,7 +97,7 @@ glm::vec3 Transform::getWorldPosition() const
 	return _cachedWorldPosition;
 }
 
-void Transform::setLocalPosition(glm::vec3 position)
+void c3d::Transform::setLocalPosition(glm::vec3 position)
 {
 	if (position == _localPosition)
 		return;
@@ -108,12 +108,12 @@ void Transform::setLocalPosition(glm::vec3 position)
 	_changed();
 }
 
-glm::quat Transform::getLocalRotation() const
+glm::quat c3d::Transform::getLocalRotation() const
 {
 	return _localRotation;
 }
 
-glm::quat Transform::getWorldRotation() const
+glm::quat c3d::Transform::getWorldRotation() const
 {
 	if (_invalidWorldCache)
 	{
@@ -122,7 +122,7 @@ glm::quat Transform::getWorldRotation() const
 	return _cachedWorldRotation;
 }
 
-void Transform::setLocalRotation(glm::quat rotation)
+void c3d::Transform::setLocalRotation(glm::quat rotation)
 {
 	if (rotation == _localRotation)
 		return;
@@ -133,12 +133,12 @@ void Transform::setLocalRotation(glm::quat rotation)
 	_changed();
 }
 
-glm::vec3 Transform::getLocalScale() const
+glm::vec3 c3d::Transform::getLocalScale() const
 {
 	return _localScale;
 }
 
-glm::vec3 Transform::getWorldScale() const
+glm::vec3 c3d::Transform::getWorldScale() const
 {
 	if (_invalidWorldCache)
 	{
@@ -147,7 +147,7 @@ glm::vec3 Transform::getWorldScale() const
 	return _cachedWorldScale;
 }
 
-void Transform::setLocalScale(glm::vec3 scale)
+void c3d::Transform::setLocalScale(glm::vec3 scale)
 {
 	if (scale == _localScale)
 		return;
@@ -158,22 +158,22 @@ void Transform::setLocalScale(glm::vec3 scale)
 	_changed();
 }
 
-glm::vec3 Transform::getEulerLocalRotation() const
+glm::vec3 c3d::Transform::getEulerLocalRotation() const
 {
 	return glm::degrees(glm::eulerAngles(_localRotation));
 }
 
-glm::vec3 Transform::getEulerWorldRotation() const
+glm::vec3 c3d::Transform::getEulerWorldRotation() const
 {
 	return glm::degrees(glm::eulerAngles(getWorldRotation()));
 }
 
-void Transform::setEulerLocalRotation(glm::vec3 eulerRotation)
+void c3d::Transform::setEulerLocalRotation(glm::vec3 eulerRotation)
 {
 	setLocalRotation(glm::quat(glm::radians(eulerRotation)));
 }
 
-const glm::mat4& Transform::getLocalToParentMatrix() const
+const glm::mat4& c3d::Transform::getLocalToParentMatrix() const
 {
 	if (_invalidLocalCache)
 	{
@@ -183,7 +183,7 @@ const glm::mat4& Transform::getLocalToParentMatrix() const
 	return _cachedLocalToParentMatrix;
 }
 
-const glm::mat4& Transform::getParentToLocalMatrix() const
+const glm::mat4& c3d::Transform::getParentToLocalMatrix() const
 {
 	if (_invalidLocalCache)
 	{
@@ -193,7 +193,7 @@ const glm::mat4& Transform::getParentToLocalMatrix() const
 	return _cachedParentToLocalMatrix;
 }
 
-glm::mat4 Transform::calcCustomLocalToWorldMatrix(bool translate, bool rotate, bool scale) const
+glm::mat4 c3d::Transform::calcCustomLocalToWorldMatrix(bool translate, bool rotate, bool scale) const
 {
 	glm::mat4 result = glm::identity<glm::mat4>();
 
@@ -215,12 +215,12 @@ glm::mat4 Transform::calcCustomLocalToWorldMatrix(bool translate, bool rotate, b
 	return result;
 }
 
-glm::mat4 Transform::calcCustomWorldToLocalMatrix(bool translate, bool rotate, bool scale) const
+glm::mat4 c3d::Transform::calcCustomWorldToLocalMatrix(bool translate, bool rotate, bool scale) const
 {
 	return glm::affineInverse(calcCustomLocalToWorldMatrix(translate, rotate, scale));
 }
 
-glm::mat4 Transform::calcCustomLocalToParentMatrix(bool translate, bool rotate, bool scale) const
+glm::mat4 c3d::Transform::calcCustomLocalToParentMatrix(bool translate, bool rotate, bool scale) const
 {
 	glm::mat4 result = glm::identity<glm::mat4>();
 
@@ -242,12 +242,12 @@ glm::mat4 Transform::calcCustomLocalToParentMatrix(bool translate, bool rotate, 
 	return result;
 }
 
-glm::mat4 Transform::calcCustomParentToLocalMatrix(bool translate, bool rotate, bool scale) const
+glm::mat4 c3d::Transform::calcCustomParentToLocalMatrix(bool translate, bool rotate, bool scale) const
 {
 	return glm::affineInverse(calcCustomLocalToParentMatrix(translate, rotate, scale));
 }
 
-const glm::mat4& Transform::getLocalToWorldMatrix() const
+const glm::mat4& c3d::Transform::getLocalToWorldMatrix() const
 {
 	if (_invalidWorldCache)
 	{
@@ -256,7 +256,7 @@ const glm::mat4& Transform::getLocalToWorldMatrix() const
 	return _cachedLocalToWorldMatrix;
 }
 
-const glm::mat4& Transform::getWorldToLocalMatrix() const
+const glm::mat4& c3d::Transform::getWorldToLocalMatrix() const
 {
 	if (_invalidWorldCache)
 	{
@@ -265,7 +265,7 @@ const glm::mat4& Transform::getWorldToLocalMatrix() const
 	return _cachedWorldToLocalMatrix;
 }
 
-Transform::Transform():
+c3d::Transform::Transform():
 	_localPosition(0),
 	_localRotation(glm::identity<glm::quat>()),
 	_localScale(1),
@@ -273,7 +273,7 @@ Transform::Transform():
 {
 }
 
-Transform::~Transform()
+c3d::Transform::~Transform()
 {
 	if (_parent != nullptr)
 		VectorHelper::removeAll(_parent->_children, this);
@@ -287,53 +287,53 @@ Transform::~Transform()
 	}
 }
 
-Entity* Transform::getOwner()
+c3d::Entity* c3d::Transform::getOwner()
 {
 	return _owner;
 }
 
-std::unique_ptr<Transform> Transform::createSceneRoot()
+std::unique_ptr<c3d::Transform> c3d::Transform::createSceneRoot()
 {
 	return std::unique_ptr<Transform>(new Transform());
 }
 
-Transform::Transform(Entity* owner, Transform* parent):
+c3d::Transform::Transform(Entity* owner, Transform* parent):
 	_owner(owner)
 {
 	setParent(parent);
 }
 
-glm::vec3 Transform::getRight() const
+glm::vec3 c3d::Transform::getRight() const
 {
 	return localToWorldDirection(glm::vec3(1, 0, 0));
 }
 
-glm::vec3 Transform::getLeft() const
+glm::vec3 c3d::Transform::getLeft() const
 {
 	return localToWorldDirection(glm::vec3(-1, 0, 0));
 }
 
-glm::vec3 Transform::getUp() const
+glm::vec3 c3d::Transform::getUp() const
 {
 	return localToWorldDirection(glm::vec3(0, 1, 0));
 }
 
-glm::vec3 Transform::getDown() const
+glm::vec3 c3d::Transform::getDown() const
 {
 	return localToWorldDirection(glm::vec3(0, -1, 0));
 }
 
-glm::vec3 Transform::getBackward() const
+glm::vec3 c3d::Transform::getBackward() const
 {
 	return localToWorldDirection(glm::vec3(0, 0, 1));
 }
 
-glm::vec3 Transform::getForward() const
+glm::vec3 c3d::Transform::getForward() const
 {
 	return localToWorldDirection(glm::vec3(0, 0, -1));
 }
 
-void Transform::recalculateWorldCache() const
+void c3d::Transform::recalculateWorldCache() const
 {
 	glm::vec3 localPos = getLocalPosition();
 	glm::quat localRot = getLocalRotation();
@@ -373,7 +373,7 @@ void Transform::recalculateWorldCache() const
 	_invalidWorldCache = false;
 }
 
-void Transform::recalculateLocalCache() const
+void c3d::Transform::recalculateLocalCache() const
 {
 	_cachedLocalToParentMatrix = glm::translate(_localPosition) *
 	                             glm::toMat4(_localRotation) *
@@ -383,47 +383,47 @@ void Transform::recalculateLocalCache() const
 	_invalidLocalCache = false;
 }
 
-glm::vec3 Transform::localToWorldDirection(glm::vec3 localDir) const
+glm::vec3 c3d::Transform::localToWorldDirection(glm::vec3 localDir) const
 {
 	return glm::normalize(glm::vec3(getLocalToWorldMatrix() * glm::vec4(localDir, 0)));
 }
 
-glm::vec3 Transform::worldToLocalDirection(glm::vec3 worldDir) const
+glm::vec3 c3d::Transform::worldToLocalDirection(glm::vec3 worldDir) const
 {
 	return glm::normalize(glm::vec3(getWorldToLocalMatrix() * glm::vec4(worldDir, 0)));
 }
 
-glm::vec3 Transform::localToParentDirection(glm::vec3 localDir) const
+glm::vec3 c3d::Transform::localToParentDirection(glm::vec3 localDir) const
 {
 	return glm::normalize(glm::vec3(getLocalToParentMatrix() * glm::vec4(localDir, 0)));
 }
 
-glm::vec3 Transform::parentToLocalDirection(glm::vec3 worldDir) const
+glm::vec3 c3d::Transform::parentToLocalDirection(glm::vec3 worldDir) const
 {
 	return glm::normalize(glm::vec3(getParentToLocalMatrix() * glm::vec4(worldDir, 0)));
 }
 
-glm::vec3 Transform::localToWorldPosition(glm::vec3 localDir) const
+glm::vec3 c3d::Transform::localToWorldPosition(glm::vec3 localDir) const
 {
 	return glm::vec3(getLocalToWorldMatrix() * glm::vec4(localDir, 1));
 }
 
-glm::vec3 Transform::worldToLocalPosition(glm::vec3 worldDir) const
+glm::vec3 c3d::Transform::worldToLocalPosition(glm::vec3 worldDir) const
 {
 	return glm::vec3(getWorldToLocalMatrix() * glm::vec4(worldDir, 1));
 }
 
-glm::vec3 Transform::localToParentPosition(glm::vec3 localDir) const
+glm::vec3 c3d::Transform::localToParentPosition(glm::vec3 localDir) const
 {
 	return glm::vec3(getLocalToParentMatrix() * glm::vec4(localDir, 1));
 }
 
-glm::vec3 Transform::parentToLocalPosition(glm::vec3 worldDir) const
+glm::vec3 c3d::Transform::parentToLocalPosition(glm::vec3 worldDir) const
 {
 	return glm::vec3(getParentToLocalMatrix() * glm::vec4(worldDir, 1));
 }
 
-sigslot::signal<>& Transform::getChangedSignal()
+sigslot::signal<>& c3d::Transform::getChangedSignal()
 {
 	return _changed;
 }

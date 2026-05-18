@@ -5,7 +5,7 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-BindlessTextureManager::BindlessTextureManager()
+c3d::BindlessTextureManager::BindlessTextureManager()
 {
 	VKDescriptorSetLayoutInfo descriptorSetLayoutInfo(false);
 	descriptorSetLayoutInfo.addIndexedBinding(vk::DescriptorType::eCombinedImageSampler, 100000);
@@ -16,7 +16,7 @@ BindlessTextureManager::BindlessTextureManager()
 	expand();
 }
 
-uint32_t BindlessTextureManager::acquireIndex()
+uint32_t c3d::BindlessTextureManager::acquireIndex()
 {
 	std::scoped_lock lock(_mutex);
 
@@ -31,7 +31,7 @@ uint32_t BindlessTextureManager::acquireIndex()
 	return index;
 }
 
-void BindlessTextureManager::releaseIndex(uint32_t index)
+void c3d::BindlessTextureManager::releaseIndex(uint32_t index)
 {
 	setTexture(index, {}, {});
 
@@ -40,7 +40,7 @@ void BindlessTextureManager::releaseIndex(uint32_t index)
 	_availableIndices.push(index);
 }
 
-void BindlessTextureManager::setTexture(uint32_t index, const std::shared_ptr<VKImage>& texture, const std::shared_ptr<VKSampler>& sampler)
+void c3d::BindlessTextureManager::setTexture(uint32_t index, const std::shared_ptr<VKImage>& texture, const std::shared_ptr<VKSampler>& sampler)
 {
 	std::scoped_lock lock(_mutex);
 
@@ -60,19 +60,19 @@ void BindlessTextureManager::setTexture(uint32_t index, const std::shared_ptr<VK
 	}
 }
 
-const std::shared_ptr<VKDescriptorSetLayout>& BindlessTextureManager::getDescriptorSetLayout()
+const std::shared_ptr<c3d::VKDescriptorSetLayout>& c3d::BindlessTextureManager::getDescriptorSetLayout()
 {
 	return _descriptorSetLayout;
 }
 
-const std::shared_ptr<VKDescriptorSet>& BindlessTextureManager::getDescriptorSet()
+const std::shared_ptr<c3d::VKDescriptorSet>& c3d::BindlessTextureManager::getDescriptorSet()
 {
 	std::scoped_lock lock(_mutex);
 
 	return _descriptorSets[_currentFrame];
 }
 
-void BindlessTextureManager::onNewFrame()
+void c3d::BindlessTextureManager::onNewFrame()
 {
 	std::scoped_lock lock(_mutex);
 
@@ -86,7 +86,7 @@ void BindlessTextureManager::onNewFrame()
 	_pendingChanges[_currentFrame].clear();
 }
 
-void BindlessTextureManager::expand()
+void c3d::BindlessTextureManager::expand()
 {
 	uint32_t oldSize = _descriptorSets[_currentFrame] ? _descriptorSets[_currentFrame]->getInfo().getVariableSizeAllocatedCount() : 0;
 	uint32_t newSize = oldSize > 0 ? oldSize * 2 : 16;

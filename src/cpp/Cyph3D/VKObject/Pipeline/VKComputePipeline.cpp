@@ -4,12 +4,12 @@
 #include "Cyph3D/VKObject/Shader/VKShader.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-std::shared_ptr<VKComputePipeline> VKComputePipeline::create(VKContext& context, const VKComputePipelineInfo& info)
+std::shared_ptr<c3d::VKComputePipeline> c3d::VKComputePipeline::create(VKContext& context, const VKComputePipelineInfo& info)
 {
 	return std::shared_ptr<VKComputePipeline>(new VKComputePipeline(context, info));
 }
 
-VKComputePipeline::VKComputePipeline(VKContext& context, const VKComputePipelineInfo& info):
+c3d::VKComputePipeline::VKComputePipeline(VKContext& context, const VKComputePipelineInfo& info):
 	VKPipeline(context),
 	_info(info)
 {
@@ -27,22 +27,22 @@ VKComputePipeline::VKComputePipeline(VKContext& context, const VKComputePipeline
 	_pipeline = _context.getDevice().createComputePipeline(VK_NULL_HANDLE, pipelineCreateInfo).value;
 }
 
-VKComputePipeline::~VKComputePipeline()
+c3d::VKComputePipeline::~VKComputePipeline()
 {
 	_context.getDevice().destroyPipeline(_pipeline);
 }
 
-const VKComputePipelineInfo& VKComputePipeline::getInfo() const
+const c3d::VKComputePipelineInfo& c3d::VKComputePipeline::getInfo() const
 {
 	return _info;
 }
 
-vk::PipelineBindPoint VKComputePipeline::getPipelineType() const
+vk::PipelineBindPoint c3d::VKComputePipeline::getPipelineType() const
 {
 	return vk::PipelineBindPoint::eCompute;
 }
 
-const std::shared_ptr<VKPipelineLayout>& VKComputePipeline::getPipelineLayout() const
+const std::shared_ptr<c3d::VKPipelineLayout>& c3d::VKComputePipeline::getPipelineLayout() const
 {
 	return _info.getPipelineLayout();
 }

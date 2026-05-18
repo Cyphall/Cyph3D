@@ -15,9 +15,9 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
-std::map<std::string, std::function<Component&(Entity&)>> Entity::_componentFactories;
+std::map<std::string, std::function<c3d::Component&(c3d::Entity&)>> c3d::Entity::_componentFactories;
 
-Entity::Entity(Transform& parent, Scene& scene):
+c3d::Entity::Entity(Transform& parent, Scene& scene):
 	_scene(scene),
 	_transform(this, &parent)
 {
@@ -29,27 +29,27 @@ Entity::Entity(Transform& parent, Scene& scene):
 	);
 }
 
-ComponentIterator Entity::begin()
+c3d::ComponentIterator c3d::Entity::begin()
 {
 	return ComponentIterator(_components.begin());
 }
 
-ComponentIterator Entity::end()
+c3d::ComponentIterator c3d::Entity::end()
 {
 	return ComponentIterator(_components.end());
 }
 
-ComponentConstIterator Entity::begin() const
+c3d::ComponentConstIterator c3d::Entity::begin() const
 {
 	return ComponentConstIterator(_components.cbegin());
 }
 
-ComponentConstIterator Entity::end() const
+c3d::ComponentConstIterator c3d::Entity::end() const
 {
 	return ComponentConstIterator(_components.cend());
 }
 
-ComponentIterator Entity::removeComponent(ComponentIterator where)
+c3d::ComponentIterator c3d::Entity::removeComponent(ComponentIterator where)
 {
 	ComponentIterator newIt = ComponentIterator(_components.erase(where.getUnderlyingIterator()));
 
@@ -58,22 +58,22 @@ ComponentIterator Entity::removeComponent(ComponentIterator where)
 	return newIt;
 }
 
-Transform& Entity::getTransform()
+c3d::Transform& c3d::Entity::getTransform()
 {
 	return _transform;
 }
 
-const Transform& Entity::getTransform() const
+const c3d::Transform& c3d::Entity::getTransform() const
 {
 	return _transform;
 }
 
-Scene& Entity::getScene() const
+c3d::Scene& c3d::Entity::getScene() const
 {
 	return _scene;
 }
 
-void Entity::onUpdate()
+void c3d::Entity::onUpdate()
 {
 	for (Component& component : *this)
 	{
@@ -81,7 +81,7 @@ void Entity::onUpdate()
 	}
 }
 
-void Entity::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
+void c3d::Entity::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	for (Component& component : *this)
 	{
@@ -89,7 +89,7 @@ void Entity::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 	}
 }
 
-ObjectSerialization Entity::serialize() const
+c3d::ObjectSerialization c3d::Entity::serialize() const
 {
 	ObjectSerialization entitySerialization;
 
@@ -122,7 +122,7 @@ ObjectSerialization Entity::serialize() const
 	return entitySerialization;
 }
 
-void Entity::deserialize(const ObjectSerialization& entitySerialization)
+void c3d::Entity::deserialize(const ObjectSerialization& entitySerialization)
 {
 	setName(entitySerialization.data["name"].get<std::string>());
 
@@ -141,24 +141,24 @@ void Entity::deserialize(const ObjectSerialization& entitySerialization)
 	}
 }
 
-sigslot::signal<>& Entity::getChangedSignal()
+sigslot::signal<>& c3d::Entity::getChangedSignal()
 {
 	return _changed;
 }
 
-const std::string& Entity::getName() const
+const std::string& c3d::Entity::getName() const
 {
 	return _name;
 }
 
-void Entity::setName(const std::string& name)
+void c3d::Entity::setName(const std::string& name)
 {
 	_name = name;
 
 	_changed();
 }
 
-void Entity::onDrawUi()
+void c3d::Entity::onDrawUi()
 {
 	ImGui::PushID(this);
 	ImGui::InputText("Name", &_name);
@@ -243,7 +243,7 @@ void Entity::onDrawUi()
 	ImGui::PopID();
 }
 
-void Entity::initComponentFactories()
+void c3d::Entity::initComponentFactories()
 {
 	_componentFactories[ModelRenderer::identifier] = [](Entity& entity) -> decltype(auto)
 	{
@@ -272,22 +272,22 @@ void Entity::initComponentFactories()
 	};
 }
 
-Component& Entity::addComponentByIdentifier(const std::string& identifier)
+c3d::Component& c3d::Entity::addComponentByIdentifier(const std::string& identifier)
 {
 	return _componentFactories[identifier](*this);
 }
 
-std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::componentFactories_begin()
+std::map<std::string, std::function<c3d::Component&(c3d::Entity&)>>::iterator c3d::Entity::componentFactories_begin()
 {
 	return _componentFactories.begin();
 }
 
-std::map<std::string, std::function<Component&(Entity&)>>::iterator Entity::componentFactories_end()
+std::map<std::string, std::function<c3d::Component&(c3d::Entity&)>>::iterator c3d::Entity::componentFactories_end()
 {
 	return _componentFactories.end();
 }
 
-void Entity::duplicate(Transform& parent) const
+void c3d::Entity::duplicate(Transform& parent) const
 {
 	Entity& newEntity = getScene().createEntity(parent);
 	newEntity.setName(getName());

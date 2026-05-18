@@ -4,6 +4,8 @@
 
 #include <vector>
 
+namespace c3d
+{
 class Entity;
 
 class EntityIterator
@@ -33,3 +35,4 @@ public:
 private:
 	std::vector<Scene::EntityContainer>::iterator _it;
 };
+}

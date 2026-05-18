@@ -13,7 +13,7 @@
 static constexpr float BLOOM_RADIUS = 0.85f;
 static constexpr float BLOOM_STRENGTH = 0.15f;
 
-BloomPass::BloomPass(glm::uvec2 size):
+c3d::BloomPass::BloomPass(glm::uvec2 size):
 	RenderPass(size, "Bloom pass")
 {
 	createDescriptorSetLayouts();
@@ -23,7 +23,7 @@ BloomPass::BloomPass(glm::uvec2 size):
 	createSamplers();
 }
 
-BloomPassOutput BloomPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, BloomPassInput& input)
+c3d::BloomPassOutput c3d::BloomPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, BloomPassInput& input)
 {
 	// copy inputImageView image level 0 to work image level 0
 	commandBuffer->pushDebugGroup("copyImageBaseLevel");
@@ -76,12 +76,12 @@ BloomPassOutput BloomPass::onRender(const std::shared_ptr<VKCommandBuffer>& comm
 	};
 }
 
-void BloomPass::onResize()
+void c3d::BloomPass::onResize()
 {
 	createImages();
 }
 
-void BloomPass::downsampleAnsBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void c3d::BloomPass::downsampleAnsBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	commandBuffer->imageMemoryBarrier(
 		_workImage,
@@ -151,7 +151,7 @@ void BloomPass::downsampleAnsBlur(const std::shared_ptr<VKCommandBuffer>& comman
 	commandBuffer->endRendering();
 }
 
-void BloomPass::upsampleAndBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void c3d::BloomPass::upsampleAndBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel)
 {
 	commandBuffer->imageMemoryBarrier(
 		_workImage,
@@ -223,7 +223,7 @@ void BloomPass::upsampleAndBlur(const std::shared_ptr<VKCommandBuffer>& commandB
 	commandBuffer->endRendering();
 }
 
-void BloomPass::compose(const std::shared_ptr<VKImage>& input, const std::shared_ptr<VKCommandBuffer>& commandBuffer)
+void c3d::BloomPass::compose(const std::shared_ptr<VKImage>& input, const std::shared_ptr<VKCommandBuffer>& commandBuffer)
 {
 	commandBuffer->imageMemoryBarrier(
 		input,
@@ -292,7 +292,7 @@ void BloomPass::compose(const std::shared_ptr<VKImage>& input, const std::shared
 	commandBuffer->endRendering();
 }
 
-void BloomPass::createDescriptorSetLayouts()
+void c3d::BloomPass::createDescriptorSetLayouts()
 {
 	{
 		VKDescriptorSetLayoutInfo info(true);
@@ -317,7 +317,7 @@ void BloomPass::createDescriptorSetLayouts()
 	}
 }
 
-void BloomPass::createPipelineLayouts()
+void c3d::BloomPass::createPipelineLayouts()
 {
 	{
 		VKPipelineLayoutInfo info;
@@ -344,7 +344,7 @@ void BloomPass::createPipelineLayouts()
 	}
 }
 
-void BloomPass::createPipelines()
+void c3d::BloomPass::createPipelines()
 {
 	{
 		VKGraphicsPipelineInfo info(
@@ -404,7 +404,7 @@ void BloomPass::createPipelines()
 	}
 }
 
-void BloomPass::createImages()
+void c3d::BloomPass::createImages()
 {
 	{
 		VKImageInfo imageInfo(
@@ -435,7 +435,7 @@ void BloomPass::createImages()
 	}
 }
 
-void BloomPass::createSamplers()
+void c3d::BloomPass::createSamplers()
 {
 	{
 		vk::SamplerCreateInfo createInfo;

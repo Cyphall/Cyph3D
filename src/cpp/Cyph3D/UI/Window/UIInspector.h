@@ -2,6 +2,8 @@
 
 #include "Cyph3D/UI/IInspectable.h"
 
+namespace c3d
+{
 class UIInspector
 {
 public:
@@ -13,3 +15,4 @@ public:
 private:
 	static IInspectable* _selected;
 };
+}

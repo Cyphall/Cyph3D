@@ -1,72 +1,72 @@
 #include "VKBufferInfo.h"
 
-VKBufferInfo::VKBufferInfo(size_t size, vk::BufferUsageFlags usage):
+c3d::VKBufferInfo::VKBufferInfo(size_t size, vk::BufferUsageFlags usage):
 	_size(size),
 	_usage(usage)
 {
 }
 
-const size_t& VKBufferInfo::getSize() const
+const size_t& c3d::VKBufferInfo::getSize() const
 {
 	return _size;
 }
 
-const vk::BufferUsageFlags& VKBufferInfo::getUsage() const
+const vk::BufferUsageFlags& c3d::VKBufferInfo::getUsage() const
 {
 	return _usage;
 }
 
-void VKBufferInfo::addRequiredMemoryProperty(vk::MemoryPropertyFlagBits property)
+void c3d::VKBufferInfo::addRequiredMemoryProperty(vk::MemoryPropertyFlagBits property)
 {
 	_requiredMemoryProperties |= property;
 }
 
-void VKBufferInfo::setRequiredMemoryProperties(vk::MemoryPropertyFlags properties)
+void c3d::VKBufferInfo::setRequiredMemoryProperties(vk::MemoryPropertyFlags properties)
 {
 	_requiredMemoryProperties = properties;
 }
 
-const vk::MemoryPropertyFlags& VKBufferInfo::getRequiredMemoryProperties() const
+const vk::MemoryPropertyFlags& c3d::VKBufferInfo::getRequiredMemoryProperties() const
 {
 	return _requiredMemoryProperties;
 }
 
-void VKBufferInfo::addPreferredMemoryProperty(vk::MemoryPropertyFlagBits property)
+void c3d::VKBufferInfo::addPreferredMemoryProperty(vk::MemoryPropertyFlagBits property)
 {
 	_preferredMemoryProperties |= property;
 }
 
-void VKBufferInfo::setPreferredMemoryProperties(vk::MemoryPropertyFlags properties)
+void c3d::VKBufferInfo::setPreferredMemoryProperties(vk::MemoryPropertyFlags properties)
 {
 	_preferredMemoryProperties = properties;
 }
 
-const vk::MemoryPropertyFlags& VKBufferInfo::getPreferredMemoryProperties() const
+const vk::MemoryPropertyFlags& c3d::VKBufferInfo::getPreferredMemoryProperties() const
 {
 	return _preferredMemoryProperties;
 }
 
-void VKBufferInfo::setRequiredAlignment(vk::DeviceSize requiredAlignment)
+void c3d::VKBufferInfo::setRequiredAlignment(vk::DeviceSize requiredAlignment)
 {
 	_requiredAlignment = requiredAlignment;
 }
 
-const vk::DeviceSize& VKBufferInfo::getRequiredAlignment() const
+const vk::DeviceSize& c3d::VKBufferInfo::getRequiredAlignment() const
 {
 	return _requiredAlignment;
 }
 
-void VKBufferInfo::setName(std::string_view name)
+void c3d::VKBufferInfo::setName(std::string_view name)
 {
 	_name = name;
 }
 
-bool VKBufferInfo::hasName() const
+bool c3d::VKBufferInfo::hasName() const
 {
 	return _name.has_value();
 }
 
-const std::string& VKBufferInfo::getName() const
+const std::string& c3d::VKBufferInfo::getName() const
 {
 	return _name.value();
 }

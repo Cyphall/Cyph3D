@@ -6,6 +6,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKShaderBindingTable : public VKObject
 {
 public:
@@ -46,3 +48,4 @@ private:
 	vk::DeviceSize _missSBTSize;
 	vk::DeviceSize _missSBTStride;
 };
+}

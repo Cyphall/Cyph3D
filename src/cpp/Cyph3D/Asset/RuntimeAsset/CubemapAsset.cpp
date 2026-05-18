@@ -10,25 +10,25 @@
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
-CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature):
+c3d::CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
 	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 	_manager.addThreadPoolTask(&CubemapAsset::load_async, this);
 }
 
-CubemapAsset::~CubemapAsset()
+c3d::CubemapAsset::~CubemapAsset()
 {
 	_manager.getBindlessTextureManager().releaseIndex(_bindlessIndex);
 }
 
-const uint32_t& CubemapAsset::getBindlessIndex() const
+const uint32_t& c3d::CubemapAsset::getBindlessIndex() const
 {
 	checkLoaded();
 	return _bindlessIndex;
 }
 
-void CubemapAsset::load_async()
+void c3d::CubemapAsset::load_async()
 {
 	std::reference_wrapper<std::string> paths[6] = {
 		_signature.xposPath,

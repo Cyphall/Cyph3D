@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKSwapchainImage;
 class VKSemaphore;
 class VKFence;
@@ -38,3 +40,4 @@ private:
 
 	size_t _nextIndex = 0;
 };
+}

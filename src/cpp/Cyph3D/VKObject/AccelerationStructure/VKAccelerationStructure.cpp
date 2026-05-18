@@ -2,7 +2,7 @@
 
 #include "Cyph3D/VKObject/Buffer/VKBuffer.h"
 
-std::shared_ptr<VKAccelerationStructure> VKAccelerationStructure::create(
+std::shared_ptr<c3d::VKAccelerationStructure> c3d::VKAccelerationStructure::create(
 	VKContext& context,
 	vk::AccelerationStructureTypeKHR type,
 	vk::DeviceSize size
@@ -11,7 +11,7 @@ std::shared_ptr<VKAccelerationStructure> VKAccelerationStructure::create(
 	return std::shared_ptr<VKAccelerationStructure>(new VKAccelerationStructure(context, type, size));
 }
 
-VKAccelerationStructure::VKAccelerationStructure(
+c3d::VKAccelerationStructure::VKAccelerationStructure(
 	VKContext& context,
 	vk::AccelerationStructureTypeKHR type,
 	vk::DeviceSize size
@@ -45,32 +45,32 @@ VKAccelerationStructure::VKAccelerationStructure(
 	_deviceAddress = _context.getDevice().getAccelerationStructureAddressKHR(accelerationStructureDeviceAddressInfo);
 }
 
-VKAccelerationStructure::~VKAccelerationStructure()
+c3d::VKAccelerationStructure::~VKAccelerationStructure()
 {
 	_context.getDevice().destroyAccelerationStructureKHR(_handle);
 }
 
-const vk::AccelerationStructureKHR& VKAccelerationStructure::getHandle()
+const vk::AccelerationStructureKHR& c3d::VKAccelerationStructure::getHandle()
 {
 	return _handle;
 }
 
-vk::AccelerationStructureTypeKHR VKAccelerationStructure::getType() const
+vk::AccelerationStructureTypeKHR c3d::VKAccelerationStructure::getType() const
 {
 	return _type;
 }
 
-vk::DeviceAddress VKAccelerationStructure::getDeviceAddress() const
+vk::DeviceAddress c3d::VKAccelerationStructure::getDeviceAddress() const
 {
 	return _deviceAddress;
 }
 
-std::shared_ptr<VKBufferBase> VKAccelerationStructure::getBackingBuffer()
+std::shared_ptr<c3d::VKBufferBase> c3d::VKAccelerationStructure::getBackingBuffer()
 {
 	return _backingBuffer;
 }
 
-vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getBottomLevelBuildSizesInfo(VKContext& context, const VKBottomLevelAccelerationStructureBuildInfo& buildInfo)
+vk::AccelerationStructureBuildSizesInfoKHR c3d::VKAccelerationStructure::getBottomLevelBuildSizesInfo(VKContext& context, const VKBottomLevelAccelerationStructureBuildInfo& buildInfo)
 {
 	vk::AccelerationStructureGeometryKHR geometry;
 	geometry.geometryType = vk::GeometryTypeKHR::eTriangles;
@@ -103,7 +103,7 @@ vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getBottomLev
 	);
 }
 
-vk::AccelerationStructureBuildSizesInfoKHR VKAccelerationStructure::getTopLevelBuildSizesInfo(VKContext& context, const VKTopLevelAccelerationStructureBuildInfo& buildInfo)
+vk::AccelerationStructureBuildSizesInfoKHR c3d::VKAccelerationStructure::getTopLevelBuildSizesInfo(VKContext& context, const VKTopLevelAccelerationStructureBuildInfo& buildInfo)
 {
 	vk::AccelerationStructureGeometryKHR geometry;
 	geometry.geometryType = vk::GeometryTypeKHR::eInstances;

@@ -4,12 +4,12 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-std::shared_ptr<VKPipelineLayout> VKPipelineLayout::create(VKContext& context, const VKPipelineLayoutInfo& info)
+std::shared_ptr<c3d::VKPipelineLayout> c3d::VKPipelineLayout::create(VKContext& context, const VKPipelineLayoutInfo& info)
 {
 	return std::shared_ptr<VKPipelineLayout>(new VKPipelineLayout(context, info));
 }
 
-VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInfo& info):
+c3d::VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInfo& info):
 	VKObject(context),
 	_info(info)
 {
@@ -48,17 +48,17 @@ VKPipelineLayout::VKPipelineLayout(VKContext& context, const VKPipelineLayoutInf
 	_pipelineLayout = _context.getDevice().createPipelineLayout(pipelineLayoutCreateInfo);
 }
 
-VKPipelineLayout::~VKPipelineLayout()
+c3d::VKPipelineLayout::~VKPipelineLayout()
 {
 	_context.getDevice().destroyPipelineLayout(_pipelineLayout);
 }
 
-const VKPipelineLayoutInfo& VKPipelineLayout::getInfo() const
+const c3d::VKPipelineLayoutInfo& c3d::VKPipelineLayout::getInfo() const
 {
 	return _info;
 }
 
-const vk::PipelineLayout& VKPipelineLayout::getHandle()
+const vk::PipelineLayout& c3d::VKPipelineLayout::getHandle()
 {
 	return _pipelineLayout;
 }

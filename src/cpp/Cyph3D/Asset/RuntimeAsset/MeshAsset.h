@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 
+namespace c3d
+{
 class AssetManager;
 template<typename T>
 class VKBuffer;
@@ -17,17 +19,6 @@ struct MeshAssetSignature
 	std::string path;
 
 	bool operator==(const MeshAssetSignature& other) const = default;
-};
-
-template<>
-struct std::hash<MeshAssetSignature>
-{
-	std::size_t operator()(const MeshAssetSignature& key) const noexcept
-	{
-		return HashBuilder()
-		    .hash(key.path)
-		    .get();
-	}
 };
 
 class MeshAsset : public GPUAsset<MeshAssetSignature>
@@ -64,4 +55,16 @@ private:
 
 	static MeshAsset* _defaultMesh;
 	static MeshAsset* _missingMesh;
+};
+}
+
+template<>
+struct std::hash<c3d::MeshAssetSignature>
+{
+	std::size_t operator()(const c3d::MeshAssetSignature& key) const noexcept
+	{
+		return c3d::HashBuilder()
+		    .hash(key.path)
+		    .get();
+	}
 };

@@ -2,6 +2,8 @@
 
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
+namespace c3d
+{
 class VKDescriptorSetLayout;
 class VKPipelineLayout;
 class VKComputePipeline;
@@ -45,3 +47,4 @@ private:
 	NormalizationPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input) override;
 	void onResize() override;
 };
+}

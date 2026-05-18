@@ -5,6 +5,8 @@
 #include <optional>
 #include <sigslot/signal.hpp>
 
+namespace c3d
+{
 class SkyboxAsset;
 class Transform;
 class Entity;
@@ -70,3 +72,4 @@ private:
 	friend class EntityIterator;
 	friend class EntityConstIterator;
 };
+}

@@ -3,6 +3,8 @@
 #include <array>
 #include <vector>
 
+namespace c3d
+{
 class VKShaderBindingTableInfo
 {
 public:
@@ -64,3 +66,4 @@ private:
 	size_t _maxTrignaleHitRecordSize = 0;
 	size_t _maxMissRecordSize = 0;
 };
+}

@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+namespace c3d
+{
 class UIMisc
 {
 public:
@@ -23,3 +25,4 @@ private:
 
 	static void displayFrametime();
 };
+}

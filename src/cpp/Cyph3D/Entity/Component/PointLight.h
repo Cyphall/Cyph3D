@@ -4,6 +4,8 @@
 
 #include <nlohmann/json_fwd.hpp>
 
+namespace c3d
+{
 class PointLight : public LightBase
 {
 public:
@@ -47,3 +49,4 @@ private:
 	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
 };
+}

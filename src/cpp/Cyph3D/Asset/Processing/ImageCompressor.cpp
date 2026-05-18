@@ -66,7 +66,7 @@ static void compressImageBC7(const std::vector<std::byte>& uncompressedImage, co
 	CompressBlocksBC7(&src, dst, &settings);
 }
 
-bool ImageCompressor::tryCompressImage(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, vk::Format compressedFormat, std::vector<std::byte>& compressedImage)
+bool c3d::ImageCompressor::tryCompressImage(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, vk::Format compressedFormat, std::vector<std::byte>& compressedImage)
 {
 	if (uncompressedImageSize.x % vk::blockExtent(compressedFormat)[0] != 0 ||
 	    uncompressedImageSize.y % vk::blockExtent(compressedFormat)[1] != 0)

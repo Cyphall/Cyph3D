@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <imgui.h>
 
+namespace c3d
+{
 class Entity;
 class VKCommandBuffer;
 class Camera;
@@ -48,3 +50,4 @@ private:
 	void createBuffer();
 	void createImage();
 };
+}

@@ -3,12 +3,12 @@
 #include "Cyph3D/VKObject/Image/VKImage.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-std::shared_ptr<VKSwapchainImage> VKSwapchainImage::create(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index)
+std::shared_ptr<c3d::VKSwapchainImage> c3d::VKSwapchainImage::create(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index)
 {
 	return std::shared_ptr<VKSwapchainImage>(new VKSwapchainImage(context, handle, format, size, swapchain, index));
 }
 
-VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index):
+c3d::VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::Format format, const glm::uvec2& size, VKSwapchain& swapchain, uint32_t index):
 	VKObject(context),
 	_swapchain(swapchain),
 	_index(index)
@@ -20,19 +20,19 @@ VKSwapchainImage::VKSwapchainImage(VKContext& context, vk::Image handle, vk::For
 	_image = VKImage::create(_context, info);
 }
 
-VKSwapchainImage::~VKSwapchainImage() = default;
+c3d::VKSwapchainImage::~VKSwapchainImage() = default;
 
-VKSwapchain& VKSwapchainImage::getSwapchain() const
+c3d::VKSwapchain& c3d::VKSwapchainImage::getSwapchain() const
 {
 	return _swapchain;
 }
 
-const std::shared_ptr<VKImage>& VKSwapchainImage::getImage()
+const std::shared_ptr<c3d::VKImage>& c3d::VKSwapchainImage::getImage()
 {
 	return _image;
 }
 
-const uint32_t& VKSwapchainImage::getIndex() const
+const uint32_t& c3d::VKSwapchainImage::getIndex() const
 {
 	return _index;
 }

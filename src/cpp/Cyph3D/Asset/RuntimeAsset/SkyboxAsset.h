@@ -8,6 +8,8 @@
 #include <optional>
 #include <string>
 
+namespace c3d
+{
 class CubemapAsset;
 class TextureAsset;
 class VKImage;
@@ -17,17 +19,6 @@ struct SkyboxAssetSignature
 	std::string path;
 
 	bool operator==(const SkyboxAssetSignature& other) const = default;
-};
-
-template<>
-struct std::hash<SkyboxAssetSignature>
-{
-	std::size_t operator()(const SkyboxAssetSignature& key) const noexcept
-	{
-		return HashBuilder()
-		    .hash(key.path)
-		    .get();
-	}
 };
 
 class SkyboxAsset : public RuntimeAsset<SkyboxAssetSignature>, public IInspectable
@@ -100,4 +91,16 @@ private:
 
 	CubemapAsset* _cubemap = nullptr;
 	sigslot::scoped_connection _cubemapChangedConnection;
+};
+}
+
+template<>
+struct std::hash<c3d::SkyboxAssetSignature>
+{
+	std::size_t operator()(const c3d::SkyboxAssetSignature& key) const noexcept
+	{
+		return c3d::HashBuilder()
+		    .hash(key.path)
+		    .get();
+	}
 };

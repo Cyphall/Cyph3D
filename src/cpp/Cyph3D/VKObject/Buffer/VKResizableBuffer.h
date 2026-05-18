@@ -4,6 +4,8 @@
 #include "Cyph3D/VKObject/Buffer/VKResizableBufferInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
+namespace c3d
+{
 template<typename T>
 class VKResizableBuffer : public VKObject
 {
@@ -110,3 +112,4 @@ private:
 
 	std::shared_ptr<VKBuffer<T>> _buffer;
 };
+}

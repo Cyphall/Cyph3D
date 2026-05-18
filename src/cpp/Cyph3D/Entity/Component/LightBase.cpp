@@ -2,18 +2,18 @@
 
 #include "Cyph3D/Helper/MathHelper.h"
 
-LightBase::LightBase(Entity& entity):
+c3d::LightBase::LightBase(Entity& entity):
 	Component(entity)
 {
 	setSrgbColor(glm::vec3(1));
 }
 
-glm::vec3 LightBase::getLinearColor() const
+glm::vec3 c3d::LightBase::getLinearColor() const
 {
 	return _linearColor;
 }
 
-void LightBase::setLinearColor(glm::vec3 color)
+void c3d::LightBase::setLinearColor(glm::vec3 color)
 {
 	_linearColor = color;
 	_srgbColor = MathHelper::linearToSrgb(color);
@@ -21,12 +21,12 @@ void LightBase::setLinearColor(glm::vec3 color)
 	_changed();
 }
 
-glm::vec3 LightBase::getSrgbColor() const
+glm::vec3 c3d::LightBase::getSrgbColor() const
 {
 	return _srgbColor;
 }
 
-void LightBase::setSrgbColor(glm::vec3 color)
+void c3d::LightBase::setSrgbColor(glm::vec3 color)
 {
 	_srgbColor = color;
 	_linearColor = MathHelper::srgbToLinear(color);
@@ -34,12 +34,12 @@ void LightBase::setSrgbColor(glm::vec3 color)
 	_changed();
 }
 
-float LightBase::getIntensity() const
+float c3d::LightBase::getIntensity() const
 {
 	return _intensity;
 }
 
-void LightBase::setIntensity(float intensity)
+void c3d::LightBase::setIntensity(float intensity)
 {
 	_intensity = intensity;
 

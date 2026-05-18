@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKBufferBase;
 
 struct VKBottomLevelAccelerationStructureBuildInfo
@@ -12,3 +14,4 @@ struct VKBottomLevelAccelerationStructureBuildInfo
 	std::shared_ptr<VKBufferBase> indexBuffer;
 	vk::IndexType indexType;
 };
+}

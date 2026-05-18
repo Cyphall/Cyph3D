@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+namespace c3d
+{
 class FileHelper
 {
 public:
@@ -73,3 +75,4 @@ public:
 		stream.write(reinterpret_cast<const char*>(data.data()), data.size() * sizeof(T));
 	}
 };
+}

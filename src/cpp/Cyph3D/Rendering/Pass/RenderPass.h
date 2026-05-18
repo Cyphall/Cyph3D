@@ -4,6 +4,8 @@
 
 #include <glm/glm.hpp>
 
+namespace c3d
+{
 template<typename TInput, typename TOutput>
 class RenderPass
 {
@@ -40,3 +42,4 @@ protected:
 private:
 	const char* _name;
 };
+}

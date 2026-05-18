@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace c3d
+{
 class ShadowMapManager
 {
 public:
@@ -24,3 +26,4 @@ private:
 	std::unordered_map<uint32_t, ShadowMapContainer> _directionalShadowMaps;
 	std::unordered_map<uint32_t, ShadowMapContainer> _pointShadowMaps;
 };
+}

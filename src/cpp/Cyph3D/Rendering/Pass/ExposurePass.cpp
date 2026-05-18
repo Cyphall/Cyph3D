@@ -11,7 +11,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
-ExposurePass::ExposurePass(glm::uvec2 size):
+c3d::ExposurePass::ExposurePass(glm::uvec2 size):
 	RenderPass(size, "Exposure pass")
 {
 	createDescriptorSetLayout();
@@ -21,7 +21,7 @@ ExposurePass::ExposurePass(glm::uvec2 size):
 	createImage();
 }
 
-ExposurePassOutput ExposurePass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input)
+c3d::ExposurePassOutput c3d::ExposurePass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		input.inputImage,
@@ -75,12 +75,12 @@ ExposurePassOutput ExposurePass::onRender(const std::shared_ptr<VKCommandBuffer>
 	};
 }
 
-void ExposurePass::onResize()
+void c3d::ExposurePass::onResize()
 {
 	createImage();
 }
 
-void ExposurePass::createDescriptorSetLayout()
+void c3d::ExposurePass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
@@ -88,7 +88,7 @@ void ExposurePass::createDescriptorSetLayout()
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void ExposurePass::createPipelineLayout()
+void c3d::ExposurePass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_descriptorSetLayout);
@@ -97,7 +97,7 @@ void ExposurePass::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void ExposurePass::createPipeline()
+void c3d::ExposurePass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
@@ -114,7 +114,7 @@ void ExposurePass::createPipeline()
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void ExposurePass::createSampler()
+void c3d::ExposurePass::createSampler()
 {
 	vk::SamplerCreateInfo createInfo;
 	createInfo.flags = {};
@@ -137,7 +137,7 @@ void ExposurePass::createSampler()
 	_inputSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 }
 
-void ExposurePass::createImage()
+void c3d::ExposurePass::createImage()
 {
 	VKImageInfo imageInfo(
 		SceneRenderer::HDR_COLOR_FORMAT,

@@ -5,6 +5,8 @@
 #include "Cyph3D/Rendering/ShadowMapManager.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
 
+namespace c3d
+{
 class VKPipelineLayout;
 class VKGraphicsPipeline;
 class VKDescriptorSetLayout;
@@ -95,3 +97,4 @@ private:
 		int uniformIndex
 	);
 };
+}

@@ -4,6 +4,8 @@
 
 #include <memory>
 
+namespace c3d
+{
 class VKContext;
 class Window;
 class AssetManager;
@@ -31,3 +33,4 @@ private:
 
 	static Timer _timer;
 };
+}

@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+namespace c3d
+{
 class Scene;
 class Component;
 class ComponentIterator;
@@ -99,3 +101,4 @@ private:
 	friend class ComponentIterator;
 	friend class ComponentConstIterator;
 };
+}

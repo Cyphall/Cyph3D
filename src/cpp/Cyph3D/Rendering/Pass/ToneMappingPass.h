@@ -2,6 +2,8 @@
 
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
+namespace c3d
+{
 class Camera;
 class VKDescriptorSetLayout;
 class VKPipelineLayout;
@@ -43,3 +45,4 @@ private:
 	ToneMappingPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input) override;
 	void onResize() override;
 };
+}

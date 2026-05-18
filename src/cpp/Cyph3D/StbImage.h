@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <memory>
 
+namespace c3d
+{
 class StbImage
 {
 public:
@@ -53,4 +55,5 @@ inline StbImage::BitDepthFlags operator|(StbImage::BitDepthFlags a, StbImage::Bi
 inline StbImage::BitDepthFlags operator&(StbImage::BitDepthFlags a, StbImage::BitDepthFlags b)
 {
 	return static_cast<StbImage::BitDepthFlags>(static_cast<int>(a) & static_cast<int>(b));
+}
 }

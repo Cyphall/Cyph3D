@@ -4,12 +4,12 @@
 #include "Cyph3D/VKObject/Shader/VKShader.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-std::shared_ptr<VKRayTracingPipeline> VKRayTracingPipeline::create(VKContext& context, const VKRayTracingPipelineInfo& info)
+std::shared_ptr<c3d::VKRayTracingPipeline> c3d::VKRayTracingPipeline::create(VKContext& context, const VKRayTracingPipelineInfo& info)
 {
 	return std::shared_ptr<VKRayTracingPipeline>(new VKRayTracingPipeline(context, info));
 }
 
-VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracingPipelineInfo& info):
+c3d::VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracingPipelineInfo& info):
 	VKPipeline(context),
 	_info(info)
 {
@@ -120,42 +120,42 @@ VKRayTracingPipeline::VKRayTracingPipeline(VKContext& context, const VKRayTracin
 	_context.getDevice().getRayTracingShaderGroupHandlesKHR(_pipeline, 0, groupCount, _groupsHandles.size(), _groupsHandles.data());
 }
 
-VKRayTracingPipeline::~VKRayTracingPipeline()
+c3d::VKRayTracingPipeline::~VKRayTracingPipeline()
 {
 	_context.getDevice().destroyPipeline(_pipeline);
 }
 
-const VKRayTracingPipelineInfo& VKRayTracingPipeline::getInfo() const
+const c3d::VKRayTracingPipelineInfo& c3d::VKRayTracingPipeline::getInfo() const
 {
 	return _info;
 }
 
-std::span<const std::byte> VKRayTracingPipeline::getRaygenGroupHandle(uint32_t index) const
+std::span<const std::byte> c3d::VKRayTracingPipeline::getRaygenGroupHandle(uint32_t index) const
 {
 	return getGroupHandle(_raygenGroupOffset + index);
 }
 
-std::span<const std::byte> VKRayTracingPipeline::getTriangleHitGroupHandle(uint32_t index) const
+std::span<const std::byte> c3d::VKRayTracingPipeline::getTriangleHitGroupHandle(uint32_t index) const
 {
 	return getGroupHandle(_triangleHitGroupOffset + index);
 }
 
-std::span<const std::byte> VKRayTracingPipeline::getMissGroupHandle(uint32_t index) const
+std::span<const std::byte> c3d::VKRayTracingPipeline::getMissGroupHandle(uint32_t index) const
 {
 	return getGroupHandle(_missGroupOffset + index);
 }
 
-vk::PipelineBindPoint VKRayTracingPipeline::getPipelineType() const
+vk::PipelineBindPoint c3d::VKRayTracingPipeline::getPipelineType() const
 {
 	return vk::PipelineBindPoint::eRayTracingKHR;
 }
 
-const std::shared_ptr<VKPipelineLayout>& VKRayTracingPipeline::getPipelineLayout() const
+const std::shared_ptr<c3d::VKPipelineLayout>& c3d::VKRayTracingPipeline::getPipelineLayout() const
 {
 	return _info.getPipelineLayout();
 }
 
-std::span<const std::byte> VKRayTracingPipeline::getGroupHandle(uint32_t index) const
+std::span<const std::byte> c3d::VKRayTracingPipeline::getGroupHandle(uint32_t index) const
 {
 	uint32_t shaderHandleSize = _context.getRayTracingPipelineProperties().shaderGroupHandleSize;
 	size_t offset = index * shaderHandleSize;

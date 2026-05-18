@@ -2,6 +2,8 @@
 
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
+namespace c3d
+{
 class Camera;
 class VKPipelineLayout;
 class VKGraphicsPipeline;
@@ -53,3 +55,4 @@ private:
 	void createImages();
 	void createBuffer();
 };
+}

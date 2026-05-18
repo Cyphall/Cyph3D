@@ -2,6 +2,8 @@
 
 #include <sigslot/signal.hpp>
 
+namespace c3d
+{
 class Entity;
 class Transform;
 class RenderRegistry;
@@ -42,3 +44,4 @@ protected:
 private:
 	Entity& _entity;
 };
+}

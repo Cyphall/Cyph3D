@@ -5,7 +5,7 @@
 
 #include <ranges>
 
-std::shared_ptr<VKImage> ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
+std::shared_ptr<c3d::VKImage> c3d::ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
 {
 	ShadowMapContainer& container = _directionalShadowMaps[resolution];
 
@@ -28,7 +28,7 @@ std::shared_ptr<VKImage> ShadowMapManager::allocateDirectionalShadowMap(uint32_t
 	return container.shadowMaps[container.allocatedShadowMaps++];
 }
 
-std::shared_ptr<VKImage> ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
+std::shared_ptr<c3d::VKImage> c3d::ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
 {
 	ShadowMapContainer& container = _pointShadowMaps[resolution];
 
@@ -52,7 +52,7 @@ std::shared_ptr<VKImage> ShadowMapManager::allocatePointShadowMap(uint32_t resol
 	return container.shadowMaps[container.allocatedShadowMaps++];
 }
 
-void ShadowMapManager::resetDirectionalShadowMapAllocations()
+void c3d::ShadowMapManager::resetDirectionalShadowMapAllocations()
 {
 	for (ShadowMapContainer& container : _directionalShadowMaps | std::views::values)
 	{
@@ -60,7 +60,7 @@ void ShadowMapManager::resetDirectionalShadowMapAllocations()
 	}
 }
 
-void ShadowMapManager::resetPointShadowMapAllocations()
+void c3d::ShadowMapManager::resetPointShadowMapAllocations()
 {
 	for (ShadowMapContainer& container : _pointShadowMaps | std::views::values)
 	{

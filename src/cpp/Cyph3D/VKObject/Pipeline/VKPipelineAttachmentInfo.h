@@ -6,6 +6,8 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKPipelineAttachmentInfo
 {
 public:
@@ -35,3 +37,4 @@ private:
 
 	std::optional<DepthAttachmentInfo> _depthAttachmentInfo;
 };
+}

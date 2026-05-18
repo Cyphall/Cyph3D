@@ -7,6 +7,8 @@
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 #include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
 
+namespace c3d
+{
 class PathTracingSceneRenderer : public SceneRenderer
 {
 public:
@@ -30,3 +32,4 @@ private:
 	std::shared_ptr<VKImage> onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
 	void onResize() override;
 };
+}

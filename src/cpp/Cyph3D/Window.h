@@ -5,6 +5,9 @@
 #include <vulkan/vulkan.hpp>
 
 struct GLFWwindow;
+
+namespace c3d
+{
 class VKContext;
 class VKSwapchain;
 
@@ -58,3 +61,4 @@ private:
 	vk::SurfaceKHR _surface;
 	std::unique_ptr<VKSwapchain> _swapchain;
 };
+}

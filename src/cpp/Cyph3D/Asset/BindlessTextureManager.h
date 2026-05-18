@@ -5,6 +5,8 @@
 #include <stack>
 #include <vector>
 
+namespace c3d
+{
 class VKImage;
 class VKDescriptorSetLayout;
 class VKDescriptorSet;
@@ -43,3 +45,4 @@ private:
 
 	void expand();
 };
+}

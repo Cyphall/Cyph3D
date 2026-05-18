@@ -5,6 +5,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKDescriptorSetLayout : public VKObject
 {
 public:
@@ -23,3 +25,4 @@ private:
 
 	vk::DescriptorSetLayout _handle;
 };
+}

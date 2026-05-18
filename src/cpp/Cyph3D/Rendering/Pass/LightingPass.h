@@ -4,6 +4,8 @@
 #include "Cyph3D/Rendering/Pass/ShadowMapPass.h"
 #include "Cyph3D/VKObject/VKDynamic.h"
 
+namespace c3d
+{
 class RenderRegistry;
 class Camera;
 class VKPipelineLayout;
@@ -117,3 +119,4 @@ private:
 
 	void descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount);
 };
+}

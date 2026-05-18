@@ -4,6 +4,8 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKDescriptorSetLayout;
 
 class VKPipelineLayoutInfo
@@ -35,3 +37,4 @@ private:
 	std::vector<std::shared_ptr<VKDescriptorSetLayout>> _descriptorSetsLayouts;
 	std::optional<PushConstantInfo> _pushConstantInfo;
 };
+}

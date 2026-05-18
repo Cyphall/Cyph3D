@@ -6,7 +6,7 @@
 #include <imgui_internal.h>
 #include <stack>
 
-bool ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const char* label, const char* dragDropId, std::optional<std::string_view>& result)
+bool c3d::ImGuiHelper::AssetInputWidget(const std::string* currentAssetPath, const char* label, const char* dragDropId, std::optional<std::string_view>& result)
 {
 	ImGui::PushID(label);
 
@@ -70,7 +70,7 @@ struct GroupPanelInfo
 
 static std::stack<GroupPanelInfo> groupPanelInfoStack;
 
-void ImGuiHelper::BeginGroupPanel(const char* label)
+void c3d::ImGuiHelper::BeginGroupPanel(const char* label)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	GroupPanelInfo groupPanelInfo{};
@@ -98,7 +98,7 @@ void ImGuiHelper::BeginGroupPanel(const char* label)
 	ImGui::BeginGroup();
 }
 
-void ImGuiHelper::EndGroupPanel()
+void c3d::ImGuiHelper::EndGroupPanel()
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -151,12 +151,12 @@ void ImGuiHelper::EndGroupPanel()
 	}
 }
 
-void ImGuiHelper::MoveCursorPos(const glm::vec2& offset)
+void c3d::ImGuiHelper::MoveCursorPos(const glm::vec2& offset)
 {
 	ImGui::SetCursorPos(glm::vec2(ImGui::GetCursorPos()) + offset);
 }
 
-void ImGuiHelper::TextCentered(const char* text)
+void c3d::ImGuiHelper::TextCentered(const char* text)
 {
 	float textWidth = ImGui::CalcTextSize(text).x;
 	float textOffset = std::max(ImGui::GetContentRegionAvail().x / 2.0f - textWidth / 2.0f, 0.0f);

@@ -25,7 +25,7 @@ enum class EntryType
 	Scene
 };
 
-class UIAssetBrowser::Entry
+class c3d::UIAssetBrowser::Entry
 {
 public:
 	struct EntryCompare
@@ -213,16 +213,16 @@ private:
 	std::set<std::unique_ptr<Entry>, EntryCompare> _entries;
 };
 
-UIAssetBrowser::UIAssetBrowser(ImFont* bigFont):
+c3d::UIAssetBrowser::UIAssetBrowser(ImFont* bigFont):
 	_bigFont(bigFont),
 	_size1(250.0f * Engine::getWindow().getPixelScale()),
 	_previousWidth(_size1)
 {
 }
 
-UIAssetBrowser::~UIAssetBrowser() = default;
+c3d::UIAssetBrowser::~UIAssetBrowser() = default;
 
-void UIAssetBrowser::draw()
+void c3d::UIAssetBrowser::draw()
 {
 	if (!_root)
 	{
@@ -336,7 +336,7 @@ void UIAssetBrowser::draw()
 	}
 }
 
-void UIAssetBrowser::rescan()
+void c3d::UIAssetBrowser::rescan()
 {
 	_selectedEntry = nullptr;
 
@@ -364,7 +364,7 @@ void UIAssetBrowser::rescan()
 	}
 }
 
-void UIAssetBrowser::drawLeftPanel()
+void c3d::UIAssetBrowser::drawLeftPanel()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 14 * Engine::getWindow().getPixelScale());
@@ -373,7 +373,7 @@ void UIAssetBrowser::drawLeftPanel()
 	ImGui::PopStyleVar();
 }
 
-void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
+void c3d::UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 {
 	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
@@ -422,7 +422,7 @@ void UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directory)
 	}
 }
 
-void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth)
+void c3d::UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth)
 {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (window->SkipItems)
@@ -516,7 +516,7 @@ void UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* icon, f
 	}
 }
 
-void UIAssetBrowser::drawRightPanelEntries()
+void c3d::UIAssetBrowser::drawRightPanelEntries()
 {
 	float usedWidth = 0;
 	for (const std::unique_ptr<Entry>& entry : _currentDirectory->entries())

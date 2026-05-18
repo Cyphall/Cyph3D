@@ -2,6 +2,8 @@
 
 #include <nlohmann/json.hpp>
 
+namespace c3d
+{
 struct ObjectSerialization
 {
 	nlohmann::ordered_json data;
@@ -11,3 +13,4 @@ struct ObjectSerialization
 	nlohmann::ordered_json toJson();
 	static ObjectSerialization fromJson(const nlohmann::ordered_json& json);
 };
+}

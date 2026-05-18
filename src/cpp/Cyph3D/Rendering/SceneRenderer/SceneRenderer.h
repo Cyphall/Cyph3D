@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+namespace c3d
+{
 class VKCommandBuffer;
 class Camera;
 class VKImage;
@@ -34,3 +36,4 @@ protected:
 	virtual std::shared_ptr<VKImage> onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) = 0;
 	virtual void onResize() = 0;
 };
+}

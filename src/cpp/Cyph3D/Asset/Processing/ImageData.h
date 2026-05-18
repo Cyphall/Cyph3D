@@ -5,6 +5,8 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 enum class ImageType
 {
 	ColorSrgb,
@@ -19,3 +21,4 @@ struct ImageData
 	glm::uvec2 size;
 	std::vector<std::vector<std::byte>> levels; // Level<Data>
 };
+}

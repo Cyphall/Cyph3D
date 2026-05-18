@@ -7,24 +7,24 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKSwapchain.h"
 
-VKQueue::VKQueue(VKContext& context, uint32_t queueFamily, uint32_t queueIndex):
+c3d::VKQueue::VKQueue(VKContext& context, uint32_t queueFamily, uint32_t queueIndex):
 	VKObject(context),
 	_queueFamily(queueFamily)
 {
 	_queue = _context.getDevice().getQueue(queueFamily, queueIndex);
 }
 
-const vk::Queue& VKQueue::getHandle()
+const vk::Queue& c3d::VKQueue::getHandle()
 {
 	return _queue;
 }
 
-uint32_t VKQueue::getFamily() const
+uint32_t c3d::VKQueue::getFamily() const
 {
 	return _queueFamily;
 }
 
-void VKQueue::submit(const std::shared_ptr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>> waitSemaphores, vk::ArrayProxy<std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>> signalSemaphores)
+void c3d::VKQueue::submit(const std::shared_ptr<VKCommandBuffer>& commandBuffer, vk::ArrayProxy<std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>> waitSemaphores, vk::ArrayProxy<std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>> signalSemaphores)
 {
 	std::scoped_lock lock(_mutex);
 
@@ -76,7 +76,7 @@ void VKQueue::submit(const std::shared_ptr<VKCommandBuffer>& commandBuffer, vk::
 	std::ranges::transform(signalSemaphores, submitRecord.signalSemaphores.begin(), extractSemaphore);
 }
 
-bool VKQueue::present(const std::shared_ptr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<std::shared_ptr<VKSemaphore>> waitSemaphores)
+bool c3d::VKQueue::present(const std::shared_ptr<VKSwapchainImage>& swapchainImage, vk::ArrayProxy<std::shared_ptr<VKSemaphore>> waitSemaphores)
 {
 	std::scoped_lock lock(_mutex);
 
@@ -104,7 +104,7 @@ bool VKQueue::present(const std::shared_ptr<VKSwapchainImage>& swapchainImage, v
 	}
 }
 
-void VKQueue::handleCompletedSubmits()
+void c3d::VKQueue::handleCompletedSubmits()
 {
 	std::scoped_lock lock(_mutex);
 

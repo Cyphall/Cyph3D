@@ -24,50 +24,50 @@ struct PushConstantData
 	uint32_t reduceMode;
 };
 
-static void writeProcessedImage(const std::filesystem::path& path, const ImageData& imageData)
+static void writeProcessedImage(const std::filesystem::path& path, const c3d::ImageData& imageData)
 {
 	std::filesystem::create_directories(path.parent_path());
-	std::ofstream file = FileHelper::openFileForWriting(path);
+	std::ofstream file = c3d::FileHelper::openFileForWriting(path);
 
 	uint8_t version = 4;
-	FileHelper::write(file, &version);
+	c3d::FileHelper::write(file, &version);
 
-	FileHelper::write(file, &imageData.format);
+	c3d::FileHelper::write(file, &imageData.format);
 
-	FileHelper::write(file, &imageData.size);
+	c3d::FileHelper::write(file, &imageData.size);
 
 	uint32_t levels = imageData.levels.size();
-	FileHelper::write(file, &levels);
+	c3d::FileHelper::write(file, &levels);
 
 	for (uint32_t i = 0; i < levels; i++)
 	{
-		FileHelper::write(file, imageData.levels[i]);
+		c3d::FileHelper::write(file, imageData.levels[i]);
 	}
 }
 
-static bool readProcessedImage(const std::filesystem::path& path, ImageData& imageData)
+static bool readProcessedImage(const std::filesystem::path& path, c3d::ImageData& imageData)
 {
-	std::ifstream file = FileHelper::openFileForReading(path);
+	std::ifstream file = c3d::FileHelper::openFileForReading(path);
 
 	uint8_t version;
-	FileHelper::read(file, &version);
+	c3d::FileHelper::read(file, &version);
 
 	if (version != 4)
 	{
 		return false;
 	}
 
-	FileHelper::read(file, &imageData.format);
+	c3d::FileHelper::read(file, &imageData.format);
 
-	FileHelper::read(file, &imageData.size);
+	c3d::FileHelper::read(file, &imageData.size);
 
 	uint32_t levels;
-	FileHelper::read(file, &levels);
+	c3d::FileHelper::read(file, &levels);
 
 	imageData.levels.resize(levels);
 	for (uint32_t i = 0; i < levels; i++)
 	{
-		FileHelper::read(file, imageData.levels[i]);
+		c3d::FileHelper::read(file, imageData.levels[i]);
 	}
 
 	return true;
@@ -105,9 +105,9 @@ static std::vector<std::byte> convertFloatToHalf(std::span<const std::byte> inpu
 	return output;
 }
 
-static ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format requestedFormat)
+static c3d::ImageData compressTexture(const c3d::ImageData& mipmappedImageData, vk::Format requestedFormat)
 {
-	ImageData compressedImageData;
+	c3d::ImageData compressedImageData;
 	compressedImageData.format = requestedFormat;
 	compressedImageData.size = mipmappedImageData.size;
 
@@ -115,7 +115,7 @@ static ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format
 	for (const std::vector<std::byte>& level : mipmappedImageData.levels)
 	{
 		std::vector<std::byte> compressedData;
-		if (!ImageCompressor::tryCompressImage(level, size, requestedFormat, compressedData))
+		if (!c3d::ImageCompressor::tryCompressImage(level, size, requestedFormat, compressedData))
 			break;
 
 		compressedImageData.levels.emplace_back(std::move(compressedData));
@@ -126,7 +126,7 @@ static ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format
 	return compressedImageData;
 }
 
-ImageProcessor::ImageProcessor()
+c3d::ImageProcessor::ImageProcessor()
 {
 	VKDescriptorSetLayoutInfo descriptorSetLayoutInfo(true);
 	descriptorSetLayoutInfo.addBinding(vk::DescriptorType::eStorageImage, 1);
@@ -148,7 +148,7 @@ ImageProcessor::ImageProcessor()
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
 }
 
-ImageData ImageProcessor::readImageData(std::string_view path, ImageType type, std::string_view cachePath)
+c3d::ImageData c3d::ImageProcessor::readImageData(std::string_view path, ImageType type, std::string_view cachePath)
 {
 	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
 	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;
@@ -180,7 +180,7 @@ ImageData ImageProcessor::readImageData(std::string_view path, ImageType type, s
 	return imageData;
 }
 
-ImageData ImageProcessor::processImage(const std::filesystem::path& input, const std::filesystem::path& output, ImageType type)
+c3d::ImageData c3d::ImageProcessor::processImage(const std::filesystem::path& input, const std::filesystem::path& output, ImageType type)
 {
 	StbImage::Channels requiredChannels;
 	StbImage::BitDepthFlags supportedBitDepth;
@@ -304,7 +304,7 @@ ImageData ImageProcessor::processImage(const std::filesystem::path& input, const
 	return imageData;
 }
 
-ImageData ImageProcessor::genMipmaps(vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb)
+c3d::ImageData c3d::ImageProcessor::genMipmaps(vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb)
 {
 	// create texture
 	VKImageInfo imageInfo(

@@ -6,6 +6,8 @@
 #include <optional>
 #include <string>
 
+namespace c3d
+{
 class MaterialAsset;
 class MeshAsset;
 
@@ -56,3 +58,4 @@ private:
 	void deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot);
 	void deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot);
 };
+}

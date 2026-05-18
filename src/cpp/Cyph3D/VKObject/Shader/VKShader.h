@@ -5,6 +5,8 @@
 #include <string>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKShader : public VKObject
 {
 public:
@@ -21,3 +23,4 @@ private:
 	vk::ShaderModule _handle;
 	std::span<const uint32_t> _code;
 };
+}

@@ -2,12 +2,12 @@
 
 #include "Cyph3D/VKObject/VKHelper.h"
 
-std::shared_ptr<VKShaderBindingTable> VKShaderBindingTable::create(VKContext& context, const VKShaderBindingTableInfo& info)
+std::shared_ptr<c3d::VKShaderBindingTable> c3d::VKShaderBindingTable::create(VKContext& context, const VKShaderBindingTableInfo& info)
 {
 	return std::shared_ptr<VKShaderBindingTable>(new VKShaderBindingTable(context, info));
 }
 
-VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBindingTableInfo& info):
+c3d::VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBindingTableInfo& info):
 	VKObject(context),
 	_info(info)
 {
@@ -81,59 +81,59 @@ VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShaderBin
 		writeRecord(record, _missSBTStride, missSBTPtr);
 }
 
-VKShaderBindingTable::~VKShaderBindingTable() = default;
+c3d::VKShaderBindingTable::~VKShaderBindingTable() = default;
 
-const VKShaderBindingTableInfo& VKShaderBindingTable::getInfo() const
+const c3d::VKShaderBindingTableInfo& c3d::VKShaderBindingTable::getInfo() const
 {
 	return _info;
 }
 
-const std::shared_ptr<VKBuffer<std::byte>>& VKShaderBindingTable::getBuffer() const
+const std::shared_ptr<c3d::VKBuffer<std::byte>>& c3d::VKShaderBindingTable::getBuffer() const
 {
 	return _buffer;
 }
 
-const vk::DeviceAddress& VKShaderBindingTable::getRaygenSBTAddress() const
+const vk::DeviceAddress& c3d::VKShaderBindingTable::getRaygenSBTAddress() const
 {
 	return _raygenSBTAddress;
 }
 
-const vk::DeviceSize& VKShaderBindingTable::getRaygenSBTSize() const
+const vk::DeviceSize& c3d::VKShaderBindingTable::getRaygenSBTSize() const
 {
 	return _raygenSBTSize;
 }
 
-const vk::DeviceSize& VKShaderBindingTable::getRaygenSBTStride() const
+const vk::DeviceSize& c3d::VKShaderBindingTable::getRaygenSBTStride() const
 {
 	return _raygenSBTStride;
 }
 
-const vk::DeviceAddress& VKShaderBindingTable::getTriangleHitSBTAddress() const
+const vk::DeviceAddress& c3d::VKShaderBindingTable::getTriangleHitSBTAddress() const
 {
 	return _triangleHitSBTAddress;
 }
 
-const vk::DeviceSize& VKShaderBindingTable::getTriangleHitSBTSize() const
+const vk::DeviceSize& c3d::VKShaderBindingTable::getTriangleHitSBTSize() const
 {
 	return _triangleHitSBTSize;
 }
 
-const vk::DeviceSize& VKShaderBindingTable::getTriangleHitSBTStride() const
+const vk::DeviceSize& c3d::VKShaderBindingTable::getTriangleHitSBTStride() const
 {
 	return _triangleHitSBTStride;
 }
 
-const vk::DeviceAddress& VKShaderBindingTable::getMissSBTAddress() const
+const vk::DeviceAddress& c3d::VKShaderBindingTable::getMissSBTAddress() const
 {
 	return _missSBTAddress;
 }
 
-const vk::DeviceSize& VKShaderBindingTable::getMissSBTSize() const
+const vk::DeviceSize& c3d::VKShaderBindingTable::getMissSBTSize() const
 {
 	return _missSBTSize;
 }
 
-const vk::DeviceSize& VKShaderBindingTable::getMissSBTStride() const
+const vk::DeviceSize& c3d::VKShaderBindingTable::getMissSBTStride() const
 {
 	return _missSBTStride;
 }

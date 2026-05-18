@@ -18,7 +18,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 
-ObjectPicker::ObjectPicker()
+c3d::ObjectPicker::ObjectPicker()
 {
 	createDescriptorSetLayout();
 	createPipelineLayout();
@@ -26,9 +26,9 @@ ObjectPicker::ObjectPicker()
 	createBuffer();
 }
 
-ObjectPicker::~ObjectPicker() = default;
+c3d::ObjectPicker::~ObjectPicker() = default;
 
-Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos)
+c3d::Entity* c3d::ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos)
 {
 	if (viewportSize.x * viewportSize.y == 0)
 		return nullptr;
@@ -127,7 +127,7 @@ Entity* ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry
 	return objectIndex > 0 ? &renderRegistry.getModelRenderRequests()[objectIndex - 1].owner : nullptr;
 }
 
-void ObjectPicker::createDescriptorSetLayout()
+void c3d::ObjectPicker::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
@@ -135,7 +135,7 @@ void ObjectPicker::createDescriptorSetLayout()
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void ObjectPicker::createPipelineLayout()
+void c3d::ObjectPicker::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_descriptorSetLayout);
@@ -144,7 +144,7 @@ void ObjectPicker::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void ObjectPicker::createPipeline()
+void c3d::ObjectPicker::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
@@ -165,7 +165,7 @@ void ObjectPicker::createPipeline()
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void ObjectPicker::createBuffer()
+void c3d::ObjectPicker::createBuffer()
 {
 	VKBufferInfo bufferInfo(1, vk::BufferUsageFlagBits::eTransferDst);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
@@ -176,7 +176,7 @@ void ObjectPicker::createBuffer()
 	_readbackBuffer = VKBuffer<int32_t>::create(Engine::getVKContext(), bufferInfo);
 }
 
-void ObjectPicker::createImage()
+void c3d::ObjectPicker::createImage()
 {
 	{
 		VKImageInfo imageInfo(

@@ -4,6 +4,8 @@
 
 #include <filesystem>
 
+namespace c3d
+{
 class VKDescriptorSetLayout;
 class VKPipelineLayout;
 class VKComputePipeline;
@@ -23,3 +25,4 @@ private:
 	ImageData processImage(const std::filesystem::path& input, const std::filesystem::path& output, ImageType type);
 	ImageData genMipmaps(vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb);
 };
+}

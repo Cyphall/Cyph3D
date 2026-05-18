@@ -7,6 +7,8 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKDescriptorSetLayout;
 class VKBufferBase;
 class VKSampler;
@@ -46,3 +48,4 @@ protected:
 	// third vector is to support multiple VKObjects being bound to a single binding at the same time (e.g. combined image sampler)
 	std::vector<std::vector<std::vector<std::shared_ptr<VKObject>>>> _boundObjects;
 };
+}

@@ -9,7 +9,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKComputePipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 
-NormalizationPass::NormalizationPass(glm::uvec2 size):
+c3d::NormalizationPass::NormalizationPass(glm::uvec2 size):
 	RenderPass(size, "Normalization pass")
 {
 	createDescriptorSetLayout();
@@ -18,7 +18,7 @@ NormalizationPass::NormalizationPass(glm::uvec2 size):
 	createImage();
 }
 
-NormalizationPassOutput NormalizationPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input)
+c3d::NormalizationPassOutput c3d::NormalizationPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -61,12 +61,12 @@ NormalizationPassOutput NormalizationPass::onRender(const std::shared_ptr<VKComm
 	};
 }
 
-void NormalizationPass::onResize()
+void c3d::NormalizationPass::onResize()
 {
 	createImage();
 }
 
-void NormalizationPass::createDescriptorSetLayout()
+void c3d::NormalizationPass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eStorageImage, 3);
@@ -75,7 +75,7 @@ void NormalizationPass::createDescriptorSetLayout()
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void NormalizationPass::createPipelineLayout()
+void c3d::NormalizationPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_descriptorSetLayout);
@@ -84,7 +84,7 @@ void NormalizationPass::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void NormalizationPass::createPipeline()
+void c3d::NormalizationPass::createPipeline()
 {
 	VKComputePipelineInfo info(
 		_pipelineLayout,
@@ -94,7 +94,7 @@ void NormalizationPass::createPipeline()
 	_pipeline = VKComputePipeline::create(Engine::getVKContext(), info);
 }
 
-void NormalizationPass::createImage()
+void c3d::NormalizationPass::createImage()
 {
 	VKImageInfo imageInfo(
 		SceneRenderer::HDR_COLOR_FORMAT,

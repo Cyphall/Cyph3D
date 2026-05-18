@@ -9,6 +9,8 @@
 #include <string>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKPipelineLayout;
 
 class VKGraphicsPipelineInfo
@@ -71,3 +73,4 @@ private:
 	std::optional<VKPipelineScissor> _staticScissor;
 	vk::SampleCountFlagBits _rasterizationSampleCount = vk::SampleCountFlagBits::e1;
 };
+}

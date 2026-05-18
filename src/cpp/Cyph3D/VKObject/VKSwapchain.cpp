@@ -56,23 +56,23 @@ static vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDev
 	return supportedSurfaceFormats[0];
 }
 
-std::unique_ptr<VKSwapchain> VKSwapchain::create(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
+std::unique_ptr<c3d::VKSwapchain> c3d::VKSwapchain::create(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
 {
 	return std::unique_ptr<VKSwapchain>(new VKSwapchain(context, surface, oldSwapchain));
 }
 
-VKSwapchain::VKSwapchain(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain):
+c3d::VKSwapchain::VKSwapchain(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain):
 	VKObject(context)
 {
 	createSwapchain(surface, oldSwapchain);
 }
 
-VKSwapchain::~VKSwapchain()
+c3d::VKSwapchain::~VKSwapchain()
 {
 	_context.getDevice().destroySwapchainKHR(_swapchain);
 }
 
-const std::shared_ptr<VKSwapchainImage>& VKSwapchain::retrieveNextImage(VKFence& fence)
+const std::shared_ptr<c3d::VKSwapchainImage>& c3d::VKSwapchain::retrieveNextImage(VKFence& fence)
 {
 	_nextIndex = (_nextIndex + 1) % _swapchainImages.size();
 
@@ -85,27 +85,27 @@ const std::shared_ptr<VKSwapchainImage>& VKSwapchain::retrieveNextImage(VKFence&
 	return _swapchainImages[imageIndex];
 }
 
-const vk::SwapchainKHR& VKSwapchain::getHandle()
+const vk::SwapchainKHR& c3d::VKSwapchain::getHandle()
 {
 	return _swapchain;
 }
 
-vk::Format VKSwapchain::getFormat() const
+vk::Format c3d::VKSwapchain::getFormat() const
 {
 	return _swapchainImages.front()->getImage()->getInfo().getFormat();
 }
 
-const glm::uvec2& VKSwapchain::getSize() const
+const glm::uvec2& c3d::VKSwapchain::getSize() const
 {
 	return _swapchainImages.front()->getImage()->getSize(0);
 }
 
-size_t VKSwapchain::getImageCount() const
+size_t c3d::VKSwapchain::getImageCount() const
 {
 	return _swapchainImages.size();
 }
 
-void VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
+void c3d::VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
 {
 	SwapChainSupportDetails swapchainSupport = querySwapchainSupport(_context.getPhysicalDevice(), surface);
 	vk::SurfaceFormatKHR surfaceFormat = findBestSurfaceFormat(_context.getPhysicalDevice(), surface);

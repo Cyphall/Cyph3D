@@ -3,12 +3,12 @@
 #include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-std::shared_ptr<VKAccelerationStructureCompactedSizeQuery> VKAccelerationStructureCompactedSizeQuery::create(VKContext& context)
+std::shared_ptr<c3d::VKAccelerationStructureCompactedSizeQuery> c3d::VKAccelerationStructureCompactedSizeQuery::create(VKContext& context)
 {
 	return std::shared_ptr<VKAccelerationStructureCompactedSizeQuery>(new VKAccelerationStructureCompactedSizeQuery(context));
 }
 
-VKAccelerationStructureCompactedSizeQuery::VKAccelerationStructureCompactedSizeQuery(VKContext& context):
+c3d::VKAccelerationStructureCompactedSizeQuery::VKAccelerationStructureCompactedSizeQuery(VKContext& context):
 	VKObject(context)
 {
 	vk::QueryPoolCreateInfo queryPoolCreateInfo;
@@ -20,12 +20,12 @@ VKAccelerationStructureCompactedSizeQuery::VKAccelerationStructureCompactedSizeQ
 	_context.getDevice().resetQueryPool(_queryPool, 0, 1);
 }
 
-VKAccelerationStructureCompactedSizeQuery::~VKAccelerationStructureCompactedSizeQuery()
+c3d::VKAccelerationStructureCompactedSizeQuery::~VKAccelerationStructureCompactedSizeQuery()
 {
 	_context.getDevice().destroyQueryPool(_queryPool);
 }
 
-vk::DeviceSize VKAccelerationStructureCompactedSizeQuery::getCompactedSize() const
+vk::DeviceSize c3d::VKAccelerationStructureCompactedSizeQuery::getCompactedSize() const
 {
 	auto [result, data] = _context.getDevice().getQueryPoolResult<vk::DeviceSize>(
 		_queryPool,
@@ -38,7 +38,7 @@ vk::DeviceSize VKAccelerationStructureCompactedSizeQuery::getCompactedSize() con
 	return data;
 }
 
-bool VKAccelerationStructureCompactedSizeQuery::tryGetCompactedSize(vk::DeviceSize& compactedSize) const
+bool c3d::VKAccelerationStructureCompactedSizeQuery::tryGetCompactedSize(vk::DeviceSize& compactedSize) const
 {
 	auto [result, data] = _context.getDevice().getQueryPoolResult<vk::DeviceSize>(
 		_queryPool,
@@ -61,7 +61,7 @@ bool VKAccelerationStructureCompactedSizeQuery::tryGetCompactedSize(vk::DeviceSi
 	throw;
 }
 
-const vk::QueryPool& VKAccelerationStructureCompactedSizeQuery::getHandle()
+const vk::QueryPool& c3d::VKAccelerationStructureCompactedSizeQuery::getHandle()
 {
 	return _queryPool;
 }

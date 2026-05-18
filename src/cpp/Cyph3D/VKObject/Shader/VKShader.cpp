@@ -8,12 +8,12 @@
 
 CMRC_DECLARE(shaders);
 
-std::shared_ptr<VKShader> VKShader::create(VKContext& context, const std::string& path)
+std::shared_ptr<c3d::VKShader> c3d::VKShader::create(VKContext& context, const std::string& path)
 {
 	return std::shared_ptr<VKShader>(new VKShader(context, path));
 }
 
-VKShader::VKShader(VKContext& context, const std::string& path):
+c3d::VKShader::VKShader(VKContext& context, const std::string& path):
 	VKObject(context)
 {
 	cmrc::file spirvFile = cmrc::shaders::get_filesystem().open(std::format("{}.spv", path));
@@ -35,17 +35,17 @@ VKShader::VKShader(VKContext& context, const std::string& path):
 	_handle = _context.getDevice().createShaderModule(createInfo);
 }
 
-VKShader::~VKShader()
+c3d::VKShader::~VKShader()
 {
 	_context.getDevice().destroyShaderModule(_handle);
 }
 
-const vk::ShaderModule& VKShader::getHandle()
+const vk::ShaderModule& c3d::VKShader::getHandle()
 {
 	return _handle;
 }
 
-const std::span<const uint32_t>& VKShader::getCode() const
+const std::span<const uint32_t>& c3d::VKShader::getCode() const
 {
 	return _code;
 }

@@ -4,6 +4,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKAccelerationStructureCompactedSizeQuery : public VKObject
 {
 public:
@@ -23,3 +25,4 @@ private:
 
 	vk::QueryPool _queryPool;
 };
+}

@@ -4,8 +4,11 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class ImageCompressor
 {
 public:
 	static bool tryCompressImage(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, vk::Format compressedFormat, std::vector<std::byte>& compressedImage);
 };
+}

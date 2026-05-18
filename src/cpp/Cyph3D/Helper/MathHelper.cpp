@@ -3,17 +3,17 @@
 #include <array>
 #include <glm/glm.hpp>
 
-bool MathHelper::between(int64_t number, int64_t lower, int64_t upper)
+bool c3d::MathHelper::between(int64_t number, int64_t lower, int64_t upper)
 {
 	return number >= lower && number <= upper;
 }
 
-float MathHelper::fovXtoY(float fovx, float aspect)
+float c3d::MathHelper::fovXtoY(float fovx, float aspect)
 {
 	return 2.0f * glm::atan(glm::tan(glm::radians(fovx) * 0.5f) / aspect);
 }
 
-std::pair<glm::vec3, glm::vec3> MathHelper::transformBoundingBox(const glm::mat4& matrix, const glm::vec3& boundingBoxMin, const glm::vec3& boundingBoxMax)
+std::pair<glm::vec3, glm::vec3> c3d::MathHelper::transformBoundingBox(const glm::mat4& matrix, const glm::vec3& boundingBoxMin, const glm::vec3& boundingBoxMax)
 {
 	std::array<glm::vec3, 8> boundingBoxVertices = {
 		glm::vec3(boundingBoxMin.x, boundingBoxMin.y, boundingBoxMin.z),
@@ -40,7 +40,7 @@ std::pair<glm::vec3, glm::vec3> MathHelper::transformBoundingBox(const glm::mat4
 	return {min, max};
 }
 
-glm::vec3 MathHelper::srgbToLinear(glm::vec3 color)
+glm::vec3 c3d::MathHelper::srgbToLinear(glm::vec3 color)
 {
 	glm::bvec3 cutoff = lessThan(color, glm::vec3(0.04045f));
 	glm::vec3 higher = pow((color + glm::vec3(0.055f)) / glm::vec3(1.055f), glm::vec3(2.4f));
@@ -49,7 +49,7 @@ glm::vec3 MathHelper::srgbToLinear(glm::vec3 color)
 	return glm::mix(higher, lower, cutoff);
 }
 
-glm::vec3 MathHelper::linearToSrgb(glm::vec3 color)
+glm::vec3 c3d::MathHelper::linearToSrgb(glm::vec3 color)
 {
 	glm::bvec3 cutoff = lessThan(color, glm::vec3(0.0031308f));
 	glm::vec3 higher = glm::vec3(1.055f) * pow(color, glm::vec3(1.0f / 2.4f)) - glm::vec3(0.055f);

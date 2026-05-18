@@ -5,7 +5,7 @@
 #include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-PathTracingSceneRenderer::PathTracingSceneRenderer(glm::uvec2 size):
+c3d::PathTracingSceneRenderer::PathTracingSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Path tracing SceneRenderer", size),
 	_pathTracePass(size),
 	_normalizationPass(size),
@@ -15,17 +15,17 @@ PathTracingSceneRenderer::PathTracingSceneRenderer(glm::uvec2 size):
 {
 }
 
-void PathTracingSceneRenderer::setSampleCountPerRender(uint32_t count)
+void c3d::PathTracingSceneRenderer::setSampleCountPerRender(uint32_t count)
 {
 	_sampleCount = count;
 }
 
-void PathTracingSceneRenderer::setAccumulationOnlyMode(bool enabled)
+void c3d::PathTracingSceneRenderer::setAccumulationOnlyMode(bool enabled)
 {
 	_accumulationOnlyMode = enabled;
 }
 
-std::shared_ptr<VKImage> PathTracingSceneRenderer::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+std::shared_ptr<c3d::VKImage> c3d::PathTracingSceneRenderer::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	// Path trace pass
 
@@ -79,7 +79,7 @@ std::shared_ptr<VKImage> PathTracingSceneRenderer::onRender(const std::shared_pt
 	return toneMappingPassOutput.outputImage;
 }
 
-void PathTracingSceneRenderer::onResize()
+void c3d::PathTracingSceneRenderer::onResize()
 {
 	_pathTracePass.resize(_size);
 	_normalizationPass.resize(_size);

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace c3d
+{
 class UIMenuBar
 {
 public:
@@ -8,3 +10,4 @@ public:
 private:
 	static bool _showDemoWindow;
 };
+}

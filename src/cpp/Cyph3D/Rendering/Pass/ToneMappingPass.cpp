@@ -10,7 +10,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 #include "Cyph3D/VKObject/Sampler/VKSampler.h"
 
-ToneMappingPass::ToneMappingPass(glm::uvec2 size):
+c3d::ToneMappingPass::ToneMappingPass(glm::uvec2 size):
 	RenderPass(size, "Tone mapping pass")
 {
 	createDescriptorSetLayout();
@@ -20,7 +20,7 @@ ToneMappingPass::ToneMappingPass(glm::uvec2 size):
 	createImage();
 }
 
-ToneMappingPassOutput ToneMappingPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input)
+c3d::ToneMappingPassOutput c3d::ToneMappingPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		input.inputImage,
@@ -70,12 +70,12 @@ ToneMappingPassOutput ToneMappingPass::onRender(const std::shared_ptr<VKCommandB
 	};
 }
 
-void ToneMappingPass::onResize()
+void c3d::ToneMappingPass::onResize()
 {
 	createImage();
 }
 
-void ToneMappingPass::createDescriptorSetLayout()
+void c3d::ToneMappingPass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
@@ -83,7 +83,7 @@ void ToneMappingPass::createDescriptorSetLayout()
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void ToneMappingPass::createPipelineLayout()
+void c3d::ToneMappingPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_descriptorSetLayout);
@@ -91,7 +91,7 @@ void ToneMappingPass::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void ToneMappingPass::createPipeline()
+void c3d::ToneMappingPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
@@ -108,7 +108,7 @@ void ToneMappingPass::createPipeline()
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void ToneMappingPass::createSampler()
+void c3d::ToneMappingPass::createSampler()
 {
 	vk::SamplerCreateInfo createInfo;
 	createInfo.flags = {};
@@ -131,7 +131,7 @@ void ToneMappingPass::createSampler()
 	_inputSampler = VKSampler::create(Engine::getVKContext(), createInfo);
 }
 
-void ToneMappingPass::createImage()
+void c3d::ToneMappingPass::createImage()
 {
 	VKImageInfo imageInfo(
 		SceneRenderer::FINAL_COLOR_FORMAT,

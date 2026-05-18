@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace c3d
+{
 class VKPipelineLayout;
 
 class VKComputePipelineInfo
@@ -17,3 +19,4 @@ private:
 	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
 	std::string _computeShader;
 };
+}

@@ -5,6 +5,8 @@
 
 #include <vk_mem_alloc.h>
 
+namespace c3d
+{
 template<typename T>
 class VKBuffer : public VKBufferBase
 {
@@ -108,3 +110,4 @@ private:
 
 	vk::DeviceAddress _deviceAddress = 0;
 };
+}

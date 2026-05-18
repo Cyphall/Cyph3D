@@ -6,6 +6,8 @@
 #include <array>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKRayTracingPipeline : public VKPipeline
 {
 public:
@@ -35,3 +37,4 @@ private:
 
 	std::span<const std::byte> getGroupHandle(uint32_t index) const;
 };
+}

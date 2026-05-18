@@ -14,7 +14,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
 
-ZPrepass::ZPrepass(glm::uvec2 size):
+c3d::ZPrepass::ZPrepass(glm::uvec2 size):
 	RenderPass(size, "Z prepass")
 {
 	createPipelineLayout();
@@ -22,7 +22,7 @@ ZPrepass::ZPrepass(glm::uvec2 size):
 	createImage();
 }
 
-ZPrepassOutput ZPrepass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
+c3d::ZPrepassOutput c3d::ZPrepass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		_depthImage,
@@ -78,12 +78,12 @@ ZPrepassOutput ZPrepass::onRender(const std::shared_ptr<VKCommandBuffer>& comman
 	};
 }
 
-void ZPrepass::onResize()
+void c3d::ZPrepass::onResize()
 {
 	createImage();
 }
 
-void ZPrepass::createPipelineLayout()
+void c3d::ZPrepass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.setPushConstantLayout<PushConstantData>();
@@ -91,7 +91,7 @@ void ZPrepass::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void ZPrepass::createPipeline()
+void c3d::ZPrepass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
@@ -111,7 +111,7 @@ void ZPrepass::createPipeline()
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void ZPrepass::createImage()
+void c3d::ZPrepass::createImage()
 {
 	VKImageInfo imageInfo(
 		SceneRenderer::DEPTH_FORMAT,

@@ -5,12 +5,12 @@
 #include "Cyph3D/VKObject/Shader/VKShader.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-std::shared_ptr<VKGraphicsPipeline> VKGraphicsPipeline::create(VKContext& context, const VKGraphicsPipelineInfo& info)
+std::shared_ptr<c3d::VKGraphicsPipeline> c3d::VKGraphicsPipeline::create(VKContext& context, const VKGraphicsPipelineInfo& info)
 {
 	return std::shared_ptr<VKGraphicsPipeline>(new VKGraphicsPipeline(context, info));
 }
 
-VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, const VKGraphicsPipelineInfo& info):
+c3d::VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, const VKGraphicsPipelineInfo& info):
 	VKPipeline(context),
 	_info(info)
 {
@@ -206,22 +206,22 @@ VKGraphicsPipeline::VKGraphicsPipeline(VKContext& context, const VKGraphicsPipel
 	_pipeline = _context.getDevice().createGraphicsPipeline(VK_NULL_HANDLE, pipelineCreateInfo).value;
 }
 
-VKGraphicsPipeline::~VKGraphicsPipeline()
+c3d::VKGraphicsPipeline::~VKGraphicsPipeline()
 {
 	_context.getDevice().destroyPipeline(_pipeline);
 }
 
-const VKGraphicsPipelineInfo& VKGraphicsPipeline::getInfo() const
+const c3d::VKGraphicsPipelineInfo& c3d::VKGraphicsPipeline::getInfo() const
 {
 	return _info;
 }
 
-vk::PipelineBindPoint VKGraphicsPipeline::getPipelineType() const
+vk::PipelineBindPoint c3d::VKGraphicsPipeline::getPipelineType() const
 {
 	return vk::PipelineBindPoint::eGraphics;
 }
 
-const std::shared_ptr<VKPipelineLayout>& VKGraphicsPipeline::getPipelineLayout() const
+const std::shared_ptr<c3d::VKPipelineLayout>& c3d::VKGraphicsPipeline::getPipelineLayout() const
 {
 	return _info.getPipelineLayout();
 }

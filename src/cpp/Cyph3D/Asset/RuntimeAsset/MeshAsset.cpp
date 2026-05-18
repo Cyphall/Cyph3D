@@ -11,70 +11,70 @@
 
 #include <spdlog/spdlog.h>
 
-MeshAsset* MeshAsset::_defaultMesh = nullptr;
-MeshAsset* MeshAsset::_missingMesh = nullptr;
+c3d::MeshAsset* c3d::MeshAsset::_defaultMesh = nullptr;
+c3d::MeshAsset* c3d::MeshAsset::_missingMesh = nullptr;
 
-MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature):
+c3d::MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
 	_manager.addThreadPoolTask(&MeshAsset::load_async, this);
 }
 
-MeshAsset::~MeshAsset() = default;
+c3d::MeshAsset::~MeshAsset() = default;
 
-const std::shared_ptr<VKBuffer<PositionVertexData>>& MeshAsset::getPositionVertexBuffer() const
+const std::shared_ptr<c3d::VKBuffer<c3d::PositionVertexData>>& c3d::MeshAsset::getPositionVertexBuffer() const
 {
 	checkLoaded();
 	return _positionVertexBuffer;
 }
 
-const std::shared_ptr<VKBuffer<MaterialVertexData>>& MeshAsset::getMaterialVertexBuffer() const
+const std::shared_ptr<c3d::VKBuffer<c3d::MaterialVertexData>>& c3d::MeshAsset::getMaterialVertexBuffer() const
 {
 	checkLoaded();
 	return _materialVertexBuffer;
 }
 
-const std::shared_ptr<VKBuffer<uint32_t>>& MeshAsset::getIndexBuffer() const
+const std::shared_ptr<c3d::VKBuffer<uint32_t>>& c3d::MeshAsset::getIndexBuffer() const
 {
 	checkLoaded();
 	return _indexBuffer;
 }
 
-const std::shared_ptr<VKAccelerationStructure>& MeshAsset::getAccelerationStructure() const
+const std::shared_ptr<c3d::VKAccelerationStructure>& c3d::MeshAsset::getAccelerationStructure() const
 {
 	checkLoaded();
 	return _accelerationStructure;
 }
 
-const glm::vec3& MeshAsset::getBoundingBoxMin() const
+const glm::vec3& c3d::MeshAsset::getBoundingBoxMin() const
 {
 	checkLoaded();
 	return _boundingBoxMin;
 }
 
-const glm::vec3& MeshAsset::getBoundingBoxMax() const
+const glm::vec3& c3d::MeshAsset::getBoundingBoxMax() const
 {
 	checkLoaded();
 	return _boundingBoxMax;
 }
 
-void MeshAsset::initDefaultAndMissing()
+void c3d::MeshAsset::initDefaultAndMissing()
 {
 	_defaultMesh = Engine::getAssetManager().loadMesh("meshes/internal/Default Mesh/Default Mesh.obj");
 	_missingMesh = Engine::getAssetManager().loadMesh("meshes/internal/Missing Mesh/Missing Mesh.obj");
 }
 
-MeshAsset* MeshAsset::getDefaultMesh()
+c3d::MeshAsset* c3d::MeshAsset::getDefaultMesh()
 {
 	return _defaultMesh;
 }
 
-MeshAsset* MeshAsset::getMissingMesh()
+c3d::MeshAsset* c3d::MeshAsset::getMissingMesh()
 {
 	return _missingMesh;
 }
 
-void MeshAsset::load_async()
+void c3d::MeshAsset::load_async()
 {
 	MeshData meshData = _manager.getAssetProcessor().readMeshData(_signature.path);
 

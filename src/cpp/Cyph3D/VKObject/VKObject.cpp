@@ -1,6 +1,6 @@
 #include "VKObject.h"
 
-VKObject::VKObject(VKContext& context):
+c3d::VKObject::VKObject(VKContext& context):
 	_context(context)
 {
 }

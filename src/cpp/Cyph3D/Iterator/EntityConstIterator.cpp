@@ -1,43 +1,43 @@
 #include "EntityConstIterator.h"
 
-EntityConstIterator::EntityConstIterator(std::vector<Scene::EntityContainer>::const_iterator it):
+c3d::EntityConstIterator::EntityConstIterator(std::vector<Scene::EntityContainer>::const_iterator it):
 	_it(it)
 {}
 
-EntityConstIterator& EntityConstIterator::operator++()
+c3d::EntityConstIterator& c3d::EntityConstIterator::operator++()
 {
 	_it++;
 	return *this;
 }
 
-EntityConstIterator EntityConstIterator::operator++(int)
+c3d::EntityConstIterator c3d::EntityConstIterator::operator++(int)
 {
 	EntityConstIterator temp = *this;
 	++(*this);
 	return temp;
 }
 
-bool EntityConstIterator::operator==(const EntityConstIterator& other) const
+bool c3d::EntityConstIterator::operator==(const EntityConstIterator& other) const
 {
 	return _it == other._it;
 }
 
-bool EntityConstIterator::operator!=(const EntityConstIterator& other) const
+bool c3d::EntityConstIterator::operator!=(const EntityConstIterator& other) const
 {
 	return !this->operator==(other);
 }
 
-const Entity& EntityConstIterator::operator*()
+const c3d::Entity& c3d::EntityConstIterator::operator*()
 {
 	return *(this->operator->());
 }
 
-const Entity* EntityConstIterator::operator->()
+const c3d::Entity* c3d::EntityConstIterator::operator->()
 {
 	return _it->entity.get();
 }
 
-std::vector<Scene::EntityContainer>::const_iterator EntityConstIterator::getUnderlyingIterator()
+std::vector<c3d::Scene::EntityContainer>::const_iterator c3d::EntityConstIterator::getUnderlyingIterator()
 {
 	return _it;
 }

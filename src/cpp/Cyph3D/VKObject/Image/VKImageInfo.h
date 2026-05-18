@@ -5,6 +5,8 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKImageInfo
 {
 public:
@@ -62,3 +64,4 @@ private:
 	std::optional<std::string> _name;
 	std::optional<std::array<vk::ComponentSwizzle, 4>> _swizzle;
 };
+}

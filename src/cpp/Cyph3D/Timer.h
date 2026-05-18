@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+namespace c3d
+{
 class Timer
 {
 public:
@@ -16,3 +18,4 @@ private:
 
 	double _deltaTime = 0;
 };
+}

@@ -6,6 +6,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKBufferBase;
 
 class VKAccelerationStructure : public VKObject
@@ -53,3 +55,4 @@ protected:
 
 	std::vector<std::shared_ptr<VKObject>> _referencedObjectsInBuild;
 };
+}

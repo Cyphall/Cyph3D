@@ -6,7 +6,7 @@
 
 #include <GLFW/glfw3.h>
 
-Window::Window()
+c3d::Window::Window()
 {
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -27,72 +27,72 @@ Window::Window()
 	_currentFrameMouseButtonsPressed.fill(false);
 }
 
-Window::~Window()
+c3d::Window::~Window()
 {
 	_swapchain.reset();
 	Engine::getVKContext().getInstance().destroySurfaceKHR(_surface);
 	glfwDestroyWindow(_glfwWindow);
 }
 
-glm::uvec2 Window::getSize()
+glm::uvec2 c3d::Window::getSize()
 {
 	glm::ivec2 size;
 	glfwGetWindowSize(_glfwWindow, &size.x, &size.y);
 	return size;
 }
 
-glm::uvec2 Window::getSurfaceSize()
+glm::uvec2 c3d::Window::getSurfaceSize()
 {
 	glm::ivec2 size;
 	glfwGetFramebufferSize(_glfwWindow, &size.x, &size.y);
 	return size;
 }
 
-float Window::getPixelScale() const
+float c3d::Window::getPixelScale() const
 {
 	float pixelScale;
 	glfwGetWindowContentScale(_glfwWindow, nullptr, &pixelScale);
 	return pixelScale;
 }
 
-glm::vec2 Window::getCursorPos() const
+glm::vec2 c3d::Window::getCursorPos() const
 {
 	glm::dvec2 pos;
 	glfwGetCursorPos(_glfwWindow, &pos.x, &pos.y);
 	return pos;
 }
 
-void Window::setCursorPos(const glm::vec2& pos)
+void c3d::Window::setCursorPos(const glm::vec2& pos)
 {
 	glfwSetCursorPos(_glfwWindow, pos.x, pos.y);
 }
 
-bool Window::shouldClose() const
+bool c3d::Window::shouldClose() const
 {
 	return glfwWindowShouldClose(_glfwWindow);
 }
 
-void Window::setShouldClose(bool value)
+void c3d::Window::setShouldClose(bool value)
 {
 	glfwSetWindowShouldClose(_glfwWindow, value);
 }
 
-int Window::getInputMode() const
+int c3d::Window::getInputMode() const
 {
 	return glfwGetInputMode(_glfwWindow, GLFW_CURSOR);
 }
 
-void Window::setInputMode(int inputMode)
+void c3d::Window::setInputMode(int inputMode)
 {
 	glfwSetInputMode(_glfwWindow, GLFW_CURSOR, inputMode);
 }
 
-int Window::getKey(int key)
+int c3d::Window::getKey(int key)
 {
 	return glfwGetKey(_glfwWindow, key);
 }
 
-Window::MouseButtonState Window::getMouseButtonState(int button)
+c3d::Window::MouseButtonState c3d::Window::getMouseButtonState(int button)
 {
 	int previousState = _previousFrameMouseButtonsPressed[button];
 	int currentState = _currentFrameMouseButtonsPressed[button];
@@ -117,12 +117,12 @@ Window::MouseButtonState Window::getMouseButtonState(int button)
 	throw;
 }
 
-GLFWwindow* Window::getHandle()
+GLFWwindow* c3d::Window::getHandle()
 {
 	return _glfwWindow;
 }
 
-void Window::onPollEvents()
+void c3d::Window::onPollEvents()
 {
 	_previousFrameMouseButtonsPressed = _currentFrameMouseButtonsPressed;
 	for (int i = 0; i < _currentFrameMouseButtonsPressed.size(); i++)
@@ -131,12 +131,12 @@ void Window::onPollEvents()
 	}
 }
 
-VKSwapchain& Window::getSwapchain()
+c3d::VKSwapchain& c3d::Window::getSwapchain()
 {
 	return *_swapchain;
 }
 
-void Window::recreateSwapchain()
+void c3d::Window::recreateSwapchain()
 {
 	_swapchain = VKSwapchain::create(Engine::getVKContext(), _surface, _swapchain.get());
 }

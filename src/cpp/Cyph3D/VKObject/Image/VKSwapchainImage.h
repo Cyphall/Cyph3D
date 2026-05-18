@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKSwapchain;
 class VKImage;
 
@@ -26,3 +28,4 @@ private:
 	std::shared_ptr<VKImage> _image;
 	uint32_t _index;
 };
+}

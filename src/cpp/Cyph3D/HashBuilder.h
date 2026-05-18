@@ -3,6 +3,8 @@
 #include <bit>
 #include <cstddef>
 
+namespace c3d
+{
 // Based on https://stackoverflow.com/a/50978188/9962106
 class HashBuilder
 {
@@ -35,3 +37,4 @@ private:
 
 	std::size_t _value = 0;
 };
+}

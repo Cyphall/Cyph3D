@@ -21,7 +21,7 @@
 
 #include <glm/gtc/matrix_inverse.hpp>
 
-LightingPass::LightingPass(glm::uvec2 size):
+c3d::LightingPass::LightingPass(glm::uvec2 size):
 	RenderPass(size, "Lighting pass")
 {
 	createUniformBuffers();
@@ -32,7 +32,7 @@ LightingPass::LightingPass(glm::uvec2 size):
 	createImage();
 }
 
-LightingPassOutput LightingPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
+c3d::LightingPassOutput c3d::LightingPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		input.multisampledDepthImage,
@@ -207,12 +207,12 @@ LightingPassOutput LightingPass::onRender(const std::shared_ptr<VKCommandBuffer>
 	};
 }
 
-void LightingPass::onResize()
+void c3d::LightingPass::onResize()
 {
 	createImage();
 }
 
-void LightingPass::createUniformBuffers()
+void c3d::LightingPass::createUniformBuffers()
 {
 	VKResizableBufferInfo directionalLightsUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
 	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -257,7 +257,7 @@ void LightingPass::createUniformBuffers()
 	);
 }
 
-void LightingPass::createSamplers()
+void c3d::LightingPass::createSamplers()
 {
 	{
 		vk::SamplerCreateInfo createInfo;
@@ -304,7 +304,7 @@ void LightingPass::createSamplers()
 	}
 }
 
-void LightingPass::createDescriptorSetLayouts()
+void c3d::LightingPass::createDescriptorSetLayouts()
 {
 	{
 		VKDescriptorSetLayoutInfo info(false);
@@ -330,7 +330,7 @@ void LightingPass::createDescriptorSetLayouts()
 	}
 }
 
-void LightingPass::createPipelineLayout()
+void c3d::LightingPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
@@ -342,7 +342,7 @@ void LightingPass::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void LightingPass::createPipeline()
+void c3d::LightingPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
@@ -369,7 +369,7 @@ void LightingPass::createPipeline()
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void LightingPass::createImage()
+void c3d::LightingPass::createImage()
 {
 	VKImageInfo imageInfo(
 		SceneRenderer::HDR_COLOR_FORMAT,
@@ -385,7 +385,7 @@ void LightingPass::createImage()
 	_multisampledRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
 }
 
-void LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount)
+void c3d::LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount)
 {
 	if (!_directionalLightDescriptorSet || _directionalLightDescriptorSet->getInfo().getVariableSizeAllocatedCount() < directionalLightShadowsCount)
 	{

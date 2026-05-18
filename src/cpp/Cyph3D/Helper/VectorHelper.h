@@ -2,6 +2,8 @@
 
 #include <vector>
 
+namespace c3d
+{
 class VectorHelper
 {
 public:
@@ -20,3 +22,4 @@ public:
 		vector.erase(vector.begin() + index);
 	}
 };
+}

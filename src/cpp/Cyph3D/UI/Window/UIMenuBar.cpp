@@ -8,9 +8,9 @@
 #include <filesystem>
 #include <imgui.h>
 
-bool UIMenuBar::_showDemoWindow = false;
+bool c3d::UIMenuBar::_showDemoWindow = false;
 
-void UIMenuBar::show()
+void c3d::UIMenuBar::show()
 {
 	if (ImGui::BeginMainMenuBar())
 	{

@@ -9,12 +9,12 @@
 #include "Cyph3D/VKObject/VKContext.h"
 #include "Cyph3D/VKObject/VKHelper.h"
 
-std::shared_ptr<VKDescriptorSet> VKDescriptorSet::create(VKContext& context, const VKDescriptorSetInfo& info)
+std::shared_ptr<c3d::VKDescriptorSet> c3d::VKDescriptorSet::create(VKContext& context, const VKDescriptorSetInfo& info)
 {
 	return std::shared_ptr<VKDescriptorSet>(new VKDescriptorSet(context, info));
 }
 
-VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& info):
+c3d::VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& info):
 	VKObject(context),
 	_info(info)
 {
@@ -75,22 +75,22 @@ VKDescriptorSet::VKDescriptorSet(VKContext& context, const VKDescriptorSetInfo& 
 	_descriptorSet = _context.getDevice().allocateDescriptorSets(allocInfo).front();
 }
 
-VKDescriptorSet::~VKDescriptorSet()
+c3d::VKDescriptorSet::~VKDescriptorSet()
 {
 	_context.getDevice().destroyDescriptorPool(_descriptorPool);
 }
 
-const VKDescriptorSetInfo& VKDescriptorSet::getInfo() const
+const c3d::VKDescriptorSetInfo& c3d::VKDescriptorSet::getInfo() const
 {
 	return _info;
 }
 
-const vk::DescriptorSet& VKDescriptorSet::getHandle()
+const vk::DescriptorSet& c3d::VKDescriptorSet::getHandle()
 {
 	return _descriptorSet;
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
+void c3d::VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKBufferBase>& buffer, size_t offset, size_t size, uint32_t arrayIndex)
 {
 	if (buffer && size > 0)
 	{
@@ -121,7 +121,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_pt
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
+void c3d::VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (sampler)
 	{
@@ -150,7 +150,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_pt
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, uint32_t arrayIndex)
+void c3d::VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, uint32_t arrayIndex)
 {
 	if (image)
 	{
@@ -170,7 +170,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_pt
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
+void c3d::VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, uint32_t arrayIndex)
 {
 	if (image)
 	{
@@ -202,7 +202,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_pt
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
+void c3d::VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (image && sampler)
 	{
@@ -223,7 +223,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_pt
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
+void c3d::VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format, const std::shared_ptr<VKSampler>& sampler, uint32_t arrayIndex)
 {
 	if (image && sampler)
 	{
@@ -256,7 +256,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_pt
 	}
 }
 
-void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
+void c3d::VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_ptr<VKAccelerationStructure>& accelerationStructure, uint32_t arrayIndex)
 {
 	if (accelerationStructure)
 	{
@@ -287,7 +287,7 @@ void VKDescriptorSet::bindDescriptor(uint32_t bindingIndex, const std::shared_pt
 	}
 }
 
-void VKDescriptorSet::copyTo(uint32_t srcBindingIndex, uint32_t srcArrayIndex, const std::shared_ptr<VKDescriptorSet>& dst, uint32_t dstBindingIndex, uint32_t dstArrayIndex, uint32_t count)
+void c3d::VKDescriptorSet::copyTo(uint32_t srcBindingIndex, uint32_t srcArrayIndex, const std::shared_ptr<VKDescriptorSet>& dst, uint32_t dstBindingIndex, uint32_t dstArrayIndex, uint32_t count)
 {
 	vk::CopyDescriptorSet copyDescriptorSet;
 	copyDescriptorSet.srcSet = _descriptorSet;

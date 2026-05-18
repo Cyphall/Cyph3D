@@ -10,6 +10,8 @@ namespace SQLite
 class Database;
 }
 
+namespace c3d
+{
 class AssetProcessingCacheDatabase
 {
 public:
@@ -23,3 +25,4 @@ public:
 private:
 	std::unique_ptr<SQLite::Database> _database;
 };
+}

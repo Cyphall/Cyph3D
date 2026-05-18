@@ -16,7 +16,7 @@ static constexpr uint32_t VULKAN_VERSION = VK_API_VERSION_1_3;
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-struct VKContext::HelperData
+struct c3d::VKContext::HelperData
 {
 	std::shared_ptr<VKCommandBuffer> immediateCommandBuffer;
 	VKDynamic<VKCommandBuffer> defaultCommandBuffer;
@@ -302,12 +302,12 @@ static const PhysicalDeviceInfo* selectPhysicalDevice(const std::vector<Physical
 	return bestPhysicalDevice;
 }
 
-std::unique_ptr<VKContext> VKContext::create(int concurrentFrameCount)
+std::unique_ptr<c3d::VKContext> c3d::VKContext::create(int concurrentFrameCount)
 {
 	return std::unique_ptr<VKContext>(new VKContext(concurrentFrameCount));
 }
 
-VKContext::VKContext(int concurrentFrameCount):
+c3d::VKContext::VKContext(int concurrentFrameCount):
 	_concurrentFrameCount(concurrentFrameCount)
 {
 	VULKAN_HPP_DEFAULT_DISPATCHER.init();
@@ -386,7 +386,7 @@ VKContext::VKContext(int concurrentFrameCount):
 	_physicalDevice.getProperties2(&_properties);
 }
 
-VKContext::~VKContext()
+c3d::VKContext::~VKContext()
 {
 	_mainQueue->handleCompletedSubmits();
 	if (_computeQueue)
@@ -400,17 +400,17 @@ VKContext::~VKContext()
 	_instance.destroy();
 }
 
-int VKContext::getConcurrentFrameCount() const
+int c3d::VKContext::getConcurrentFrameCount() const
 {
 	return _concurrentFrameCount;
 }
 
-int VKContext::getCurrentConcurrentFrame() const
+int c3d::VKContext::getCurrentConcurrentFrame() const
 {
 	return _currentConcurrentFrame;
 }
 
-void VKContext::onNewFrame()
+void c3d::VKContext::onNewFrame()
 {
 	_currentConcurrentFrame = (_currentConcurrentFrame + 1) % _concurrentFrameCount;
 	_mainQueue->handleCompletedSubmits();
@@ -421,47 +421,47 @@ void VKContext::onNewFrame()
 	vmaSetCurrentFrameIndex(_vmaAllocator, _currentConcurrentFrame);
 }
 
-const vk::Instance& VKContext::getInstance()
+const vk::Instance& c3d::VKContext::getInstance()
 {
 	return _instance;
 }
 
-const vk::PhysicalDevice& VKContext::getPhysicalDevice()
+const vk::PhysicalDevice& c3d::VKContext::getPhysicalDevice()
 {
 	return _physicalDevice;
 }
 
-const vk::Device& VKContext::getDevice()
+const vk::Device& c3d::VKContext::getDevice()
 {
 	return _device;
 }
 
-VKQueue& VKContext::getMainQueue()
+c3d::VKQueue& c3d::VKContext::getMainQueue()
 {
 	return *_mainQueue;
 }
 
-VKQueue& VKContext::getComputeQueue()
+c3d::VKQueue& c3d::VKContext::getComputeQueue()
 {
 	return _computeQueue ? *_computeQueue : *_mainQueue;
 }
 
-VKQueue& VKContext::getTransferQueue()
+c3d::VKQueue& c3d::VKContext::getTransferQueue()
 {
 	return _transferQueue ? *_transferQueue : *_mainQueue;
 }
 
-VmaAllocator VKContext::getVmaAllocator()
+VmaAllocator c3d::VKContext::getVmaAllocator()
 {
 	return _vmaAllocator;
 }
 
-const std::shared_ptr<VKCommandBuffer>& VKContext::getDefaultCommandBuffer()
+const std::shared_ptr<c3d::VKCommandBuffer>& c3d::VKContext::getDefaultCommandBuffer()
 {
 	return _helperData->defaultCommandBuffer.getCurrent();
 }
 
-void VKContext::executeImmediate(std::function<void(const std::shared_ptr<VKCommandBuffer>& commandBuffer)>&& function)
+void c3d::VKContext::executeImmediate(std::function<void(const std::shared_ptr<VKCommandBuffer>& commandBuffer)>&& function)
 {
 	_helperData->immediateCommandBuffer->begin();
 
@@ -475,37 +475,37 @@ void VKContext::executeImmediate(std::function<void(const std::shared_ptr<VKComm
 	_helperData->immediateCommandBuffer->reset();
 }
 
-const vk::PhysicalDeviceProperties& VKContext::getProperties() const
+const vk::PhysicalDeviceProperties& c3d::VKContext::getProperties() const
 {
 	return _properties.properties;
 }
 
-const vk::PhysicalDeviceDescriptorIndexingProperties& VKContext::getDescriptorIndexingProperties() const
+const vk::PhysicalDeviceDescriptorIndexingProperties& c3d::VKContext::getDescriptorIndexingProperties() const
 {
 	return _descriptorIndexingProperties;
 }
 
-const vk::PhysicalDevicePushDescriptorPropertiesKHR& VKContext::getPushDescriptorProperties() const
+const vk::PhysicalDevicePushDescriptorPropertiesKHR& c3d::VKContext::getPushDescriptorProperties() const
 {
 	return _pushDescriptorProperties;
 }
 
-const vk::PhysicalDeviceAccelerationStructurePropertiesKHR& VKContext::getAccelerationStructureProperties() const
+const vk::PhysicalDeviceAccelerationStructurePropertiesKHR& c3d::VKContext::getAccelerationStructureProperties() const
 {
 	return _accelerationStructureProperties;
 }
 
-const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& VKContext::getRayTracingPipelineProperties() const
+const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& c3d::VKContext::getRayTracingPipelineProperties() const
 {
 	return _rayTracingPipelineProperties;
 }
 
-bool VKContext::isRayTracingSupported() const
+bool c3d::VKContext::isRayTracingSupported() const
 {
 	return _rayTracingSupported;
 }
 
-void VKContext::createInstance(const std::vector<const char*>& layers, const std::vector<const char*>& extensions)
+void c3d::VKContext::createInstance(const std::vector<const char*>& layers, const std::vector<const char*>& extensions)
 {
 	vk::ApplicationInfo appInfo;
 	appInfo.pApplicationName = "Cyph3D";
@@ -524,7 +524,7 @@ void VKContext::createInstance(const std::vector<const char*>& layers, const std
 	_instance = vk::createInstance(createInfo);
 }
 
-void VKContext::createMessenger()
+void c3d::VKContext::createMessenger()
 {
 	vk::DebugUtilsMessengerCreateInfoEXT createInfo;
 	createInfo.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
@@ -535,7 +535,7 @@ void VKContext::createMessenger()
 	_messenger = _instance.createDebugUtilsMessengerEXT(createInfo);
 }
 
-std::vector<VKContext::QueueFamilyInfo> VKContext::parseQueues()
+std::vector<c3d::VKContext::QueueFamilyInfo> c3d::VKContext::parseQueues()
 {
 	std::vector<vk::QueueFamilyProperties> queueFamilyProperties = _physicalDevice.getQueueFamilyProperties();
 
@@ -578,7 +578,7 @@ std::vector<VKContext::QueueFamilyInfo> VKContext::parseQueues()
 	return queueFamilyInfos;
 }
 
-std::optional<VKContext::QueueID> VKContext::findBestQueue(std::vector<QueueFamilyInfo>& queueFamilyInfos, vk::QueueFlags requiredFlags, float priority)
+std::optional<c3d::VKContext::QueueID> c3d::VKContext::findBestQueue(std::vector<QueueFamilyInfo>& queueFamilyInfos, vk::QueueFlags requiredFlags, float priority)
 {
 	for (QueueFamilyInfo& queueFamilyInfo : queueFamilyInfos)
 	{
@@ -595,7 +595,7 @@ std::optional<VKContext::QueueID> VKContext::findBestQueue(std::vector<QueueFami
 	return std::nullopt;
 }
 
-void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
+void c3d::VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 {
 	std::vector<QueueFamilyInfo> queueFamilyInfos = parseQueues();
 
@@ -707,7 +707,7 @@ void VKContext::createLogicalDevice(const std::vector<const char*>& extensions)
 	}
 }
 
-void VKContext::createVmaAllocator()
+void c3d::VKContext::createVmaAllocator()
 {
 	VmaVulkanFunctions vulkanFunctions{};
 	vulkanFunctions.vkGetInstanceProcAddr = VULKAN_HPP_DEFAULT_DISPATCHER.vkGetInstanceProcAddr;
@@ -733,12 +733,12 @@ void VKContext::createVmaAllocator()
 	vmaCreateAllocator(&allocatorInfo, &_vmaAllocator);
 }
 
-void VKContext::createImmediateCommandBuffer()
+void c3d::VKContext::createImmediateCommandBuffer()
 {
 	_helperData->immediateCommandBuffer = VKCommandBuffer::create(*this, *_mainQueue);
 }
 
-void VKContext::createDefaultCommandBuffer()
+void c3d::VKContext::createDefaultCommandBuffer()
 {
 	_helperData->defaultCommandBuffer = VKDynamic<VKCommandBuffer>(
 		*this,

@@ -23,7 +23,7 @@ static std::filesystem::path assetDirectoryPath = rootDirectoryPath / "assets";
 static std::filesystem::path cacheRootDirectoryPath = rootDirectoryPath / "cache";
 static std::filesystem::path cacheAssetDirectoryPath = cacheRootDirectoryPath / "assets";
 
-std::string FileHelper::readAllText(const std::filesystem::path& path)
+std::string c3d::FileHelper::readAllText(const std::filesystem::path& path)
 {
 	std::ifstream file = openFileForReading(path);
 
@@ -35,7 +35,7 @@ std::string FileHelper::readAllText(const std::filesystem::path& path)
 	return fileContent;
 }
 
-std::ifstream FileHelper::openFileForReading(const std::filesystem::path& path)
+std::ifstream c3d::FileHelper::openFileForReading(const std::filesystem::path& path)
 {
 	std::ifstream file(path, std::ios::in | std::ios::binary);
 
@@ -47,7 +47,7 @@ std::ifstream FileHelper::openFileForReading(const std::filesystem::path& path)
 	return file;
 }
 
-std::ofstream FileHelper::openFileForWriting(const std::filesystem::path& path)
+std::ofstream c3d::FileHelper::openFileForWriting(const std::filesystem::path& path)
 {
 	std::ofstream file(path, std::ios::out | std::ios::binary);
 
@@ -59,7 +59,7 @@ std::ofstream FileHelper::openFileForWriting(const std::filesystem::path& path)
 	return file;
 }
 
-std::optional<std::filesystem::path> FileHelper::fileDialogOpen(std::span<const nfdfilteritem_t> allowedFileTypes, const std::filesystem::path& defaultFolder)
+std::optional<std::filesystem::path> c3d::FileHelper::fileDialogOpen(std::span<const nfdfilteritem_t> allowedFileTypes, const std::filesystem::path& defaultFolder)
 {
 	std::optional<std::filesystem::path> res;
 
@@ -91,7 +91,7 @@ std::optional<std::filesystem::path> FileHelper::fileDialogOpen(std::span<const 
 	return res;
 }
 
-std::optional<std::filesystem::path> FileHelper::fileDialogSave(std::span<const nfdfilteritem_t> allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName)
+std::optional<std::filesystem::path> c3d::FileHelper::fileDialogSave(std::span<const nfdfilteritem_t> allowedFileTypes, const std::filesystem::path& defaultFolder, const std::string& defaultName)
 {
 	std::optional<std::filesystem::path> res;
 
@@ -124,27 +124,27 @@ std::optional<std::filesystem::path> FileHelper::fileDialogSave(std::span<const 
 	return res;
 }
 
-const std::filesystem::path& FileHelper::getRootDirectoryPath()
+const std::filesystem::path& c3d::FileHelper::getRootDirectoryPath()
 {
 	return rootDirectoryPath;
 }
 
-const std::filesystem::path& FileHelper::getAssetDirectoryPath()
+const std::filesystem::path& c3d::FileHelper::getAssetDirectoryPath()
 {
 	return assetDirectoryPath;
 }
 
-const std::filesystem::path& FileHelper::getCacheRootDirectoryPath()
+const std::filesystem::path& c3d::FileHelper::getCacheRootDirectoryPath()
 {
 	return cacheRootDirectoryPath;
 }
 
-const std::filesystem::path& FileHelper::getCacheAssetDirectoryPath()
+const std::filesystem::path& c3d::FileHelper::getCacheAssetDirectoryPath()
 {
 	return cacheAssetDirectoryPath;
 }
 
-bool FileHelper::isAssetPath(const std::filesystem::path& path)
+bool c3d::FileHelper::isAssetPath(const std::filesystem::path& path)
 {
 	std::filesystem::path assetPathCanonial = std::filesystem::weakly_canonical(FileHelper::getAssetDirectoryPath());
 	std::filesystem::path pathCanonial = std::filesystem::weakly_canonical(std::filesystem::absolute(path));
@@ -154,12 +154,12 @@ bool FileHelper::isAssetPath(const std::filesystem::path& path)
 	return it == pathCanonial.begin();
 }
 
-void FileHelper::init()
+void c3d::FileHelper::init()
 {
 	NFD::Init();
 }
 
-void FileHelper::shutdown()
+void c3d::FileHelper::shutdown()
 {
 	NFD::Quit();
 }

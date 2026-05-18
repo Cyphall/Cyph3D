@@ -20,7 +20,7 @@
 
 #include <spdlog/spdlog.h>
 
-ImGuiVulkanBackend::ImGuiVulkanBackend()
+c3d::ImGuiVulkanBackend::ImGuiVulkanBackend()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendRendererName = "ImGuiVulkanBackend";
@@ -34,7 +34,7 @@ ImGuiVulkanBackend::ImGuiVulkanBackend()
 	createBuffers();
 }
 
-ImGuiVulkanBackend::~ImGuiVulkanBackend()
+c3d::ImGuiVulkanBackend::~ImGuiVulkanBackend()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -44,7 +44,7 @@ ImGuiVulkanBackend::~ImGuiVulkanBackend()
 	io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
 }
 
-void ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const std::shared_ptr<VKCommandBuffer>& commandBuffer, const std::shared_ptr<VKImage>& outputImage)
+void c3d::ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const std::shared_ptr<VKCommandBuffer>& commandBuffer, const std::shared_ptr<VKImage>& outputImage)
 {
 	glm::uvec2 framebufferSize = outputImage->getSize(0);
 
@@ -143,7 +143,7 @@ void ImGuiVulkanBackend::renderDrawData(const ImDrawData* drawData, const std::s
 	commandBuffer->endRendering();
 }
 
-void ImGuiVulkanBackend::createSamplers()
+void c3d::ImGuiVulkanBackend::createSamplers()
 {
 	{
 		vk::SamplerCreateInfo createInfo;
@@ -190,14 +190,14 @@ void ImGuiVulkanBackend::createSamplers()
 	}
 }
 
-void ImGuiVulkanBackend::createDescriptorSetLayout()
+void c3d::ImGuiVulkanBackend::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
 	_imageSamplerDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void ImGuiVulkanBackend::createPipelineLayout()
+void c3d::ImGuiVulkanBackend::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(_imageSamplerDescriptorSetLayout);
@@ -206,7 +206,7 @@ void ImGuiVulkanBackend::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void ImGuiVulkanBackend::createPipeline()
+void c3d::ImGuiVulkanBackend::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
@@ -237,7 +237,7 @@ void ImGuiVulkanBackend::createPipeline()
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void ImGuiVulkanBackend::createFontsTexture()
+void c3d::ImGuiVulkanBackend::createFontsTexture()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -299,7 +299,7 @@ void ImGuiVulkanBackend::createFontsTexture()
 	io.Fonts->SetTexID(&_fontsTexture);
 }
 
-void ImGuiVulkanBackend::createBuffers()
+void c3d::ImGuiVulkanBackend::createBuffers()
 {
 	{
 		VKResizableBufferInfo info(vk::BufferUsageFlagBits::eVertexBuffer);
@@ -334,7 +334,7 @@ void ImGuiVulkanBackend::createBuffers()
 	}
 }
 
-void ImGuiVulkanBackend::setupRenderState(
+void c3d::ImGuiVulkanBackend::setupRenderState(
 	const ImDrawData* drawData,
 	const std::shared_ptr<VKCommandBuffer>& commandBuffer,
 	const std::shared_ptr<VKResizableBuffer<ImDrawVert>>& vertexBuffer,

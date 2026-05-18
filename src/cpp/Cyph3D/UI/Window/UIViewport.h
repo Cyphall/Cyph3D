@@ -7,6 +7,8 @@
 #include <ImGuizmo.h>
 #include <memory>
 
+namespace c3d
+{
 class SceneRenderer;
 
 class UIViewport
@@ -64,3 +66,4 @@ private:
 	static void drawHeader();
 	static void drawRenderToFilePopup();
 };
+}

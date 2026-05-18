@@ -3,6 +3,8 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKDescriptorSetLayoutInfo
 {
 public:
@@ -27,3 +29,4 @@ private:
 	bool _pushable;
 	std::vector<BindingInfo> _bindingInfos;
 };
+}

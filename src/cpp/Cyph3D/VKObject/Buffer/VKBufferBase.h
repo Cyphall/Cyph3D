@@ -5,6 +5,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKBufferBase : public VKObject
 {
 public:
@@ -42,3 +44,4 @@ protected:
 
 	void setState(const State& state);
 };
+}

@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+namespace c3d
+{
 class VKAccelerationStructure;
 
 struct VKTopLevelAccelerationStructureBuildInfo
@@ -17,3 +19,4 @@ struct VKTopLevelAccelerationStructureBuildInfo
 
 	std::vector<InstanceInfo> instancesInfos;
 };
+}

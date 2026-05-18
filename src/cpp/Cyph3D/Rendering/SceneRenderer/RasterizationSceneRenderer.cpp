@@ -3,7 +3,7 @@
 #include "Cyph3D/Asset/RuntimeAsset/CubemapAsset.h"
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
+c3d::RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Rasterization SceneRenderer", size),
 	_zPrepass(size),
 	_shadowMapPass(size),
@@ -15,7 +15,7 @@ RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 {
 }
 
-std::shared_ptr<VKImage> RasterizationSceneRenderer::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+std::shared_ptr<c3d::VKImage> c3d::RasterizationSceneRenderer::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	// Z prepass
 
@@ -87,7 +87,7 @@ std::shared_ptr<VKImage> RasterizationSceneRenderer::onRender(const std::shared_
 	return toneMappingPassOutput.outputImage;
 }
 
-void RasterizationSceneRenderer::onResize()
+void c3d::RasterizationSceneRenderer::onResize()
 {
 	_zPrepass.resize(_size);
 	_shadowMapPass.resize(_size);

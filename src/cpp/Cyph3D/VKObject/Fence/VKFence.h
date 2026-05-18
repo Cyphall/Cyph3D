@@ -4,6 +4,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKFence : public VKObject
 {
 public:
@@ -23,3 +25,4 @@ private:
 
 	vk::Fence _fence;
 };
+}

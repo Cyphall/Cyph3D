@@ -4,6 +4,8 @@
 
 #include <vector>
 
+namespace c3d
+{
 class Component;
 
 class ComponentConstIterator
@@ -33,3 +35,4 @@ public:
 private:
 	std::vector<Entity::ComponentContainer>::const_iterator _it;
 };
+}

@@ -3,6 +3,8 @@
 #include <functional>
 #include <imgui.h>
 
+namespace c3d
+{
 class Transform;
 class Entity;
 
@@ -19,3 +21,4 @@ private:
 	static void addRootToTree();
 	static void addObjectToTree(Transform* transform);
 };
+}

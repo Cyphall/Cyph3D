@@ -6,9 +6,12 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 struct EquirectangularSkyboxData
 {
 	vk::Format format;
 	glm::uvec2 size;
 	std::array<std::vector<std::vector<std::byte>>, 6> faces; // Face<Level<Data>>
 };
+}

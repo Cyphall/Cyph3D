@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKContext;
 class VKImage;
 
@@ -16,3 +18,4 @@ public:
 
 	static void assertImageViewHasUniqueState(const std::shared_ptr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange);
 };
+}

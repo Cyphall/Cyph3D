@@ -1,5 +1,7 @@
 #pragma once
 
+namespace c3d
+{
 class VKContext;
 
 class VKObject
@@ -18,3 +20,4 @@ protected:
 
 	VKContext& _context;
 };
+}

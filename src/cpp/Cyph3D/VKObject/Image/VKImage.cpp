@@ -6,12 +6,12 @@
 #include <ranges>
 #include <vulkan/vulkan_format_traits.hpp>
 
-std::shared_ptr<VKImage> VKImage::create(VKContext& context, const VKImageInfo& info)
+std::shared_ptr<c3d::VKImage> c3d::VKImage::create(VKContext& context, const VKImageInfo& info)
 {
 	return std::shared_ptr<VKImage>(new VKImage(context, info));
 }
 
-VKImage::VKImage(VKContext& context, const VKImageInfo& info):
+c3d::VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 	VKObject(context),
 	_info(info)
 {
@@ -108,7 +108,7 @@ VKImage::VKImage(VKContext& context, const VKImageInfo& info):
 	}
 }
 
-VKImage::~VKImage()
+c3d::VKImage::~VKImage()
 {
 	for (vk::ImageView view : _views | std::views::values)
 	{
@@ -121,27 +121,27 @@ VKImage::~VKImage()
 	}
 }
 
-const VKImageInfo& VKImage::getInfo() const
+const c3d::VKImageInfo& c3d::VKImage::getInfo() const
 {
 	return _info;
 }
 
-const vk::Image& VKImage::getHandle()
+const vk::Image& c3d::VKImage::getHandle()
 {
 	return _handle;
 }
 
-const glm::uvec2& VKImage::getSize(uint32_t level) const
+const glm::uvec2& c3d::VKImage::getSize(uint32_t level) const
 {
 	return _sizes[level];
 }
 
-const VKImage::State& VKImage::getState(uint32_t layer, uint32_t level) const
+const c3d::VKImage::State& c3d::VKImage::getState(uint32_t layer, uint32_t level) const
 {
 	return _currentStates[layer][level];
 }
 
-vk::DeviceSize VKImage::getLayerByteSize() const
+vk::DeviceSize c3d::VKImage::getLayerByteSize() const
 {
 	vk::DeviceSize totalSize = 0;
 	for (uint32_t i = 0; i < _info.getLevels(); i++)
@@ -151,7 +151,7 @@ vk::DeviceSize VKImage::getLayerByteSize() const
 	return totalSize;
 }
 
-vk::DeviceSize VKImage::getLevelByteSize(uint32_t level) const
+vk::DeviceSize c3d::VKImage::getLevelByteSize(uint32_t level) const
 {
 	vk::Format format = _info.getFormat();
 	uint32_t blocksInXAxis = (_sizes[level].x + vk::blockExtent(format)[0] - 1) / vk::blockExtent(format)[0];
@@ -159,7 +159,7 @@ vk::DeviceSize VKImage::getLevelByteSize(uint32_t level) const
 	return blocksInXAxis * blocksInYAxis * vk::blockSize(format);
 }
 
-vk::DeviceSize VKImage::getPixelByteSize() const
+vk::DeviceSize c3d::VKImage::getPixelByteSize() const
 {
 	if (isCompressed())
 	{
@@ -170,12 +170,12 @@ vk::DeviceSize VKImage::getPixelByteSize() const
 	return vk::blockSize(format) / vk::texelsPerBlock(format);
 }
 
-bool VKImage::isCompressed() const
+bool c3d::VKImage::isCompressed() const
 {
 	return vk::isCompressed(_info.getFormat());
 }
 
-vk::ImageView VKImage::getView(vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+vk::ImageView c3d::VKImage::getView(vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	ViewInfo viewInfo{
 		.type = type,
@@ -227,12 +227,12 @@ vk::ImageView VKImage::getView(vk::ImageViewType type, glm::uvec2 layerRange, gl
 	return it->second;
 }
 
-int VKImage::calcMaxMipLevels(const glm::uvec2& size)
+int c3d::VKImage::calcMaxMipLevels(const glm::uvec2& size)
 {
 	return static_cast<int>(glm::floor(glm::log2(static_cast<float>(glm::min(size.x, size.y))))) + 1;
 }
 
-void VKImage::setState(glm::uvec2 layerRange, glm::uvec2 levelRange, const State& state)
+void c3d::VKImage::setState(glm::uvec2 layerRange, glm::uvec2 levelRange, const State& state)
 {
 	for (uint32_t layer = layerRange.x; layer <= layerRange.y; layer++)
 	{

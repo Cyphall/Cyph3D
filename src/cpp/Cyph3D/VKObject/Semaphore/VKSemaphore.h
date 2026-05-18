@@ -4,6 +4,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKSemaphore : public VKObject
 {
 public:
@@ -18,3 +20,4 @@ private:
 
 	vk::Semaphore _semaphore;
 };
+}

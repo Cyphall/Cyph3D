@@ -9,20 +9,20 @@
 
 #include <magic_enum/magic_enum.hpp>
 
-SkyboxAsset::SkyboxAsset(AssetManager& manager, const SkyboxAssetSignature& signature):
+c3d::SkyboxAsset::SkyboxAsset(AssetManager& manager, const SkyboxAssetSignature& signature):
 	RuntimeAsset(manager, signature)
 {
 	reload();
 }
 
-SkyboxAsset::~SkyboxAsset() = default;
+c3d::SkyboxAsset::~SkyboxAsset() = default;
 
-bool SkyboxAsset::isLoaded() const
+bool c3d::SkyboxAsset::isLoaded() const
 {
 	return _cubemap != nullptr && _cubemap->isLoaded();
 }
 
-void SkyboxAsset::onDrawUi()
+void c3d::SkyboxAsset::onDrawUi()
 {
 	ImGuiHelper::TextCentered("Skybox");
 	ImGuiHelper::TextCentered(_signature.path.c_str());
@@ -154,12 +154,12 @@ void SkyboxAsset::onDrawUi()
 	}
 }
 
-const SkyboxAsset::Layout& SkyboxAsset::getLayout() const
+const c3d::SkyboxAsset::Layout& c3d::SkyboxAsset::getLayout() const
 {
 	return _layout;
 }
 
-void SkyboxAsset::setLayout(const SkyboxAsset::Layout& layout)
+void c3d::SkyboxAsset::setLayout(const SkyboxAsset::Layout& layout)
 {
 	_layout = layout;
 	onChanged();
@@ -167,12 +167,12 @@ void SkyboxAsset::setLayout(const SkyboxAsset::Layout& layout)
 	_changed();
 }
 
-const std::string* SkyboxAsset::getXposPath() const
+const std::string* c3d::SkyboxAsset::getXposPath() const
 {
 	return _xposPath.has_value() ? &_xposPath.value() : nullptr;
 }
 
-void SkyboxAsset::setXposPath(std::optional<std::string_view> path)
+void c3d::SkyboxAsset::setXposPath(std::optional<std::string_view> path)
 {
 	_xposPath = path;
 	onChanged();
@@ -180,12 +180,12 @@ void SkyboxAsset::setXposPath(std::optional<std::string_view> path)
 	_changed();
 }
 
-const std::string* SkyboxAsset::getXnegPath() const
+const std::string* c3d::SkyboxAsset::getXnegPath() const
 {
 	return _xnegPath.has_value() ? &_xnegPath.value() : nullptr;
 }
 
-void SkyboxAsset::setXnegPath(std::optional<std::string_view> path)
+void c3d::SkyboxAsset::setXnegPath(std::optional<std::string_view> path)
 {
 	_xnegPath = path;
 	onChanged();
@@ -193,12 +193,12 @@ void SkyboxAsset::setXnegPath(std::optional<std::string_view> path)
 	_changed();
 }
 
-const std::string* SkyboxAsset::getYposPath() const
+const std::string* c3d::SkyboxAsset::getYposPath() const
 {
 	return _yposPath.has_value() ? &_yposPath.value() : nullptr;
 }
 
-void SkyboxAsset::setYposPath(std::optional<std::string_view> path)
+void c3d::SkyboxAsset::setYposPath(std::optional<std::string_view> path)
 {
 	_yposPath = path;
 	onChanged();
@@ -206,12 +206,12 @@ void SkyboxAsset::setYposPath(std::optional<std::string_view> path)
 	_changed();
 }
 
-const std::string* SkyboxAsset::getYnegPath() const
+const std::string* c3d::SkyboxAsset::getYnegPath() const
 {
 	return _ynegPath.has_value() ? &_ynegPath.value() : nullptr;
 }
 
-void SkyboxAsset::setYnegPath(std::optional<std::string_view> path)
+void c3d::SkyboxAsset::setYnegPath(std::optional<std::string_view> path)
 {
 	_ynegPath = path;
 	onChanged();
@@ -219,12 +219,12 @@ void SkyboxAsset::setYnegPath(std::optional<std::string_view> path)
 	_changed();
 }
 
-const std::string* SkyboxAsset::getZposPath() const
+const std::string* c3d::SkyboxAsset::getZposPath() const
 {
 	return _zposPath.has_value() ? &_zposPath.value() : nullptr;
 }
 
-void SkyboxAsset::setZposPath(std::optional<std::string_view> path)
+void c3d::SkyboxAsset::setZposPath(std::optional<std::string_view> path)
 {
 	_zposPath = path;
 	onChanged();
@@ -232,12 +232,12 @@ void SkyboxAsset::setZposPath(std::optional<std::string_view> path)
 	_changed();
 }
 
-const std::string* SkyboxAsset::getZnegPath() const
+const std::string* c3d::SkyboxAsset::getZnegPath() const
 {
 	return _znegPath.has_value() ? &_znegPath.value() : nullptr;
 }
 
-void SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
+void c3d::SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
 {
 	_znegPath = path;
 	onChanged();
@@ -245,12 +245,12 @@ void SkyboxAsset::setZnegPath(std::optional<std::string_view> path)
 	_changed();
 }
 
-const std::string* SkyboxAsset::getEquirectangularPath() const
+const std::string* c3d::SkyboxAsset::getEquirectangularPath() const
 {
 	return _equirectangularPath.has_value() ? &_equirectangularPath.value() : nullptr;
 }
 
-void SkyboxAsset::setEquirectangularPath(std::optional<std::string_view> path)
+void c3d::SkyboxAsset::setEquirectangularPath(std::optional<std::string_view> path)
 {
 	_equirectangularPath = path;
 	onChanged();
@@ -258,12 +258,12 @@ void SkyboxAsset::setEquirectangularPath(std::optional<std::string_view> path)
 	_changed();
 }
 
-CubemapAsset* SkyboxAsset::getCubemap() const
+c3d::CubemapAsset* c3d::SkyboxAsset::getCubemap() const
 {
 	return _cubemap;
 }
 
-void SkyboxAsset::create(std::string_view path)
+void c3d::SkyboxAsset::create(std::string_view path)
 {
 	nlohmann::ordered_json jsonRoot;
 	jsonRoot["version"] = 2;
@@ -278,7 +278,7 @@ void SkyboxAsset::create(std::string_view path)
 	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / path);
 }
 
-void SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+void c3d::SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
 	setLayout(Layout::Cubemap);
 	setXposPath(jsonRoot["pos_x"].get<std::string>());
@@ -289,7 +289,7 @@ void SkyboxAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot
 	setZnegPath(jsonRoot["neg_z"].get<std::string>());
 }
 
-void SkyboxAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
+void c3d::SkyboxAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
 {
 	setLayout(Layout::Cubemap);
 
@@ -366,7 +366,7 @@ void SkyboxAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot
 	}
 }
 
-void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
+void c3d::SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
 {
 	{
 		const nlohmann::ordered_json& layout = jsonRoot["layout"];
@@ -469,7 +469,7 @@ void SkyboxAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot
 	}
 }
 
-void SkyboxAsset::save() const
+void c3d::SkyboxAsset::save() const
 {
 	nlohmann::ordered_json jsonRoot;
 	jsonRoot["version"] = 3;
@@ -573,7 +573,7 @@ void SkyboxAsset::save() const
 	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / _signature.path);
 }
 
-void SkyboxAsset::reload()
+void c3d::SkyboxAsset::reload()
 {
 	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / _signature.path);
 
@@ -604,7 +604,7 @@ void SkyboxAsset::reload()
 	}
 }
 
-void SkyboxAsset::onChanged()
+void c3d::SkyboxAsset::onChanged()
 {
 	if (_layout == Layout::Cubemap && _xposPath && _xnegPath && _yposPath && _ynegPath && _zposPath && _znegPath)
 	{

@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKImage;
 
 class VKRenderingColorAttachmentInfo
@@ -47,3 +49,4 @@ private:
 	vk::ClearValue _clearValue;
 	vk::AttachmentStoreOp _storeOp = vk::AttachmentStoreOp::eDontCare;
 };
+}

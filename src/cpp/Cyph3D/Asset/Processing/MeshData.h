@@ -4,6 +4,8 @@
 
 #include <vector>
 
+namespace c3d
+{
 struct MeshData
 {
 	std::vector<PositionVertexData> positionVertices;
@@ -12,3 +14,4 @@ struct MeshData
 	glm::vec3 boundingBoxMin;
 	glm::vec3 boundingBoxMax;
 };
+}

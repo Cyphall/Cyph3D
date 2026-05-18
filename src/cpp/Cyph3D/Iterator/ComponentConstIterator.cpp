@@ -1,43 +1,43 @@
 #include "ComponentConstIterator.h"
 
-ComponentConstIterator::ComponentConstIterator(std::vector<Entity::ComponentContainer>::const_iterator it):
+c3d::ComponentConstIterator::ComponentConstIterator(std::vector<Entity::ComponentContainer>::const_iterator it):
 	_it(it)
 {}
 
-ComponentConstIterator& ComponentConstIterator::operator++()
+c3d::ComponentConstIterator& c3d::ComponentConstIterator::operator++()
 {
 	_it++;
 	return *this;
 }
 
-ComponentConstIterator ComponentConstIterator::operator++(int)
+c3d::ComponentConstIterator c3d::ComponentConstIterator::operator++(int)
 {
 	ComponentConstIterator temp = *this;
 	++(*this);
 	return temp;
 }
 
-bool ComponentConstIterator::operator==(const ComponentConstIterator& other) const
+bool c3d::ComponentConstIterator::operator==(const ComponentConstIterator& other) const
 {
 	return _it == other._it;
 }
 
-bool ComponentConstIterator::operator!=(const ComponentConstIterator& other) const
+bool c3d::ComponentConstIterator::operator!=(const ComponentConstIterator& other) const
 {
 	return !this->operator==(other);
 }
 
-const Component& ComponentConstIterator::operator*()
+const c3d::Component& c3d::ComponentConstIterator::operator*()
 {
 	return *(this->operator->());
 }
 
-const Component* ComponentConstIterator::operator->()
+const c3d::Component* c3d::ComponentConstIterator::operator->()
 {
 	return _it->component.get();
 }
 
-std::vector<Entity::ComponentContainer>::const_iterator ComponentConstIterator::getUnderlyingIterator()
+std::vector<c3d::Entity::ComponentContainer>::const_iterator c3d::ComponentConstIterator::getUnderlyingIterator()
 {
 	return _it;
 }

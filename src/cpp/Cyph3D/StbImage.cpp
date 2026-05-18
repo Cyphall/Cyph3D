@@ -3,7 +3,7 @@
 #include <stb_image.h>
 #include <string>
 
-StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepthFlags acceptedBitDepths)
+c3d::StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, BitDepthFlags acceptedBitDepths)
 {
 	std::string pathStr = path.generic_string();
 
@@ -38,43 +38,43 @@ StbImage::StbImage(const std::filesystem::path& path, Channels desiredChannels, 
 	_channelCount = desiredChannels == Channels::eAny ? channelCount : static_cast<int>(desiredChannels);
 }
 
-StbImage::~StbImage()
+c3d::StbImage::~StbImage()
 {
 	if (_data != nullptr)
 		stbi_image_free(_data);
 }
 
-const std::byte* StbImage::getPtr() const
+const std::byte* c3d::StbImage::getPtr() const
 {
 	return _data;
 }
 
-uint32_t StbImage::getBitsPerChannel() const
+uint32_t c3d::StbImage::getBitsPerChannel() const
 {
 	return _bitPerChannel;
 }
 
-uint32_t StbImage::getBitsPerPixel() const
+uint32_t c3d::StbImage::getBitsPerPixel() const
 {
 	return _bitPerChannel * _channelCount;
 }
 
-uint32_t StbImage::getChannelCount() const
+uint32_t c3d::StbImage::getChannelCount() const
 {
 	return _channelCount;
 }
 
-glm::uvec2 StbImage::getSize() const
+glm::uvec2 c3d::StbImage::getSize() const
 {
 	return _size;
 }
 
-size_t StbImage::getByteSize() const
+size_t c3d::StbImage::getByteSize() const
 {
 	return _size.x * _size.y * (getBitsPerPixel() / 8);
 }
 
-bool StbImage::isValid() const
+bool c3d::StbImage::isValid() const
 {
 	return _data != nullptr;
 }

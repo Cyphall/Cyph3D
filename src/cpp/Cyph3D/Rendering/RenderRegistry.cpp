@@ -1,38 +1,38 @@
 #include "RenderRegistry.h"
 
-void RenderRegistry::clear()
+void c3d::RenderRegistry::clear()
 {
 	_models.clear();
 	_directionalLights.clear();
 	_pointLights.clear();
 }
 
-void RenderRegistry::addRenderRequest(const ModelRenderer::RenderData& renderData)
+void c3d::RenderRegistry::addRenderRequest(const ModelRenderer::RenderData& renderData)
 {
 	_models.emplace_back(renderData);
 }
 
-void RenderRegistry::addRenderRequest(const DirectionalLight::RenderData& renderData)
+void c3d::RenderRegistry::addRenderRequest(const DirectionalLight::RenderData& renderData)
 {
 	_directionalLights.emplace_back(renderData);
 }
 
-void RenderRegistry::addRenderRequest(const PointLight::RenderData& renderData)
+void c3d::RenderRegistry::addRenderRequest(const PointLight::RenderData& renderData)
 {
 	_pointLights.emplace_back(renderData);
 }
 
-const std::vector<ModelRenderer::RenderData>& RenderRegistry::getModelRenderRequests() const
+const std::vector<c3d::ModelRenderer::RenderData>& c3d::RenderRegistry::getModelRenderRequests() const
 {
 	return _models;
 }
 
-const std::vector<DirectionalLight::RenderData>& RenderRegistry::getDirectionalLightRenderRequests() const
+const std::vector<c3d::DirectionalLight::RenderData>& c3d::RenderRegistry::getDirectionalLightRenderRequests() const
 {
 	return _directionalLights;
 }
 
-const std::vector<PointLight::RenderData>& RenderRegistry::getPointLightRenderRequests() const
+const std::vector<c3d::PointLight::RenderData>& c3d::RenderRegistry::getPointLightRenderRequests() const
 {
 	return _pointLights;
 }

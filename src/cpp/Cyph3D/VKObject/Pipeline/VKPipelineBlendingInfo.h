@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 struct VKPipelineBlendingInfo
 {
 	vk::BlendFactor srcColorBlendFactor;
@@ -11,3 +13,4 @@ struct VKPipelineBlendingInfo
 	vk::BlendFactor dstAlphaBlendFactor;
 	vk::BlendOp alphaBlendOp;
 };
+}

@@ -6,6 +6,8 @@
 
 #include <vector>
 
+namespace c3d
+{
 class RenderRegistry
 {
 public:
@@ -24,3 +26,4 @@ private:
 	std::vector<DirectionalLight::RenderData> _directionalLights;
 	std::vector<PointLight::RenderData> _pointLights;
 };
+}

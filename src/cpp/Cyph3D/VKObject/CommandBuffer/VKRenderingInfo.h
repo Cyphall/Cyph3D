@@ -5,6 +5,8 @@
 
 #include <optional>
 
+namespace c3d
+{
 class VKRenderingInfo
 {
 public:
@@ -30,3 +32,4 @@ private:
 	std::vector<VKRenderingColorAttachmentInfo> _colorAttachmentsInfos;
 	std::optional<VKRenderingDepthAttachmentInfo> _depthAttachmentInfo;
 };
+}

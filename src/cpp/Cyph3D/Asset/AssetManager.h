@@ -13,6 +13,8 @@
 #include <BS_thread_pool.hpp>
 #include <unordered_map>
 
+namespace c3d
+{
 class VKSampler;
 
 class AssetManager
@@ -58,3 +60,4 @@ private:
 
 	BS::light_thread_pool _threadPool;
 };
+}

@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <nlohmann/json_fwd.hpp>
 
+namespace c3d
+{
 class Animator : public Component
 {
 public:
@@ -33,3 +35,4 @@ private:
 
 	void deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot);
 };
+}

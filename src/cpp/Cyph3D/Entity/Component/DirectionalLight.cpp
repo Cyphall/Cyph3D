@@ -9,14 +9,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
-const char* const DirectionalLight::identifier = "DirectionalLight";
+const char* const c3d::DirectionalLight::identifier = "DirectionalLight";
 
-DirectionalLight::DirectionalLight(Entity& entity):
+c3d::DirectionalLight::DirectionalLight(Entity& entity):
 	LightBase(entity)
 {
 }
 
-void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
+void c3d::DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	RenderData data{
 		.transform = getTransform(),
@@ -29,7 +29,7 @@ void DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camer
 	renderRegistry.addRenderRequest(data);
 }
 
-void DirectionalLight::onDrawUi()
+void c3d::DirectionalLight::onDrawUi()
 {
 	glm::vec3 imGuiSrgbColor = getSrgbColor();
 	if (ImGui::ColorEdit3("Color", glm::value_ptr(imGuiSrgbColor)))
@@ -78,48 +78,48 @@ void DirectionalLight::onDrawUi()
 	}
 }
 
-const char* DirectionalLight::getIdentifier() const
+const char* c3d::DirectionalLight::getIdentifier() const
 {
 	return identifier;
 }
 
-bool DirectionalLight::getCastShadows() const
+bool c3d::DirectionalLight::getCastShadows() const
 {
 	return _castShadows;
 }
 
-void DirectionalLight::setCastShadows(bool value)
+void c3d::DirectionalLight::setCastShadows(bool value)
 {
 	_castShadows = value;
 
 	_changed();
 }
 
-uint32_t DirectionalLight::getResolution() const
+uint32_t c3d::DirectionalLight::getResolution() const
 {
 	return _resolution;
 }
 
-void DirectionalLight::setResolution(uint32_t value)
+void c3d::DirectionalLight::setResolution(uint32_t value)
 {
 	_resolution = value;
 
 	_changed();
 }
 
-float DirectionalLight::getAngularDiameter() const
+float c3d::DirectionalLight::getAngularDiameter() const
 {
 	return _angularDiameter;
 }
 
-void DirectionalLight::setAngularDiameter(float value)
+void c3d::DirectionalLight::setAngularDiameter(float value)
 {
 	_angularDiameter = value;
 
 	_changed();
 }
 
-void DirectionalLight::duplicate(Entity& targetEntity) const
+void c3d::DirectionalLight::duplicate(Entity& targetEntity) const
 {
 	DirectionalLight& newComponent = targetEntity.addComponent<DirectionalLight>();
 	newComponent.setSrgbColor(getSrgbColor());
@@ -129,7 +129,7 @@ void DirectionalLight::duplicate(Entity& targetEntity) const
 	newComponent.setAngularDiameter(getAngularDiameter());
 }
 
-ObjectSerialization DirectionalLight::serialize() const
+c3d::ObjectSerialization c3d::DirectionalLight::serialize() const
 {
 	ObjectSerialization serialization;
 	serialization.version = 2;
@@ -145,7 +145,7 @@ ObjectSerialization DirectionalLight::serialize() const
 	return serialization;
 }
 
-void DirectionalLight::deserialize(const ObjectSerialization& serialization)
+void c3d::DirectionalLight::deserialize(const ObjectSerialization& serialization)
 {
 	switch (serialization.version)
 	{
@@ -160,7 +160,7 @@ void DirectionalLight::deserialize(const ObjectSerialization& serialization)
 	}
 }
 
-void DirectionalLight::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+void c3d::DirectionalLight::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
 	setSrgbColor(glm::make_vec3(jsonRoot["color"].get<std::vector<float>>().data()));
 	setIntensity(jsonRoot["intensity"].get<float>());
@@ -168,7 +168,7 @@ void DirectionalLight::deserializeFromVersion1(const nlohmann::ordered_json& jso
 	setResolution(jsonRoot["shadow_resolution"].get<int>());
 }
 
-void DirectionalLight::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
+void c3d::DirectionalLight::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
 {
 	setSrgbColor(glm::make_vec3(jsonRoot["color"].get<std::vector<float>>().data()));
 	setIntensity(jsonRoot["intensity"].get<float>());

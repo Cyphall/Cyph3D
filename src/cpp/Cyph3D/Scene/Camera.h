@@ -3,6 +3,8 @@
 #include <array>
 #include <glm/glm.hpp>
 
+namespace c3d
+{
 class Camera
 {
 public:
@@ -76,3 +78,4 @@ private:
 	static constexpr float NEAR_DISTANCE = 0.02f;
 	static constexpr float FAR_DISTANCE = 1000.0f;
 };
+}

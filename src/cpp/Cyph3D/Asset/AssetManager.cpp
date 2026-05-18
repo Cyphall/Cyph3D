@@ -9,19 +9,19 @@ static void threadInit()
 {
 	BS::this_thread::set_os_thread_priority(BS::os_thread_priority::below_normal);
 
-	assetGraphicsCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getMainQueue());
-	assetComputeCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getComputeQueue());
-	assetTransferCommandBuffer = VKCommandBuffer::create(Engine::getVKContext(), Engine::getVKContext().getTransferQueue());
+	c3d::assetGraphicsCommandBuffer = c3d::VKCommandBuffer::create(c3d::Engine::getVKContext(), c3d::Engine::getVKContext().getMainQueue());
+	c3d::assetComputeCommandBuffer = c3d::VKCommandBuffer::create(c3d::Engine::getVKContext(), c3d::Engine::getVKContext().getComputeQueue());
+	c3d::assetTransferCommandBuffer = c3d::VKCommandBuffer::create(c3d::Engine::getVKContext(), c3d::Engine::getVKContext().getTransferQueue());
 }
 
 static void threadShutdown()
 {
-	assetGraphicsCommandBuffer.reset();
-	assetComputeCommandBuffer.reset();
-	assetTransferCommandBuffer.reset();
+	c3d::assetGraphicsCommandBuffer.reset();
+	c3d::assetComputeCommandBuffer.reset();
+	c3d::assetTransferCommandBuffer.reset();
 }
 
-AssetManager::AssetManager():
+c3d::AssetManager::AssetManager():
 	_threadPool(threadInit)
 {
 	_threadPool.set_cleanup_func(threadShutdown);
@@ -71,27 +71,27 @@ AssetManager::AssetManager():
 	}
 }
 
-const std::shared_ptr<VKSampler>& AssetManager::getTextureSampler()
+const std::shared_ptr<c3d::VKSampler>& c3d::AssetManager::getTextureSampler()
 {
 	return _textureSampler;
 }
 
-const std::shared_ptr<VKSampler>& AssetManager::getCubemapSampler()
+const std::shared_ptr<c3d::VKSampler>& c3d::AssetManager::getCubemapSampler()
 {
 	return _cubemapSampler;
 }
 
-AssetProcessor& AssetManager::getAssetProcessor()
+c3d::AssetProcessor& c3d::AssetManager::getAssetProcessor()
 {
 	return _assetProcessor;
 }
 
-BindlessTextureManager& AssetManager::getBindlessTextureManager()
+c3d::BindlessTextureManager& c3d::AssetManager::getBindlessTextureManager()
 {
 	return _bindlessTextureManager;
 }
 
-TextureAsset* AssetManager::loadTexture(std::string_view path, ImageType type)
+c3d::TextureAsset* c3d::AssetManager::loadTexture(std::string_view path, ImageType type)
 {
 	TextureAssetSignature signature;
 	signature.path = path;
@@ -106,7 +106,7 @@ TextureAsset* AssetManager::loadTexture(std::string_view path, ImageType type)
 	return it->second.get();
 }
 
-CubemapAsset* AssetManager::loadCubemap(std::string_view xposPath, std::string_view xnegPath, std::string_view yposPath, std::string_view ynegPath, std::string_view zposPath, std::string_view znegPath, ImageType type)
+c3d::CubemapAsset* c3d::AssetManager::loadCubemap(std::string_view xposPath, std::string_view xnegPath, std::string_view yposPath, std::string_view ynegPath, std::string_view zposPath, std::string_view znegPath, ImageType type)
 {
 	CubemapAssetSignature signature;
 	signature.xposPath = xposPath;
@@ -126,7 +126,7 @@ CubemapAsset* AssetManager::loadCubemap(std::string_view xposPath, std::string_v
 	return it->second.get();
 }
 
-CubemapAsset* AssetManager::loadCubemap(std::string_view equirectangularPath)
+c3d::CubemapAsset* c3d::AssetManager::loadCubemap(std::string_view equirectangularPath)
 {
 	CubemapAssetSignature signature;
 	signature.equirectangularPath = equirectangularPath;
@@ -140,7 +140,7 @@ CubemapAsset* AssetManager::loadCubemap(std::string_view equirectangularPath)
 	return it->second.get();
 }
 
-MeshAsset* AssetManager::loadMesh(std::string_view path)
+c3d::MeshAsset* c3d::AssetManager::loadMesh(std::string_view path)
 {
 	MeshAssetSignature signature;
 	signature.path = path;
@@ -154,7 +154,7 @@ MeshAsset* AssetManager::loadMesh(std::string_view path)
 	return it->second.get();
 }
 
-MaterialAsset* AssetManager::loadMaterial(std::string_view path)
+c3d::MaterialAsset* c3d::AssetManager::loadMaterial(std::string_view path)
 {
 	MaterialAssetSignature signature;
 	signature.path = path;
@@ -168,7 +168,7 @@ MaterialAsset* AssetManager::loadMaterial(std::string_view path)
 	return it->second.get();
 }
 
-SkyboxAsset* AssetManager::loadSkybox(std::string_view path)
+c3d::SkyboxAsset* c3d::AssetManager::loadSkybox(std::string_view path)
 {
 	SkyboxAssetSignature signature;
 	signature.path = path;
@@ -182,7 +182,7 @@ SkyboxAsset* AssetManager::loadSkybox(std::string_view path)
 	return it->second.get();
 }
 
-void AssetManager::onNewFrame()
+void c3d::AssetManager::onNewFrame()
 {
 	_bindlessTextureManager.onNewFrame();
 }

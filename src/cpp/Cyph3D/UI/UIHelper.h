@@ -4,6 +4,9 @@
 #include <memory>
 
 struct ImGuiContext;
+
+namespace c3d
+{
 class UIAssetBrowser;
 class ImGuiVulkanBackend;
 template<typename T>
@@ -34,3 +37,4 @@ private:
 	static void initStyles();
 	static void initFonts();
 };
+}

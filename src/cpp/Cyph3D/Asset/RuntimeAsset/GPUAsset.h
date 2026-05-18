@@ -4,6 +4,8 @@
 
 #include <atomic>
 
+namespace c3d
+{
 template<typename TSignature>
 class GPUAsset : public RuntimeAsset<TSignature>
 {
@@ -18,3 +20,4 @@ public:
 protected:
 	std::atomic_bool _loaded = false;
 };
+}

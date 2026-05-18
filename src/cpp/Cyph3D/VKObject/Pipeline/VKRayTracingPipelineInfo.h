@@ -3,6 +3,8 @@
 #include <optional>
 #include <string>
 
+namespace c3d
+{
 class VKPipelineLayout;
 
 class VKRayTracingPipelineInfo
@@ -46,3 +48,4 @@ private:
 	std::vector<TriangleHitGroupInfo> _triangleHitGroupsInfos;
 	std::vector<MissGroupInfo> _missGroupsInfos;
 };
+}

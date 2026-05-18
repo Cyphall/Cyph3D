@@ -4,6 +4,8 @@
 #include <imgui.h>
 #include <memory>
 
+namespace c3d
+{
 class UIAssetBrowser
 {
 public:
@@ -35,3 +37,4 @@ private:
 
 	std::function<void()> _task;
 };
+}

@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
+namespace c3d
+{
 class MathHelper
 {
 public:
@@ -13,3 +15,4 @@ public:
 	static glm::vec3 srgbToLinear(glm::vec3 color);
 	static glm::vec3 linearToSrgb(glm::vec3 color);
 };
+}

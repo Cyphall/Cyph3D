@@ -3,6 +3,8 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKPipelineVertexInputLayoutInfo
 {
 public:
@@ -15,3 +17,4 @@ private:
 	std::vector<vk::VertexInputAttributeDescription> _attributes;
 	std::vector<vk::VertexInputBindingDescription> _slots;
 };
+}

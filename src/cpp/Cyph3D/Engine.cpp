@@ -21,12 +21,12 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-std::unique_ptr<VKContext> Engine::_vkContext;
-std::unique_ptr<Window> Engine::_window;
-std::unique_ptr<AssetManager> Engine::_assetManager;
-std::unique_ptr<Scene> Engine::_scene;
+std::unique_ptr<c3d::VKContext> c3d::Engine::_vkContext;
+std::unique_ptr<c3d::Window> c3d::Engine::_window;
+std::unique_ptr<c3d::AssetManager> c3d::Engine::_assetManager;
+std::unique_ptr<c3d::Scene> c3d::Engine::_scene;
 
-Timer Engine::_timer;
+c3d::Timer c3d::Engine::_timer;
 
 static void initLogger(spdlog::level::level_enum logLevel)
 {
@@ -66,7 +66,7 @@ static void initLogger(spdlog::level::level_enum logLevel)
 	spdlog::set_default_logger(std::move(logger));
 }
 
-void Engine::init()
+void c3d::Engine::init()
 {
 #if defined(_DEBUG)
 	initLogger(spdlog::level::debug);
@@ -106,7 +106,7 @@ void Engine::init()
 	FileHelper::init();
 }
 
-void Engine::run()
+void c3d::Engine::run()
 {
 	vk::FenceCreateInfo fenceCreateInfo;
 	std::shared_ptr<VKFence> acquireFence = VKFence::create(*_vkContext, fenceCreateInfo);
@@ -168,7 +168,7 @@ void Engine::run()
 	_vkContext->getDevice().waitIdle();
 }
 
-void Engine::shutdown()
+void c3d::Engine::shutdown()
 {
 	_vkContext->getDevice().waitIdle();
 
@@ -182,33 +182,33 @@ void Engine::shutdown()
 	spdlog::shutdown();
 }
 
-VKContext& Engine::getVKContext()
+c3d::VKContext& c3d::Engine::getVKContext()
 {
 	return *_vkContext;
 }
 
-Window& Engine::getWindow()
+c3d::Window& c3d::Engine::getWindow()
 {
 	return *_window;
 }
 
-AssetManager& Engine::getAssetManager()
+c3d::AssetManager& c3d::Engine::getAssetManager()
 {
 	return *_assetManager;
 }
 
-Scene& Engine::getScene()
+c3d::Scene& c3d::Engine::getScene()
 {
 	return *_scene;
 }
 
-void Engine::setScene(std::unique_ptr<Scene>&& scene)
+void c3d::Engine::setScene(std::unique_ptr<Scene>&& scene)
 {
 	UIInspector::setSelected(nullptr);
 	_scene = std::move(scene);
 }
 
-Timer& Engine::getTimer()
+c3d::Timer& c3d::Engine::getTimer()
 {
 	return _timer;
 }

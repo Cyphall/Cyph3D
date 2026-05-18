@@ -5,6 +5,8 @@
 #include "Cyph3D/Asset/Processing/ImageProcessor.h"
 #include "Cyph3D/Asset/Processing/MeshProcessor.h"
 
+namespace c3d
+{
 class AssetProcessor
 {
 public:
@@ -19,3 +21,4 @@ private:
 	MeshProcessor _meshProcessor;
 	EquirectangularSkyboxProcessor _equirectangularSkyboxProcessor;
 };
+}

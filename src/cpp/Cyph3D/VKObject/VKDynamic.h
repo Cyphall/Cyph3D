@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+namespace c3d
+{
 template<typename T>
 class VKDynamic
 {
@@ -71,3 +73,4 @@ private:
 	std::vector<std::shared_ptr<T>> _objects;
 	std::shared_ptr<T> _empty;
 };
+}

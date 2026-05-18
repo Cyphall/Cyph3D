@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <fstream>
 
-nlohmann::ordered_json JsonHelper::loadJsonFromFile(const std::filesystem::path& path)
+nlohmann::ordered_json c3d::JsonHelper::loadJsonFromFile(const std::filesystem::path& path)
 {
 	std::ifstream jsonFile = FileHelper::openFileForReading(path);
 
@@ -16,7 +16,7 @@ nlohmann::ordered_json JsonHelper::loadJsonFromFile(const std::filesystem::path&
 	return root;
 }
 
-void JsonHelper::saveJsonToFile(const nlohmann::ordered_json& json, const std::filesystem::path& path, bool beautify)
+void c3d::JsonHelper::saveJsonToFile(const nlohmann::ordered_json& json, const std::filesystem::path& path, bool beautify)
 {
 	std::ofstream jsonFile = FileHelper::openFileForWriting(path);
 

@@ -2,6 +2,8 @@
 
 #include "Cyph3D/Rendering/Pass/RenderPass.h"
 
+namespace c3d
+{
 struct RenderRegistry;
 class Camera;
 class VKDescriptorSetLayout;
@@ -101,3 +103,4 @@ private:
 	void createPipeline();
 	void createImage();
 };
+}

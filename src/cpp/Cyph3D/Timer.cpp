@@ -1,6 +1,6 @@
 #include "Timer.h"
 
-void Timer::onNewFrame()
+void c3d::Timer::onNewFrame()
 {
 	auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -9,12 +9,12 @@ void Timer::onNewFrame()
 	_lastFrameTime = currentTime;
 }
 
-double Timer::deltaTime() const
+double c3d::Timer::deltaTime() const
 {
 	return _deltaTime;
 }
 
-double Timer::time() const
+double c3d::Timer::time() const
 {
 	return std::chrono::duration<double>(std::chrono::steady_clock::now() - _startTime).count();
 }

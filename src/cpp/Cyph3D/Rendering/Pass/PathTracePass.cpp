@@ -26,7 +26,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>
 
-PathTracePass::PathTracePass(const glm::uvec2& size):
+c3d::PathTracePass::PathTracePass(const glm::uvec2& size):
 	RenderPass(size, "Path trace pass")
 {
 	createDescriptorSetLayout();
@@ -35,7 +35,7 @@ PathTracePass::PathTracePass(const glm::uvec2& size):
 	createImage();
 }
 
-PathTracePassOutput PathTracePass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input)
+c3d::PathTracePassOutput c3d::PathTracePass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input)
 {
 	if (input.sceneChanged || input.cameraChanged)
 	{
@@ -120,12 +120,12 @@ PathTracePassOutput PathTracePass::onRender(const std::shared_ptr<VKCommandBuffe
 	};
 }
 
-void PathTracePass::onResize()
+void c3d::PathTracePass::onResize()
 {
 	createImage();
 }
 
-void PathTracePass::setupTLAS(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
+void c3d::PathTracePass::setupTLAS(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
 {
 	VKTopLevelAccelerationStructureBuildInfo buildInfo;
 	buildInfo.instancesInfos.reserve(input.registry.getModelRenderRequests().size());
@@ -175,7 +175,7 @@ void PathTracePass::setupTLAS(const std::shared_ptr<VKCommandBuffer>& commandBuf
 	commandBuffer->buildTopLevelAccelerationStructure(_tlas, scratchBuffer, buildInfo, instancesBuffer);
 }
 
-void PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
+void c3d::PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
 {
 	RayGenUniforms rayGenUniforms{
 		.cameraPosition = input.camera.getPosition(),
@@ -228,7 +228,7 @@ void PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuff
 	_sbt = VKShaderBindingTable::create(Engine::getVKContext(), info);
 }
 
-void PathTracePass::createDescriptorSetLayout()
+void c3d::PathTracePass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(false);
 	info.addBinding(vk::DescriptorType::eStorageImage, 3, vk::ShaderStageFlagBits::eRaygenKHR);
@@ -236,7 +236,7 @@ void PathTracePass::createDescriptorSetLayout()
 	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void PathTracePass::createPipelineLayout()
+void c3d::PathTracePass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
@@ -246,7 +246,7 @@ void PathTracePass::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void PathTracePass::createPipeline()
+void c3d::PathTracePass::createPipeline()
 {
 	VKRayTracingPipelineInfo info(_pipelineLayout);
 
@@ -257,7 +257,7 @@ void PathTracePass::createPipeline()
 	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
 }
 
-void PathTracePass::createImage()
+void c3d::PathTracePass::createImage()
 {
 	for (int i = 0; i < 3; i++)
 	{

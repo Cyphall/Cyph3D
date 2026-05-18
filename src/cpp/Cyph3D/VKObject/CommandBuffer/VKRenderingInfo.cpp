@@ -2,27 +2,27 @@
 
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-VKRenderingInfo::VKRenderingInfo(glm::uvec2 size):
+c3d::VKRenderingInfo::VKRenderingInfo(glm::uvec2 size):
 	_size(size)
 {
 }
 
-const glm::uvec2& VKRenderingInfo::getSize() const
+const glm::uvec2& c3d::VKRenderingInfo::getSize() const
 {
 	return _size;
 }
 
-void VKRenderingInfo::setLayers(uint32_t layers)
+void c3d::VKRenderingInfo::setLayers(uint32_t layers)
 {
 	_layers = layers;
 }
 
-const uint32_t& VKRenderingInfo::getLayers() const
+const uint32_t& c3d::VKRenderingInfo::getLayers() const
 {
 	return _layers;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const std::shared_ptr<VKImage>& image)
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingInfo::addColorAttachment(const std::shared_ptr<VKImage>& image)
 {
 	return addColorAttachment(
 		image,
@@ -33,17 +33,17 @@ VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const std::s
 	);
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingInfo::addColorAttachment(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingInfo::addColorAttachment(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	return _colorAttachmentsInfos.emplace_back(image, type, layerRange, levelRange, format);
 }
 
-const std::vector<VKRenderingColorAttachmentInfo>& VKRenderingInfo::getColorAttachmentInfos() const
+const std::vector<c3d::VKRenderingColorAttachmentInfo>& c3d::VKRenderingInfo::getColorAttachmentInfos() const
 {
 	return _colorAttachmentsInfos;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const std::shared_ptr<VKImage>& image)
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingInfo::setDepthAttachment(const std::shared_ptr<VKImage>& image)
 {
 	return setDepthAttachment(
 		image,
@@ -54,18 +54,18 @@ VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const std::s
 	);
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingInfo::setDepthAttachment(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingInfo::setDepthAttachment(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	_depthAttachmentInfo = std::make_optional<VKRenderingDepthAttachmentInfo>(image, type, layerRange, levelRange, format);
 	return _depthAttachmentInfo.value();
 }
 
-bool VKRenderingInfo::hasDepthAttachment() const
+bool c3d::VKRenderingInfo::hasDepthAttachment() const
 {
 	return _depthAttachmentInfo.has_value();
 }
 
-const VKRenderingDepthAttachmentInfo& VKRenderingInfo::getDepthAttachmentInfo() const
+const c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingInfo::getDepthAttachmentInfo() const
 {
 	return _depthAttachmentInfo.value();
 }

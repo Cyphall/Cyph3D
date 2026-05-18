@@ -1,6 +1,6 @@
 #include "VKGraphicsPipelineInfo.h"
 
-VKGraphicsPipelineInfo::VKGraphicsPipelineInfo(
+c3d::VKGraphicsPipelineInfo::VKGraphicsPipelineInfo(
 	const std::shared_ptr<VKPipelineLayout>& pipelineLayout,
 	const std::string& vertexShader,
 	vk::PrimitiveTopology primitiveTopology,
@@ -15,117 +15,117 @@ VKGraphicsPipelineInfo::VKGraphicsPipelineInfo(
 {
 }
 
-const std::shared_ptr<VKPipelineLayout>& VKGraphicsPipelineInfo::getPipelineLayout() const
+const std::shared_ptr<c3d::VKPipelineLayout>& c3d::VKGraphicsPipelineInfo::getPipelineLayout() const
 {
 	return _pipelineLayout;
 }
 
-const std::string& VKGraphicsPipelineInfo::getVertexShader() const
+const std::string& c3d::VKGraphicsPipelineInfo::getVertexShader() const
 {
 	return _vertexShader;
 }
 
-const vk::PrimitiveTopology& VKGraphicsPipelineInfo::getPrimitiveTopology() const
+const vk::PrimitiveTopology& c3d::VKGraphicsPipelineInfo::getPrimitiveTopology() const
 {
 	return _primitiveTopology;
 }
 
-const vk::CullModeFlags& VKGraphicsPipelineInfo::getCullMode() const
+const vk::CullModeFlags& c3d::VKGraphicsPipelineInfo::getCullMode() const
 {
 	return _cullMode;
 }
 
-const vk::FrontFace& VKGraphicsPipelineInfo::getFrontFace() const
+const vk::FrontFace& c3d::VKGraphicsPipelineInfo::getFrontFace() const
 {
 	return _frontFace;
 }
 
-VKPipelineVertexInputLayoutInfo& VKGraphicsPipelineInfo::getVertexInputLayoutInfo()
+c3d::VKPipelineVertexInputLayoutInfo& c3d::VKGraphicsPipelineInfo::getVertexInputLayoutInfo()
 {
 	return _vertexInputLayoutInfo;
 }
 
-const VKPipelineVertexInputLayoutInfo& VKGraphicsPipelineInfo::getVertexInputLayoutInfo() const
+const c3d::VKPipelineVertexInputLayoutInfo& c3d::VKGraphicsPipelineInfo::getVertexInputLayoutInfo() const
 {
 	return _vertexInputLayoutInfo;
 }
 
-VKPipelineAttachmentInfo& VKGraphicsPipelineInfo::getPipelineAttachmentInfo()
+c3d::VKPipelineAttachmentInfo& c3d::VKGraphicsPipelineInfo::getPipelineAttachmentInfo()
 {
 	return _pipelineAttachmentInfo;
 }
 
-const VKPipelineAttachmentInfo& VKGraphicsPipelineInfo::getPipelineAttachmentInfo() const
+const c3d::VKPipelineAttachmentInfo& c3d::VKGraphicsPipelineInfo::getPipelineAttachmentInfo() const
 {
 	return _pipelineAttachmentInfo;
 }
 
-bool VKGraphicsPipelineInfo::hasGeometryShader() const
+bool c3d::VKGraphicsPipelineInfo::hasGeometryShader() const
 {
 	return _geometryShader.has_value();
 }
 
-const std::string& VKGraphicsPipelineInfo::getGeometryShader() const
+const std::string& c3d::VKGraphicsPipelineInfo::getGeometryShader() const
 {
 	return _geometryShader.value();
 }
 
-void VKGraphicsPipelineInfo::setGeometryShader(const std::string& path)
+void c3d::VKGraphicsPipelineInfo::setGeometryShader(const std::string& path)
 {
 	_geometryShader = path;
 }
 
-bool VKGraphicsPipelineInfo::hasFragmentShader() const
+bool c3d::VKGraphicsPipelineInfo::hasFragmentShader() const
 {
 	return _fragmentShader.has_value();
 }
 
-const std::string& VKGraphicsPipelineInfo::getFragmentShader() const
+const std::string& c3d::VKGraphicsPipelineInfo::getFragmentShader() const
 {
 	return _fragmentShader.value();
 }
 
-void VKGraphicsPipelineInfo::setFragmentShader(const std::string& path)
+void c3d::VKGraphicsPipelineInfo::setFragmentShader(const std::string& path)
 {
 	_fragmentShader = path;
 }
 
-bool VKGraphicsPipelineInfo::hasStaticViewport() const
+bool c3d::VKGraphicsPipelineInfo::hasStaticViewport() const
 {
 	return _staticViewport.has_value();
 }
 
-const VKPipelineViewport& VKGraphicsPipelineInfo::getStaticViewport() const
+const c3d::VKPipelineViewport& c3d::VKGraphicsPipelineInfo::getStaticViewport() const
 {
 	return _staticViewport.value();
 }
 
-void VKGraphicsPipelineInfo::setStaticViewport(const VKPipelineViewport& staticViewport)
+void c3d::VKGraphicsPipelineInfo::setStaticViewport(const VKPipelineViewport& staticViewport)
 {
 	_staticViewport = staticViewport;
 }
 
-bool VKGraphicsPipelineInfo::hasStaticScissor() const
+bool c3d::VKGraphicsPipelineInfo::hasStaticScissor() const
 {
 	return _staticScissor.has_value();
 }
 
-const VKPipelineScissor& VKGraphicsPipelineInfo::getStaticScissor() const
+const c3d::VKPipelineScissor& c3d::VKGraphicsPipelineInfo::getStaticScissor() const
 {
 	return _staticScissor.value();
 }
 
-void VKGraphicsPipelineInfo::setStaticScissor(const VKPipelineScissor& staticScissor)
+void c3d::VKGraphicsPipelineInfo::setStaticScissor(const VKPipelineScissor& staticScissor)
 {
 	_staticScissor = staticScissor;
 }
 
-void VKGraphicsPipelineInfo::setRasterizationSampleCount(vk::SampleCountFlagBits sampleCount)
+void c3d::VKGraphicsPipelineInfo::setRasterizationSampleCount(vk::SampleCountFlagBits sampleCount)
 {
 	_rasterizationSampleCount = sampleCount;
 }
 
-const vk::SampleCountFlagBits& VKGraphicsPipelineInfo::getRasterizationSampleCount() const
+const vk::SampleCountFlagBits& c3d::VKGraphicsPipelineInfo::getRasterizationSampleCount() const
 {
 	return _rasterizationSampleCount;
 }

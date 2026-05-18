@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKQueue;
 class VKBufferBase;
 template<typename T>
@@ -134,3 +136,4 @@ private:
 
 	std::vector<std::shared_ptr<VKObject>> _usedObjects;
 };
+}

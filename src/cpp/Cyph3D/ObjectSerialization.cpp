@@ -1,6 +1,6 @@
 #include "ObjectSerialization.h"
 
-nlohmann::ordered_json ObjectSerialization::toJson()
+nlohmann::ordered_json c3d::ObjectSerialization::toJson()
 {
 	nlohmann::ordered_json result;
 	result["data"] = data;
@@ -9,7 +9,7 @@ nlohmann::ordered_json ObjectSerialization::toJson()
 	return result;
 }
 
-ObjectSerialization ObjectSerialization::fromJson(const nlohmann::ordered_json& json)
+c3d::ObjectSerialization c3d::ObjectSerialization::fromJson(const nlohmann::ordered_json& json)
 {
 	ObjectSerialization result;
 	result.version = json["version"].get<int>();

@@ -27,7 +27,7 @@ enum class RenderToFileStatus
 	eSaveFinished
 };
 
-struct UIViewport::RenderToFileData
+struct c3d::UIViewport::RenderToFileData
 {
 	uint32_t renderedSamples = 0;
 	uint32_t totalSamples = 0;
@@ -41,34 +41,34 @@ struct UIViewport::RenderToFileData
 	RenderToFileStatus status = RenderToFileStatus::eRendering;
 };
 
-std::unique_ptr<SceneRenderer> UIViewport::_sceneRenderer;
-UIViewport::RendererType UIViewport::_sceneRendererType = UIViewport::RendererType::Rasterization;
-uint64_t UIViewport::_sceneChangeVersion = -1;
+std::unique_ptr<c3d::SceneRenderer> c3d::UIViewport::_sceneRenderer;
+c3d::UIViewport::RendererType c3d::UIViewport::_sceneRendererType = UIViewport::RendererType::Rasterization;
+uint64_t c3d::UIViewport::_sceneChangeVersion = -1;
 
-glm::uvec2 UIViewport::_previousViewportSize = {0, 0};
+glm::uvec2 c3d::UIViewport::_previousViewportSize = {0, 0};
 
-Camera UIViewport::_camera;
-bool UIViewport::_cameraFocused = false;
-bool UIViewport::_cameraChanged = true;
-glm::vec2 UIViewport::_lockedCursorPos;
+c3d::Camera c3d::UIViewport::_camera;
+bool c3d::UIViewport::_cameraFocused = false;
+bool c3d::UIViewport::_cameraChanged = true;
+glm::vec2 c3d::UIViewport::_lockedCursorPos;
 
-bool UIViewport::_fullscreen = false;
+bool c3d::UIViewport::_fullscreen = false;
 
-bool UIViewport::_leftClickPressedOnViewport = false;
-glm::vec2 UIViewport::_leftClickPressPos;
+bool c3d::UIViewport::_leftClickPressedOnViewport = false;
+glm::vec2 c3d::UIViewport::_leftClickPressPos;
 
-ImGuizmo::OPERATION UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
-ImGuizmo::MODE UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
+ImGuizmo::OPERATION c3d::UIViewport::_gizmoMode = ImGuizmo::TRANSLATE;
+ImGuizmo::MODE c3d::UIViewport::_gizmoSpace = ImGuizmo::LOCAL;
 
-RenderRegistry UIViewport::_renderRegistry;
+c3d::RenderRegistry c3d::UIViewport::_renderRegistry;
 
-std::unique_ptr<ObjectPicker> UIViewport::_objectPicker;
+std::unique_ptr<c3d::ObjectPicker> c3d::UIViewport::_objectPicker;
 
-std::unique_ptr<UIViewport::RenderToFileData> UIViewport::_renderToFileData;
-bool UIViewport::_showRenderToFilePopup = false;
-std::shared_ptr<VKImage> UIViewport::_lastViewportImage;
+std::unique_ptr<c3d::UIViewport::RenderToFileData> c3d::UIViewport::_renderToFileData;
+bool c3d::UIViewport::_showRenderToFilePopup = false;
+std::shared_ptr<c3d::VKImage> c3d::UIViewport::_lastViewportImage;
 
-void UIViewport::show()
+void c3d::UIViewport::show()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -325,19 +325,19 @@ void UIViewport::show()
 	ImGui::End();
 }
 
-Camera& UIViewport::getCamera()
+c3d::Camera& c3d::UIViewport::getCamera()
 {
 	return _camera;
 }
 
-void UIViewport::setCamera(const Camera& camera)
+void c3d::UIViewport::setCamera(const Camera& camera)
 {
 	_camera = camera;
 	_camera.setAspectRatio(static_cast<float>(_previousViewportSize.x) / static_cast<float>(_previousViewportSize.y));
 	_cameraChanged = true;
 }
 
-void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
+void c3d::UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 {
 	IInspectable* selected = UIInspector::getSelected();
 	if (selected == nullptr)
@@ -385,7 +385,7 @@ void UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 	}
 }
 
-void UIViewport::drawHeader()
+void c3d::UIViewport::drawHeader()
 {
 	float pixelScale = Engine::getWindow().getPixelScale();
 
@@ -458,7 +458,7 @@ void UIViewport::drawHeader()
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() - style.ItemSpacing.y);
 }
 
-void UIViewport::drawRenderToFilePopup()
+void c3d::UIViewport::drawRenderToFilePopup()
 {
 	if (ImGui::BeginPopupModal("Rendering status", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -490,12 +490,12 @@ void UIViewport::drawRenderToFilePopup()
 	}
 }
 
-bool UIViewport::isFullscreen()
+bool c3d::UIViewport::isFullscreen()
 {
 	return _fullscreen;
 }
 
-void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
+void c3d::UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 {
 	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave(
 		{{
@@ -525,12 +525,12 @@ void UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	Engine::getScene().onPreRender(_renderToFileData->registry, _renderToFileData->camera);
 }
 
-void UIViewport::init()
+void c3d::UIViewport::init()
 {
 	_objectPicker = std::make_unique<ObjectPicker>();
 }
 
-void UIViewport::shutdown()
+void c3d::UIViewport::shutdown()
 {
 	_sceneRenderer = {};
 	_objectPicker = {};

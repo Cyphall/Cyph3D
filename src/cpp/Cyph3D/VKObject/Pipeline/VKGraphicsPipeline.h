@@ -5,6 +5,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKGraphicsPipeline : public VKPipeline
 {
 public:
@@ -22,3 +24,4 @@ private:
 
 	VKGraphicsPipelineInfo _info;
 };
+}

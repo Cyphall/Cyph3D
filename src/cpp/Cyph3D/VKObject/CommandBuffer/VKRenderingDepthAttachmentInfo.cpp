@@ -2,17 +2,17 @@
 
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-VKRenderingDepthAttachmentInfo::VKRenderingDepthAttachmentInfo(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
+c3d::VKRenderingDepthAttachmentInfo::VKRenderingDepthAttachmentInfo(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
 	_imageInfo(image, type, layerRange, levelRange, format)
 {
 }
 
-const VKRenderingDepthAttachmentInfo::ImageInfo& VKRenderingDepthAttachmentInfo::getImageInfo() const
+const c3d::VKRenderingDepthAttachmentInfo::ImageInfo& c3d::VKRenderingDepthAttachmentInfo::getImageInfo() const
 {
 	return _imageInfo;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image)
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingDepthAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image)
 {
 	return enableResolve(
 		mode,
@@ -24,7 +24,7 @@ VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk
 	);
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingDepthAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	_resolveMode = mode;
 	_resolveImageInfo = {image, type, layerRange, levelRange, format};
@@ -32,24 +32,24 @@ VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::enableResolve(vk
 	return *this;
 }
 
-const vk::ResolveModeFlagBits& VKRenderingDepthAttachmentInfo::getResolveMode() const
+const vk::ResolveModeFlagBits& c3d::VKRenderingDepthAttachmentInfo::getResolveMode() const
 {
 	return _resolveMode;
 }
 
-const VKRenderingDepthAttachmentInfo::ImageInfo& VKRenderingDepthAttachmentInfo::getResolveImageInfo() const
+const c3d::VKRenderingDepthAttachmentInfo::ImageInfo& c3d::VKRenderingDepthAttachmentInfo::getResolveImageInfo() const
 {
 	return _resolveImageInfo;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setLoadOpLoad()
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingDepthAttachmentInfo::setLoadOpLoad()
 {
 	_loadOp = vk::AttachmentLoadOp::eLoad;
 
 	return *this;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setLoadOpClear(float clearValue)
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingDepthAttachmentInfo::setLoadOpClear(float clearValue)
 {
 	_loadOp = vk::AttachmentLoadOp::eClear;
 	_clearValue.depthStencil.depth = clearValue;
@@ -57,45 +57,45 @@ VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setLoadOpClear(f
 	return *this;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setLoadOpDontCare()
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingDepthAttachmentInfo::setLoadOpDontCare()
 {
 	_loadOp = vk::AttachmentLoadOp::eDontCare;
 
 	return *this;
 }
 
-const vk::AttachmentLoadOp& VKRenderingDepthAttachmentInfo::getLoadOp() const
+const vk::AttachmentLoadOp& c3d::VKRenderingDepthAttachmentInfo::getLoadOp() const
 {
 	return _loadOp;
 }
 
-const vk::ClearValue& VKRenderingDepthAttachmentInfo::getClearValue() const
+const vk::ClearValue& c3d::VKRenderingDepthAttachmentInfo::getClearValue() const
 {
 	return _clearValue;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setStoreOpStore()
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingDepthAttachmentInfo::setStoreOpStore()
 {
 	_storeOp = vk::AttachmentStoreOp::eStore;
 
 	return *this;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setStoreOpDontCare()
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingDepthAttachmentInfo::setStoreOpDontCare()
 {
 	_storeOp = vk::AttachmentStoreOp::eDontCare;
 
 	return *this;
 }
 
-VKRenderingDepthAttachmentInfo& VKRenderingDepthAttachmentInfo::setStoreOpNone()
+c3d::VKRenderingDepthAttachmentInfo& c3d::VKRenderingDepthAttachmentInfo::setStoreOpNone()
 {
 	_storeOp = vk::AttachmentStoreOp::eNone;
 
 	return *this;
 }
 
-const vk::AttachmentStoreOp& VKRenderingDepthAttachmentInfo::getStoreOp() const
+const vk::AttachmentStoreOp& c3d::VKRenderingDepthAttachmentInfo::getStoreOp() const
 {
 	return _storeOp;
 }

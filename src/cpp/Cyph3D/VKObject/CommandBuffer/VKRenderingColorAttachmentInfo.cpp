@@ -2,17 +2,17 @@
 
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-VKRenderingColorAttachmentInfo::VKRenderingColorAttachmentInfo(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
+c3d::VKRenderingColorAttachmentInfo::VKRenderingColorAttachmentInfo(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
 	_imageInfo(image, type, layerRange, levelRange, format)
 {
 }
 
-const VKRenderingColorAttachmentInfo::ImageInfo& VKRenderingColorAttachmentInfo::getImageInfo() const
+const c3d::VKRenderingColorAttachmentInfo::ImageInfo& c3d::VKRenderingColorAttachmentInfo::getImageInfo() const
 {
 	return _imageInfo;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image)
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image)
 {
 	return enableResolve(
 		mode,
@@ -24,7 +24,7 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk
 	);
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::enableResolve(vk::ResolveModeFlagBits mode, const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format)
 {
 	_resolveMode = mode;
 	_resolveImageInfo = {image, type, layerRange, levelRange, format};
@@ -32,24 +32,24 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::enableResolve(vk
 	return *this;
 }
 
-const vk::ResolveModeFlagBits& VKRenderingColorAttachmentInfo::getResolveMode() const
+const vk::ResolveModeFlagBits& c3d::VKRenderingColorAttachmentInfo::getResolveMode() const
 {
 	return _resolveMode;
 }
 
-const VKRenderingColorAttachmentInfo::ImageInfo& VKRenderingColorAttachmentInfo::getResolveImageInfo() const
+const c3d::VKRenderingColorAttachmentInfo::ImageInfo& c3d::VKRenderingColorAttachmentInfo::getResolveImageInfo() const
 {
 	return _resolveImageInfo;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpLoad()
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::setLoadOpLoad()
 {
 	_loadOp = vk::AttachmentLoadOp::eLoad;
 
 	return *this;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(glm::vec4 clearValue)
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::setLoadOpClear(glm::vec4 clearValue)
 {
 	_loadOp = vk::AttachmentLoadOp::eClear;
 	_clearValue.color.float32[0] = clearValue.r;
@@ -60,7 +60,7 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(g
 	return *this;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(glm::ivec4 clearValue)
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::setLoadOpClear(glm::ivec4 clearValue)
 {
 	_loadOp = vk::AttachmentLoadOp::eClear;
 	_clearValue.color.int32[0] = clearValue.r;
@@ -71,7 +71,7 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(g
 	return *this;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(glm::uvec4 clearValue)
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::setLoadOpClear(glm::uvec4 clearValue)
 {
 	_loadOp = vk::AttachmentLoadOp::eClear;
 	_clearValue.color.uint32[0] = clearValue.r;
@@ -82,45 +82,45 @@ VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpClear(g
 	return *this;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setLoadOpDontCare()
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::setLoadOpDontCare()
 {
 	_loadOp = vk::AttachmentLoadOp::eDontCare;
 
 	return *this;
 }
 
-const vk::AttachmentLoadOp& VKRenderingColorAttachmentInfo::getLoadOp() const
+const vk::AttachmentLoadOp& c3d::VKRenderingColorAttachmentInfo::getLoadOp() const
 {
 	return _loadOp;
 }
 
-const vk::ClearValue& VKRenderingColorAttachmentInfo::getClearValue() const
+const vk::ClearValue& c3d::VKRenderingColorAttachmentInfo::getClearValue() const
 {
 	return _clearValue;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setStoreOpStore()
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::setStoreOpStore()
 {
 	_storeOp = vk::AttachmentStoreOp::eStore;
 
 	return *this;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setStoreOpDontCare()
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::setStoreOpDontCare()
 {
 	_storeOp = vk::AttachmentStoreOp::eDontCare;
 
 	return *this;
 }
 
-VKRenderingColorAttachmentInfo& VKRenderingColorAttachmentInfo::setStoreOpNone()
+c3d::VKRenderingColorAttachmentInfo& c3d::VKRenderingColorAttachmentInfo::setStoreOpNone()
 {
 	_storeOp = vk::AttachmentStoreOp::eNone;
 
 	return *this;
 }
 
-const vk::AttachmentStoreOp& VKRenderingColorAttachmentInfo::getStoreOp() const
+const vk::AttachmentStoreOp& c3d::VKRenderingColorAttachmentInfo::getStoreOp() const
 {
 	return _storeOp;
 }

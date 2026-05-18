@@ -10,6 +10,8 @@
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKImage : public VKObject
 {
 public:
@@ -83,3 +85,4 @@ private:
 
 	void setState(glm::uvec2 layerRange, glm::uvec2 levelRange, const State& state);
 };
+}

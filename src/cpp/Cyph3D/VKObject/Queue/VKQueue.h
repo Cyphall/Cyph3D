@@ -5,6 +5,8 @@
 #include <mutex>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKFence;
 class VKCommandBuffer;
 class VKSemaphore;
@@ -40,3 +42,4 @@ private:
 
 	std::vector<SubmitRecord> _submitRecords;
 };
+}

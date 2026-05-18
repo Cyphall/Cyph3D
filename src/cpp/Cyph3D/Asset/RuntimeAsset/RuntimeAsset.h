@@ -3,6 +3,8 @@
 #include <sigslot/signal.hpp>
 #include <stdexcept>
 
+namespace c3d
+{
 class AssetManager;
 
 template<typename TSignature>
@@ -51,3 +53,4 @@ protected:
 
 	sigslot::signal<> _changed;
 };
+}

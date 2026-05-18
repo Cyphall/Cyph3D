@@ -1,6 +1,6 @@
 #include "VKPipelineVertexInputLayoutInfo.h"
 
-void VKPipelineVertexInputLayoutInfo::defineAttribute(uint32_t bufferSlot, uint32_t attributeLocation, vk::Format dataType, uint32_t offset)
+void c3d::VKPipelineVertexInputLayoutInfo::defineAttribute(uint32_t bufferSlot, uint32_t attributeLocation, vk::Format dataType, uint32_t offset)
 {
 	vk::VertexInputAttributeDescription& attributeDescription = _attributes.emplace_back();
 	attributeDescription.binding = bufferSlot;
@@ -9,7 +9,7 @@ void VKPipelineVertexInputLayoutInfo::defineAttribute(uint32_t bufferSlot, uint3
 	attributeDescription.offset = offset;
 }
 
-void VKPipelineVertexInputLayoutInfo::defineSlot(uint32_t bufferSlot, int stride, vk::VertexInputRate inputRate)
+void c3d::VKPipelineVertexInputLayoutInfo::defineSlot(uint32_t bufferSlot, int stride, vk::VertexInputRate inputRate)
 {
 	vk::VertexInputBindingDescription& slotDescription = _slots.emplace_back();
 	slotDescription.binding = bufferSlot;
@@ -17,7 +17,7 @@ void VKPipelineVertexInputLayoutInfo::defineSlot(uint32_t bufferSlot, int stride
 	slotDescription.inputRate = inputRate;
 }
 
-vk::PipelineVertexInputStateCreateInfo VKPipelineVertexInputLayoutInfo::get() const
+vk::PipelineVertexInputStateCreateInfo c3d::VKPipelineVertexInputLayoutInfo::get() const
 {
 	vk::PipelineVertexInputStateCreateInfo description;
 	description.vertexBindingDescriptionCount = _slots.size();

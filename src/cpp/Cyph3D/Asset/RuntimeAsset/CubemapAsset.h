@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 
+namespace c3d
+{
 class AssetManager;
 class VKImage;
 class VKSampler;
@@ -25,24 +27,6 @@ struct CubemapAssetSignature
 	bool operator==(const CubemapAssetSignature& other) const = default;
 };
 
-template<>
-struct std::hash<CubemapAssetSignature>
-{
-	std::size_t operator()(const CubemapAssetSignature& key) const noexcept
-	{
-		return HashBuilder()
-		    .hash(key.xposPath)
-		    .hash(key.xnegPath)
-		    .hash(key.yposPath)
-		    .hash(key.ynegPath)
-		    .hash(key.zposPath)
-		    .hash(key.znegPath)
-		    .hash(key.equirectangularPath)
-		    .hash(key.type)
-		    .get();
-	}
-};
-
 class CubemapAsset : public GPUAsset<CubemapAssetSignature>
 {
 public:
@@ -59,4 +43,23 @@ private:
 
 	std::shared_ptr<VKImage> _image;
 	uint32_t _bindlessIndex;
+};
+}
+
+template<>
+struct std::hash<c3d::CubemapAssetSignature>
+{
+	std::size_t operator()(const c3d::CubemapAssetSignature& key) const noexcept
+	{
+		return c3d::HashBuilder()
+		    .hash(key.xposPath)
+		    .hash(key.xnegPath)
+		    .hash(key.yposPath)
+		    .hash(key.ynegPath)
+		    .hash(key.zposPath)
+		    .hash(key.znegPath)
+		    .hash(key.equirectangularPath)
+		    .hash(key.type)
+		    .get();
+	}
 };

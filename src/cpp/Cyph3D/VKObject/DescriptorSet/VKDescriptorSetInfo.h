@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace c3d
+{
 class VKDescriptorSetLayout;
 
 class VKDescriptorSetInfo
@@ -18,3 +20,4 @@ private:
 	std::shared_ptr<VKDescriptorSetLayout> _layout;
 	uint32_t _variableSizeAllocatedCount = 0;
 };
+}

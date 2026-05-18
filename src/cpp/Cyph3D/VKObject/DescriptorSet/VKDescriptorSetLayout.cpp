@@ -3,12 +3,12 @@
 #include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
-std::shared_ptr<VKDescriptorSetLayout> VKDescriptorSetLayout::create(VKContext& context, const VKDescriptorSetLayoutInfo& info)
+std::shared_ptr<c3d::VKDescriptorSetLayout> c3d::VKDescriptorSetLayout::create(VKContext& context, const VKDescriptorSetLayoutInfo& info)
 {
 	return std::shared_ptr<VKDescriptorSetLayout>(new VKDescriptorSetLayout(context, info));
 }
 
-VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescriptorSetLayoutInfo& info):
+c3d::VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescriptorSetLayoutInfo& info):
 	VKObject(context),
 	_info(info)
 {
@@ -59,17 +59,17 @@ VKDescriptorSetLayout::VKDescriptorSetLayout(VKContext& context, const VKDescrip
 	_handle = _context.getDevice().createDescriptorSetLayout(createInfo);
 }
 
-VKDescriptorSetLayout::~VKDescriptorSetLayout()
+c3d::VKDescriptorSetLayout::~VKDescriptorSetLayout()
 {
 	_context.getDevice().destroyDescriptorSetLayout(_handle);
 }
 
-const VKDescriptorSetLayoutInfo& VKDescriptorSetLayout::getInfo() const
+const c3d::VKDescriptorSetLayoutInfo& c3d::VKDescriptorSetLayout::getInfo() const
 {
 	return _info;
 }
 
-const vk::DescriptorSetLayout& VKDescriptorSetLayout::getHandle()
+const vk::DescriptorSetLayout& c3d::VKDescriptorSetLayout::getHandle()
 {
 	return _handle;
 }

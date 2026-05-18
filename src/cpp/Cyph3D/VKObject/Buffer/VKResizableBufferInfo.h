@@ -3,6 +3,8 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKResizableBufferInfo
 {
 public:
@@ -32,3 +34,4 @@ private:
 	vk::DeviceSize _requiredAlignment = 1;
 	std::optional<std::string> _name;
 };
+}

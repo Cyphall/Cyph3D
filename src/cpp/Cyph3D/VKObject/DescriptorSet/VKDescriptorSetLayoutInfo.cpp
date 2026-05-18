@@ -1,26 +1,26 @@
 #include "VKDescriptorSetLayoutInfo.h"
 
-VKDescriptorSetLayoutInfo::VKDescriptorSetLayoutInfo(bool pushable):
+c3d::VKDescriptorSetLayoutInfo::VKDescriptorSetLayoutInfo(bool pushable):
 	_pushable(pushable)
 {
 }
 
-const bool& VKDescriptorSetLayoutInfo::isPushable() const
+const bool& c3d::VKDescriptorSetLayoutInfo::isPushable() const
 {
 	return _pushable;
 }
 
-const VKDescriptorSetLayoutInfo::BindingInfo& VKDescriptorSetLayoutInfo::getBindingInfo(uint32_t bindingIndex) const
+const c3d::VKDescriptorSetLayoutInfo::BindingInfo& c3d::VKDescriptorSetLayoutInfo::getBindingInfo(uint32_t bindingIndex) const
 {
 	return _bindingInfos[bindingIndex];
 }
 
-const std::vector<VKDescriptorSetLayoutInfo::BindingInfo>& VKDescriptorSetLayoutInfo::getBindingInfos() const
+const std::vector<c3d::VKDescriptorSetLayoutInfo::BindingInfo>& c3d::VKDescriptorSetLayoutInfo::getBindingInfos() const
 {
 	return _bindingInfos;
 }
 
-void VKDescriptorSetLayoutInfo::addBinding(vk::DescriptorType type, uint32_t count, vk::ShaderStageFlags shaderStages)
+void c3d::VKDescriptorSetLayoutInfo::addBinding(vk::DescriptorType type, uint32_t count, vk::ShaderStageFlags shaderStages)
 {
 	VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _bindingInfos.emplace_back();
 	bindingInfo.type = type;
@@ -29,7 +29,7 @@ void VKDescriptorSetLayoutInfo::addBinding(vk::DescriptorType type, uint32_t cou
 	bindingInfo.shaderStages = shaderStages;
 }
 
-void VKDescriptorSetLayoutInfo::addIndexedBinding(vk::DescriptorType type, uint32_t upperBound, vk::ShaderStageFlags shaderStages)
+void c3d::VKDescriptorSetLayoutInfo::addIndexedBinding(vk::DescriptorType type, uint32_t upperBound, vk::ShaderStageFlags shaderStages)
 {
 	VKDescriptorSetLayoutInfo::BindingInfo& bindingInfo = _bindingInfos.emplace_back();
 	bindingInfo.type = type;

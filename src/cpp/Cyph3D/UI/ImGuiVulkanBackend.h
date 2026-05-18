@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <imgui.h>
 
+namespace c3d
+{
 class VKCommandBuffer;
 class VKDescriptorSetLayout;
 class VKSampler;
@@ -58,3 +60,4 @@ private:
 		glm::uvec2 viewportSize
 	);
 };
+}

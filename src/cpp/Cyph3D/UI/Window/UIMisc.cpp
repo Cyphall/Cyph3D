@@ -11,16 +11,16 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
-glm::ivec2 UIMisc::_resolution(1920, 1080);
-uint32_t UIMisc::_renderSampleCount = 1024;
-bool UIMisc::_simulationEnabled = true;
-int UIMisc::_viewportSampleCount = 8;
-std::array<float, 512> UIMisc::_frametimes{};
-uint32_t UIMisc::_lastFrametimeIndex = 0;
-float UIMisc::_overlayFrametime = 0.0f;
-float UIMisc::_timeUntilOverlayUpdate = 0.0f;
+glm::ivec2 c3d::UIMisc::_resolution = {1920, 1080};
+uint32_t c3d::UIMisc::_renderSampleCount = 1024;
+bool c3d::UIMisc::_simulationEnabled = true;
+int c3d::UIMisc::_viewportSampleCount = 8;
+std::array<float, 512> c3d::UIMisc::_frametimes{};
+uint32_t c3d::UIMisc::_lastFrametimeIndex = 0;
+float c3d::UIMisc::_overlayFrametime = 0.0f;
+float c3d::UIMisc::_timeUntilOverlayUpdate = 0.0f;
 
-void UIMisc::show()
+void c3d::UIMisc::show()
 {
 	if (ImGui::Begin("Misc", nullptr))
 	{
@@ -89,17 +89,17 @@ void UIMisc::show()
 	ImGui::End();
 }
 
-bool UIMisc::isSimulationEnabled()
+bool c3d::UIMisc::isSimulationEnabled()
 {
 	return _simulationEnabled;
 }
 
-int UIMisc::viewportSampleCount()
+int c3d::UIMisc::viewportSampleCount()
 {
 	return _viewportSampleCount;
 }
 
-void UIMisc::displayFrametime()
+void c3d::UIMisc::displayFrametime()
 {
 	double deltaTime = Engine::getTimer().deltaTime();
 	_timeUntilOverlayUpdate -= deltaTime;

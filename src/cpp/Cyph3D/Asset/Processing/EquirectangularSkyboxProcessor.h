@@ -4,6 +4,8 @@
 
 #include <filesystem>
 
+namespace c3d
+{
 class VKDescriptorSetLayout;
 class VKPipelineLayout;
 class VKComputePipeline;
@@ -32,3 +34,4 @@ private:
 	std::shared_ptr<VKImage> generateCubemap(vk::Format format, const std::shared_ptr<VKImage>& equirectangularTexture);
 	void generateMipmaps(const std::shared_ptr<VKImage>& cubemapTexture, bool isSrgb);
 };
+}

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace c3d
+{
 class IInspectable
 {
 public:
@@ -7,3 +9,4 @@ public:
 
 	virtual void onDrawUi() = 0;
 };
+}

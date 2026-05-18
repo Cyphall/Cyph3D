@@ -10,25 +10,25 @@
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
-TextureAsset::TextureAsset(AssetManager& manager, const TextureAssetSignature& signature):
+c3d::TextureAsset::TextureAsset(AssetManager& manager, const TextureAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
 	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 	_manager.addThreadPoolTask(&TextureAsset::load_async, this);
 }
 
-TextureAsset::~TextureAsset()
+c3d::TextureAsset::~TextureAsset()
 {
 	_manager.getBindlessTextureManager().releaseIndex(_bindlessIndex);
 }
 
-const uint32_t& TextureAsset::getBindlessIndex() const
+const uint32_t& c3d::TextureAsset::getBindlessIndex() const
 {
 	checkLoaded();
 	return _bindlessIndex;
 }
 
-void TextureAsset::load_async()
+void c3d::TextureAsset::load_async()
 {
 	ImageData imageData = _manager.getAssetProcessor().readImageData(_signature.path, _signature.type);
 

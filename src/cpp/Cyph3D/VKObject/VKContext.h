@@ -6,6 +6,8 @@
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKQueue;
 class VKCommandBuffer;
 
@@ -99,3 +101,4 @@ private:
 	void createImmediateCommandBuffer();
 	void createDefaultCommandBuffer();
 };
+}

@@ -11,18 +11,18 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
-MaterialAsset* MaterialAsset::_defaultMaterial = nullptr;
-MaterialAsset* MaterialAsset::_missingMaterial = nullptr;
+c3d::MaterialAsset* c3d::MaterialAsset::_defaultMaterial = nullptr;
+c3d::MaterialAsset* c3d::MaterialAsset::_missingMaterial = nullptr;
 
-MaterialAsset::MaterialAsset(AssetManager& manager, const MaterialAssetSignature& signature):
+c3d::MaterialAsset::MaterialAsset(AssetManager& manager, const MaterialAssetSignature& signature):
 	RuntimeAsset(manager, signature)
 {
 	reload();
 }
 
-MaterialAsset::~MaterialAsset() = default;
+c3d::MaterialAsset::~MaterialAsset() = default;
 
-bool MaterialAsset::isLoaded() const
+bool c3d::MaterialAsset::isLoaded() const
 {
 	return (_albedoTexture != nullptr ? _albedoTexture->isLoaded() : true) &&
 	       (_normalTexture != nullptr ? _normalTexture->isLoaded() : true) &&
@@ -32,7 +32,7 @@ bool MaterialAsset::isLoaded() const
 	       (_emissiveTexture != nullptr ? _emissiveTexture->isLoaded() : true);
 }
 
-void MaterialAsset::onDrawUi()
+void c3d::MaterialAsset::onDrawUi()
 {
 	ImGuiHelper::TextCentered("Material");
 	ImGuiHelper::TextCentered(_signature.path.c_str());
@@ -164,7 +164,7 @@ void MaterialAsset::onDrawUi()
 	}
 }
 
-void MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
+void c3d::MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -185,12 +185,12 @@ void MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 	_changed();
 }
 
-int32_t MaterialAsset::getAlbedoTextureBindlessIndex() const
+int32_t c3d::MaterialAsset::getAlbedoTextureBindlessIndex() const
 {
 	return _albedoTexture != nullptr && _albedoTexture->isLoaded() ? _albedoTexture->getBindlessIndex() : -1;
 }
 
-void MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
+void c3d::MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -211,12 +211,12 @@ void MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 	_changed();
 }
 
-int32_t MaterialAsset::getNormalTextureBindlessIndex() const
+int32_t c3d::MaterialAsset::getNormalTextureBindlessIndex() const
 {
 	return _normalTexture != nullptr && _normalTexture->isLoaded() ? _normalTexture->getBindlessIndex() : -1;
 }
 
-void MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
+void c3d::MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -237,12 +237,12 @@ void MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
 	_changed();
 }
 
-int32_t MaterialAsset::getRoughnessTextureBindlessIndex() const
+int32_t c3d::MaterialAsset::getRoughnessTextureBindlessIndex() const
 {
 	return _roughnessTexture != nullptr && _roughnessTexture->isLoaded() ? _roughnessTexture->getBindlessIndex() : -1;
 }
 
-void MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
+void c3d::MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -263,12 +263,12 @@ void MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
 	_changed();
 }
 
-int32_t MaterialAsset::getMetalnessTextureBindlessIndex() const
+int32_t c3d::MaterialAsset::getMetalnessTextureBindlessIndex() const
 {
 	return _metalnessTexture != nullptr && _metalnessTexture->isLoaded() ? _metalnessTexture->getBindlessIndex() : -1;
 }
 
-void MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
+void c3d::MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -289,12 +289,12 @@ void MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
 	_changed();
 }
 
-int32_t MaterialAsset::getDisplacementTextureBindlessIndex() const
+int32_t c3d::MaterialAsset::getDisplacementTextureBindlessIndex() const
 {
 	return _displacementTexture != nullptr && _displacementTexture->isLoaded() ? _displacementTexture->getBindlessIndex() : -1;
 }
 
-void MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
+void c3d::MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -315,88 +315,88 @@ void MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
 	_changed();
 }
 
-int32_t MaterialAsset::getEmissiveTextureBindlessIndex() const
+int32_t c3d::MaterialAsset::getEmissiveTextureBindlessIndex() const
 {
 	return _emissiveTexture != nullptr && _emissiveTexture->isLoaded() ? _emissiveTexture->getBindlessIndex() : -1;
 }
 
-const glm::vec3& MaterialAsset::getAlbedoValue() const
+const glm::vec3& c3d::MaterialAsset::getAlbedoValue() const
 {
 	return _albedoValue;
 }
 
-void MaterialAsset::setAlbedoValue(const glm::vec3& value)
+void c3d::MaterialAsset::setAlbedoValue(const glm::vec3& value)
 {
 	_albedoValue = glm::clamp(value, glm::vec3(0.0f), glm::vec3(1.0f));
 
 	_changed();
 }
 
-const float& MaterialAsset::getRoughnessValue() const
+const float& c3d::MaterialAsset::getRoughnessValue() const
 {
 	return _roughnessValue;
 }
 
-void MaterialAsset::setRoughnessValue(const float& value)
+void c3d::MaterialAsset::setRoughnessValue(const float& value)
 {
 	_roughnessValue = glm::clamp(value, 0.0f, 1.0f);
 
 	_changed();
 }
 
-const float& MaterialAsset::getMetalnessValue() const
+const float& c3d::MaterialAsset::getMetalnessValue() const
 {
 	return _metalnessValue;
 }
 
-void MaterialAsset::setMetalnessValue(const float& value)
+void c3d::MaterialAsset::setMetalnessValue(const float& value)
 {
 	_metalnessValue = glm::clamp(value, 0.0f, 1.0f);
 
 	_changed();
 }
 
-const float& MaterialAsset::getDisplacementScale() const
+const float& c3d::MaterialAsset::getDisplacementScale() const
 {
 	return _displacementScale;
 }
 
-void MaterialAsset::setDisplacementScale(const float& scale)
+void c3d::MaterialAsset::setDisplacementScale(const float& scale)
 {
 	_displacementScale = glm::max(scale, 0.0f);
 
 	_changed();
 }
 
-const float& MaterialAsset::getEmissiveScale() const
+const float& c3d::MaterialAsset::getEmissiveScale() const
 {
 	return _emissiveScale;
 }
 
-void MaterialAsset::setEmissiveScale(const float& scale)
+void c3d::MaterialAsset::setEmissiveScale(const float& scale)
 {
 	_emissiveScale = glm::max(scale, 0.0f);
 
 	_changed();
 }
 
-void MaterialAsset::initDefaultAndMissing()
+void c3d::MaterialAsset::initDefaultAndMissing()
 {
 	_defaultMaterial = Engine::getAssetManager().loadMaterial("materials/internal/Default Material/Default Material.c3dmaterial");
 	_missingMaterial = Engine::getAssetManager().loadMaterial("materials/internal/Missing Material/Missing Material.c3dmaterial");
 }
 
-MaterialAsset* MaterialAsset::getDefaultMaterial()
+c3d::MaterialAsset* c3d::MaterialAsset::getDefaultMaterial()
 {
 	return _defaultMaterial;
 }
 
-MaterialAsset* MaterialAsset::getMissingMaterial()
+c3d::MaterialAsset* c3d::MaterialAsset::getMissingMaterial()
 {
 	return _missingMaterial;
 }
 
-void MaterialAsset::create(std::string_view path)
+void c3d::MaterialAsset::create(std::string_view path)
 {
 	nlohmann::ordered_json jsonRoot;
 	jsonRoot["version"] = 2;
@@ -444,7 +444,7 @@ void MaterialAsset::create(std::string_view path)
 	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / path);
 }
 
-void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+void c3d::MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
 	{
 		auto jsonIt = jsonRoot.find("albedo");
@@ -529,7 +529,7 @@ void MaterialAsset::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 	}
 }
 
-void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
+void c3d::MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
 {
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("albedo");
@@ -636,7 +636,7 @@ void MaterialAsset::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 	}
 }
 
-void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
+void c3d::MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
 {
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("albedo");
@@ -741,7 +741,7 @@ void MaterialAsset::deserializeFromVersion3(const nlohmann::ordered_json& jsonRo
 	}
 }
 
-void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRoot)
+void c3d::MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRoot)
 {
 	{
 		const nlohmann::ordered_json& jsonMap = jsonRoot.at("albedo");
@@ -847,7 +847,7 @@ void MaterialAsset::deserializeFromVersion4(const nlohmann::ordered_json& jsonRo
 	}
 }
 
-void MaterialAsset::save() const
+void c3d::MaterialAsset::save() const
 {
 	nlohmann::ordered_json jsonRoot;
 	jsonRoot["version"] = 4;
@@ -954,7 +954,7 @@ void MaterialAsset::save() const
 	JsonHelper::saveJsonToFile(jsonRoot, FileHelper::getAssetDirectoryPath() / _signature.path);
 }
 
-void MaterialAsset::reload()
+void c3d::MaterialAsset::reload()
 {
 	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / _signature.path);
 

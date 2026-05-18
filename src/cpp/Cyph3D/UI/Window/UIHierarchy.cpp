@@ -10,9 +10,9 @@
 
 #include <imgui.h>
 
-std::function<void()> UIHierarchy::_task;
+std::function<void()> c3d::UIHierarchy::_task;
 
-void UIHierarchy::show()
+void c3d::UIHierarchy::show()
 {
 	if (ImGui::Begin("Hierarchy", nullptr))
 	{
@@ -76,10 +76,10 @@ void UIHierarchy::show()
 	ImGui::End();
 }
 
-static void reparent(Transform& reparented, Transform& newParent)
+static void reparent(c3d::Transform& reparented, c3d::Transform& newParent)
 {
 	// Check if the new parent is not a child of the dragged Transform
-	Transform* parent = &newParent;
+	c3d::Transform* parent = &newParent;
 	while ((parent = parent->getParent()) != nullptr)
 	{
 		if (parent == &reparented)
@@ -97,7 +97,7 @@ static void reparent(Transform& reparented, Transform& newParent)
 	reparented.setParent(&newParent);
 }
 
-void UIHierarchy::addRootToTree()
+void c3d::UIHierarchy::addRootToTree()
 {
 	bool open = ImGui::TreeNodeEx(Engine::getScene().getName().c_str(), BASE_FLAGS | ImGuiTreeNodeFlags_Framed);
 
@@ -131,7 +131,7 @@ void UIHierarchy::addRootToTree()
 	}
 }
 
-void UIHierarchy::addObjectToTree(Transform* transform)
+void c3d::UIHierarchy::addObjectToTree(Transform* transform)
 {
 	ImGuiTreeNodeFlags flags = BASE_FLAGS;
 

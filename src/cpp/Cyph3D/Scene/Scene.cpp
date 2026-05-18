@@ -16,22 +16,22 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <spdlog/spdlog.h>
 
-std::atomic_uint64_t Scene::_changeVersion = 0;
+std::atomic_uint64_t c3d::Scene::_changeVersion = 0;
 
-Scene::Scene():
+c3d::Scene::Scene():
 	_root(Transform::createSceneRoot())
 {
 	_changeVersion++;
 }
 
-Scene::~Scene()
+c3d::Scene::~Scene()
 {
 	_entities.clear();
 
 	_root.reset();
 }
 
-void Scene::onUpdate()
+void c3d::Scene::onUpdate()
 {
 	for (Entity& entity : *this)
 	{
@@ -39,7 +39,7 @@ void Scene::onUpdate()
 	}
 }
 
-void Scene::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
+void c3d::Scene::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	for (Entity& entity : *this)
 	{
@@ -47,7 +47,7 @@ void Scene::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 	}
 }
 
-Entity& Scene::createEntity(Transform& parent)
+c3d::Entity& c3d::Scene::createEntity(Transform& parent)
 {
 	EntityContainer& container = _entities.emplace_back();
 	container.entity = std::make_unique<Entity>(parent, *this);
@@ -63,7 +63,7 @@ Entity& Scene::createEntity(Transform& parent)
 	return *container.entity;
 }
 
-EntityIterator Scene::findEntity(const Entity& entity)
+c3d::EntityIterator c3d::Scene::findEntity(const Entity& entity)
 {
 	return std::find_if(
 		begin(), end(),
@@ -74,7 +74,7 @@ EntityIterator Scene::findEntity(const Entity& entity)
 	);
 }
 
-EntityIterator Scene::removeEntity(EntityIterator where)
+c3d::EntityIterator c3d::Scene::removeEntity(EntityIterator where)
 {
 	std::vector<Transform*> children = where->getTransform().getChildren();
 	for (Transform* child : children)
@@ -94,32 +94,32 @@ EntityIterator Scene::removeEntity(EntityIterator where)
 	return newIt;
 }
 
-EntityIterator Scene::begin()
+c3d::EntityIterator c3d::Scene::begin()
 {
 	return EntityIterator(_entities.begin());
 }
 
-EntityIterator Scene::end()
+c3d::EntityIterator c3d::Scene::end()
 {
 	return EntityIterator(_entities.end());
 }
 
-EntityConstIterator Scene::begin() const
+c3d::EntityConstIterator c3d::Scene::begin() const
 {
 	return EntityConstIterator(_entities.cbegin());
 }
 
-EntityConstIterator Scene::end() const
+c3d::EntityConstIterator c3d::Scene::end() const
 {
 	return EntityConstIterator(_entities.cend());
 }
 
-Transform& Scene::getRoot()
+c3d::Transform& c3d::Scene::getRoot()
 {
 	return *_root;
 }
 
-void Scene::setSkybox(std::optional<std::string_view> path)
+void c3d::Scene::setSkybox(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -140,24 +140,24 @@ void Scene::setSkybox(std::optional<std::string_view> path)
 	_changeVersion++;
 }
 
-SkyboxAsset* Scene::getSkybox()
+c3d::SkyboxAsset* c3d::Scene::getSkybox()
 {
 	return _skybox;
 }
 
-float Scene::getSkyboxRotation() const
+float c3d::Scene::getSkyboxRotation() const
 {
 	return _skyboxRotation;
 }
 
-void Scene::setSkyboxRotation(float rotation)
+void c3d::Scene::setSkyboxRotation(float rotation)
 {
 	_skyboxRotation = rotation;
 
 	_changeVersion++;
 }
 
-void Scene::load(const std::filesystem::path& path)
+void c3d::Scene::load(const std::filesystem::path& path)
 {
 	nlohmann::ordered_json jsonRoot = JsonHelper::loadJsonFromFile(FileHelper::getAssetDirectoryPath() / path);
 
@@ -243,7 +243,7 @@ void Scene::load(const std::filesystem::path& path)
 	Engine::setScene(std::move(scene));
 }
 
-void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene)
+void c3d::Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& parent, int version, Scene& scene)
 {
 	ObjectSerialization serialization = ObjectSerialization::fromJson(json);
 
@@ -256,7 +256,7 @@ void Scene::deserializeEntity(const nlohmann::ordered_json& json, Transform& par
 	}
 }
 
-void Scene::save(const std::filesystem::path& path)
+void c3d::Scene::save(const std::filesystem::path& path)
 {
 	_name = path.filename().replace_extension().generic_string();
 
@@ -297,7 +297,7 @@ void Scene::save(const std::filesystem::path& path)
 	JsonHelper::saveJsonToFile(jsonRoot, path.generic_string());
 }
 
-nlohmann::ordered_json Scene::serializeEntity(const Entity& entity)
+nlohmann::ordered_json c3d::Scene::serializeEntity(const Entity& entity)
 {
 	nlohmann::ordered_json jsonData = entity.serialize().toJson();
 
@@ -313,19 +313,19 @@ nlohmann::ordered_json Scene::serializeEntity(const Entity& entity)
 	return jsonData;
 }
 
-const std::string& Scene::getName() const
+const std::string& c3d::Scene::getName() const
 {
 	return _name;
 }
 
-void Scene::setName(const std::string& name)
+void c3d::Scene::setName(const std::string& name)
 {
 	_name = name;
 
 	_changeVersion++;
 }
 
-uint64_t Scene::getChangeVersion()
+uint64_t c3d::Scene::getChangeVersion()
 {
 	return _changeVersion;
 }

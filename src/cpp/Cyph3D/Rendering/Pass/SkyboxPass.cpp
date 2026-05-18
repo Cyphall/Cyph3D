@@ -18,7 +18,7 @@
 
 #include <glm/gtx/transform.hpp>
 
-SkyboxPass::SkyboxPass(glm::uvec2 size):
+c3d::SkyboxPass::SkyboxPass(glm::uvec2 size):
 	RenderPass(size, "Skybox pass")
 {
 	createPipelineLayout();
@@ -27,7 +27,7 @@ SkyboxPass::SkyboxPass(glm::uvec2 size):
 	createBuffer();
 }
 
-SkyboxPassOutput SkyboxPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
+c3d::SkyboxPassOutput c3d::SkyboxPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
 {
 	commandBuffer->imageMemoryBarrier(
 		input.multisampledRawRenderImage,
@@ -100,12 +100,12 @@ SkyboxPassOutput SkyboxPass::onRender(const std::shared_ptr<VKCommandBuffer>& co
 	};
 }
 
-void SkyboxPass::onResize()
+void c3d::SkyboxPass::onResize()
 {
 	createImages();
 }
 
-void SkyboxPass::createPipelineLayout()
+void c3d::SkyboxPass::createPipelineLayout()
 {
 	VKPipelineLayoutInfo info;
 	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
@@ -114,7 +114,7 @@ void SkyboxPass::createPipelineLayout()
 	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
 }
 
-void SkyboxPass::createPipeline()
+void c3d::SkyboxPass::createPipeline()
 {
 	VKGraphicsPipelineInfo info(
 		_pipelineLayout,
@@ -137,7 +137,7 @@ void SkyboxPass::createPipeline()
 	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
 }
 
-void SkyboxPass::createImages()
+void c3d::SkyboxPass::createImages()
 {
 	{
 		VKImageInfo imageInfo(
@@ -154,7 +154,7 @@ void SkyboxPass::createImages()
 	}
 }
 
-void SkyboxPass::createBuffer()
+void c3d::SkyboxPass::createBuffer()
 {
 	std::vector<SkyboxPass::VertexData> vertices = {
 		{{-1.0f, 1.0f, -1.0f}},

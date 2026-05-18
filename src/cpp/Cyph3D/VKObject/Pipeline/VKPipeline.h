@@ -4,6 +4,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace c3d
+{
 class VKPipelineLayout;
 
 class VKPipeline : public VKObject
@@ -19,3 +21,4 @@ protected:
 
 	vk::Pipeline _pipeline;
 };
+}

@@ -6,9 +6,9 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		Engine::init();
-		Engine::run();
-		Engine::shutdown();
+		c3d::Engine::init();
+		c3d::Engine::run();
+		c3d::Engine::shutdown();
 	}
 	catch (const std::exception& e)
 	{

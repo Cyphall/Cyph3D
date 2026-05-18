@@ -8,51 +8,51 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-glm::vec3 Camera::getOrientation() const
+glm::vec3 c3d::Camera::getOrientation() const
 {
 	if (_orientationChanged)
 		recalculateOrientation();
 	return _orientation;
 }
 
-glm::vec3 Camera::getSideOrientation() const
+glm::vec3 c3d::Camera::getSideOrientation() const
 {
 	if (_orientationChanged)
 		recalculateOrientation();
 	return _sideOrientation;
 }
 
-glm::mat4 Camera::getView() const
+glm::mat4 c3d::Camera::getView() const
 {
 	if (_viewChanged)
 		recalculateView();
 	return _view;
 }
 
-glm::mat4 Camera::getProjection() const
+glm::mat4 c3d::Camera::getProjection() const
 {
 	if (_projectionChanged)
 		recalculateProjection();
 	return _projection;
 }
 
-glm::vec3 Camera::getPosition() const
+glm::vec3 c3d::Camera::getPosition() const
 {
 	return _position;
 }
 
-void Camera::setPosition(glm::vec3 position)
+void c3d::Camera::setPosition(glm::vec3 position)
 {
 	_position = position;
 	viewChanged();
 }
 
-glm::vec2 Camera::getSphericalCoords() const
+glm::vec2 c3d::Camera::getSphericalCoords() const
 {
 	return _sphericalCoords;
 }
 
-void Camera::setSphericalCoords(glm::vec2 sphericalCoords)
+void c3d::Camera::setSphericalCoords(glm::vec2 sphericalCoords)
 {
 	_sphericalCoords = glm::vec2(
 		glm::mod(sphericalCoords.x, 360.0f),
@@ -61,44 +61,44 @@ void Camera::setSphericalCoords(glm::vec2 sphericalCoords)
 	orientationChanged();
 }
 
-float Camera::getSpeed() const
+float c3d::Camera::getSpeed() const
 {
 	return _speed;
 }
 
-void Camera::setSpeed(float speed)
+void c3d::Camera::setSpeed(float speed)
 {
 	_speed = speed;
 }
 
-float Camera::getExposure() const
+float c3d::Camera::getExposure() const
 {
 	return _exposure;
 }
 
-void Camera::setExposure(float exposure)
+void c3d::Camera::setExposure(float exposure)
 {
 	_exposure = exposure;
 }
 
-float Camera::getVerticalFov() const
+float c3d::Camera::getVerticalFov() const
 {
 	return _verticalFov;
 }
 
-void Camera::setVerticalFov(float vfov)
+void c3d::Camera::setVerticalFov(float vfov)
 {
 	_verticalFov = vfov;
 	projectionChanged();
 }
 
-void Camera::setHorizontalFov(float hfov, float referenceAspectRatio)
+void c3d::Camera::setHorizontalFov(float hfov, float referenceAspectRatio)
 {
 	_verticalFov = MathHelper::fovXtoY(hfov, referenceAspectRatio);
 	projectionChanged();
 }
 
-Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
+c3d::Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
 	_position(position),
 	_sphericalCoords(sphericalCoords)
 {
@@ -106,7 +106,7 @@ Camera::Camera(glm::vec3 position, glm::vec2 sphericalCoords):
 	setAspectRatio(16.0f / 9.0f);
 }
 
-bool Camera::update(glm::vec2 mousePosDelta)
+bool c3d::Camera::update(glm::vec2 mousePosDelta)
 {
 	float ratio = static_cast<float>(Engine::getTimer().deltaTime()) * _speed;
 
@@ -155,7 +155,7 @@ bool Camera::update(glm::vec2 mousePosDelta)
 	return changed;
 }
 
-void Camera::recalculateOrientation() const
+void c3d::Camera::recalculateOrientation() const
 {
 	glm::vec2 sphericalCoordsRadians = glm::radians(_sphericalCoords);
 
@@ -174,14 +174,14 @@ void Camera::recalculateOrientation() const
 	_orientationChanged = false;
 }
 
-void Camera::recalculateView() const
+void c3d::Camera::recalculateView() const
 {
 	_view = glm::lookAt(getPosition(), getPosition() + getOrientation(), glm::vec3(0, 1, 0));
 
 	_viewChanged = false;
 }
 
-void Camera::recalculateProjection() const
+void c3d::Camera::recalculateProjection() const
 {
 	_projection = glm::perspective(_verticalFov, _aspectRatio, NEAR_DISTANCE, FAR_DISTANCE);
 	_projection[1][1] *= -1;
@@ -189,42 +189,42 @@ void Camera::recalculateProjection() const
 	_projectionChanged = false;
 }
 
-float Camera::getAspectRatio() const
+float c3d::Camera::getAspectRatio() const
 {
 	return _aspectRatio;
 }
 
-void Camera::setAspectRatio(float aspectRatio)
+void c3d::Camera::setAspectRatio(float aspectRatio)
 {
 	_aspectRatio = aspectRatio;
 	projectionChanged();
 }
 
-const std::array<glm::vec3, 4>& Camera::getCornerRays() const
+const std::array<glm::vec3, 4>& c3d::Camera::getCornerRays() const
 {
 	if (_cornerRaysChanged)
 		recalculateCornerRays();
 	return _cornerRays;
 }
 
-void Camera::viewChanged() const
+void c3d::Camera::viewChanged() const
 {
 	_viewChanged = true;
 	cornerRaysChanged();
 }
 
-void Camera::projectionChanged() const
+void c3d::Camera::projectionChanged() const
 {
 	_projectionChanged = true;
 	cornerRaysChanged();
 }
 
-void Camera::cornerRaysChanged() const
+void c3d::Camera::cornerRaysChanged() const
 {
 	_cornerRaysChanged = true;
 }
 
-void Camera::recalculateCornerRays() const
+void c3d::Camera::recalculateCornerRays() const
 {
 	glm::mat4 projInverse = glm::inverse(getProjection());
 	glm::mat4 viewInverse = glm::affineInverse(getView());
@@ -246,7 +246,7 @@ void Camera::recalculateCornerRays() const
 	_cornerRaysChanged = false;
 }
 
-void Camera::orientationChanged() const
+void c3d::Camera::orientationChanged() const
 {
 	_orientationChanged = true;
 	viewChanged();

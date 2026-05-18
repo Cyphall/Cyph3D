@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include <optional>
 
+namespace c3d
+{
 class ImGuiHelper
 {
 public:
@@ -12,3 +14,4 @@ public:
 	static void MoveCursorPos(const glm::vec2& offset);
 	static void TextCentered(const char* text);
 };
+}

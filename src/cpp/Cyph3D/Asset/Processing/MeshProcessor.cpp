@@ -7,49 +7,49 @@
 #include <assimp/scene.h>
 #include <spdlog/spdlog.h>
 
-static void writeProcessedMesh(const std::filesystem::path& path, const MeshData& meshData)
+static void writeProcessedMesh(const std::filesystem::path& path, const c3d::MeshData& meshData)
 {
 	std::filesystem::create_directories(path.parent_path());
-	std::ofstream file = FileHelper::openFileForWriting(path);
+	std::ofstream file = c3d::FileHelper::openFileForWriting(path);
 
 	uint8_t version = 5;
-	FileHelper::write(file, &version);
+	c3d::FileHelper::write(file, &version);
 
-	FileHelper::write(file, meshData.positionVertices);
-	FileHelper::write(file, meshData.materialVertices);
+	c3d::FileHelper::write(file, meshData.positionVertices);
+	c3d::FileHelper::write(file, meshData.materialVertices);
 
-	FileHelper::write(file, meshData.indices);
+	c3d::FileHelper::write(file, meshData.indices);
 
-	FileHelper::write(file, &meshData.boundingBoxMin);
-	FileHelper::write(file, &meshData.boundingBoxMax);
+	c3d::FileHelper::write(file, &meshData.boundingBoxMin);
+	c3d::FileHelper::write(file, &meshData.boundingBoxMax);
 }
 
-static bool readProcessedMesh(const std::filesystem::path& path, MeshData& meshData)
+static bool readProcessedMesh(const std::filesystem::path& path, c3d::MeshData& meshData)
 {
-	std::ifstream file = FileHelper::openFileForReading(path);
+	std::ifstream file = c3d::FileHelper::openFileForReading(path);
 
 	uint8_t version;
-	FileHelper::read(file, &version);
+	c3d::FileHelper::read(file, &version);
 
 	if (version != 5)
 	{
 		return false;
 	}
 
-	FileHelper::read(file, meshData.positionVertices);
-	FileHelper::read(file, meshData.materialVertices);
+	c3d::FileHelper::read(file, meshData.positionVertices);
+	c3d::FileHelper::read(file, meshData.materialVertices);
 
-	FileHelper::read(file, meshData.indices);
+	c3d::FileHelper::read(file, meshData.indices);
 
-	FileHelper::read(file, &meshData.boundingBoxMin);
-	FileHelper::read(file, &meshData.boundingBoxMax);
+	c3d::FileHelper::read(file, &meshData.boundingBoxMin);
+	c3d::FileHelper::read(file, &meshData.boundingBoxMax);
 
 	return true;
 }
 
-static MeshData processMesh(const std::filesystem::path& input, const std::filesystem::path& output)
+static c3d::MeshData processMesh(const std::filesystem::path& input, const std::filesystem::path& output)
 {
-	MeshData meshData;
+	c3d::MeshData meshData;
 
 	Assimp::Importer importer;
 
@@ -99,7 +99,7 @@ static MeshData processMesh(const std::filesystem::path& input, const std::files
 	return meshData;
 }
 
-MeshData MeshProcessor::readMeshData(std::string_view path, std::string_view cachePath)
+c3d::MeshData c3d::MeshProcessor::readMeshData(std::string_view path, std::string_view cachePath)
 {
 	std::filesystem::path absolutePath = FileHelper::getAssetDirectoryPath() / path;
 	std::filesystem::path cacheAbsolutePath = FileHelper::getCacheAssetDirectoryPath() / cachePath;

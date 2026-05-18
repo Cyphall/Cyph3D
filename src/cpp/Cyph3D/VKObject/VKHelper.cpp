@@ -2,12 +2,12 @@
 
 #include "Cyph3D/VKObject/Image/VKImage.h"
 
-size_t VKHelper::alignUp(size_t size, size_t alignment)
+size_t c3d::VKHelper::alignUp(size_t size, size_t alignment)
 {
 	return ((size + alignment - 1) / alignment) * alignment;
 }
 
-vk::ImageAspectFlags VKHelper::getAspect(vk::Format format)
+vk::ImageAspectFlags c3d::VKHelper::getAspect(vk::Format format)
 {
 	switch (format)
 	{
@@ -26,7 +26,7 @@ vk::ImageAspectFlags VKHelper::getAspect(vk::Format format)
 	}
 }
 
-void VKHelper::assertImageViewHasUniqueState(const std::shared_ptr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange)
+void c3d::VKHelper::assertImageViewHasUniqueState(const std::shared_ptr<VKImage>& image, glm::uvec2 layerRange, glm::uvec2 levelRange)
 {
 #if defined(_DEBUG)
 	// make sure all referenced layers and levels have the same layout

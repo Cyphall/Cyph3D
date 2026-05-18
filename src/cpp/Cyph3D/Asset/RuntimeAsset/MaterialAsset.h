@@ -10,6 +10,8 @@
 #include <optional>
 #include <string>
 
+namespace c3d
+{
 class TextureAsset;
 class VKImage;
 
@@ -18,17 +20,6 @@ struct MaterialAssetSignature
 	std::string path;
 
 	bool operator==(const MaterialAssetSignature& other) const = default;
-};
-
-template<>
-struct std::hash<MaterialAssetSignature>
-{
-	std::size_t operator()(const MaterialAssetSignature& key) const noexcept
-	{
-		return HashBuilder()
-		    .hash(key.path)
-		    .get();
-	}
 };
 
 class MaterialAsset : public RuntimeAsset<MaterialAssetSignature>, public IInspectable
@@ -119,4 +110,16 @@ private:
 
 	static MaterialAsset* _defaultMaterial;
 	static MaterialAsset* _missingMaterial;
+};
+}
+
+template<>
+struct std::hash<c3d::MaterialAssetSignature>
+{
+	std::size_t operator()(const c3d::MaterialAssetSignature& key) const noexcept
+	{
+		return c3d::HashBuilder()
+		    .hash(key.path)
+		    .get();
+	}
 };

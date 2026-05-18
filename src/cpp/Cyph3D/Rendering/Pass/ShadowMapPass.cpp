@@ -28,7 +28,7 @@ static const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []()
 	return projection;
 }();
 
-static glm::mat4 calcDirectionalShadowMapView(const DirectionalLight::RenderData& light)
+static glm::mat4 calcDirectionalShadowMapView(const c3d::DirectionalLight::RenderData& light)
 {
 	return glm::lookAt(
 		{0, 0, 0},
@@ -37,16 +37,16 @@ static glm::mat4 calcDirectionalShadowMapView(const DirectionalLight::RenderData
 	);
 }
 
-static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(const glm::mat4& view, const std::vector<ModelRenderer::RenderData>& models)
+static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(const glm::mat4& view, const std::vector<c3d::ModelRenderer::RenderData>& models)
 {
 	glm::vec3 min(std::numeric_limits<float>::max());
 	glm::vec3 max(std::numeric_limits<float>::lowest());
 
-	for (const ModelRenderer::RenderData& model : models)
+	for (const c3d::ModelRenderer::RenderData& model : models)
 	{
 		glm::mat4 modelView = view * model.transform.getLocalToWorldMatrix();
 
-		auto [boundingBoxMin_SMS, boundingBoxMax_SMS] = MathHelper::transformBoundingBox(
+		auto [boundingBoxMin_SMS, boundingBoxMax_SMS] = c3d::MathHelper::transformBoundingBox(
 			modelView,
 			model.mesh.getBoundingBoxMin(),
 			model.mesh.getBoundingBoxMax()
@@ -73,7 +73,7 @@ static std::tuple<glm::mat4, float, float> calcDirectionalShadowMapProjection(co
 	return {projection, size.x, size.z};
 }
 
-static std::array<glm::mat4, 6> calcPointShadowMapView(const PointLight::RenderData& light)
+static std::array<glm::mat4, 6> calcPointShadowMapView(const c3d::PointLight::RenderData& light)
 {
 	glm::vec3 position = light.transform.getWorldPosition();
 
@@ -87,7 +87,7 @@ static std::array<glm::mat4, 6> calcPointShadowMapView(const PointLight::RenderD
 	};
 }
 
-ShadowMapPass::ShadowMapPass(glm::uvec2 size):
+c3d::ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 	RenderPass(size, "Shadow map pass")
 {
 	createDescriptorSetLayout();
@@ -96,7 +96,7 @@ ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 	createPipelines();
 }
 
-ShadowMapPassOutput ShadowMapPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
+c3d::ShadowMapPassOutput c3d::ShadowMapPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
 {
 	if (input.sceneChanged || input.cameraChanged)
 	{
@@ -158,11 +158,11 @@ ShadowMapPassOutput ShadowMapPass::onRender(const std::shared_ptr<VKCommandBuffe
 	};
 }
 
-void ShadowMapPass::onResize()
+void c3d::ShadowMapPass::onResize()
 {
 }
 
-void ShadowMapPass::createDescriptorSetLayout()
+void c3d::ShadowMapPass::createDescriptorSetLayout()
 {
 	VKDescriptorSetLayoutInfo info(true);
 	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
@@ -170,7 +170,7 @@ void ShadowMapPass::createDescriptorSetLayout()
 	_pointLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
 }
 
-void ShadowMapPass::createBuffer()
+void c3d::ShadowMapPass::createBuffer()
 {
 	VKResizableBufferInfo bufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
 	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -187,7 +187,7 @@ void ShadowMapPass::createBuffer()
 	);
 }
 
-void ShadowMapPass::createPipelineLayouts()
+void c3d::ShadowMapPass::createPipelineLayouts()
 {
 	{
 		VKPipelineLayoutInfo info;
@@ -205,7 +205,7 @@ void ShadowMapPass::createPipelineLayouts()
 	}
 }
 
-void ShadowMapPass::createPipelines()
+void c3d::ShadowMapPass::createPipelines()
 {
 	{
 		VKGraphicsPipelineInfo info(
@@ -244,7 +244,7 @@ void ShadowMapPass::createPipelines()
 	}
 }
 
-void ShadowMapPass::renderDirectionalShadowMap(
+void c3d::ShadowMapPass::renderDirectionalShadowMap(
 	const std::shared_ptr<VKCommandBuffer>& commandBuffer,
 	const DirectionalLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models
@@ -318,7 +318,7 @@ void ShadowMapPass::renderDirectionalShadowMap(
 	);
 }
 
-void ShadowMapPass::renderPointShadowMap(
+void c3d::ShadowMapPass::renderPointShadowMap(
 	const std::shared_ptr<VKCommandBuffer>& commandBuffer,
 	const PointLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models,

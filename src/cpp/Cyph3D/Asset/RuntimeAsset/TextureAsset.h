@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 
+namespace c3d
+{
 class AssetManager;
 class VKImage;
 class VKSampler;
@@ -17,18 +19,6 @@ struct TextureAssetSignature
 	ImageType type;
 
 	bool operator==(const TextureAssetSignature& other) const = default;
-};
-
-template<>
-struct std::hash<TextureAssetSignature>
-{
-	std::size_t operator()(const TextureAssetSignature& key) const noexcept
-	{
-		return HashBuilder()
-		    .hash(key.path)
-		    .hash(key.type)
-		    .get();
-	}
 };
 
 class TextureAsset : public GPUAsset<TextureAssetSignature>
@@ -47,4 +37,17 @@ private:
 
 	std::shared_ptr<VKImage> _image;
 	uint32_t _bindlessIndex;
+};
+}
+
+template<>
+struct std::hash<c3d::TextureAssetSignature>
+{
+	std::size_t operator()(const c3d::TextureAssetSignature& key) const noexcept
+	{
+		return c3d::HashBuilder()
+		    .hash(key.path)
+		    .hash(key.type)
+		    .get();
+	}
 };

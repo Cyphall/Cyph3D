@@ -24,16 +24,16 @@
 
 CMRC_DECLARE(resources);
 
-ImGuiContext* UIHelper::_context = nullptr;
+ImGuiContext* c3d::UIHelper::_context = nullptr;
 
-std::unique_ptr<UIAssetBrowser> UIHelper::_assetBrowser;
-ImFont* UIHelper::_bigFont = nullptr;
+std::unique_ptr<c3d::UIAssetBrowser> c3d::UIHelper::_assetBrowser;
+ImFont* c3d::UIHelper::_bigFont = nullptr;
 
-bool UIHelper::_dockingLayoutInitialized = false;
+bool c3d::UIHelper::_dockingLayoutInitialized = false;
 
-std::unique_ptr<ImGuiVulkanBackend> UIHelper::_vulkanBackend;
+std::unique_ptr<c3d::ImGuiVulkanBackend> c3d::UIHelper::_vulkanBackend;
 
-void UIHelper::init()
+void c3d::UIHelper::init()
 {
 	_context = ImGui::CreateContext();
 	ImGui::SetCurrentContext(_context);
@@ -55,7 +55,7 @@ void UIHelper::init()
 	UIViewport::init();
 }
 
-void UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std::shared_ptr<VKSemaphore>& renderFinishedSemaphore)
+void c3d::UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std::shared_ptr<VKSemaphore>& renderFinishedSemaphore)
 {
 	ImGuiID dockspaceId = ImGui::DockSpaceOverViewport();
 
@@ -108,7 +108,7 @@ void UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std::shar
 	);
 }
 
-void UIHelper::shutdown()
+void c3d::UIHelper::shutdown()
 {
 	UIViewport::shutdown();
 	_vulkanBackend.reset();
@@ -118,14 +118,14 @@ void UIHelper::shutdown()
 	_context = nullptr;
 }
 
-void UIHelper::onNewFrame()
+void c3d::UIHelper::onNewFrame()
 {
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 	ImGuizmo::BeginFrame();
 }
 
-void UIHelper::initDockingLayout(ImGuiID dockspaceId)
+void c3d::UIHelper::initDockingLayout(ImGuiID dockspaceId)
 {
 	ImGui::DockBuilderAddNode(dockspaceId, ImGuiDockNodeFlags_DockSpace);
 	ImVec2 dockspaceSize = ImGui::GetMainViewport()->WorkSize;
@@ -163,7 +163,7 @@ static ImVec4 normalizeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
 }
 
-void UIHelper::initStyles()
+void c3d::UIHelper::initStyles()
 {
 	ImGui::StyleColorsDark();
 
@@ -215,7 +215,7 @@ void UIHelper::initStyles()
 	style.ScaleAllSizes(pixelScale);
 }
 
-void UIHelper::initFonts()
+void c3d::UIHelper::initFonts()
 {
 	ImGuiIO& io = ImGui::GetIO();
 

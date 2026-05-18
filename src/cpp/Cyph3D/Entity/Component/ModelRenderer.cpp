@@ -11,16 +11,16 @@
 
 #include <imgui.h>
 
-const char* ModelRenderer::identifier = "ModelRenderer";
+const char* c3d::ModelRenderer::identifier = "ModelRenderer";
 
-ModelRenderer::ModelRenderer(Entity& entity):
+c3d::ModelRenderer::ModelRenderer(Entity& entity):
 	Component(entity)
 {
 	setMaterial("materials/internal/Default Material/Default Material.c3dmaterial");
 	setMesh("meshes/internal/Default Mesh/Default Mesh.obj");
 }
 
-void ModelRenderer::setMaterial(std::optional<std::string_view> path)
+void c3d::ModelRenderer::setMaterial(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -41,12 +41,12 @@ void ModelRenderer::setMaterial(std::optional<std::string_view> path)
 	_changed();
 }
 
-MaterialAsset* ModelRenderer::getMaterial() const
+c3d::MaterialAsset* c3d::ModelRenderer::getMaterial() const
 {
 	return _material;
 }
 
-void ModelRenderer::setMesh(std::optional<std::string_view> path)
+void c3d::ModelRenderer::setMesh(std::optional<std::string_view> path)
 {
 	if (path)
 	{
@@ -67,24 +67,24 @@ void ModelRenderer::setMesh(std::optional<std::string_view> path)
 	_changed();
 }
 
-MeshAsset* ModelRenderer::getMesh() const
+c3d::MeshAsset* c3d::ModelRenderer::getMesh() const
 {
 	return _mesh;
 }
 
-bool ModelRenderer::getContributeShadows() const
+bool c3d::ModelRenderer::getContributeShadows() const
 {
 	return _contributeShadows;
 }
 
-void ModelRenderer::setContributeShadows(bool contributeShadows)
+void c3d::ModelRenderer::setContributeShadows(bool contributeShadows)
 {
 	_contributeShadows = contributeShadows;
 
 	_changed();
 }
 
-ObjectSerialization ModelRenderer::serialize() const
+c3d::ObjectSerialization c3d::ModelRenderer::serialize() const
 {
 	ObjectSerialization serialization;
 	serialization.version = 3;
@@ -113,7 +113,7 @@ ObjectSerialization ModelRenderer::serialize() const
 	return serialization;
 }
 
-void ModelRenderer::deserialize(const ObjectSerialization& serialization)
+void c3d::ModelRenderer::deserialize(const ObjectSerialization& serialization)
 {
 	switch (serialization.version)
 	{
@@ -131,7 +131,7 @@ void ModelRenderer::deserialize(const ObjectSerialization& serialization)
 	}
 }
 
-void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
+void c3d::ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	MaterialAsset* material;
 	if (!_material)
@@ -175,7 +175,7 @@ void ModelRenderer::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 	}
 }
 
-void ModelRenderer::onDrawUi()
+void c3d::ModelRenderer::onDrawUi()
 {
 	std::optional<std::string_view> newMaterialPath;
 	if (ImGuiHelper::AssetInputWidget(_material ? &_material->getSignature().path : nullptr, "Material", "asset_material", newMaterialPath))
@@ -196,12 +196,12 @@ void ModelRenderer::onDrawUi()
 	}
 }
 
-const char* ModelRenderer::getIdentifier() const
+const char* c3d::ModelRenderer::getIdentifier() const
 {
 	return identifier;
 }
 
-void ModelRenderer::duplicate(Entity& targetEntity) const
+void c3d::ModelRenderer::duplicate(Entity& targetEntity) const
 {
 	ModelRenderer& newComponent = targetEntity.addComponent<ModelRenderer>();
 	if (_material)
@@ -215,7 +215,7 @@ void ModelRenderer::duplicate(Entity& targetEntity) const
 	newComponent.setContributeShadows(getContributeShadows());
 }
 
-void ModelRenderer::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
+void c3d::ModelRenderer::deserializeFromVersion1(const nlohmann::ordered_json& jsonRoot)
 {
 	const nlohmann::ordered_json& jsonMaterial = jsonRoot["material"];
 	if (!jsonMaterial.is_null())
@@ -258,7 +258,7 @@ void ModelRenderer::deserializeFromVersion1(const nlohmann::ordered_json& jsonRo
 	setContributeShadows(jsonRoot["contribute_shadows"].get<bool>());
 }
 
-void ModelRenderer::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
+void c3d::ModelRenderer::deserializeFromVersion2(const nlohmann::ordered_json& jsonRoot)
 {
 	const nlohmann::ordered_json& jsonMaterial = jsonRoot["material"];
 	if (!jsonMaterial.is_null())
@@ -296,7 +296,7 @@ void ModelRenderer::deserializeFromVersion2(const nlohmann::ordered_json& jsonRo
 	setContributeShadows(jsonRoot["contribute_shadows"].get<bool>());
 }
 
-void ModelRenderer::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
+void c3d::ModelRenderer::deserializeFromVersion3(const nlohmann::ordered_json& jsonRoot)
 {
 	const nlohmann::ordered_json& jsonMaterial = jsonRoot["material"];
 	if (!jsonMaterial.is_null())

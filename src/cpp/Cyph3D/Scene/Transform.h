@@ -6,6 +6,8 @@
 #include <sigslot/signal.hpp>
 #include <vector>
 
+namespace c3d
+{
 class Entity;
 
 class Transform
@@ -114,3 +116,4 @@ private:
 	void recalculateWorldCache() const;
 	void recalculateLocalCache() const;
 };
+}
