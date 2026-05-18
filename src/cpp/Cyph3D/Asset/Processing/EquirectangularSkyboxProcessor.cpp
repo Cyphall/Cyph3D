@@ -102,7 +102,7 @@ static std::vector<std::byte> convertFloatToHalf(std::span<const std::byte> inpu
 	return output;
 }
 
-EquirectangularSkyboxData compressTexture(const EquirectangularSkyboxData& mipmappedEquirectangularSkyboxData, vk::Format requestedFormat)
+static EquirectangularSkyboxData compressTexture(const EquirectangularSkyboxData& mipmappedEquirectangularSkyboxData, vk::Format requestedFormat)
 {
 	EquirectangularSkyboxData compressedEquirectangularSkyboxData;
 	compressedEquirectangularSkyboxData.format = requestedFormat;

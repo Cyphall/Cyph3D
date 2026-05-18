@@ -105,7 +105,7 @@ static std::vector<std::byte> convertFloatToHalf(std::span<const std::byte> inpu
 	return output;
 }
 
-ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format requestedFormat)
+static ImageData compressTexture(const ImageData& mipmappedImageData, vk::Format requestedFormat)
 {
 	ImageData compressedImageData;
 	compressedImageData.format = requestedFormat;
