@@ -109,7 +109,7 @@ LambdaBodyIndentation: Signature
 Language: Cpp
 LineEnding: LF
 MaxEmptyLinesToKeep: 2
-NamespaceIndentation: All
+NamespaceIndentation: None
 PPIndentWidth: -1
 PackConstructorInitializers: Never
 PointerAlignment: Left

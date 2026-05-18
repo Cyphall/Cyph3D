@@ -7,7 +7,7 @@
 
 namespace SQLite
 {
-	class Database;
+class Database;
 }
 
 class AssetProcessingCacheDatabase
