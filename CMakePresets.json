@@ -12,32 +12,71 @@
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
       "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
+      }
+    },
+    {
+      "name": "Windows-MSVC-base",
+      "inherits": "base",
+      "hidden": true,
       "architecture": {
         "value": "x64",
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-msvc",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/msvc.cmake"
       }
     },
     {
-      "name": "Debug",
+      "name": "Linux-Clang-base",
       "inherits": "base",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux-clang",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang.cmake"
+      }
+    },
+    {
+      "name": "Windows-MSVC-Debug",
+      "inherits": "Windows-MSVC-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "RelWithDebInfo",
-      "inherits": "base",
+      "name": "Windows-MSVC-RelWithDebInfo",
+      "inherits": "Windows-MSVC-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     },
     {
-      "name": "Release",
-      "inherits": "base",
+      "name": "Windows-MSVC-Release",
+      "inherits": "Windows-MSVC-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Linux-Clang-Debug",
+      "inherits": "Linux-Clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Linux-Clang-RelWithDebInfo",
+      "inherits": "Linux-Clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "Linux-Clang-Release",
+      "inherits": "Linux-Clang-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -45,16 +84,28 @@
   ],
   "buildPresets": [
     {
-      "name": "Debug",
-      "configurePreset": "Debug"
+      "name": "Windows-MSVC-Debug",
+      "configurePreset": "Windows-MSVC-Debug"
     },
     {
-      "name": "RelWithDebInfo",
-      "configurePreset": "RelWithDebInfo"
+      "name": "Windows-MSVC-RelWithDebInfo",
+      "configurePreset": "Windows-MSVC-RelWithDebInfo"
     },
     {
-      "name": "Release",
-      "configurePreset": "Release"
+      "name": "Windows-MSVC-Release",
+      "configurePreset": "Windows-MSVC-Release"
+    },
+    {
+      "name": "Linux-Clang-Debug",
+      "configurePreset": "Linux-Clang-Debug"
+    },
+    {
+      "name": "Linux-Clang-RelWithDebInfo",
+      "configurePreset": "Linux-Clang-RelWithDebInfo"
+    },
+    {
+      "name": "Linux-Clang-Release",
+      "configurePreset": "Linux-Clang-Release"
     }
   ]
 }

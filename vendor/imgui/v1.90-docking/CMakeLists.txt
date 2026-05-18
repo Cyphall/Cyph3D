@@ -6,4 +6,7 @@ add_library(imgui STATIC src/imgui.cpp src/imgui_demo.cpp src/imgui_draw.cpp src
 
 target_link_libraries(imgui PUBLIC glm::glm)
 
+target_link_libraries(imgui PUBLIC glfw)
+target_compile_definitions(imgui PUBLIC GLFW_INCLUDE_NONE)
+
 target_include_directories(imgui PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include")

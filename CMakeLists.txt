@@ -2,24 +2,6 @@ cmake_minimum_required(VERSION 3.28)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob3 /DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob3 /DNDEBUG")
-
-add_compile_options($<$<COMPILE_LANGUAGE:C>:/Zc:__STDC__>)
-add_compile_options($<$<COMPILE_LANGUAGE:C>:/Zc:__cplusplus>)
-add_compile_options($<$<COMPILE_LANGUAGE:C>:/utf-8>)
-
-add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Zc:__STDC__>)
-add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>)
-add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/utf-8>)
-
-# ---- vcpkg ----
-
-cmake_path(CONVERT "$ENV{VCPKG_ROOT}" TO_CMAKE_PATH_LIST VCPKG_ROOT)
-
-set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
-set(VCPKG_TARGET_TRIPLET "x64-windows-static-md")
-
 # ---- Project ----
 
 project(
@@ -36,8 +18,8 @@ endif ()
 
 # ---- Includes ----
 
-include("cmake/Shaders.cmake")
-include("cmake/Resources.cmake")
+include("cmake/utils/Shaders.cmake")
+include("cmake/utils/Resources.cmake")
 
 # ---- Executable ----
 
