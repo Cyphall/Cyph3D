@@ -354,7 +354,7 @@ void c3d::UIAssetBrowser::rescan()
 		{
 			// check if entry->path() is a base path of currentDirectory
 			auto relative = std::filesystem::relative(currentDirectory, entry->path());
-			if (!relative.empty() && !relative.native().starts_with(L".."))
+			if (!relative.empty() && !relative.generic_string().starts_with(".."))
 			{
 				_currentDirectory = entry.get();
 				search = true;
