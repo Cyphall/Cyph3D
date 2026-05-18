@@ -53,6 +53,15 @@
       }
     },
     {
+      "name": "Linux-GCC-base",
+      "inherits": "base",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux-gcc",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/gcc.cmake"
+      }
+    },
+    {
       "name": "Windows-MSVC-Debug",
       "inherits": "Windows-MSVC-base",
       "cacheVariables": {
@@ -111,6 +120,27 @@
     {
       "name": "Linux-Clang-Release",
       "inherits": "Linux-Clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Linux-GCC-Debug",
+      "inherits": "Linux-GCC-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Linux-GCC-RelWithDebInfo",
+      "inherits": "Linux-GCC-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "Linux-GCC-Release",
+      "inherits": "Linux-GCC-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -152,6 +182,18 @@
     {
       "name": "Linux-Clang-Release",
       "configurePreset": "Linux-Clang-Release"
+    },
+    {
+      "name": "Linux-GCC-Debug",
+      "configurePreset": "Linux-GCC-Debug"
+    },
+    {
+      "name": "Linux-GCC-RelWithDebInfo",
+      "configurePreset": "Linux-GCC-RelWithDebInfo"
+    },
+    {
+      "name": "Linux-GCC-Release",
+      "configurePreset": "Linux-GCC-Release"
     }
   ]
 }

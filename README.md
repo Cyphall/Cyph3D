@@ -48,7 +48,7 @@ Cyph3D supports Windows and Linux.
 
 ### Requirements:
 
-- MSVC or Clang
+- MSVC, Clang or GCC
 - CMake 3.28+
 - Ninja
 - VCPKG_ROOT env variable set to a vcpkg install
