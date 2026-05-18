@@ -4,6 +4,8 @@
 #include "Cyph3D/VKObject/Buffer/VKResizableBufferInfo.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
+#include <memory>
+
 namespace c3d
 {
 template<typename T>

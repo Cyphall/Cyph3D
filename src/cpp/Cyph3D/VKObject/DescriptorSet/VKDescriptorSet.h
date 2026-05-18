@@ -4,6 +4,7 @@
 #include "Cyph3D/VKObject/VKObject.h"
 
 #include <glm/glm.hpp>
+#include <memory>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 

@@ -3,6 +3,7 @@
 #include "Cyph3D/VKObject/Buffer/VKBufferBase.h"
 #include "Cyph3D/VKObject/VKContext.h"
 
+#include <memory>
 #include <vk_mem_alloc.h>
 
 namespace c3d

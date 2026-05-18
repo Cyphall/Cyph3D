@@ -3,6 +3,7 @@
 #include <array>
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
+#include <memory>
 
 struct GLFWwindow;
 

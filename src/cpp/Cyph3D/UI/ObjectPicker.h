@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <memory>
 
 namespace c3d
 {

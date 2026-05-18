@@ -2,6 +2,7 @@
 
 #include "Cyph3D/VKObject/VKObject.h"
 
+#include <memory>
 #include <string>
 #include <vulkan/vulkan.hpp>
 

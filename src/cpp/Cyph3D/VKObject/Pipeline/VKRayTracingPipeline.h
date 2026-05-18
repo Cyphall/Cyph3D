@@ -4,6 +4,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKRayTracingPipelineInfo.h"
 
 #include <array>
+#include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace c3d

@@ -3,6 +3,7 @@
 #include "Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
 #include "Cyph3D/VKObject/VKObject.h"
 
+#include <memory>
 #include <vulkan/vulkan.hpp>
 
 namespace c3d
