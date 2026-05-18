@@ -31,6 +31,19 @@
       }
     },
     {
+      "name": "Windows-Clang-base",
+      "inherits": "base",
+      "hidden": true,
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-clang",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang-cl.cmake"
+      }
+    },
+    {
       "name": "Linux-Clang-base",
       "inherits": "base",
       "hidden": true,
@@ -56,6 +69,27 @@
     {
       "name": "Windows-MSVC-Release",
       "inherits": "Windows-MSVC-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Windows-Clang-Debug",
+      "inherits": "Windows-Clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Windows-Clang-RelWithDebInfo",
+      "inherits": "Windows-Clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "Windows-Clang-Release",
+      "inherits": "Windows-Clang-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -94,6 +128,18 @@
     {
       "name": "Windows-MSVC-Release",
       "configurePreset": "Windows-MSVC-Release"
+    },
+    {
+      "name": "Windows-Clang-Debug",
+      "configurePreset": "Windows-Clang-Debug"
+    },
+    {
+      "name": "Windows-Clang-RelWithDebInfo",
+      "configurePreset": "Windows-Clang-RelWithDebInfo"
+    },
+    {
+      "name": "Windows-Clang-Release",
+      "configurePreset": "Windows-Clang-Release"
     },
     {
       "name": "Linux-Clang-Debug",
