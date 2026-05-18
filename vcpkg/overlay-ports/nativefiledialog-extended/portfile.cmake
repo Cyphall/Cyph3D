@@ -11,6 +11,8 @@ vcpkg_cmake_configure(
     OPTIONS
         -DNFD_BUILD_TESTS=OFF
         -DNFD_PORTAL=ON
+	MAYBE_UNUSED_VARIABLES
+		NFD_PORTAL
 )
 
 vcpkg_cmake_install()
