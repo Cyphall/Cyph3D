@@ -10,7 +10,6 @@
 class AssetManager;
 class VKImage;
 class VKSampler;
-struct AssetManagerWorkerData;
 
 struct TextureAssetSignature
 {

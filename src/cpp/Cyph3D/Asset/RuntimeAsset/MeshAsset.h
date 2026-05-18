@@ -11,7 +11,6 @@ class AssetManager;
 template<typename T>
 class VKBuffer;
 class VKAccelerationStructure;
-struct AssetManagerWorkerData;
 
 struct MeshAssetSignature
 {
