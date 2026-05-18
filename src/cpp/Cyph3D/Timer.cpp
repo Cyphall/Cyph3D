@@ -16,5 +16,5 @@ double c3d::Timer::deltaTime() const
 
 double c3d::Timer::time() const
 {
-	return std::chrono::duration<double>(std::chrono::steady_clock::now() - _startTime).count();
+	return std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - _startTime).count();
 }
