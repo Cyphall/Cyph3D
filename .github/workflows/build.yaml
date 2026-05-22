@@ -1,0 +1,84 @@
+name: Build
+
+on: [ push ]
+
+jobs:
+  build-windows-msvc:
+    runs-on: windows-2025-vs2026
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup MSVC
+        uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
+
+      - name: Configure CMake
+        run: cmake --preset Windows-MSVC-Release
+
+      - name: Build
+        run: cmake --build --preset Windows-MSVC-Release
+
+  build-windows-clang-cl:
+    runs-on: windows-2025-vs2026
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup MSVC
+        uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
+
+      - name: Configure CMake
+        run: cmake --preset Windows-ClangCL-Release
+
+      - name: Build
+        run: cmake --build --preset Windows-ClangCL-Release
+
+  build-linux-clang:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set VCPKG_ROOT
+        run: echo "VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          sudo apt install xorg-dev
+          sudo apt install libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
+          sudo apt install libdbus-1-dev
+
+      - name: Configure CMake
+        run: cmake --preset Linux-Clang-Release
+
+      - name: Build
+        run: cmake --build --preset Linux-Clang-Release
+
+  build-linux-gcc:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set VCPKG_ROOT
+        run: echo "VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          sudo apt install xorg-dev
+          sudo apt install libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
+          sudo apt install libdbus-1-dev
+
+      - name: Configure CMake
+        run: cmake --preset Linux-GCC-Release
+
+      - name: Build
+        run: cmake --build --preset Linux-GCC-Release
