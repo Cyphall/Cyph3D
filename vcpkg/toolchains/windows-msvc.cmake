@@ -1,4 +1,8 @@
-include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/toolchains/msvc.cmake")
+set(CMAKE_C_COMPILER cl)
+set(CMAKE_CXX_COMPILER cl)
+
+set(VCPKG_C_FLAGS "/Zc:__cplusplus /utf-8")
+set(VCPKG_CXX_FLAGS "/Zc:__cplusplus /utf-8")
 
 if (Z_VCPKG_ROOT_DIR)
 	set(VCPKG_ROOT ${Z_VCPKG_ROOT_DIR})

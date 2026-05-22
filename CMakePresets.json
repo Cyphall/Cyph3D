@@ -26,7 +26,7 @@
       }
     },
     {
-      "name": "Windows-Clang-base",
+      "name": "Windows-ClangCL-base",
       "inherits": "base",
       "hidden": true,
       "architecture": {
@@ -34,7 +34,7 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-clang",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-clang-cl",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang-cl.cmake"
       }
     },
@@ -78,22 +78,22 @@
       }
     },
     {
-      "name": "Windows-Clang-Debug",
-      "inherits": "Windows-Clang-base",
+      "name": "Windows-ClangCL-Debug",
+      "inherits": "Windows-ClangCL-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "Windows-Clang-RelWithDebInfo",
-      "inherits": "Windows-Clang-base",
+      "name": "Windows-ClangCL-RelWithDebInfo",
+      "inherits": "Windows-ClangCL-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     },
     {
-      "name": "Windows-Clang-Release",
-      "inherits": "Windows-Clang-base",
+      "name": "Windows-ClangCL-Release",
+      "inherits": "Windows-ClangCL-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -155,16 +155,16 @@
       "configurePreset": "Windows-MSVC-Release"
     },
     {
-      "name": "Windows-Clang-Debug",
-      "configurePreset": "Windows-Clang-Debug"
+      "name": "Windows-ClangCL-Debug",
+      "configurePreset": "Windows-ClangCL-Debug"
     },
     {
-      "name": "Windows-Clang-RelWithDebInfo",
-      "configurePreset": "Windows-Clang-RelWithDebInfo"
+      "name": "Windows-ClangCL-RelWithDebInfo",
+      "configurePreset": "Windows-ClangCL-RelWithDebInfo"
     },
     {
-      "name": "Windows-Clang-Release",
-      "configurePreset": "Windows-Clang-Release"
+      "name": "Windows-ClangCL-Release",
+      "configurePreset": "Windows-ClangCL-Release"
     },
     {
       "name": "Linux-Clang-Debug",

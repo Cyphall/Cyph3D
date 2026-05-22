@@ -1,4 +1,5 @@
-include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/toolchains/gcc.cmake")
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
 
 if (Z_VCPKG_ROOT_DIR)
 	set(VCPKG_ROOT ${Z_VCPKG_ROOT_DIR})
