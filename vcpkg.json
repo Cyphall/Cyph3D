@@ -16,6 +16,7 @@
     "nativefiledialog-extended",
     "cmakerc",
     "ispc",
+    "half",
     {
       "name": "glslang",
       "features": [

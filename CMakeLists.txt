@@ -402,8 +402,8 @@ target_link_libraries(Cyph3D PRIVATE ISPCTextureCompressor)
 
 # ---- Dependency: half ----
 
-add_subdirectory("vendor/half/v2.2.0")
-target_link_libraries(Cyph3D PRIVATE half)
+find_path(HALF_INCLUDE_DIRS "half.hpp")
+target_include_directories(Cyph3D PRIVATE ${HALF_INCLUDE_DIRS})
 
 # ---- Dependency: gabime/spdlog ----
 
