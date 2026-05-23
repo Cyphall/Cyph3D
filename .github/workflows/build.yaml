@@ -2,6 +2,9 @@ name: Build
 
 on: [ push ]
 
+env:
+  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-binary-cache
+
 jobs:
   build-windows-msvc:
     runs-on: windows-2025-vs2026
@@ -14,6 +17,16 @@ jobs:
         uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: x64
+
+      - name: Create vcpkg binary cache directory
+        run: mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-
 
       - name: Configure CMake
         run: cmake --preset Windows-MSVC-Release
@@ -32,6 +45,16 @@ jobs:
         uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: x64
+
+      - name: Create vcpkg binary cache directory
+        run: mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-
 
       - name: Configure CMake
         run: cmake --preset Windows-ClangCL-Release
@@ -55,6 +78,16 @@ jobs:
           sudo apt install libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
           sudo apt install libdbus-1-dev
 
+      - name: Create vcpkg binary cache directory
+        run: mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-
+
       - name: Configure CMake
         run: cmake --preset Linux-Clang-Release
 
@@ -76,6 +109,16 @@ jobs:
           sudo apt install xorg-dev
           sudo apt install libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
           sudo apt install libdbus-1-dev
+
+      - name: Create vcpkg binary cache directory
+        run: mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-
 
       - name: Configure CMake
         run: cmake --preset Linux-GCC-Release
