@@ -18,6 +18,8 @@
     "ispc",
     "half",
     "palsigslot",
+    "imgui",
+    "imguizmo",
     {
       "name": "glslang",
       "features": [

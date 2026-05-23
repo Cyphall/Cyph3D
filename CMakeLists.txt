@@ -382,12 +382,12 @@ target_compile_definitions(Cyph3D PRIVATE BS_THREAD_POOL_NATIVE_EXTENSIONS)
 
 # ---- Dependency: ocornut/imgui ----
 
-add_subdirectory("vendor/imgui/v1.90-docking")
+find_package(imgui CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE imgui)
 
 # ---- Dependency: CedricGuillemet/ImGuizmo ----
 
-add_subdirectory("vendor/imguizmo/fbc3614abcc642de7f3868cc0d68a35503ca9a4e")
+find_package(imguizmo CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE imguizmo)
 
 # ---- Dependency: palacaze/sigslot ----
