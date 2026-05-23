@@ -20,6 +20,7 @@
     "palsigslot",
     "imgui",
     "imguizmo",
+    "ispc-texcomp",
     {
       "name": "glslang",
       "features": [

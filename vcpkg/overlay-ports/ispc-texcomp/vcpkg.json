@@ -1,0 +1,18 @@
+{
+  "name": "ispc-texcomp",
+  "version-string": "691513b4fb406eccfc2f7d7f8213c8505ff5b897",
+  "description": "ISPC Texture Compressor ",
+  "homepage": "https://github.com/GameTechDev/ISPCTextureCompressor",
+  "license": "MIT",
+  "dependencies": [
+    "ispc",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

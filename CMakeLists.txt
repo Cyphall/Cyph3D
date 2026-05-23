@@ -397,8 +397,8 @@ target_link_libraries(Cyph3D PRIVATE Pal::Sigslot)
 
 # ---- Dependency: GameTechDev/ISPCTextureCompressor ----
 
-add_subdirectory("vendor/ISPCTextureCompressor/691513b4fb406eccfc2f7d7f8213c8505ff5b897")
-target_link_libraries(Cyph3D PRIVATE ISPCTextureCompressor)
+find_package(ispc-texcomp CONFIG REQUIRED)
+target_link_libraries(Cyph3D PRIVATE ispc-texcomp)
 
 # ---- Dependency: half ----
 

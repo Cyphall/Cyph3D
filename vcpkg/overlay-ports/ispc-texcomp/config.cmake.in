@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(ispc)
+
+include("${CMAKE_CURRENT_LIST_DIR}/ispc-texcompTargets.cmake")
+
+check_required_components(ispc-texcomp)
