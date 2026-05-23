@@ -15,6 +15,13 @@ elseif (VCPKG_TARGET_IS_LINUX)
 		FILENAME "ispc-v${VERSION}-linux.tar.gz"
 		SHA512 0e8efa2f3c195f2e77625bccf42df89c492aecd7e442f05f2d48f695c36dc8f4f25c10c337f2ce3e8453023a685c6e98f67faa343c6132b948aa82459a527158
 	)
+elseif (VCPKG_TARGET_IS_OSX)
+	vcpkg_download_distfile(
+		ARCHIVE
+		URLS "https://github.com/ispc/ispc/releases/download/v${VERSION}/ispc-v${VERSION}-macOS.arm64.tar.gz"
+		FILENAME "ispc-v${VERSION}-macOS.arm64.tar.gz"
+		SHA512 6d5fdeed71451840732f3860117f1a199488a4eb43b842cdacf352a7a4500df875ffd65ca0432f7372b8fd8f97e8c5f139dbd99b4c14affcbe3bd196e2ab4128
+	)
 else ()
 	message(FATAL_ERROR "Unsupported platform")
 endif ()

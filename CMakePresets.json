@@ -77,6 +77,20 @@
       }
     },
     {
+      "name": "macOS-Clang-base",
+      "inherits": "base",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "arm64-macos-clang",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang.cmake"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
       "name": "Windows-MSVC-Debug",
       "inherits": "Windows-MSVC-base",
       "cacheVariables": {
@@ -156,6 +170,27 @@
     {
       "name": "Linux-GCC-Release",
       "inherits": "Linux-GCC-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "macOS-Clang-Debug",
+      "inherits": "macOS-Clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "macOS-Clang-RelWithDebInfo",
+      "inherits": "macOS-Clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "macOS-Clang-Release",
+      "inherits": "macOS-Clang-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -209,6 +244,18 @@
     {
       "name": "Linux-GCC-Release",
       "configurePreset": "Linux-GCC-Release"
+    },
+    {
+      "name": "macOS-Clang-Debug",
+      "configurePreset": "macOS-Clang-Debug"
+    },
+    {
+      "name": "macOS-Clang-RelWithDebInfo",
+      "configurePreset": "macOS-Clang-RelWithDebInfo"
+    },
+    {
+      "name": "macOS-Clang-Release",
+      "configurePreset": "macOS-Clang-Release"
     }
   ]
 }

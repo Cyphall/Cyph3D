@@ -125,3 +125,29 @@ jobs:
 
       - name: Build
         run: cmake --build --preset Linux-GCC-Release
+
+  build-macos-clang:
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set VCPKG_ROOT
+        run: echo "VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
+
+      - name: Create vcpkg binary cache directory
+        run: mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: ${{ runner.os }}-${{ github.job }}-vcpkg-binary-cache-
+
+      - name: Configure CMake
+        run: cmake --preset macOS-Clang-Release
+
+      - name: Build
+        run: cmake --build --preset macOS-Clang-Release

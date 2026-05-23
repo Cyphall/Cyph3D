@@ -150,11 +150,9 @@ const std::filesystem::path& c3d::FileHelper::getCacheAssetDirectoryPath()
 bool c3d::FileHelper::isAssetPath(const std::filesystem::path& path)
 {
 	std::filesystem::path assetPathCanonial = std::filesystem::weakly_canonical(FileHelper::getAssetDirectoryPath());
-	std::filesystem::path pathCanonial = std::filesystem::weakly_canonical(std::filesystem::absolute(path));
+	std::filesystem::path pathCanonial = std::filesystem::weakly_canonical(path);
 
-	auto it = std::search(pathCanonial.begin(), pathCanonial.end(), assetPathCanonial.begin(), assetPathCanonial.end());
-
-	return it == pathCanonial.begin();
+	return pathCanonial.native().starts_with(assetPathCanonial.native());
 }
 
 void c3d::FileHelper::init()
