@@ -23,6 +23,11 @@
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-windows-msvc",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/msvc.cmake"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
       }
     },
     {
@@ -36,6 +41,11 @@
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-windows-clang-cl",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang-cl.cmake"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
       }
     },
     {
@@ -45,6 +55,11 @@
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-linux-clang",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang.cmake"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
       }
     },
     {
@@ -54,6 +69,11 @@
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-linux-gcc",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/gcc.cmake"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
       }
     },
     {
