@@ -30,6 +30,10 @@
     {
       "name": "spdlog",
       "default-features": false
+    },
+    {
+      "name": "vulkan-loader",
+      "platform": "osx"
     }
   ]
 }

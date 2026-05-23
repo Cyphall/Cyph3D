@@ -415,3 +415,10 @@ target_link_libraries(Cyph3D PRIVATE spdlog::spdlog)
 
 find_package(nfd CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE nfd::nfd)
+
+# ---- Dependency: KhronosGroup/Vulkan-Loader ----
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	find_package(VulkanLoader CONFIG REQUIRED)
+	add_dependencies(Cyph3D Vulkan::Loader)
+endif ()
