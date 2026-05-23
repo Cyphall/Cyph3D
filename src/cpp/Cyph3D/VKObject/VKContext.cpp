@@ -691,8 +691,6 @@ void c3d::VKContext::createLogicalDevice(const std::vector<const char*>& extensi
 	deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos.data();
 	deviceCreateInfo.enabledExtensionCount = extensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
-	deviceCreateInfo.enabledLayerCount = 0;
-	deviceCreateInfo.ppEnabledLayerNames = nullptr;
 
 	_device = _physicalDevice.createDevice(deviceCreateInfo);
 
