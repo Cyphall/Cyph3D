@@ -17,6 +17,7 @@
     "cmakerc",
     "ispc",
     "half",
+    "palsigslot",
     {
       "name": "glslang",
       "features": [

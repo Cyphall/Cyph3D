@@ -392,8 +392,8 @@ target_link_libraries(Cyph3D PRIVATE imguizmo)
 
 # ---- Dependency: palacaze/sigslot ----
 
-add_subdirectory("vendor/sigslot/v1.2.2")
-target_link_libraries(Cyph3D PRIVATE sigslot)
+find_package(PalSigslot CONFIG REQUIRED)
+target_link_libraries(Cyph3D PRIVATE Pal::Sigslot)
 
 # ---- Dependency: GameTechDev/ISPCTextureCompressor ----
 
