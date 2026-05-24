@@ -37,6 +37,10 @@ file(COPY "${SOURCE_PATH}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}")
 
 vcpkg_cmake_config_fixup(CONFIG_PATH "lib/cmake/ispc")
 
+if(VCPKG_TARGET_IS_OSX)
+	set(VCPKG_FIXUP_MACHO_RPATH OFF)
+endif()
+
 vcpkg_copy_tools(
 	TOOL_NAMES ispc
 	AUTO_CLEAN
