@@ -44,7 +44,9 @@ This project is a full C++ rewrite of my [original C# 3D engine](https://github.
 
 ## Build & Install
 
-Cyph3D supports Windows and Linux.
+Cyph3D supports Windows, macOS and Linux.
+
+Note: Cyph3D does not bundle a macOS Vulkan driver itself, it needs to be available system-wide like any other Vulkan driver on any other OS.
 
 ### Requirements:
 
@@ -53,7 +55,7 @@ Cyph3D supports Windows and Linux.
 - Ninja
 - VCPKG_ROOT env variable set to a vcpkg install
 
-Note: Linux may need some additional system dependencies
+Note: macOS and Linux may need some additional system dependencies
 
 ### Steps:
 
