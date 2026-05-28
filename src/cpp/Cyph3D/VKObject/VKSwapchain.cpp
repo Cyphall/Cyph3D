@@ -59,15 +59,15 @@ vk::SurfaceFormatKHR findBestSurfaceFormat(vk::PhysicalDevice physicalDevice, vk
 }
 }
 
-std::unique_ptr<c3d::VKSwapchain> c3d::VKSwapchain::create(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
+std::unique_ptr<c3d::VKSwapchain> c3d::VKSwapchain::create(VKContext& context, vk::SurfaceKHR surface, glm::uvec2 requestedExtent, VKSwapchain* oldSwapchain)
 {
-	return std::unique_ptr<VKSwapchain>(new VKSwapchain(context, surface, oldSwapchain));
+	return std::unique_ptr<VKSwapchain>(new VKSwapchain(context, surface, requestedExtent, oldSwapchain));
 }
 
-c3d::VKSwapchain::VKSwapchain(VKContext& context, vk::SurfaceKHR surface, VKSwapchain* oldSwapchain):
+c3d::VKSwapchain::VKSwapchain(VKContext& context, vk::SurfaceKHR surface, glm::uvec2 requestedExtent, VKSwapchain* oldSwapchain):
 	VKObject(context)
 {
-	createSwapchain(surface, oldSwapchain);
+	createSwapchain(surface, requestedExtent, oldSwapchain);
 }
 
 c3d::VKSwapchain::~VKSwapchain()
@@ -108,17 +108,23 @@ size_t c3d::VKSwapchain::getImageCount() const
 	return _swapchainImages.size();
 }
 
-void c3d::VKSwapchain::createSwapchain(vk::SurfaceKHR surface, VKSwapchain* oldSwapchain)
+void c3d::VKSwapchain::createSwapchain(vk::SurfaceKHR surface, glm::uvec2 requestedExtent, VKSwapchain* oldSwapchain)
 {
 	SwapChainSupportDetails swapchainSupport = querySwapchainSupport(_context.getPhysicalDevice(), surface);
 	vk::SurfaceFormatKHR surfaceFormat = findBestSurfaceFormat(_context.getPhysicalDevice(), surface);
+
+	glm::uvec2 extent = glm::clamp(
+		requestedExtent,
+		std::bit_cast<glm::uvec2>(swapchainSupport.capabilities.minImageExtent),
+		std::bit_cast<glm::uvec2>(swapchainSupport.capabilities.maxImageExtent)
+	);
 
 	vk::SwapchainCreateInfoKHR createInfo;
 	createInfo.surface = surface;
 	createInfo.minImageCount = 3;
 	createInfo.imageFormat = surfaceFormat.format;
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
-	createInfo.imageExtent = swapchainSupport.capabilities.currentExtent;
+	createInfo.imageExtent = std::bit_cast<vk::Extent2D>(extent);
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 	createInfo.imageSharingMode = vk::SharingMode::eExclusive;

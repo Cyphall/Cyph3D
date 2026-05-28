@@ -22,7 +22,9 @@ c3d::Window::Window()
 	glfwCreateWindowSurface(vkContext.getInstance(), _glfwWindow, nullptr, &surface);
 	_surface = surface;
 
-	_swapchain = VKSwapchain::create(vkContext, _surface);
+	glm::ivec2 extent;
+	glfwGetFramebufferSize(_glfwWindow, &extent.x, &extent.y);
+	_swapchain = VKSwapchain::create(vkContext, _surface, extent);
 
 	_previousFrameMouseButtonsPressed.fill(false);
 	_currentFrameMouseButtonsPressed.fill(false);
@@ -139,5 +141,7 @@ c3d::VKSwapchain& c3d::Window::getSwapchain()
 
 void c3d::Window::recreateSwapchain()
 {
-	_swapchain = VKSwapchain::create(Engine::getVKContext(), _surface, _swapchain.get());
+	glm::ivec2 extent;
+	glfwGetFramebufferSize(_glfwWindow, &extent.x, &extent.y);
+	_swapchain = VKSwapchain::create(Engine::getVKContext(), _surface, extent, _swapchain.get());
 }
