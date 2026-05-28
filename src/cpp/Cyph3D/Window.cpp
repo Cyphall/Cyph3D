@@ -11,6 +11,7 @@ c3d::Window::Window()
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+	glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
 	_glfwWindow = glfwCreateWindow(800, 600, "Cyph3D", nullptr, nullptr);
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
