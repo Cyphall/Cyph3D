@@ -384,9 +384,11 @@ c3d::VKContext::VKContext(int concurrentFrameCount):
 		_accelerationStructureProperties.pNext = &_rayTracingPipelineProperties;
 		_pushDescriptorProperties.pNext = &_accelerationStructureProperties;
 	}
-	_descriptorIndexingProperties.pNext = &_pushDescriptorProperties;
-	_properties.pNext = &_descriptorIndexingProperties;
-	_physicalDevice.getProperties2(&_properties);
+	_vulkan13Properties.pNext = &_pushDescriptorProperties;
+	_vulkan12Properties.pNext = &_vulkan13Properties;
+	_vulkan11Properties.pNext = &_vulkan12Properties;
+	_vulkan10Properties.pNext = &_vulkan11Properties;
+	_physicalDevice.getProperties2(&_vulkan10Properties);
 }
 
 c3d::VKContext::~VKContext()
@@ -478,14 +480,24 @@ void c3d::VKContext::executeImmediate(std::function<void(const std::shared_ptr<V
 	_helperData->immediateCommandBuffer->reset();
 }
 
-const vk::PhysicalDeviceProperties& c3d::VKContext::getProperties() const
+const vk::PhysicalDeviceProperties& c3d::VKContext::getVulkan10Properties() const
 {
-	return _properties.properties;
+	return _vulkan10Properties.properties;
 }
 
-const vk::PhysicalDeviceDescriptorIndexingProperties& c3d::VKContext::getDescriptorIndexingProperties() const
+const vk::PhysicalDeviceVulkan11Properties& c3d::VKContext::getVulkan11Properties() const
 {
-	return _descriptorIndexingProperties;
+	return _vulkan11Properties;
+}
+
+const vk::PhysicalDeviceVulkan12Properties& c3d::VKContext::getVulkan12Properties() const
+{
+	return _vulkan12Properties;
+}
+
+const vk::PhysicalDeviceVulkan13Properties& c3d::VKContext::getVulkan13Properties() const
+{
+	return _vulkan13Properties;
 }
 
 const vk::PhysicalDevicePushDescriptorPropertiesKHR& c3d::VKContext::getPushDescriptorProperties() const

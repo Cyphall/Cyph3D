@@ -37,8 +37,10 @@ public:
 
 	void executeImmediate(std::function<void(const std::shared_ptr<VKCommandBuffer>& commandBuffer)>&& function);
 
-	const vk::PhysicalDeviceProperties& getProperties() const;
-	const vk::PhysicalDeviceDescriptorIndexingProperties& getDescriptorIndexingProperties() const;
+	const vk::PhysicalDeviceProperties& getVulkan10Properties() const;
+	const vk::PhysicalDeviceVulkan11Properties& getVulkan11Properties() const;
+	const vk::PhysicalDeviceVulkan12Properties& getVulkan12Properties() const;
+	const vk::PhysicalDeviceVulkan13Properties& getVulkan13Properties() const;
 	const vk::PhysicalDevicePushDescriptorPropertiesKHR& getPushDescriptorProperties() const;
 	const vk::PhysicalDeviceAccelerationStructurePropertiesKHR& getAccelerationStructureProperties() const;
 	const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& getRayTracingPipelineProperties() const;
@@ -80,8 +82,10 @@ private:
 
 	std::unique_ptr<HelperData> _helperData;
 
-	vk::PhysicalDeviceProperties2 _properties;
-	vk::PhysicalDeviceDescriptorIndexingProperties _descriptorIndexingProperties;
+	vk::PhysicalDeviceProperties2 _vulkan10Properties;
+	vk::PhysicalDeviceVulkan11Properties _vulkan11Properties;
+	vk::PhysicalDeviceVulkan12Properties _vulkan12Properties;
+	vk::PhysicalDeviceVulkan13Properties _vulkan13Properties;
 	vk::PhysicalDevicePushDescriptorPropertiesKHR _pushDescriptorProperties;
 	vk::PhysicalDeviceAccelerationStructurePropertiesKHR _accelerationStructureProperties;
 	vk::PhysicalDeviceRayTracingPipelinePropertiesKHR _rayTracingPipelineProperties;
