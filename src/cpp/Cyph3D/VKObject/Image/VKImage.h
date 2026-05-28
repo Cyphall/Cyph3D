@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Cyph3D/HashBuilder.h"
-#include "Cyph3D/VKObject/Image/VKImageInfo.h"
-#include "Cyph3D/VKObject/VKObject.h"
+#include <Cyph3D/HashBuilder.h>
+#include <Cyph3D/VKObject/Image/VKImageInfo.h>
+#include <Cyph3D/VKObject/VKObject.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>

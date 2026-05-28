@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKDynamic.h"
+#include <Cyph3D/VKObject/VKDynamic.h>
 
 #include <glm/glm.hpp>
 #include <imgui.h>

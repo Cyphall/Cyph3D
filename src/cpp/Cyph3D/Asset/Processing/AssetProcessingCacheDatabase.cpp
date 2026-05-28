@@ -1,6 +1,6 @@
 #include "AssetProcessingCacheDatabase.h"
 
-#include "Cyph3D/Helper/FileHelper.h"
+#include <Cyph3D/Helper/FileHelper.h>
 
 #include <crossguid/guid.hpp>
 #include <filesystem>

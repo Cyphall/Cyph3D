@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Asset/Processing/ImageData.h"
+#include <Cyph3D/Asset/Processing/ImageData.h>
 
 #include <filesystem>
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Cyph3D/Asset/Processing/MeshData.h"
-#include "Cyph3D/Asset/RuntimeAsset/GPUAsset.h"
-#include "Cyph3D/HashBuilder.h"
+#include <Cyph3D/Asset/Processing/MeshData.h>
+#include <Cyph3D/Asset/RuntimeAsset/GPUAsset.h>
+#include <Cyph3D/HashBuilder.h>
 
 #include <memory>
 #include <string>

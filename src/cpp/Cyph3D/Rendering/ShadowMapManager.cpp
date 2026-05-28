@@ -1,7 +1,7 @@
 #include "ShadowMapManager.h"
 
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
+#include <Cyph3D/Engine.h>
+#include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
 
 #include <ranges>
 

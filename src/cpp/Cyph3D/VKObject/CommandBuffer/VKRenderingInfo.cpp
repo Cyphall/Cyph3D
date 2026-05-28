@@ -1,6 +1,6 @@
 #include "VKRenderingInfo.h"
 
-#include "Cyph3D/VKObject/Image/VKImage.h"
+#include <Cyph3D/VKObject/Image/VKImage.h>
 
 c3d::VKRenderingInfo::VKRenderingInfo(glm::uvec2 size):
 	_size(size)

@@ -1,15 +1,15 @@
 #include "ExposurePass.h"
 
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Rendering/SceneRenderer/SceneRenderer.h"
-#include "Cyph3D/Scene/Camera.h"
-#include "Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
-#include "Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
-#include "Cyph3D/VKObject/Image/VKImage.h"
-#include "Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
-#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
-#include "Cyph3D/VKObject/Sampler/VKSampler.h"
+#include <Cyph3D/Engine.h>
+#include <Cyph3D/Helper/FileHelper.h>
+#include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
+#include <Cyph3D/Scene/Camera.h>
+#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
+#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
+#include <Cyph3D/VKObject/Image/VKImage.h>
+#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h>
+#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
+#include <Cyph3D/VKObject/Sampler/VKSampler.h>
 
 c3d::ExposurePass::ExposurePass(glm::uvec2 size):
 	RenderPass(size, "Exposure pass")

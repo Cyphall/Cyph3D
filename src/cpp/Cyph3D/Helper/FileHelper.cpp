@@ -1,7 +1,7 @@
 #include "FileHelper.h"
 
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/Window.h"
+#include <Cyph3D/Engine.h>
+#include <Cyph3D/Window.h>
 
 #include <filesystem>
 #include <fstream>

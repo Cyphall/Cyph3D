@@ -1,6 +1,6 @@
 #include "VKHelper.h"
 
-#include "Cyph3D/VKObject/Image/VKImage.h"
+#include <Cyph3D/VKObject/Image/VKImage.h>
 
 size_t c3d::VKHelper::alignUp(size_t size, size_t alignment)
 {

@@ -1,6 +1,6 @@
 #include "VKSemaphore.h"
 
-#include "Cyph3D/VKObject/VKContext.h"
+#include <Cyph3D/VKObject/VKContext.h>
 
 std::shared_ptr<c3d::VKSemaphore> c3d::VKSemaphore::create(VKContext& context, const vk::SemaphoreCreateInfo& semaphoreCreateInfo)
 {

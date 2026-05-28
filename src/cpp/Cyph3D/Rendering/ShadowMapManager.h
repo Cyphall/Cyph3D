@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/VKObject/Image/VKImage.h"
+#include <Cyph3D/VKObject/Image/VKImage.h>
 
 #include <unordered_map>
 #include <vector>

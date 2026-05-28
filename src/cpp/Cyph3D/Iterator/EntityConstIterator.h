@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Scene/Scene.h"
+#include <Cyph3D/Scene/Scene.h>
 
 #include <vector>
 

@@ -84,7 +84,7 @@ EmptyLineBeforeAccessModifier: LogicalBlock
 FixNamespaceComments: false
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '".*"'
+  - Regex: '<Cyph3D/.*>'
     Priority: 1
   - Regex: '<.*>'
     Priority: 2

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/UI/IInspectable.h"
+#include <Cyph3D/UI/IInspectable.h>
 
 namespace c3d
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Entity/Component/Component.h"
+#include <Cyph3D/Entity/Component/Component.h>
 
 #include <nlohmann/json_fwd.hpp>
 #include <optional>

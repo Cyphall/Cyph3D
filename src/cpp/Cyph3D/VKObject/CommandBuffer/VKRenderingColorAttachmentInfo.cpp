@@ -1,6 +1,6 @@
 #include "VKRenderingColorAttachmentInfo.h"
 
-#include "Cyph3D/VKObject/Image/VKImage.h"
+#include <Cyph3D/VKObject/Image/VKImage.h>
 
 c3d::VKRenderingColorAttachmentInfo::VKRenderingColorAttachmentInfo(const std::shared_ptr<VKImage>& image, vk::ImageViewType type, glm::uvec2 layerRange, glm::uvec2 levelRange, vk::Format format):
 	_imageInfo(image, type, layerRange, levelRange, format)

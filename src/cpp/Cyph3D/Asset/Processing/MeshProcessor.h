@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Asset/Processing/MeshData.h"
+#include <Cyph3D/Asset/Processing/MeshData.h>
 
 namespace c3d
 {

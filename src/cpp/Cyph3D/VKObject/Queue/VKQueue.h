@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/VKObject/VKObject.h"
+#include <Cyph3D/VKObject/VKObject.h>
 
 #include <memory>
 #include <mutex>

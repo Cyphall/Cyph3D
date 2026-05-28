@@ -1,9 +1,9 @@
 #include "DirectionalLight.h"
 
-#include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/Rendering/RenderRegistry.h"
-#include "Cyph3D/Scene/Scene.h"
+#include <Cyph3D/Entity/Entity.h>
+#include <Cyph3D/ObjectSerialization.h>
+#include <Cyph3D/Rendering/RenderRegistry.h>
+#include <Cyph3D/Scene/Scene.h>
 
 #include <glm/gtc/integer.hpp>
 #include <glm/gtc/type_ptr.hpp>

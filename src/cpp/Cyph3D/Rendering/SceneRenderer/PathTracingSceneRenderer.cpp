@@ -1,9 +1,9 @@
 #include "PathTracingSceneRenderer.h"
 
-#include "Cyph3D/Rendering/Pass/BloomPass.h"
-#include "Cyph3D/Rendering/Pass/ExposurePass.h"
-#include "Cyph3D/Rendering/Pass/ToneMappingPass.h"
-#include "Cyph3D/VKObject/Image/VKImage.h"
+#include <Cyph3D/Rendering/Pass/BloomPass.h>
+#include <Cyph3D/Rendering/Pass/ExposurePass.h>
+#include <Cyph3D/Rendering/Pass/ToneMappingPass.h>
+#include <Cyph3D/VKObject/Image/VKImage.h>
 
 c3d::PathTracingSceneRenderer::PathTracingSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Path tracing SceneRenderer", size),

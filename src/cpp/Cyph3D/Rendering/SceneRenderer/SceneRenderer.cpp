@@ -1,6 +1,6 @@
 #include "SceneRenderer.h"
 
-#include "Cyph3D/Rendering/Pass/RenderPass.h"
+#include <Cyph3D/Rendering/Pass/RenderPass.h>
 
 const vk::Format c3d::SceneRenderer::DEPTH_FORMAT = vk::Format::eD32Sfloat;
 const vk::Format c3d::SceneRenderer::HDR_COLOR_FORMAT = vk::Format::eR16G16B16A16Sfloat;

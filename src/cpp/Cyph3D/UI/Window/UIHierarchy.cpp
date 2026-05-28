@@ -1,12 +1,12 @@
 #include "UIHierarchy.h"
 
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/Iterator/EntityIterator.h"
-#include "Cyph3D/Scene/Scene.h"
-#include "Cyph3D/Scene/Transform.h"
-#include "Cyph3D/UI/Window/UIInspector.h"
-#include "Cyph3D/Window.h"
+#include <Cyph3D/Engine.h>
+#include <Cyph3D/Entity/Entity.h>
+#include <Cyph3D/Iterator/EntityIterator.h>
+#include <Cyph3D/Scene/Scene.h>
+#include <Cyph3D/Scene/Transform.h>
+#include <Cyph3D/UI/Window/UIInspector.h>
+#include <Cyph3D/Window.h>
 
 #include <imgui.h>
 

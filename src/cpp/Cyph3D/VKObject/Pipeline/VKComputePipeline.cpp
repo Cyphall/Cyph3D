@@ -1,8 +1,8 @@
 #include "VKComputePipeline.h"
 
-#include "Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
-#include "Cyph3D/VKObject/Shader/VKShader.h"
-#include "Cyph3D/VKObject/VKContext.h"
+#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
+#include <Cyph3D/VKObject/Shader/VKShader.h>
+#include <Cyph3D/VKObject/VKContext.h>
 
 std::shared_ptr<c3d::VKComputePipeline> c3d::VKComputePipeline::create(VKContext& context, const VKComputePipelineInfo& info)
 {

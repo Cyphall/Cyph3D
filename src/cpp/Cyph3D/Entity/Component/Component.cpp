@@ -1,6 +1,6 @@
 #include "Component.h"
 
-#include "Cyph3D/Entity/Entity.h"
+#include <Cyph3D/Entity/Entity.h>
 
 c3d::Component::Component(Entity& entity):
 	_entity(entity)

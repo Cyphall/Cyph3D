@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Cyph3D/Entity/Component/Component.h"
-#include "Cyph3D/Scene/Transform.h"
-#include "Cyph3D/UI/IInspectable.h"
+#include <Cyph3D/Entity/Component/Component.h>
+#include <Cyph3D/Scene/Transform.h>
+#include <Cyph3D/UI/IInspectable.h>
 
 #include <memory>
 #include <nlohmann/json.hpp>

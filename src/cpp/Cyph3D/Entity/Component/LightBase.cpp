@@ -1,6 +1,6 @@
 #include "LightBase.h"
 
-#include "Cyph3D/Helper/MathHelper.h"
+#include <Cyph3D/Helper/MathHelper.h>
 
 c3d::LightBase::LightBase(Entity& entity):
 	Component(entity)

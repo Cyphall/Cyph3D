@@ -1,6 +1,6 @@
 #include "VKAccelerationStructure.h"
 
-#include "Cyph3D/VKObject/Buffer/VKBuffer.h"
+#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
 
 std::shared_ptr<c3d::VKAccelerationStructure> c3d::VKAccelerationStructure::create(
 	VKContext& context,

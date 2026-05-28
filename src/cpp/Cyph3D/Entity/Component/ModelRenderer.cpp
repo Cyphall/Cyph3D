@@ -1,13 +1,13 @@
 #include "ModelRenderer.h"
 
-#include "Cyph3D/Asset/AssetManager.h"
-#include "Cyph3D/Asset/RuntimeAsset/MaterialAsset.h"
-#include "Cyph3D/Engine.h"
-#include "Cyph3D/Entity/Entity.h"
-#include "Cyph3D/Helper/FileHelper.h"
-#include "Cyph3D/Helper/ImGuiHelper.h"
-#include "Cyph3D/ObjectSerialization.h"
-#include "Cyph3D/Rendering/RenderRegistry.h"
+#include <Cyph3D/Asset/AssetManager.h>
+#include <Cyph3D/Asset/RuntimeAsset/MaterialAsset.h>
+#include <Cyph3D/Engine.h>
+#include <Cyph3D/Entity/Entity.h>
+#include <Cyph3D/Helper/FileHelper.h>
+#include <Cyph3D/Helper/ImGuiHelper.h>
+#include <Cyph3D/ObjectSerialization.h>
+#include <Cyph3D/Rendering/RenderRegistry.h>
 
 #include <imgui.h>
 

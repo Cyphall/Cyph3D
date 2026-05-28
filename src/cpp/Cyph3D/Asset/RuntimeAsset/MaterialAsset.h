@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Cyph3D/Asset/RuntimeAsset/RuntimeAsset.h"
-#include "Cyph3D/HashBuilder.h"
-#include "Cyph3D/UI/IInspectable.h"
+#include <Cyph3D/Asset/RuntimeAsset/RuntimeAsset.h>
+#include <Cyph3D/HashBuilder.h>
+#include <Cyph3D/UI/IInspectable.h>
 
 #include <glm/glm.hpp>
 #include <memory>

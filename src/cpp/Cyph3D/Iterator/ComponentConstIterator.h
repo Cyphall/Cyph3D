@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Entity/Entity.h"
+#include <Cyph3D/Entity/Entity.h>
 
 #include <vector>
 

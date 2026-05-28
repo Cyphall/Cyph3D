@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Asset/Processing/EquirectangularSkyboxData.h"
+#include <Cyph3D/Asset/Processing/EquirectangularSkyboxData.h>
 
 #include <filesystem>
 

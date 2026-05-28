@@ -1,6 +1,6 @@
 #include "VKShaderBindingTable.h"
 
-#include "Cyph3D/VKObject/VKHelper.h"
+#include <Cyph3D/VKObject/VKHelper.h>
 
 std::shared_ptr<c3d::VKShaderBindingTable> c3d::VKShaderBindingTable::create(VKContext& context, const VKShaderBindingTableInfo& info)
 {

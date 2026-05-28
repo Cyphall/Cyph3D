@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Entity/Component/LightBase.h"
+#include <Cyph3D/Entity/Component/LightBase.h>
 
 #include <nlohmann/json_fwd.hpp>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/VKObject/Pipeline/VKPipelineBlendingInfo.h"
+#include <Cyph3D/VKObject/Pipeline/VKPipelineBlendingInfo.h>
 
 #include <optional>
 #include <vector>

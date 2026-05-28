@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cyph3D/Rendering/VertexData.h"
+#include <Cyph3D/Rendering/VertexData.h>
 
 #include <vector>
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Cyph3D/Entity/Component/DirectionalLight.h"
-#include "Cyph3D/Entity/Component/ModelRenderer.h"
-#include "Cyph3D/Entity/Component/PointLight.h"
+#include <Cyph3D/Entity/Component/DirectionalLight.h>
+#include <Cyph3D/Entity/Component/ModelRenderer.h>
+#include <Cyph3D/Entity/Component/PointLight.h>
 
 #include <vector>
 

@@ -1,6 +1,6 @@
 #include "VKFence.h"
 
-#include "Cyph3D/VKObject/VKContext.h"
+#include <Cyph3D/VKObject/VKContext.h>
 
 std::shared_ptr<c3d::VKFence> c3d::VKFence::create(VKContext& context, const vk::FenceCreateInfo& fenceCreateInfo)
 {

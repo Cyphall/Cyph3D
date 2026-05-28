@@ -1,6 +1,6 @@
 #include "MeshProcessor.h"
 
-#include "Cyph3D/Helper/FileHelper.h"
+#include <Cyph3D/Helper/FileHelper.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
