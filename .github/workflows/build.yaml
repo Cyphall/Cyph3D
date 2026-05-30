@@ -18,6 +18,9 @@ jobs:
         with:
           arch: x64
 
+      - name: Set VCPKG_ROOT
+        run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+
       - name: Create vcpkg binary cache directory
         run: mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
 
@@ -45,6 +48,9 @@ jobs:
         uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: x64
+
+      - name: Set VCPKG_ROOT
+        run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
 
       - name: Create vcpkg binary cache directory
         run: mkdir ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
