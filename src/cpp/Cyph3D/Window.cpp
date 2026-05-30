@@ -5,6 +5,7 @@
 #include <Cyph3D/VKObject/VKSwapchain.h>
 
 #include <GLFW/glfw3.h>
+#include <thread>
 
 c3d::Window::Window()
 {
@@ -14,6 +15,11 @@ c3d::Window::Window()
 	glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
 	_glfwWindow = glfwCreateWindow(800, 600, "Cyph3D", nullptr, nullptr);
+
+	// WORKAROUND: X11 (or XWayland) is buggy and will not report the right window
+	// extent until after some time has passed
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
 
 	VKContext& vkContext = Engine::getVKContext();
