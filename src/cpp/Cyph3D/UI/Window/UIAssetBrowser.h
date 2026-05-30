@@ -9,7 +9,7 @@ namespace c3d
 class UIAssetBrowser
 {
 public:
-	explicit UIAssetBrowser(ImFont* bigFont);
+	explicit UIAssetBrowser();
 	~UIAssetBrowser();
 
 	void draw();
@@ -24,8 +24,6 @@ private:
 
 	void drawRightPanelEntries();
 	void drawRightPanelEntry(const Entry& entry, const char* icon, float& usedWidth);
-
-	ImFont* _bigFont;
 
 	std::unique_ptr<Entry> _root;
 	const Entry* _currentDirectory = nullptr;

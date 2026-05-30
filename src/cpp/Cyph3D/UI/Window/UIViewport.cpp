@@ -6,6 +6,7 @@
 #include <Cyph3D/Rendering/SceneRenderer/PathTracingSceneRenderer.h>
 #include <Cyph3D/Rendering/SceneRenderer/RasterizationSceneRenderer.h>
 #include <Cyph3D/Scene/Scene.h>
+#include <Cyph3D/UI/ImGuiVulkanBackend.h>
 #include <Cyph3D/UI/Window/UIInspector.h>
 #include <Cyph3D/UI/Window/UIMisc.h>
 #include <Cyph3D/VKObject/Buffer/VKBuffer.h>
@@ -104,7 +105,7 @@ void c3d::UIViewport::show()
 
 		// all of this need to be calculated before calling ImGui::Image()
 		glm::ivec2 viewportStartLocal = glm::vec2(ImGui::GetCursorPos());
-		glm::ivec2 viewportEndLocal = glm::vec2(ImGui::GetWindowContentRegionMax());
+		glm::ivec2 viewportEndLocal = glm::vec2(ImGui::GetContentRegionAvail());
 
 		glm::uvec2 viewportSize = glm::max(viewportEndLocal - viewportStartLocal, glm::ivec2(0));
 
@@ -277,7 +278,7 @@ void c3d::UIViewport::show()
 			}
 
 			ImGui::Image(
-				&_lastViewportImage,
+				ImGui_ImplVKObject_ToTextureID(_lastViewportImage),
 				glm::vec2(_lastViewportImage->getSize(0)),
 				ImVec2(0, 0),
 				ImVec2(1, 1)

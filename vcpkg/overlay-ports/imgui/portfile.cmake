@@ -2,7 +2,7 @@ vcpkg_from_github(
 	OUT_SOURCE_PATH SOURCE_PATH
 	REPO ocornut/imgui
 	REF "v${VERSION}-docking"
-	SHA512 50953097ff809bca0e1cee55268eaa8dad001cf8fae85ae7623f484752d16bdf8e63c04227786361f27e73f7aeda5a8d1f9b0cee83c2aca108ce2712a21b74d9
+	SHA512 927ecf72f00a228e0899d5b8008575b44748c49b083b9425b5f2a6b4490a9900eae111afad23f2bf0a1c9c62cf1fea80c903eb3076d7e7ea901a5625f09df78e
 	HEAD_REF docking
 	PATCHES include-path.patch imconfig.patch splitter-color.patch
 )

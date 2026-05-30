@@ -5,11 +5,11 @@ project(imguizmo)
 add_library(imguizmo)
 
 target_sources(imguizmo PRIVATE
-	"ImGuizmo.cpp"
+	"src/ImGuizmo.cpp"
 )
 
-target_sources(imguizmo PUBLIC FILE_SET HEADERS FILES
-	"ImGuizmo.h"
+target_sources(imguizmo PUBLIC FILE_SET HEADERS BASE_DIRS "src" FILES
+	"src/ImGuizmo.h"
 )
 
 find_package(imgui CONFIG REQUIRED)

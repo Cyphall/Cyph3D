@@ -126,7 +126,7 @@ void c3d::ImGuiHelper::EndGroupPanel()
 	borderTopLeft.y = groupPanelInfo.initialCursorPos.y;
 
 	glm::vec2 borderBottomRight;
-	borderBottomRight.x = ImGui::GetContentRegionMaxAbs().x;
+	borderBottomRight.x = groupPanelInfo.initialCursorPos.x + ImGui::GetContentRegionAvail().x;
 	borderBottomRight.y = groupPanelInfo.initialCursorPos.y + ImGui::GetItemRectSize().y + style.WindowPadding.y * 2.0f + groupPanelInfo.labelSize.y / 2.0f;
 
 	drawList->AddRect(borderTopLeft, borderBottomRight, ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Border]), 3.0f);

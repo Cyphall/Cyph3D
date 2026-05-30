@@ -1,63 +1,17 @@
 #pragma once
 
-#include <Cyph3D/VKObject/VKDynamic.h>
-
-#include <glm/glm.hpp>
 #include <imgui.h>
+#include <memory>
 
 namespace c3d
 {
 class VKCommandBuffer;
-class VKDescriptorSetLayout;
-class VKSampler;
-class VKPipelineLayout;
-class VKGraphicsPipeline;
 class VKImage;
-template<typename T>
-class VKResizableBuffer;
 
-class ImGuiVulkanBackend
-{
-public:
-	ImGuiVulkanBackend();
-	~ImGuiVulkanBackend();
+void ImGui_ImplVKObject_Init();
+void ImGui_ImplVKObject_NewFrame();
+void ImGui_ImplVKObject_RenderDrawData(const ImDrawData& drawData, const std::shared_ptr<VKCommandBuffer>& commandBuffer, const std::shared_ptr<VKImage>& outputImage);
+void ImGui_ImplVKObject_Shutdown();
 
-	void renderDrawData(const ImDrawData* drawData, const std::shared_ptr<VKCommandBuffer>& commandBuffer, const std::shared_ptr<VKImage>& outputImage);
-
-private:
-	struct PushConstantData
-	{
-		glm::vec2 scale;
-		glm::vec2 offset;
-	};
-
-	std::shared_ptr<VKSampler> _textureSampler;
-	std::shared_ptr<VKSampler> _fontsSampler;
-
-	std::shared_ptr<VKDescriptorSetLayout> _imageSamplerDescriptorSetLayout;
-
-	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
-
-	std::shared_ptr<VKGraphicsPipeline> _pipeline;
-
-	std::shared_ptr<VKImage> _fontsTexture;
-
-	VKDynamic<VKResizableBuffer<ImDrawVert>> _vertexBuffer;
-	VKDynamic<VKResizableBuffer<ImDrawIdx>> _indexBuffer;
-
-	void createSamplers();
-	void createDescriptorSetLayout();
-	void createPipelineLayout();
-	void createPipeline();
-	void createFontsTexture();
-	void createBuffers();
-
-	void setupRenderState(
-		const ImDrawData* drawData,
-		const std::shared_ptr<VKCommandBuffer>& commandBuffer,
-		const std::shared_ptr<VKResizableBuffer<ImDrawVert>>& vertexBuffer,
-		const std::shared_ptr<VKResizableBuffer<ImDrawIdx>>& indexBuffer,
-		glm::uvec2 viewportSize
-	);
-};
+ImTextureID ImGui_ImplVKObject_ToTextureID(const std::shared_ptr<VKImage>& image);
 }

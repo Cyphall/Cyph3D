@@ -11,6 +11,8 @@
 #include <imgui_internal.h>
 #include <set>
 
+static constexpr float BIG_ICONS_SIZE = 48.0f;
+
 enum class EntryType
 {
 	Directory,
@@ -213,8 +215,7 @@ private:
 	std::set<std::unique_ptr<Entry>, EntryCompare> _entries;
 };
 
-c3d::UIAssetBrowser::UIAssetBrowser(ImFont* bigFont):
-	_bigFont(bigFont),
+c3d::UIAssetBrowser::UIAssetBrowser():
 	_size1(250.0f * Engine::getWindow().getPixelScale()),
 	_previousWidth(_size1)
 {
@@ -253,7 +254,7 @@ void c3d::UIAssetBrowser::draw()
 		ImGui::SplitterBehavior(boundingBox, window->GetID("asset_browser_splitter"), ImGuiAxis_X, &_size1, &_size2, 0, 0, 4.0f, 0.04f);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		ImGui::BeginChild("asset_browser_left_panel", ImVec2(_size1, 0), ImGuiChildFlags_Border);
+		ImGui::BeginChild("asset_browser_left_panel", ImVec2(_size1, 0), ImGuiChildFlags_Borders);
 		drawLeftPanel();
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
@@ -293,7 +294,7 @@ void c3d::UIAssetBrowser::draw()
 		ImGui::PopStyleVar();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, glm::vec2(4, 12) * Engine::getWindow().getPixelScale());
-		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), ImGuiChildFlags_Border);
+		ImGui::BeginChild("asset_browser_right_panel", ImVec2(-FLT_MIN, 0), ImGuiChildFlags_Borders);
 
 		drawRightPanelEntries();
 
@@ -434,13 +435,15 @@ void c3d::UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* ic
 	glm::vec2 entryOrigin = ImGui::GetCursorScreenPos();
 	glm::vec2 contentOrigin = entryOrigin + glm::vec2(style.FramePadding);
 
-	glm::vec2 contentSize(90.0f * Engine::getWindow().getPixelScale(), _bigFont->FontSize + style.ItemInnerSpacing.y + ImGui::GetFontSize());
+	float bigIconsSize = BIG_ICONS_SIZE * ImGui::GetStyle().FontScaleDpi;
+
+	glm::vec2 contentSize(90.0f * Engine::getWindow().getPixelScale(), bigIconsSize + style.ItemInnerSpacing.y + ImGui::GetFontSize());
 	glm::vec2 entrySize = contentSize + glm::vec2(style.FramePadding) * 2.0f;
 
 	glm::vec2 iconOffset(0, 0);
-	glm::vec2 iconAvailableSize(contentSize.x, _bigFont->FontSize);
+	glm::vec2 iconAvailableSize(contentSize.x, bigIconsSize);
 
-	glm::vec2 nameOffset(0, _bigFont->FontSize + style.ItemInnerSpacing.y);
+	glm::vec2 nameOffset(0, bigIconsSize + style.ItemInnerSpacing.y);
 	glm::vec2 nameAvailableSize(contentSize.x, ImGui::GetFontSize());
 
 	if (ImGui::InvisibleButton(entry.assetPath().c_str(), entrySize, ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnDoubleClick))
@@ -495,7 +498,7 @@ void c3d::UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* ic
 	iconColor *= 0.7f;
 	iconColor += 0.5f;
 
-	ImGui::PushFont(_bigFont);
+	ImGui::PushFont(nullptr, BIG_ICONS_SIZE);
 	glm::vec2 iconSize = ImGui::CalcTextSize(icon);
 	drawList->AddText(contentOrigin + iconOffset + (iconAvailableSize / 2.0f - iconSize / 2.0f), ImGui::GetColorU32(glm::vec4(iconColor, style.Colors[ImGuiCol_Text].w)), icon);
 	ImGui::PopFont();
@@ -505,7 +508,7 @@ void c3d::UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* ic
 
 	usedWidth += entrySize.x + style.ItemSpacing.x;
 
-	float remainingWidth = ImGui::GetWindowContentRegionMax().x - usedWidth;
+	float remainingWidth = ImGui::GetContentRegionAvail().x - usedWidth;
 	if (remainingWidth >= entrySize.x + style.ItemSpacing.x)
 	{
 		ImGui::SameLine();

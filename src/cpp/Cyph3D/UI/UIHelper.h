@@ -27,11 +27,8 @@ private:
 	static ImGuiContext* _context;
 
 	static std::unique_ptr<UIAssetBrowser> _assetBrowser;
-	static ImFont* _bigFont;
 
 	static bool _dockingLayoutInitialized;
-
-	static std::unique_ptr<ImGuiVulkanBackend> _vulkanBackend;
 
 	static void initDockingLayout(ImGuiID dockspaceId);
 	static void initStyles();

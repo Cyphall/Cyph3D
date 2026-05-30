@@ -35,30 +35,25 @@ ImVec4 normalizeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 ImGuiContext* c3d::UIHelper::_context = nullptr;
 
 std::unique_ptr<c3d::UIAssetBrowser> c3d::UIHelper::_assetBrowser;
-ImFont* c3d::UIHelper::_bigFont = nullptr;
 
 bool c3d::UIHelper::_dockingLayoutInitialized = false;
-
-std::unique_ptr<c3d::ImGuiVulkanBackend> c3d::UIHelper::_vulkanBackend;
 
 void c3d::UIHelper::init()
 {
 	_context = ImGui::CreateContext();
-	ImGui::SetCurrentContext(_context);
-	ImGuizmo::SetImGuiContext(_context);
 
 	ImGuiIO& io = ImGui::GetIO();
-
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigDpiScaleFonts = true;
+	io.ConfigDpiScaleViewports = true;
 
 	ImGui_ImplGlfw_InitForVulkan(Engine::getWindow().getHandle(), true);
+	ImGui_ImplVKObject_Init();
 
 	initStyles();
 	initFonts();
 
-	_assetBrowser = std::make_unique<UIAssetBrowser>(_bigFont);
-
-	_vulkanBackend = std::make_unique<ImGuiVulkanBackend>();
+	_assetBrowser = std::make_unique<UIAssetBrowser>();
 
 	UIViewport::init();
 }
@@ -96,7 +91,7 @@ void c3d::UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std:
 		vk::ImageLayout::eColorAttachmentOptimal
 	);
 
-	_vulkanBackend->renderDrawData(ImGui::GetDrawData(), commandBuffer, destImage);
+	ImGui_ImplVKObject_RenderDrawData(*ImGui::GetDrawData(), commandBuffer, destImage);
 
 	commandBuffer->imageMemoryBarrier(
 		destImage,
@@ -119,7 +114,7 @@ void c3d::UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std:
 void c3d::UIHelper::shutdown()
 {
 	UIViewport::shutdown();
-	_vulkanBackend.reset();
+	ImGui_ImplVKObject_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 
 	ImGui::DestroyContext(_context);
@@ -129,6 +124,7 @@ void c3d::UIHelper::shutdown()
 void c3d::UIHelper::onNewFrame()
 {
 	ImGui_ImplGlfw_NewFrame();
+	ImGui_ImplVKObject_NewFrame();
 	ImGui::NewFrame();
 	ImGuizmo::BeginFrame();
 }
@@ -214,50 +210,21 @@ void c3d::UIHelper::initStyles()
 	style.Colors[ImGuiCol_SeparatorHovered] = normalizeColor(130, 130, 130, 255);
 	style.Colors[ImGuiCol_SeparatorActive] = normalizeColor(160, 160, 160, 255);
 
-	float pixelScale = Engine::getWindow().getPixelScale();
-	style.ScaleAllSizes(pixelScale);
+	style.ScaleAllSizes(Engine::getWindow().getPixelScale());
+	style.FontSizeBase = 14;
 }
 
 void c3d::UIHelper::initFonts()
 {
 	ImGuiIO& io = ImGui::GetIO();
-
-	float pixelScale = Engine::getWindow().getPixelScale();
-
-	ImFontConfig config;
-	config.FontDataOwnedByAtlas = false;
+	io.Fonts->TexDesiredFormat = ImTextureFormat_Alpha8;
 
 	cmrc::file robotoData = cmrc::resources::get_filesystem().open("fonts/Roboto-Regular.ttf");
 	cmrc::file fontAwesomeData = cmrc::resources::get_filesystem().open("fonts/Font Awesome 6 Free-Solid-900.otf");
 
-	io.Fonts->AddFontFromMemoryTTF(const_cast<char*>(robotoData.begin()), static_cast<int>(robotoData.end() - robotoData.begin()), 14.0f * pixelScale, &config, io.Fonts->GetGlyphRangesDefault());
-
+	ImFontConfig config;
+	config.FontDataOwnedByAtlas = false;
+	io.Fonts->AddFontFromMemoryTTF(const_cast<char*>(robotoData.begin()), static_cast<int>(robotoData.size()), 0, &config);
 	config.MergeMode = true;
-	config.GlyphOffset = ImVec2(0.0f, 1.0f * pixelScale);
-
-	static const ImWchar smallIconRange[] = {
-		0xF00D, 0xF00D,
-		0xF021, 0xF021,
-		0xF062, 0xF062,
-		0xF07B, 0xF07B,
-		0
-	};
-	io.Fonts->AddFontFromMemoryTTF(const_cast<char*>(fontAwesomeData.begin()), static_cast<int>(fontAwesomeData.end() - fontAwesomeData.begin()), 14.0f * pixelScale, &config, smallIconRange);
-
-	io.Fonts->Build();
-
-	ImFontConfig bigFontConfig;
-	bigFontConfig.FontDataOwnedByAtlas = false;
-
-	static const ImWchar largeIconRange[] = {
-		0xE209, 0xE209,
-		0xE52f, 0xE52f,
-		0xF03E, 0xF03E,
-		0xF07B, 0xF07B,
-		0xF15B, 0xF15B,
-		0xF1B2, 0xF1B2,
-		0xF43C, 0xF43C,
-		0
-	};
-	_bigFont = io.Fonts->AddFontFromMemoryTTF(const_cast<char*>(fontAwesomeData.begin()), static_cast<int>(fontAwesomeData.end() - fontAwesomeData.begin()), 48.0f * pixelScale, &bigFontConfig, largeIconRange);
+	io.Fonts->AddFontFromMemoryTTF(const_cast<char*>(fontAwesomeData.begin()), static_cast<int>(fontAwesomeData.size()), 0, &config);
 }
