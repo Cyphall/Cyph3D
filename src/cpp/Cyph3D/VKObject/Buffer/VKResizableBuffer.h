@@ -105,7 +105,9 @@ private:
 		info.setPreferredMemoryProperties(_info.getPreferredMemoryProperties());
 		info.setRequiredAlignment(_info.getRequiredAlignment());
 		if (_info.hasName())
+		{
 			info.setName(_info.getName());
+		}
 
 		_buffer = VKBuffer<T>::create(_context, info);
 	}

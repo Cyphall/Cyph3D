@@ -2,8 +2,8 @@
 
 #include <array>
 #include <glm/glm.hpp>
-#include <vulkan/vulkan.hpp>
 #include <memory>
+#include <vulkan/vulkan.hpp>
 
 struct GLFWwindow;
 

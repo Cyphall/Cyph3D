@@ -7,13 +7,13 @@
 #include <Cyph3D/UI/UIHelper.h>
 #include <Cyph3D/UI/Window/UIInspector.h>
 #include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
+#include <Cyph3D/VKObject/Fence/VKFence.h>
 #include <Cyph3D/VKObject/Image/VKSwapchainImage.h>
 #include <Cyph3D/VKObject/Queue/VKQueue.h>
+#include <Cyph3D/VKObject/Semaphore/VKSemaphore.h>
 #include <Cyph3D/VKObject/VKContext.h>
 #include <Cyph3D/VKObject/VKSwapchain.h>
 #include <Cyph3D/Window.h>
-#include "VKObject/Fence/VKFence.h"
-#include "VKObject/Semaphore/VKSemaphore.h"
 
 #include <GLFW/glfw3.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -44,8 +44,7 @@ void initLogger(spdlog::level::level_enum logLevel)
 	{
 		auto& breakpointSink = sinks.emplace_back(
 			std::make_shared<spdlog::sinks::callback_sink_mt>(
-				[](const spdlog::details::log_msg&)
-				{
+				[](const spdlog::details::log_msg&) {
 					volatile int dummy = 0;
 					(void)dummy;
 				}
@@ -79,12 +78,7 @@ void c3d::Engine::init()
 
 	glfwInit();
 
-	glfwSetErrorCallback(
-		[](int code, const char* message)
-		{
-			spdlog::error(message);
-		}
-	);
+	glfwSetErrorCallback([](int code, const char* message) { spdlog::error(message); });
 
 	_vkContext = VKContext::create(2);
 

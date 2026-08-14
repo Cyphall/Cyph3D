@@ -40,7 +40,9 @@ std::shared_ptr<c3d::VKImage> c3d::PathTracingSceneRenderer::onRender(const std:
 	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput);
 
 	if (_accumulationOnlyMode)
+	{
 		return {};
+	}
 
 	// Normalization pass
 

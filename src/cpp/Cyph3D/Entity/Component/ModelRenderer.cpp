@@ -25,12 +25,7 @@ void c3d::ModelRenderer::setMaterial(std::optional<std::string_view> path)
 	if (path)
 	{
 		_material = Engine::getAssetManager().loadMaterial(path.value());
-		_materialChangedConnection = _material->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_materialChangedConnection = _material->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{
@@ -51,12 +46,7 @@ void c3d::ModelRenderer::setMesh(std::optional<std::string_view> path)
 	if (path)
 	{
 		_mesh = Engine::getAssetManager().loadMesh(*path);
-		_meshChangedConnection = _mesh->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_meshChangedConnection = _mesh->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{

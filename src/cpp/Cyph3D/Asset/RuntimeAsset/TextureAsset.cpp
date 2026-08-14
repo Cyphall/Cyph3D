@@ -60,7 +60,9 @@ void c3d::TextureAsset::load_async()
 	for (uint32_t i = 0; i < imageData.levels.size(); i++)
 	{
 		if (_image->getLevelByteSize(i) != imageData.levels[i].size())
+		{
 			throw;
+		}
 
 		std::copy_n(imageData.levels[i].data(), imageData.levels[i].size(), ptr);
 		ptr += imageData.levels[i].size();

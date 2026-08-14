@@ -169,12 +169,7 @@ void c3d::MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 	if (path)
 	{
 		_albedoTexture = _manager.loadTexture(path.value(), ImageType::ColorSrgb);
-		_albedoTextureChangedConnection = _albedoTexture->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_albedoTextureChangedConnection = _albedoTexture->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{
@@ -195,12 +190,7 @@ void c3d::MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 	if (path)
 	{
 		_normalTexture = _manager.loadTexture(*path, ImageType::NormalMap);
-		_normalTextureChangedConnection = _normalTexture->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_normalTextureChangedConnection = _normalTexture->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{
@@ -221,12 +211,7 @@ void c3d::MaterialAsset::setRoughnessTexture(std::optional<std::string_view> pat
 	if (path)
 	{
 		_roughnessTexture = _manager.loadTexture(*path, ImageType::Grayscale);
-		_roughnessTextureChangedConnection = _roughnessTexture->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_roughnessTextureChangedConnection = _roughnessTexture->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{
@@ -247,12 +232,7 @@ void c3d::MaterialAsset::setMetalnessTexture(std::optional<std::string_view> pat
 	if (path)
 	{
 		_metalnessTexture = _manager.loadTexture(*path, ImageType::Grayscale);
-		_metalnessTextureChangedConnection = _metalnessTexture->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_metalnessTextureChangedConnection = _metalnessTexture->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{
@@ -273,12 +253,7 @@ void c3d::MaterialAsset::setDisplacementTexture(std::optional<std::string_view> 
 	if (path)
 	{
 		_displacementTexture = _manager.loadTexture(*path, ImageType::Grayscale);
-		_displacementTextureChangedConnection = _displacementTexture->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_displacementTextureChangedConnection = _displacementTexture->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{
@@ -299,12 +274,7 @@ void c3d::MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path
 	if (path)
 	{
 		_emissiveTexture = _manager.loadTexture(*path, ImageType::Grayscale);
-		_emissiveTextureChangedConnection = _emissiveTexture->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_emissiveTextureChangedConnection = _emissiveTexture->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{

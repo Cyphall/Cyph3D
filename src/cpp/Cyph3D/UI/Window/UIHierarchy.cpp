@@ -48,8 +48,7 @@ void c3d::UIHierarchy::show()
 		{
 			if (ImGui::MenuItem("Create Entity"))
 			{
-				_task = []
-				{
+				_task = [] {
 					Entity& created = Engine::getScene().createEntity(Engine::getScene().getRoot());
 					UIInspector::setSelected(&created);
 				};
@@ -60,8 +59,7 @@ void c3d::UIHierarchy::show()
 
 			if (ImGui::MenuItem("Delete Entity", nullptr, false, selectedEntity != nullptr))
 			{
-				_task = [selectedEntity]()
-				{
+				_task = [selectedEntity]() {
 					IInspectable* selected = UIInspector::getSelected();
 					if (selected == selectedEntity)
 					{
@@ -81,8 +79,7 @@ void c3d::UIHierarchy::show()
 
 			if (ImGui::MenuItem("Duplicate Entity", nullptr, false, selectedEntity != nullptr))
 			{
-				_task = [selectedEntity]()
-				{
+				_task = [selectedEntity]() {
 					selectedEntity->duplicate(*selectedEntity->getTransform().getParent());
 				};
 			}
@@ -110,8 +107,7 @@ void c3d::UIHierarchy::addRootToTree()
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HierarchyOrderChange"))
 		{
 			Transform* dropped = *static_cast<Transform**>(payload->Data);
-			_task = [dropped]()
-			{
+			_task = [dropped]() {
 				reparent(*dropped, Engine::getScene().getRoot());
 			};
 		}
@@ -140,10 +136,14 @@ void c3d::UIHierarchy::addObjectToTree(Transform* transform)
 
 	IInspectable* selected = UIInspector::getSelected();
 	if (selected == transform->getOwner())
+	{
 		flags |= ImGuiTreeNodeFlags_Selected;
+	}
 
 	if (transform->getChildren().empty())
+	{
 		flags |= ImGuiTreeNodeFlags_Leaf;
+	}
 
 	bool open = ImGui::TreeNodeEx(transform, flags, "%s", transform->getOwner()->getName().c_str());
 
@@ -166,8 +166,7 @@ void c3d::UIHierarchy::addObjectToTree(Transform* transform)
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HierarchyOrderChange"))
 		{
 			Transform* dropped = *static_cast<Transform**>(payload->Data);
-			_task = [dropped, transform]()
-			{
+			_task = [dropped, transform]() {
 				reparent(*dropped, *transform);
 			};
 		}

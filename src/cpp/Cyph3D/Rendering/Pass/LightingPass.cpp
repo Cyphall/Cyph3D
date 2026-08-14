@@ -95,7 +95,9 @@ c3d::LightingPassOutput c3d::LightingPass::onRender(const std::shared_ptr<VKComm
 		}
 	}
 	if (!input.registry.getDirectionalLightRenderRequests().empty())
+	{
 		_directionalLightDescriptorSet->bindDescriptor(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getDirectionalLightRenderRequests().size());
+	}
 
 	_pointLightsUniforms->resizeSmart(input.registry.getPointLightRenderRequests().size());
 	uint32_t pointLightShadowIndex = 0;
@@ -121,7 +123,9 @@ c3d::LightingPassOutput c3d::LightingPass::onRender(const std::shared_ptr<VKComm
 		}
 	}
 	if (!input.registry.getPointLightRenderRequests().empty())
+	{
 		_pointLightDescriptorSet->bindDescriptor(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
+	}
 
 	VKRenderingInfo renderingInfo(_size);
 
@@ -222,8 +226,7 @@ void c3d::LightingPass::createUniformBuffers()
 
 	_directionalLightsUniforms = VKDynamic<VKResizableBuffer<DirectionalLightUniforms>>(
 		Engine::getVKContext(),
-		[&](VKContext& context, int index)
-		{
+		[&](VKContext& context, int index) {
 			return VKResizableBuffer<DirectionalLightUniforms>::create(context, directionalLightsUniformsBufferInfo);
 		}
 	);
@@ -236,8 +239,7 @@ void c3d::LightingPass::createUniformBuffers()
 
 	_pointLightsUniforms = VKDynamic<VKResizableBuffer<PointLightUniforms>>(
 		Engine::getVKContext(),
-		[&](VKContext& context, int index)
-		{
+		[&](VKContext& context, int index) {
 			return VKResizableBuffer<PointLightUniforms>::create(context, pointLightsUniformsBufferInfo);
 		}
 	);
@@ -250,8 +252,7 @@ void c3d::LightingPass::createUniformBuffers()
 
 	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(
 		Engine::getVKContext(),
-		[&](VKContext& context, int index)
-		{
+		[&](VKContext& context, int index) {
 			return VKResizableBuffer<ObjectUniforms>::create(context, objectUniformsBufferInfo);
 		}
 	);
@@ -401,8 +402,7 @@ void c3d::LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShado
 
 		_directionalLightDescriptorSet = VKDynamic<VKDescriptorSet>(
 			Engine::getVKContext(),
-			[&](VKContext& context, int index)
-			{
+			[&](VKContext& context, int index) {
 				return VKDescriptorSet::create(context, info);
 			}
 		);
@@ -422,8 +422,7 @@ void c3d::LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShado
 
 		_pointLightDescriptorSet = VKDynamic<VKDescriptorSet>(
 			Engine::getVKContext(),
-			[&](VKContext& context, int index)
-			{
+			[&](VKContext& context, int index) {
 				return VKDescriptorSet::create(context, info);
 			}
 		);

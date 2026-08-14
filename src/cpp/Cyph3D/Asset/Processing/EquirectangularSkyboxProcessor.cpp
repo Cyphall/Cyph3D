@@ -117,7 +117,9 @@ c3d::EquirectangularSkyboxData compressTexture(const c3d::EquirectangularSkyboxD
 		{
 			std::vector<std::byte> compressedData;
 			if (!c3d::ImageCompressor::tryCompressImage(mipmappedEquirectangularSkyboxData.faces[face][level], size, requestedFormat, compressedData))
+			{
 				break;
+			}
 
 			compressedEquirectangularSkyboxData.faces[face].emplace_back(std::move(compressedData));
 

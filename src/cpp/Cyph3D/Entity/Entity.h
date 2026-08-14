@@ -41,12 +41,7 @@ public:
 	{
 		ComponentContainer& container = _components.emplace_back();
 		container.component = std::make_unique<T>(*this);
-		container.componentChangedConnection = container.component->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		container.componentChangedConnection = container.component->getChangedSignal().connect([this] { _changed(); });
 
 		_changed();
 

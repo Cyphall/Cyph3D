@@ -66,11 +66,17 @@ void c3d::CubemapAsset::load_async()
 			else
 			{
 				if (format != imageData.format)
+				{
 					throw std::runtime_error("All 6 faces of a cubemap must have the same format.");
+				}
 				if (size != imageData.size)
+				{
 					throw std::runtime_error("All 6 faces of a cubemap must have the same size.");
+				}
 				if (levels != imageData.levels.size())
+				{
 					throw std::runtime_error("All 6 faces of a cubemap must have the same level count.");
+				}
 			}
 		}
 	}
@@ -140,7 +146,9 @@ void c3d::CubemapAsset::load_async()
 		for (uint32_t level = 0; level < faces[face].size(); level++)
 		{
 			if (_image->getLevelByteSize(level) != faces[face][level].size())
+			{
 				throw;
+			}
 
 			std::copy_n(faces[face][level].data(), faces[face][level].size(), ptr);
 			ptr += faces[face][level].size();

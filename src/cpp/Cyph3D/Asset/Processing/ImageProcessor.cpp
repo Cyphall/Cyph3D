@@ -118,7 +118,9 @@ c3d::ImageData compressTexture(const c3d::ImageData& mipmappedImageData, vk::For
 	{
 		std::vector<std::byte> compressedData;
 		if (!c3d::ImageCompressor::tryCompressImage(level, size, requestedFormat, compressedData))
+		{
 			break;
+		}
 
 		compressedImageData.levels.emplace_back(std::move(compressedData));
 

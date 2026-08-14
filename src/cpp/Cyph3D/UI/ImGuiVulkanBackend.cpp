@@ -308,8 +308,7 @@ void c3d::ImGui_ImplVKObject_Init()
 
 		bd.vertexBuffer = VKDynamic<VKResizableBuffer<ImDrawVert>>(
 			Engine::getVKContext(),
-			[&](VKContext& context, int index)
-			{
+			[&](VKContext& context, int index) {
 				return VKResizableBuffer<ImDrawVert>::create(context, info);
 			}
 		);
@@ -325,8 +324,7 @@ void c3d::ImGui_ImplVKObject_Init()
 
 		bd.indexBuffer = VKDynamic<VKResizableBuffer<ImDrawIdx>>(
 			Engine::getVKContext(),
-			[&](VKContext& context, int index)
-			{
+			[&](VKContext& context, int index) {
 				return VKResizableBuffer<ImDrawIdx>::create(context, info);
 			}
 		);
@@ -342,7 +340,9 @@ void c3d::ImGui_ImplVKObject_NewFrame()
 	for (ImTextureData* texture : ImGui::GetPlatformIO().Textures)
 	{
 		if (!texture->BackendUserData)
+		{
 			continue;
+		}
 
 		ImGui_ImplVKObject_BackendTextureData& btd = *static_cast<ImGui_ImplVKObject_BackendTextureData*>(texture->BackendUserData);
 		texture->SetTexID(ImGui_ImplVKObject_ToTextureID(btd.image));
@@ -354,9 +354,15 @@ void c3d::ImGui_ImplVKObject_RenderDrawData(const ImDrawData& drawData, const st
 	ImGui_ImplVKObject_BackendData& bd = *static_cast<ImGui_ImplVKObject_BackendData*>(ImGui::GetIO().BackendRendererUserData);
 
 	if (drawData.Textures != nullptr)
+	{
 		for (ImTextureData* texture : *drawData.Textures)
+		{
 			if (texture->Status != ImTextureStatus_OK)
+			{
 				ImGui_ImplVKObject_UpdateTexture(commandBuffer, *texture);
+			}
+		}
+	}
 
 	glm::uvec2 framebufferSize = outputImage->getSize(0);
 
@@ -398,13 +404,21 @@ void c3d::ImGui_ImplVKObject_RenderDrawData(const ImDrawData& drawData, const st
 			if (cmd.UserCallback != nullptr)
 			{
 				if (cmd.UserCallback == ImGui_ImplVKObject_DrawCallback_ResetRenderState)
+				{
 					ImGui_ImplVKObject_SetupRenderState(drawData, commandBuffer, framebufferSize);
+				}
 				else if (cmd.UserCallback == ImGui_ImplVKObject_DrawCallback_SetSamplerLinear)
+				{
 					commandBuffer->pushDescriptor(0, 0, bd.samplerLinear);
+				}
 				else if (cmd.UserCallback == ImGui_ImplVKObject_DrawCallback_SetSamplerNearest)
+				{
 					commandBuffer->pushDescriptor(0, 0, bd.samplerNearest);
+				}
 				else
+				{
 					cmd.UserCallback(cmdList, &cmd);
+				}
 			}
 			else
 			{
@@ -427,7 +441,9 @@ void c3d::ImGui_ImplVKObject_RenderDrawData(const ImDrawData& drawData, const st
 
 				const std::shared_ptr<VKImage>& image = bd.referencedImages[cmd.GetTexID() - 1];
 				if (image->getState(0, 0).layout != vk::ImageLayout::eReadOnlyOptimal)
+				{
 					spdlog::error("VKImage passed to ImGui has the wrong layout.");
+				}
 
 				commandBuffer->pushDescriptor(0, 1, image, vk::ImageViewType::e2D, {0, 0}, {0, 0}, image->getInfo().getFormat());
 

@@ -15,11 +15,17 @@ c3d::Transform* c3d::Transform::getParent() const
 void c3d::Transform::setParent(Transform* parent)
 {
 	if (parent == _parent)
+	{
 		return;
+	}
 	if (parent == this)
+	{
 		throw std::runtime_error("Cannot set Transform's parent to itself");
+	}
 	if (parent == nullptr)
+	{
 		throw std::runtime_error("Cannot remove Transform's parent, only changing it is allowed");
+	}
 
 	glm::vec3 worldPos = getWorldPosition();
 	glm::quat worldRot = getWorldRotation();
@@ -66,7 +72,9 @@ const std::vector<c3d::Transform*>& c3d::Transform::getChildren() const
 void c3d::Transform::invalidateLocalCache() const
 {
 	if (_invalidLocalCache)
+	{
 		return;
+	}
 	_invalidLocalCache = true;
 	invalidateWorldCache();
 }
@@ -74,7 +82,9 @@ void c3d::Transform::invalidateLocalCache() const
 void c3d::Transform::invalidateWorldCache() const
 {
 	if (_invalidWorldCache)
+	{
 		return;
+	}
 	_invalidWorldCache = true;
 
 	for (Transform* child : _children)
@@ -100,7 +110,9 @@ glm::vec3 c3d::Transform::getWorldPosition() const
 void c3d::Transform::setLocalPosition(glm::vec3 position)
 {
 	if (position == _localPosition)
+	{
 		return;
+	}
 
 	_localPosition = position;
 	invalidateLocalCache();
@@ -125,7 +137,9 @@ glm::quat c3d::Transform::getWorldRotation() const
 void c3d::Transform::setLocalRotation(glm::quat rotation)
 {
 	if (rotation == _localRotation)
+	{
 		return;
+	}
 
 	_localRotation = rotation;
 	invalidateLocalCache();
@@ -150,7 +164,9 @@ glm::vec3 c3d::Transform::getWorldScale() const
 void c3d::Transform::setLocalScale(glm::vec3 scale)
 {
 	if (scale == _localScale)
+	{
 		return;
+	}
 
 	_localScale = scale;
 	invalidateLocalCache();
@@ -276,7 +292,9 @@ c3d::Transform::Transform():
 c3d::Transform::~Transform()
 {
 	if (_parent != nullptr)
+	{
 		VectorHelper::removeAll(_parent->_children, this);
+	}
 
 	// We iterate over a copy of _children as child->setParent modify _children, which would cause a vector modification while we iterate over it
 	std::vector<Transform*> children = _children;

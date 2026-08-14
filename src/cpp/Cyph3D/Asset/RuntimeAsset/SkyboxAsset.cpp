@@ -54,7 +54,9 @@ void c3d::SkyboxAsset::onDrawUi()
 			}
 
 			if (isSelected)
+			{
 				ImGui::SetItemDefaultFocus();
+			}
 		}
 		ImGui::EndCombo();
 	}
@@ -617,22 +619,12 @@ void c3d::SkyboxAsset::onChanged()
 			_zposPath.value(),
 			ImageType::Skybox
 		);
-		_cubemapChangedConnection = _cubemap->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_cubemapChangedConnection = _cubemap->getChangedSignal().connect([this] { _changed(); });
 	}
 	else if (_layout == Layout::Equirectangular && _equirectangularPath)
 	{
 		_cubemap = _manager.loadCubemap(_equirectangularPath.value());
-		_cubemapChangedConnection = _cubemap->getChangedSignal().connect(
-			[this]()
-			{
-				_changed();
-			}
-		);
+		_cubemapChangedConnection = _cubemap->getChangedSignal().connect([this] { _changed(); });
 	}
 	else
 	{

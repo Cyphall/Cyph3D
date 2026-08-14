@@ -11,28 +11,36 @@
 glm::vec3 c3d::Camera::getOrientation() const
 {
 	if (_orientationChanged)
+	{
 		recalculateOrientation();
+	}
 	return _orientation;
 }
 
 glm::vec3 c3d::Camera::getSideOrientation() const
 {
 	if (_orientationChanged)
+	{
 		recalculateOrientation();
+	}
 	return _sideOrientation;
 }
 
 glm::mat4 c3d::Camera::getView() const
 {
 	if (_viewChanged)
+	{
 		recalculateView();
+	}
 	return _view;
 }
 
 glm::mat4 c3d::Camera::getProjection() const
 {
 	if (_projectionChanged)
+	{
 		recalculateProjection();
+	}
 	return _projection;
 }
 
@@ -203,7 +211,9 @@ void c3d::Camera::setAspectRatio(float aspectRatio)
 const std::array<glm::vec3, 4>& c3d::Camera::getCornerRays() const
 {
 	if (_cornerRaysChanged)
+	{
 		recalculateCornerRays();
+	}
 	return _cornerRays;
 }
 

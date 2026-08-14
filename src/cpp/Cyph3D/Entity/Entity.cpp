@@ -22,8 +22,7 @@ c3d::Entity::Entity(Transform& parent, Scene& scene):
 	_transform(this, &parent)
 {
 	_transformChangedConnection = _transform.getChangedSignal().connect(
-		[this]()
-		{
+		[this]() {
 			_changed();
 		}
 	);
@@ -226,7 +225,9 @@ void c3d::Entity::onDrawUi()
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ((availableWidth - actualButtonWidth) / 2));
 
 	if (ImGui::Button(addComponentText, ImVec2(actualButtonWidth, 0)))
+	{
 		ImGui::OpenPopup("add_component");
+	}
 
 	if (ImGui::BeginPopup("add_component"))
 	{
@@ -245,29 +246,24 @@ void c3d::Entity::onDrawUi()
 
 void c3d::Entity::initComponentFactories()
 {
-	_componentFactories[ModelRenderer::identifier] = [](Entity& entity) -> decltype(auto)
-	{
+	_componentFactories[ModelRenderer::identifier] = [](Entity& entity) -> decltype(auto) {
 		return entity.addComponent<ModelRenderer>();
 	};
 
 	// for backwards compatibility
-	_componentFactories["ShapeRenderer"] = [](Entity& entity) -> decltype(auto)
-	{
+	_componentFactories["ShapeRenderer"] = [](Entity& entity) -> decltype(auto) {
 		return entity.addComponent<ModelRenderer>();
 	};
 
-	_componentFactories[Animator::identifier] = [](Entity& entity) -> decltype(auto)
-	{
+	_componentFactories[Animator::identifier] = [](Entity& entity) -> decltype(auto) {
 		return entity.addComponent<Animator>();
 	};
 
-	_componentFactories[PointLight::identifier] = [](Entity& entity) -> decltype(auto)
-	{
+	_componentFactories[PointLight::identifier] = [](Entity& entity) -> decltype(auto) {
 		return entity.addComponent<PointLight>();
 	};
 
-	_componentFactories[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto)
-	{
+	_componentFactories[DirectionalLight::identifier] = [](Entity& entity) -> decltype(auto) {
 		return entity.addComponent<DirectionalLight>();
 	};
 }

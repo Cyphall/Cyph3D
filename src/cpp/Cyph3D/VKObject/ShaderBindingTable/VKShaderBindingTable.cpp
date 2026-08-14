@@ -29,8 +29,7 @@ c3d::VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShad
 	uint32_t groupBaseAlignment = context.getRayTracingPipelineProperties().shaderGroupBaseAlignment;
 
 	vk::DeviceSize rangeOffset = 0;
-	auto allocRange = [&](vk::DeviceSize size, vk::DeviceSize alignment) -> vk::DeviceSize
-	{
+	auto allocRange = [&](vk::DeviceSize size, vk::DeviceSize alignment) -> vk::DeviceSize {
 		vk::DeviceSize alignedOffset = VKHelper::alignUp(rangeOffset, alignment);
 
 		rangeOffset = alignedOffset + size;
@@ -62,8 +61,7 @@ c3d::VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShad
 
 	// copy data to buffer
 
-	auto writeRecord = [](const VKShaderBindingTableInfo::Record& record, vk::DeviceSize stride, std::byte*& dst)
-	{
+	auto writeRecord = [](const VKShaderBindingTableInfo::Record& record, vk::DeviceSize stride, std::byte*& dst) {
 		std::memcpy(dst, record.groupHandle.data(), record.groupHandle.size());
 		std::memcpy(dst + record.groupHandle.size(), record.uniforms.data(), record.uniforms.size());
 		dst += stride;
@@ -74,11 +72,15 @@ c3d::VKShaderBindingTable::VKShaderBindingTable(VKContext& context, const VKShad
 
 	std::byte* triangleHitSBTPtr = _buffer->getHostPointer() + triangleHitSBTOffset;
 	for (const VKShaderBindingTableInfo::Record& record : _info.getTriangleHitRecords())
+	{
 		writeRecord(record, _triangleHitSBTStride, triangleHitSBTPtr);
+	}
 
 	std::byte* missSBTPtr = _buffer->getHostPointer() + missSBTOffset;
 	for (const VKShaderBindingTableInfo::Record& record : _info.getMissRecords())
+	{
 		writeRecord(record, _missSBTStride, missSBTPtr);
+	}
 }
 
 c3d::VKShaderBindingTable::~VKShaderBindingTable() = default;

@@ -31,7 +31,9 @@ c3d::ObjectPicker::~ObjectPicker() = default;
 c3d::Entity* c3d::ObjectPicker::getPickedEntity(const Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos)
 {
 	if (viewportSize.x * viewportSize.y == 0)
+	{
 		return nullptr;
+	}
 
 	if (viewportSize != _currentSize)
 	{
@@ -40,8 +42,7 @@ c3d::Entity* c3d::ObjectPicker::getPickedEntity(const Camera& camera, const Rend
 	}
 
 	Engine::getVKContext().executeImmediate(
-		[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer)
-		{
+		[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer) {
 			commandBuffer->imageMemoryBarrier(
 				_objectIndexImage,
 				vk::PipelineStageFlagBits2::eColorAttachmentOutput,

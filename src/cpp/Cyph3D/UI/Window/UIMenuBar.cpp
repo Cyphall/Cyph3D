@@ -79,7 +79,9 @@ void c3d::UIMenuBar::show()
 		}
 
 		if (showPathOutsideError)
+		{
 			ImGui::OpenPopup("Error###path_is_outside");
+		}
 
 		if (ImGui::BeginPopupModal("Error###path_is_outside", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -90,7 +92,9 @@ void c3d::UIMenuBar::show()
 
 			ImGui::SameLine(0, ImGui::GetContentRegionAvail().x / 2.0f - 40);
 			if (ImGui::Button("OK", ImVec2(80, 0)))
+			{
 				ImGui::CloseCurrentPopup();
+			}
 
 			ImGui::EndPopup();
 		}
@@ -99,5 +103,7 @@ void c3d::UIMenuBar::show()
 	}
 
 	if (_showDemoWindow)
+	{
 		ImGui::ShowDemoWindow();
+	}
 }

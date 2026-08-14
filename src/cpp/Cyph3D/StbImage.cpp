@@ -41,7 +41,9 @@ c3d::StbImage::StbImage(const std::filesystem::path& path, Channels desiredChann
 c3d::StbImage::~StbImage()
 {
 	if (_data != nullptr)
+	{
 		stbi_image_free(_data);
+	}
 }
 
 const std::byte* c3d::StbImage::getPtr() const

@@ -63,8 +63,7 @@ void c3d::VKQueue::submit(const std::shared_ptr<VKCommandBuffer>& commandBuffer,
 	commandBuffer->getStatusFence()->reset();
 	_queue.submit2(submitInfo, commandBuffer->getStatusFence()->getHandle());
 
-	auto extractSemaphore = [](const std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>& pair)
-	{
+	auto extractSemaphore = [](const std::pair<std::shared_ptr<VKSemaphore>, vk::PipelineStageFlags2>& pair) {
 		return pair.first;
 	};
 
@@ -110,8 +109,7 @@ void c3d::VKQueue::handleCompletedSubmits()
 
 	std::erase_if(
 		_submitRecords,
-		[](SubmitRecord& submitRecord)
-		{
+		[](SubmitRecord& submitRecord) {
 			return submitRecord.commandBuffer->getStatusFence()->isSignaled();
 		}
 	);

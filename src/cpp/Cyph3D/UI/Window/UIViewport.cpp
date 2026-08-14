@@ -161,8 +161,7 @@ void c3d::UIViewport::show()
 				_renderToFileData->renderer->setAccumulationOnlyMode(thisBatchSamples != remainingSamples);
 
 				Engine::getVKContext().executeImmediate(
-					[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer)
-					{
+					[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer) {
 						_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
 					}
 				);
@@ -200,8 +199,7 @@ void c3d::UIViewport::show()
 					std::shared_ptr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), stagingBufferInfo);
 
 					Engine::getVKContext().executeImmediate(
-						[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer)
-						{
+						[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer) {
 							commandBuffer->imageMemoryBarrier(
 								_renderToFileData->lastRenderedTexture,
 								vk::PipelineStageFlagBits2::eBlit,
@@ -342,11 +340,15 @@ void c3d::UIViewport::drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize)
 {
 	IInspectable* selected = UIInspector::getSelected();
 	if (selected == nullptr)
+	{
 		return;
+	}
 
 	Entity* entity = dynamic_cast<Entity*>(selected);
 	if (entity == nullptr)
+	{
 		return;
+	}
 
 	ImGuizmo::SetRect(viewportStart.x, viewportStart.y, viewportSize.x, viewportSize.y);
 
@@ -449,7 +451,9 @@ void c3d::UIViewport::drawHeader()
 			}
 
 			if (is_selected)
+			{
 				ImGui::SetItemDefaultFocus();
+			}
 		}
 		ImGui::EndCombo();
 	}

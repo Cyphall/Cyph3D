@@ -21,8 +21,7 @@ namespace
 constexpr float POINT_SHADOW_MAP_NEAR = 0.01f;
 constexpr float POINT_SHADOW_MAP_FAR = 100.0f;
 
-const glm::mat4 POINT_SHADOW_MAP_PROJECTION = []
-{
+const glm::mat4 POINT_SHADOW_MAP_PROJECTION = [] {
 	glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, POINT_SHADOW_MAP_NEAR, POINT_SHADOW_MAP_FAR);
 
 	projection[1][1] *= -1;
@@ -183,8 +182,7 @@ void c3d::ShadowMapPass::createBuffer()
 
 	_pointLightUniformBuffer = VKDynamic<VKResizableBuffer<PointLightUniforms>>(
 		Engine::getVKContext(),
-		[&](VKContext& context, int index)
-		{
+		[&](VKContext& context, int index) {
 			return VKResizableBuffer<PointLightUniforms>::create(context, bufferInfo);
 		}
 	);

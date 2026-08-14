@@ -82,8 +82,7 @@ public:
 					std::ranges::transform(
 						extension,
 						extension.begin(),
-						[](char c)
-						{
+						[](char c) {
 							return std::tolower(c);
 						}
 					);
@@ -307,16 +306,14 @@ void c3d::UIAssetBrowser::draw()
 		{
 			if (ImGui::MenuItem("Create Material"))
 			{
-				_task = [this]()
-				{
+				_task = [this]() {
 					std::filesystem::path assetPath = std::filesystem::path(_currentDirectory->assetPath()) / "New Material.c3dmaterial";
 					MaterialAsset::create(assetPath.generic_string());
 				};
 			}
 			if (ImGui::MenuItem("Create Skybox"))
 			{
-				_task = [this]()
-				{
+				_task = [this]() {
 					std::filesystem::path assetPath = std::filesystem::path(_currentDirectory->assetPath()) / "New Skybox.c3dskybox";
 					SkyboxAsset::create(assetPath.generic_string());
 				};
@@ -379,10 +376,14 @@ void c3d::UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directo
 	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
 	if (&directory == _root.get())
+	{
 		flags |= ImGuiTreeNodeFlags_DefaultOpen;
+	}
 
 	if (&directory == _currentDirectory)
+	{
 		flags |= ImGuiTreeNodeFlags_Selected;
+	}
 
 	bool anyDirectory = false;
 	for (const std::unique_ptr<Entry>& entry : directory.entries())
@@ -394,7 +395,9 @@ void c3d::UIAssetBrowser::drawDirectoryNode(const UIAssetBrowser::Entry& directo
 		}
 	}
 	if (!anyDirectory)
+	{
 		flags |= ImGuiTreeNodeFlags_Leaf;
+	}
 
 	const char* name = &directory == _root.get() ? "resources" : directory.name().c_str();
 	bool opened = ImGui::TreeNodeEx(directory.displayAssetPath().c_str(), flags, "\uF07B %s", name);
@@ -427,7 +430,9 @@ void c3d::UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* ic
 {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (window->SkipItems)
+	{
 		return;
+	}
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -456,8 +461,7 @@ void c3d::UIAssetBrowser::drawRightPanelEntry(const Entry& entry, const char* ic
 				Scene::load(entry.assetPath());
 				break;
 			case EntryType::Directory:
-				_task = [this, &entry]()
-				{
+				_task = [this, &entry]() {
 					this->_currentDirectory = &entry;
 				};
 				break;

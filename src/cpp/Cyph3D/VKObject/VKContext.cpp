@@ -395,9 +395,13 @@ c3d::VKContext::~VKContext()
 {
 	_mainQueue->handleCompletedSubmits();
 	if (_computeQueue)
+	{
 		_computeQueue->handleCompletedSubmits();
+	}
 	if (_transferQueue)
+	{
 		_transferQueue->handleCompletedSubmits();
+	}
 	_helperData.reset();
 	vmaDestroyAllocator(_vmaAllocator);
 	_device.destroy();
@@ -420,9 +424,13 @@ void c3d::VKContext::onNewFrame()
 	_currentConcurrentFrame = (_currentConcurrentFrame + 1) % _concurrentFrameCount;
 	_mainQueue->handleCompletedSubmits();
 	if (_computeQueue)
+	{
 		_computeQueue->handleCompletedSubmits();
+	}
 	if (_transferQueue)
+	{
 		_transferQueue->handleCompletedSubmits();
+	}
 	vmaSetCurrentFrameIndex(_vmaAllocator, _currentConcurrentFrame);
 }
 
@@ -584,8 +592,7 @@ std::vector<c3d::VKContext::QueueFamilyInfo> c3d::VKContext::parseQueues()
 
 	std::ranges::sort(
 		queueFamilyInfos,
-		[](const QueueFamilyInfo& a, const QueueFamilyInfo& b)
-		{
+		[](const QueueFamilyInfo& a, const QueueFamilyInfo& b) {
 			return a.usageCount < b.usageCount;
 		}
 	);
@@ -755,8 +762,7 @@ void c3d::VKContext::createDefaultCommandBuffer()
 {
 	_helperData->defaultCommandBuffer = VKDynamic<VKCommandBuffer>(
 		*this,
-		[](VKContext& context, int index)
-		{
+		[](VKContext& context, int index) {
 			return VKCommandBuffer::create(context, context.getMainQueue());
 		}
 	);
