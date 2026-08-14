@@ -365,7 +365,7 @@ void c3d::ImGui_ImplVKObject_RenderDrawData(const ImDrawData& drawData, const st
 
 	ImDrawVert* vertexBufferPtr = bd.vertexBuffer->getHostPointer();
 	ImDrawIdx* indexBufferPtr = bd.indexBuffer->getHostPointer();
-	for (int i = 0; i < drawData.CmdListsCount; i++)
+	for (int i = 0; i < drawData.CmdLists.Size; i++)
 	{
 		const ImDrawList& cmdList = *drawData.CmdLists[i];
 

@@ -1,6 +1,6 @@
 {
   "name": "imgui",
-  "version": "1.92.8",
+  "version-string": "1.92.9b",
   "description": "Dear ImGui: Bloat-free Graphical User interface for C++ with minimal dependencies",
   "homepage": "https://github.com/ocornut/imgui",
   "license": "MIT",

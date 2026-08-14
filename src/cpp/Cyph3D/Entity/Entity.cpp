@@ -13,7 +13,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
-#include <imgui_stdlib.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 std::map<std::string, std::function<c3d::Component&(c3d::Entity&)>> c3d::Entity::_componentFactories;
 

@@ -10,9 +10,9 @@ target_sources(imgui PRIVATE
 	"imgui_draw.cpp"
 	"imgui_tables.cpp"
 	"imgui_widgets.cpp"
-	"imgui_impl_glfw.cpp"
-	"imgui_stdlib.cpp"
-	"imgui_freetype.cpp"
+	"backends/imgui_impl_glfw.cpp"
+	"misc/cpp/imgui_stdlib.cpp"
+	"misc/freetype/imgui_freetype.cpp"
 )
 
 target_sources(imgui PUBLIC FILE_SET HEADERS FILES
@@ -22,9 +22,9 @@ target_sources(imgui PUBLIC FILE_SET HEADERS FILES
 	"imstb_rectpack.h"
 	"imstb_textedit.h"
 	"imstb_truetype.h"
-	"imgui_impl_glfw.h"
-	"imgui_stdlib.h"
-	"imgui_freetype.h"
+	"backends/imgui_impl_glfw.h"
+	"misc/cpp/imgui_stdlib.h"
+	"misc/freetype/imgui_freetype.h"
 )
 
 find_package(glfw3 CONFIG REQUIRED)
