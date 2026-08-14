@@ -21,15 +21,12 @@
     "imgui",
     "imguizmo",
     "ispc-texcomp",
+    "spdlog",
     {
       "name": "glslang",
       "features": [
         "tools"
       ]
-    },
-    {
-      "name": "spdlog",
-      "default-features": false
     }
   ]
 }

@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg-configuration.schema.json",
   "default-registry": {
     "kind": "builtin",
-    "baseline": "2b65c20fc66eda893aa15a15a453c3cf09500b19"
+    "baseline": "9e593bb18ea69cc5095e012465dcd675a822ed0d"
   },
   "overlay-ports": [
     "vcpkg/overlay-ports"
