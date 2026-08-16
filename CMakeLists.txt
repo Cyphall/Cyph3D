@@ -286,7 +286,7 @@ add_custom_command(TARGET Cyph3D POST_BUILD
 
 target_precompile_headers(Cyph3D PRIVATE <vulkan/vulkan.hpp>)
 
-set_target_properties(Cyph3D PROPERTIES CXX_STANDARD 20)
+set_target_properties(Cyph3D PROPERTIES CXX_STANDARD 23)
 set_target_properties(Cyph3D PROPERTIES CXX_STANDARD_REQUIRED ON)
 set_target_properties(Cyph3D PROPERTIES CXX_EXTENSIONS OFF)
 set_target_properties(Cyph3D PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
