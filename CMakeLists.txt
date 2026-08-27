@@ -16,9 +16,47 @@ if (PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 	message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
 endif ()
 
+# ---- Dependency: Cyphall/CyphGPU ----
+find_package(CyphGPU CONFIG REQUIRED)
+# ---- Dependency: ispc/ispc ----
+find_program(ISPC_EXECUTABLE ispc REQUIRED)
+# ---- Dependency: nothings/stb ----
+find_package(Stb REQUIRED)
+# ---- Dependency: assimp/assimp ----
+find_package(assimp CONFIG REQUIRED)
+# ---- Dependency: graeme-hill/crossguid ----
+find_package(crossguid CONFIG REQUIRED)
+# ---- Dependency: freetype/freetype ----
+find_package(Freetype REQUIRED)
+# ---- Dependency: glfw/glfw ----
+find_package(glfw3 CONFIG REQUIRED)
+# ---- Dependency: g-truc/glm ----
+find_package(glm CONFIG REQUIRED)
+# ---- Dependency: Neargye/magic_enum ----
+find_package(magic_enum CONFIG REQUIRED)
+# ---- Dependency: nlohmann/json ----
+find_package(nlohmann_json CONFIG REQUIRED)
+# ---- Dependency: SRombauts/SQLiteCpp ----
+find_package(SQLiteCpp CONFIG REQUIRED)
+# ---- Dependency: bshoshany/thread-pool ----
+find_path(BSHOSHANY_THREAD_POOL_INCLUDE_DIRS "BS_thread_pool.hpp")
+# ---- Dependency: ocornut/imgui ----
+find_package(imgui CONFIG REQUIRED)
+# ---- Dependency: CedricGuillemet/ImGuizmo ----
+find_package(imguizmo CONFIG REQUIRED)
+# ---- Dependency: palacaze/sigslot ----
+find_package(PalSigslot CONFIG REQUIRED)
+# ---- Dependency: GameTechDev/ISPCTextureCompressor ----
+find_package(ispc-texcomp CONFIG REQUIRED)
+# ---- Dependency: half ----
+find_path(HALF_INCLUDE_DIRS "half.hpp")
+# ---- Dependency: gabime/spdlog ----
+find_package(spdlog CONFIG REQUIRED)
+# ---- Dependency: btzy/nativefiledialog-extended ----
+find_package(nfd CONFIG REQUIRED)
+
 # ---- Includes ----
 
-include("cmake/utils/Shaders.cmake")
 include("cmake/utils/Resources.cmake")
 
 # ---- Executable ----
@@ -28,7 +66,6 @@ add_executable(Cyph3D)
 target_sources(Cyph3D PRIVATE
 	"src/cpp/Cyph3D/Asset/AssetManager.cpp"
 	"src/cpp/Cyph3D/Asset/AssetManagerWorkerData.cpp"
-	"src/cpp/Cyph3D/Asset/BindlessTextureManager.cpp"
 	"src/cpp/Cyph3D/Asset/Processing/AssetProcessingCacheDatabase.cpp"
 	"src/cpp/Cyph3D/Asset/Processing/AssetProcessor.cpp"
 	"src/cpp/Cyph3D/Asset/Processing/EquirectangularSkyboxProcessor.cpp"
@@ -78,7 +115,6 @@ target_sources(Cyph3D PRIVATE
 	"src/cpp/Cyph3D/Scene/Transform.cpp"
 	"src/cpp/Cyph3D/StbImage.cpp"
 	"src/cpp/Cyph3D/Timer.cpp"
-	"src/cpp/Cyph3D/UI/ImGuiVulkanBackend.cpp"
 	"src/cpp/Cyph3D/UI/ObjectPicker.cpp"
 	"src/cpp/Cyph3D/UI/UIHelper.cpp"
 	"src/cpp/Cyph3D/UI/Window/UIAssetBrowser.cpp"
@@ -87,51 +123,12 @@ target_sources(Cyph3D PRIVATE
 	"src/cpp/Cyph3D/UI/Window/UIMenuBar.cpp"
 	"src/cpp/Cyph3D/UI/Window/UIMisc.cpp"
 	"src/cpp/Cyph3D/UI/Window/UIViewport.cpp"
-	"src/cpp/Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.cpp"
-	"src/cpp/Cyph3D/VKObject/Buffer/VKBufferBase.cpp"
-	"src/cpp/Cyph3D/VKObject/Buffer/VKBufferInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Buffer/VKResizableBufferInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.cpp"
-	"src/cpp/Cyph3D/VKObject/CommandBuffer/VKRenderingColorAttachmentInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/CommandBuffer/VKRenderingDepthAttachmentInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.cpp"
-	"src/cpp/Cyph3D/VKObject/DescriptorSet/VKDescriptorSetInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.cpp"
-	"src/cpp/Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Fence/VKFence.cpp"
-	"src/cpp/Cyph3D/VKObject/Image/VKImage.cpp"
-	"src/cpp/Cyph3D/VKObject/Image/VKImageInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Image/VKSwapchainImage.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKComputePipeline.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKComputePipelineInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipeline.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineAttachmentInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineLayout.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineVertexInputLayoutInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.cpp"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKRayTracingPipelineInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.cpp"
-	"src/cpp/Cyph3D/VKObject/Queue/VKQueue.cpp"
-	"src/cpp/Cyph3D/VKObject/Sampler/VKSampler.cpp"
-	"src/cpp/Cyph3D/VKObject/Semaphore/VKSemaphore.cpp"
-	"src/cpp/Cyph3D/VKObject/Shader/VKShader.cpp"
-	"src/cpp/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.cpp"
-	"src/cpp/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.cpp"
-	"src/cpp/Cyph3D/VKObject/VKContext.cpp"
-	"src/cpp/Cyph3D/VKObject/VKHelper.cpp"
-	"src/cpp/Cyph3D/VKObject/VKObject.cpp"
-	"src/cpp/Cyph3D/VKObject/VKSwapchain.cpp"
 	"src/cpp/Cyph3D/Window.cpp"
 )
 
 target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 	"src/cpp/Cyph3D/Asset/AssetManager.h"
 	"src/cpp/Cyph3D/Asset/AssetManagerWorkerData.h"
-	"src/cpp/Cyph3D/Asset/BindlessTextureManager.h"
 	"src/cpp/Cyph3D/Asset/Processing/AssetProcessingCacheDatabase.h"
 	"src/cpp/Cyph3D/Asset/Processing/AssetProcessor.h"
 	"src/cpp/Cyph3D/Asset/Processing/EquirectangularSkyboxData.h"
@@ -190,7 +187,6 @@ target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 	"src/cpp/Cyph3D/StbImage.h"
 	"src/cpp/Cyph3D/Timer.h"
 	"src/cpp/Cyph3D/UI/IInspectable.h"
-	"src/cpp/Cyph3D/UI/ImGuiVulkanBackend.h"
 	"src/cpp/Cyph3D/UI/ObjectPicker.h"
 	"src/cpp/Cyph3D/UI/UIHelper.h"
 	"src/cpp/Cyph3D/UI/Window/UIAssetBrowser.h"
@@ -199,80 +195,25 @@ target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 	"src/cpp/Cyph3D/UI/Window/UIMenuBar.h"
 	"src/cpp/Cyph3D/UI/Window/UIMisc.h"
 	"src/cpp/Cyph3D/UI/Window/UIViewport.h"
-	"src/cpp/Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h"
-	"src/cpp/Cyph3D/VKObject/AccelerationStructure/VKBottomLevelAccelerationStructureBuildInfo.h"
-	"src/cpp/Cyph3D/VKObject/AccelerationStructure/VKTopLevelAccelerationStructureBuildInfo.h"
-	"src/cpp/Cyph3D/VKObject/Buffer/VKBuffer.h"
-	"src/cpp/Cyph3D/VKObject/Buffer/VKBufferBase.h"
-	"src/cpp/Cyph3D/VKObject/Buffer/VKBufferInfo.h"
-	"src/cpp/Cyph3D/VKObject/Buffer/VKResizableBuffer.h"
-	"src/cpp/Cyph3D/VKObject/Buffer/VKResizableBufferInfo.h"
-	"src/cpp/Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h"
-	"src/cpp/Cyph3D/VKObject/CommandBuffer/VKRenderingColorAttachmentInfo.h"
-	"src/cpp/Cyph3D/VKObject/CommandBuffer/VKRenderingDepthAttachmentInfo.h"
-	"src/cpp/Cyph3D/VKObject/CommandBuffer/VKRenderingInfo.h"
-	"src/cpp/Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h"
-	"src/cpp/Cyph3D/VKObject/DescriptorSet/VKDescriptorSetInfo.h"
-	"src/cpp/Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h"
-	"src/cpp/Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h"
-	"src/cpp/Cyph3D/VKObject/Fence/VKFence.h"
-	"src/cpp/Cyph3D/VKObject/Image/VKImage.h"
-	"src/cpp/Cyph3D/VKObject/Image/VKImageInfo.h"
-	"src/cpp/Cyph3D/VKObject/Image/VKSwapchainImage.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKComputePipeline.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKComputePipelineInfo.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipeline.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineAttachmentInfo.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineBlendingInfo.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineLayout.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineScissor.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineVertexInputLayoutInfo.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKPipelineViewport.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h"
-	"src/cpp/Cyph3D/VKObject/Pipeline/VKRayTracingPipelineInfo.h"
-	"src/cpp/Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.h"
-	"src/cpp/Cyph3D/VKObject/Queue/VKQueue.h"
-	"src/cpp/Cyph3D/VKObject/Sampler/VKSampler.h"
-	"src/cpp/Cyph3D/VKObject/Semaphore/VKSemaphore.h"
-	"src/cpp/Cyph3D/VKObject/Shader/VKShader.h"
-	"src/cpp/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h"
-	"src/cpp/Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTableInfo.h"
-	"src/cpp/Cyph3D/VKObject/VKContext.h"
-	"src/cpp/Cyph3D/VKObject/VKDynamic.h"
-	"src/cpp/Cyph3D/VKObject/VKHelper.h"
-	"src/cpp/Cyph3D/VKObject/VKObject.h"
-	"src/cpp/Cyph3D/VKObject/VKSwapchain.h"
 	"src/cpp/Cyph3D/Window.h"
 )
 
-target_shaders(Cyph3D shaders "src/glsl"
-	"src/glsl/fullscreen quad.vert"
-	"src/glsl/asset processing/gen cubemap.comp"
-	"src/glsl/asset processing/gen mipmap.comp"
-	"src/glsl/imgui/imgui.frag"
-	"src/glsl/imgui/imgui.vert"
-	"src/glsl/lighting/lighting.frag"
-	"src/glsl/lighting/lighting.vert"
-	"src/glsl/object picker/object picker.frag"
-	"src/glsl/object picker/object picker.vert"
-	"src/glsl/path tracing/path trace.rmiss"
-	"src/glsl/path tracing/path trace.rchit"
-	"src/glsl/path tracing/path trace.rgen"
-	"src/glsl/post-processing/bloom/compose.frag"
-	"src/glsl/post-processing/bloom/downsample.frag"
-	"src/glsl/post-processing/bloom/upsample and blur.frag"
-	"src/glsl/post-processing/exposure/exposure.frag"
-	"src/glsl/post-processing/normalization/normalization.comp"
-	"src/glsl/post-processing/tone mapping/tone mapping.frag"
-	"src/glsl/shadow mapping/directional light.vert"
-	"src/glsl/shadow mapping/point light.frag"
-	"src/glsl/shadow mapping/point light.vert"
-	"src/glsl/skybox/skybox.frag"
-	"src/glsl/skybox/skybox.vert"
-	"src/glsl/z-prepass/z-prepass.vert"
+cgpu_target_shader_pipelines(Cyph3D shaders "src/slang"
+	"src/slang/Cyph3D/fullscreen quad.slang"
+	"src/slang/Cyph3D/asset processing/gen cubemap.slang"
+	"src/slang/Cyph3D/lighting/lighting.slang"
+	"src/slang/Cyph3D/object picker/object picker.slang"
+	"src/slang/Cyph3D/path tracing/trace.slang"
+	"src/slang/Cyph3D/post-processing/bloom/compose.slang"
+	"src/slang/Cyph3D/post-processing/bloom/downsample.slang"
+	"src/slang/Cyph3D/post-processing/bloom/upsample.slang"
+	"src/slang/Cyph3D/post-processing/exposure/exposure.slang"
+	"src/slang/Cyph3D/post-processing/normalization/normalization.slang"
+	"src/slang/Cyph3D/post-processing/tone mapping/tone mapping.slang"
+	"src/slang/Cyph3D/shadow mapping/directional light.slang"
+	"src/slang/Cyph3D/shadow mapping/point light.slang"
+	"src/slang/Cyph3D/skybox/skybox.slang"
+	"src/slang/Cyph3D/z-prepass/z-prepass.slang"
 )
 
 target_resources(Cyph3D resources "resources"
@@ -303,115 +244,45 @@ install(DIRECTORY "${PROJECT_SOURCE_DIR}/assets"
 	TYPE BIN
 )
 
+# ---- Dependency: Cyphall/CyphGPU ----
+target_link_libraries(Cyph3D PRIVATE CyphGPU)
 # ---- Dependency: ispc/ispc ----
-
-find_program(ISPC_EXECUTABLE ispc REQUIRED)
 set(CMAKE_ISPC_COMPILER "${ISPC_EXECUTABLE}")
-
 # ---- Dependency: nothings/stb ----
-
-find_package(Stb REQUIRED)
 target_include_directories(Cyph3D PRIVATE ${Stb_INCLUDE_DIR})
-
 # ---- Dependency: assimp/assimp ----
-
-find_package(assimp CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE assimp::assimp)
-
 # ---- Dependency: graeme-hill/crossguid ----
-
-find_package(crossguid CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE crossguid)
-
 # ---- Dependency: freetype/freetype ----
-
-find_package(Freetype REQUIRED)
 target_link_libraries(Cyph3D PRIVATE Freetype::Freetype)
-
 # ---- Dependency: glfw/glfw ----
-
-find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE glfw)
-
 target_compile_definitions(Cyph3D PRIVATE GLFW_INCLUDE_NONE)
-
 # ---- Dependency: g-truc/glm ----
-
-find_package(glm CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE glm::glm)
-
 target_compile_definitions(Cyph3D PRIVATE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(Cyph3D PRIVATE GLM_FORCE_DEPTH_ZERO_TO_ONE)
-
 # ---- Dependency: Neargye/magic_enum ----
-
-find_package(magic_enum CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE magic_enum::magic_enum)
-
 # ---- Dependency: nlohmann/json ----
-
-find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE nlohmann_json::nlohmann_json)
-
 # ---- Dependency: SRombauts/SQLiteCpp ----
-
-find_package(SQLiteCpp CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE SQLiteCpp)
-
-# ---- Dependency: KhronosGroup/Vulkan-Headers ----
-
-find_package(VulkanHeaders CONFIG REQUIRED)
-target_link_libraries(Cyph3D PRIVATE Vulkan::Headers)
-
-target_compile_definitions(Cyph3D PRIVATE VK_NO_PROTOTYPES)
-target_compile_definitions(Cyph3D PRIVATE VULKAN_HPP_NO_SETTERS)
-target_compile_definitions(Cyph3D PRIVATE VULKAN_HPP_NO_NODISCARD_WARNINGS)
-target_compile_definitions(Cyph3D PRIVATE VULKAN_HPP_NO_SMART_HANDLE)
-target_compile_definitions(Cyph3D PRIVATE VULKAN_HPP_NO_STRUCT_CONSTRUCTORS)
-
-# ---- Dependency: GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator ----
-
-find_package(VulkanMemoryAllocator CONFIG REQUIRED)
-target_link_libraries(Cyph3D PRIVATE GPUOpen::VulkanMemoryAllocator)
-
 # ---- Dependency: bshoshany/thread-pool ----
-
-find_path(BSHOSHANY_THREAD_POOL_INCLUDE_DIRS "BS_thread_pool.hpp")
 target_include_directories(Cyph3D PRIVATE ${BSHOSHANY_THREAD_POOL_INCLUDE_DIRS})
-
 target_compile_definitions(Cyph3D PRIVATE BS_THREAD_POOL_NATIVE_EXTENSIONS)
-
 # ---- Dependency: ocornut/imgui ----
-
-find_package(imgui CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE imgui)
-
 # ---- Dependency: CedricGuillemet/ImGuizmo ----
-
-find_package(imguizmo CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE imguizmo)
-
 # ---- Dependency: palacaze/sigslot ----
-
-find_package(PalSigslot CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE Pal::Sigslot)
-
 # ---- Dependency: GameTechDev/ISPCTextureCompressor ----
-
-find_package(ispc-texcomp CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE ispc-texcomp)
-
 # ---- Dependency: half ----
-
-find_path(HALF_INCLUDE_DIRS "half.hpp")
 target_include_directories(Cyph3D PRIVATE ${HALF_INCLUDE_DIRS})
-
 # ---- Dependency: gabime/spdlog ----
-
-find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE spdlog::spdlog)
-
 # ---- Dependency: btzy/nativefiledialog-extended ----
-
-find_package(nfd CONFIG REQUIRED)
 target_link_libraries(Cyph3D PRIVATE nfd::nfd)

@@ -5,7 +5,6 @@
 #include <Cyph3D/Helper/FileHelper.h>
 #include <Cyph3D/Helper/ImGuiHelper.h>
 #include <Cyph3D/Helper/JsonHelper.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
 #include <Cyph3D/Window.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -180,9 +179,9 @@ void c3d::MaterialAsset::setAlbedoTexture(std::optional<std::string_view> path)
 	_changed();
 }
 
-int32_t c3d::MaterialAsset::getAlbedoTextureBindlessIndex() const
+std::optional<cgpu::ImagePtr> c3d::MaterialAsset::getAlbedoImage() const
 {
-	return _albedoTexture != nullptr && _albedoTexture->isLoaded() ? _albedoTexture->getBindlessIndex() : -1;
+	return _albedoTexture != nullptr && _albedoTexture->isLoaded() ? std::optional{_albedoTexture->getImage()} : std::nullopt;
 }
 
 void c3d::MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
@@ -201,9 +200,9 @@ void c3d::MaterialAsset::setNormalTexture(std::optional<std::string_view> path)
 	_changed();
 }
 
-int32_t c3d::MaterialAsset::getNormalTextureBindlessIndex() const
+std::optional<cgpu::ImagePtr> c3d::MaterialAsset::getNormalImage() const
 {
-	return _normalTexture != nullptr && _normalTexture->isLoaded() ? _normalTexture->getBindlessIndex() : -1;
+	return _normalTexture != nullptr && _normalTexture->isLoaded() ? std::optional{_normalTexture->getImage()} : std::nullopt;
 }
 
 void c3d::MaterialAsset::setRoughnessTexture(std::optional<std::string_view> path)
@@ -222,9 +221,9 @@ void c3d::MaterialAsset::setRoughnessTexture(std::optional<std::string_view> pat
 	_changed();
 }
 
-int32_t c3d::MaterialAsset::getRoughnessTextureBindlessIndex() const
+std::optional<cgpu::ImagePtr> c3d::MaterialAsset::getRoughnessImage() const
 {
-	return _roughnessTexture != nullptr && _roughnessTexture->isLoaded() ? _roughnessTexture->getBindlessIndex() : -1;
+	return _roughnessTexture != nullptr && _roughnessTexture->isLoaded() ? std::optional{_roughnessTexture->getImage()} : std::nullopt;
 }
 
 void c3d::MaterialAsset::setMetalnessTexture(std::optional<std::string_view> path)
@@ -243,9 +242,9 @@ void c3d::MaterialAsset::setMetalnessTexture(std::optional<std::string_view> pat
 	_changed();
 }
 
-int32_t c3d::MaterialAsset::getMetalnessTextureBindlessIndex() const
+std::optional<cgpu::ImagePtr> c3d::MaterialAsset::getMetalnessImage() const
 {
-	return _metalnessTexture != nullptr && _metalnessTexture->isLoaded() ? _metalnessTexture->getBindlessIndex() : -1;
+	return _metalnessTexture != nullptr && _metalnessTexture->isLoaded() ? std::optional{_metalnessTexture->getImage()} : std::nullopt;
 }
 
 void c3d::MaterialAsset::setDisplacementTexture(std::optional<std::string_view> path)
@@ -264,9 +263,9 @@ void c3d::MaterialAsset::setDisplacementTexture(std::optional<std::string_view> 
 	_changed();
 }
 
-int32_t c3d::MaterialAsset::getDisplacementTextureBindlessIndex() const
+std::optional<cgpu::ImagePtr> c3d::MaterialAsset::getDisplacementImage() const
 {
-	return _displacementTexture != nullptr && _displacementTexture->isLoaded() ? _displacementTexture->getBindlessIndex() : -1;
+	return _displacementTexture != nullptr && _displacementTexture->isLoaded() ? std::optional{_displacementTexture->getImage()} : std::nullopt;
 }
 
 void c3d::MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path)
@@ -285,9 +284,9 @@ void c3d::MaterialAsset::setEmissiveTexture(std::optional<std::string_view> path
 	_changed();
 }
 
-int32_t c3d::MaterialAsset::getEmissiveTextureBindlessIndex() const
+std::optional<cgpu::ImagePtr> c3d::MaterialAsset::getEmissiveImage() const
 {
-	return _emissiveTexture != nullptr && _emissiveTexture->isLoaded() ? _emissiveTexture->getBindlessIndex() : -1;
+	return _emissiveTexture != nullptr && _emissiveTexture->isLoaded() ? std::optional{_emissiveTexture->getImage()} : std::nullopt;
 }
 
 const glm::vec3& c3d::MaterialAsset::getAlbedoValue() const

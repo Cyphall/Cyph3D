@@ -5,22 +5,17 @@
 namespace c3d
 {
 class Camera;
-class VKPipelineLayout;
-class VKGraphicsPipeline;
-class VKImage;
-template<typename T>
-class VKBuffer;
 
 struct SkyboxPassInput
 {
 	Camera& camera;
-	const std::shared_ptr<VKImage>& multisampledRawRenderImage;
-	const std::shared_ptr<VKImage>& multisampledDepthImage;
+	const cgpu::ImagePtr& multisampledLightImage;
+	const cgpu::ImagePtr& multisampledDepthImage;
 };
 
 struct SkyboxPassOutput
 {
-	const std::shared_ptr<VKImage>& rawRenderImage;
+	const cgpu::ImagePtr& lightImage;
 };
 
 class SkyboxPass : public RenderPass<SkyboxPassInput, SkyboxPassOutput>
@@ -29,29 +24,19 @@ public:
 	explicit SkyboxPass(glm::uvec2 size);
 
 private:
-	struct VertexData
-	{
-		glm::vec3 position;
-	};
+	cgpu::VertexInputStatePtr _vertexInputState;
+	cgpu::PreRasterizationShaderStatePtr _preRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _fragmentShaderState;
+	cgpu::FragmentOutputStatePtr _fragmentOutputState;
 
-	struct PushConstantData
-	{
-		glm::mat4 mvp;
-		uint32_t textureIndex;
-	};
+	cgpu::ImagePtr _lightImage;
 
-	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
-	std::shared_ptr<VKGraphicsPipeline> _pipeline;
+	cgpu::BufferPtr _vertexBuffer;
 
-	std::shared_ptr<VKImage> _resolvedRawRenderImage;
-
-	std::shared_ptr<VKBuffer<SkyboxPass::VertexData>> _vertexBuffer;
-
-	SkyboxPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input) override;
+	SkyboxPassOutput onRender(cgpu::CommandRecorder& commandRecorder, SkyboxPassInput& input) override;
 	void onResize() override;
 
-	void createPipelineLayout();
-	void createPipeline();
+	void createPipelineStates();
 	void createImages();
 	void createBuffer();
 };

@@ -2,30 +2,25 @@
 
 #include <Cyph3D/Asset/AssetManager.h>
 #include <Cyph3D/Engine.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Queue/VKQueue.h>
 
+#include <CyphGPU/Buffer.hpp>
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/CommandRecorder.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/Image.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
+
+const cgpu::ImagePtr& c3d::CubemapAsset::getImage() const
+{
+	checkLoaded();
+	return _image;
+}
 
 c3d::CubemapAsset::CubemapAsset(AssetManager& manager, const CubemapAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
-	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 	_manager.addThreadPoolTask(&CubemapAsset::load_async, this);
-}
-
-c3d::CubemapAsset::~CubemapAsset()
-{
-	_manager.getBindlessTextureManager().releaseIndex(_bindlessIndex);
-}
-
-const uint32_t& c3d::CubemapAsset::getBindlessIndex() const
-{
-	checkLoaded();
-	return _bindlessIndex;
 }
 
 void c3d::CubemapAsset::load_async()
@@ -39,186 +34,144 @@ void c3d::CubemapAsset::load_async()
 		_signature.znegPath,
 	};
 
-	vk::Format format;
-	glm::uvec2 size;
-	std::array<std::vector<std::vector<std::byte>>, 6> faces;
+	std::variant<EquirectangularSkyboxData, std::array<ImageData, 6>> data{};
+	vk::Format format{};
+	glm::uvec2 extent{};
+	uint32_t levels{};
 	if (!_signature.equirectangularPath.empty())
 	{
-		EquirectangularSkyboxData equirectangularSkyboxData = _manager.getAssetProcessor().readEquirectangularSkyboxData(_signature.equirectangularPath);
+		spdlog::info("Loading cubemap [equirectangular: {}]...", _signature.equirectangularPath);
+
+		auto& equirectangularSkyboxData = data.emplace<EquirectangularSkyboxData>();
+		equirectangularSkyboxData = _manager.getAssetProcessor().readEquirectangularSkyboxData(_signature.equirectangularPath);
 		format = equirectangularSkyboxData.format;
-		size = equirectangularSkyboxData.size;
-		faces = std::move(equirectangularSkyboxData.faces);
-	}
-	else
-	{
-		uint32_t levels;
-		for (uint32_t i = 0; i < 6; i++)
-		{
-			ImageData imageData = _manager.getAssetProcessor().readImageData(paths[i].get(), _signature.type);
-			faces[i] = std::move(imageData.levels);
-
-			if (i == 0)
-			{
-				format = imageData.format;
-				size = imageData.size;
-				levels = imageData.levels.size();
-			}
-			else
-			{
-				if (format != imageData.format)
-				{
-					throw std::runtime_error("All 6 faces of a cubemap must have the same format.");
-				}
-				if (size != imageData.size)
-				{
-					throw std::runtime_error("All 6 faces of a cubemap must have the same size.");
-				}
-				if (levels != imageData.levels.size())
-				{
-					throw std::runtime_error("All 6 faces of a cubemap must have the same level count.");
-				}
-			}
-		}
-	}
-
-	if (!_signature.equirectangularPath.empty())
-	{
-		spdlog::info("Uploading cubemap [equirectangular: {}]...", _signature.equirectangularPath);
+		extent = equirectangularSkyboxData.extent;
+		levels = equirectangularSkyboxData.levels.size();
 	}
 	else
 	{
 		spdlog::info(
-			"Uploading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
-			_signature.xposPath,
-			_signature.xnegPath,
-			_signature.yposPath,
-			_signature.ynegPath,
-			_signature.zposPath,
-			_signature.znegPath,
+			"Loading cubemap [xpos: {}, xneg: {}, ypos: {}, yneg: {}, zpos: {}, zneg: {} ({})]...",
+			_signature.xposPath, _signature.xnegPath,
+			_signature.yposPath, _signature.ynegPath,
+			_signature.zposPath, _signature.znegPath,
 			magic_enum::enum_name(_signature.type)
 		);
+
+		auto& imageDatas = data.emplace<std::array<ImageData, 6>>();
+		for (uint32_t face = 0; face < 6; face++)
+		{
+			imageDatas[face] = _manager.getAssetProcessor().readImageData(paths[face].get(), _signature.type);
+
+			if (face == 0)
+			{
+				format = imageDatas[face].format;
+				extent = imageDatas[face].extent;
+				levels = imageDatas[face].levels.size();
+			}
+			else if (format != imageDatas[face].format)
+			{
+				throw std::runtime_error("All 6 faces of a cubemap must have the same format.");
+			}
+			else if (extent != imageDatas[face].extent)
+			{
+				throw std::runtime_error("All 6 faces of a cubemap must have the same extent.");
+			}
+		}
 	}
 
-	// create cubemap
-	VKImageInfo imageInfo(
-		format,
-		size,
-		6,
-		faces[0].size(),
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst
+	// create image
+	_image = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name =
+				_signature.equirectangularPath.empty() ?
+					std::format(
+						"{}|{}|{}|{}|{}|{}",
+						_signature.xposPath, _signature.xnegPath,
+						_signature.yposPath, _signature.ynegPath,
+						_signature.zposPath, _signature.znegPath
+					) :
+					_signature.equirectangularPath,
+			.format = format,
+			.extent = {extent, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eTransferDst |
+				vk::ImageUsageFlagBits::eSampled,
+			.levels = levels,
+			.layers = 6,
+			.allow_cube_view = true,
+		}
 	);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	imageInfo.enableCubeCompatibility();
 
+	// create staging buffer
+	cgpu::BufferPtr stagingBuffer = cgpu::Buffer::create(
+		Engine::getDeviceSession(),
+		{
+			.name = std::format("{} (staging buffer)", _image->getDesc().name),
+			.size = _image->calcByteSize({0, _image->getDesc().levels}, 6),
+			.usages = vk::BufferUsageFlagBits2::eTransferSrc,
+			.memory_type = cgpu::MemoryType::eCPUUncached,
+		}
+	);
+
+	// copy face data to staging buffer
 	if (!_signature.equirectangularPath.empty())
 	{
-		imageInfo.setName(_signature.equirectangularPath);
+		auto& equirectangularSkyboxData = std::get<EquirectangularSkyboxData>(data);
+
+		std::byte* ptr = stagingBuffer->getHostPtr();
+		for (uint32_t level = 0; level < _image->getDesc().levels; level++)
+		{
+			std::copy_n(equirectangularSkyboxData.levels[level].data(), equirectangularSkyboxData.levels[level].size(), ptr);
+			ptr += equirectangularSkyboxData.levels[level].size();
+		}
 	}
 	else
 	{
-		imageInfo.setName(
-			std::format(
-				"{}|{}|{}|{}|{}|{}",
-				_signature.xposPath,
-				_signature.xnegPath,
-				_signature.yposPath,
-				_signature.ynegPath,
-				_signature.zposPath,
-				_signature.znegPath
-			)
-		);
-	}
+		auto& imageDatas = std::get<std::array<ImageData, 6>>(data);
 
-	_image = VKImage::create(Engine::getVKContext(), imageInfo);
-
-	// create staging buffer
-	VKBufferInfo bufferInfo(_image->getLayerByteSize() * 6, vk::BufferUsageFlagBits::eTransferSrc);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-
-	std::shared_ptr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
-
-	// copy face data to staging buffer
-	std::byte* ptr = stagingBuffer->getHostPointer();
-	for (uint32_t face = 0; face < 6; face++)
-	{
-		for (uint32_t level = 0; level < faces[face].size(); level++)
+		std::byte* ptr = stagingBuffer->getHostPtr();
+		for (uint32_t level = 0; level < _image->getDesc().levels; level++)
 		{
-			if (_image->getLevelByteSize(level) != faces[face][level].size())
+			for (uint32_t face = 0; face < 6; face++)
 			{
-				throw;
+				std::copy_n(imageDatas[face].levels[level].data(), imageDatas[face].levels[level].size(), ptr);
+				ptr += imageDatas[face].levels[level].size();
 			}
-
-			std::copy_n(faces[face][level].data(), faces[face][level].size(), ptr);
-			ptr += faces[face][level].size();
 		}
 	}
 
-	// upload staging buffer to texture
-	assetTransferCommandBuffer->begin();
+	// upload staging buffer to image
+	auto commandRecorder = assetCommandContext->createRecorder(Engine::getDeviceSession()->getAsyncTransferQueue());
 
-	assetTransferCommandBuffer->bufferMemoryBarrier(
-		stagingBuffer,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferRead
-	);
-
-	assetTransferCommandBuffer->imageMemoryBarrier(
-		_image,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferWrite,
-		vk::ImageLayout::eTransferDstOptimal
-	);
-
+	std::vector<cgpu::CommandRecorder::CopyBufferToImageParams::Range> ranges;
 	vk::DeviceSize bufferOffset = 0;
-	for (uint32_t face = 0; face < 6; face++)
+	for (uint32_t level = 0; level < _image->getDesc().levels; level++)
 	{
-		for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
-		{
-			assetTransferCommandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, face, i);
-			bufferOffset += _image->getLevelByteSize(i);
-		}
+		size_t size = _image->calcByteSize({level, 1}, 6);
+
+		ranges.push_back({
+			.src = {{
+				.byte_range = {{bufferOffset, size}},
+			}},
+			.dst = {{
+				.level = level,
+			}},
+		});
+
+		bufferOffset += size;
 	}
 
-	assetTransferCommandBuffer->releaseImageOwnership(
-		_image,
-		Engine::getVKContext().getMainQueue(),
-		vk::ImageLayout::eReadOnlyOptimal
-	);
+	commandRecorder.copyBufferToImage({
+		.src_buffer = stagingBuffer,
+		.dst_image = _image,
+		.ranges = ranges,
+	});
 
-	assetTransferCommandBuffer->end();
+	commandRecorder.submit().waitFinished();
 
-	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
-
-	assetTransferCommandBuffer->waitExecution();
-	assetTransferCommandBuffer->reset();
-
-	assetGraphicsCommandBuffer->begin();
-
-	vk::PipelineStageFlags2 nextUsageStages = vk::PipelineStageFlagBits2::eFragmentShader;
-	if (Engine::getVKContext().isRayTracingSupported())
-	{
-		nextUsageStages |= vk::PipelineStageFlagBits2::eRayTracingShaderKHR;
-	}
-
-	assetGraphicsCommandBuffer->acquireImageOwnership(
-		_image,
-		Engine::getVKContext().getMainQueue(),
-		nextUsageStages,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
-
-	assetGraphicsCommandBuffer->end();
-
-	Engine::getVKContext().getMainQueue().submit(assetGraphicsCommandBuffer, {}, {});
-
-	assetGraphicsCommandBuffer->waitExecution();
-	assetGraphicsCommandBuffer->reset();
-
-	// set texture to bindless descriptor set
-	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getCubemapSampler());
+	assetCommandContext->finish();
 
 	_loaded = true;
 	if (!_signature.equirectangularPath.empty())

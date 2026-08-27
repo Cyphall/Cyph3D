@@ -6,14 +6,16 @@
 #include <Cyph3D/Rendering/SceneRenderer/PathTracingSceneRenderer.h>
 #include <Cyph3D/Rendering/SceneRenderer/RasterizationSceneRenderer.h>
 #include <Cyph3D/Scene/Scene.h>
-#include <Cyph3D/UI/ImGuiVulkanBackend.h>
 #include <Cyph3D/UI/Window/UIInspector.h>
 #include <Cyph3D/UI/Window/UIMisc.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
 #include <Cyph3D/Window.h>
 
 #include <chrono>
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/CommandRecorder.hpp>
+#include <CyphGPU/Device.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/ImGuiBackend.hpp>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
@@ -38,7 +40,7 @@ struct c3d::UIViewport::RenderToFileData
 	std::filesystem::path outputFile;
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastBatchTime;
-	std::shared_ptr<VKImage> lastRenderedTexture;
+	cgpu::ImagePtr lastRenderedTexture;
 	RenderToFileStatus status = RenderToFileStatus::eRendering;
 };
 
@@ -67,9 +69,9 @@ std::unique_ptr<c3d::ObjectPicker> c3d::UIViewport::_objectPicker;
 
 std::unique_ptr<c3d::UIViewport::RenderToFileData> c3d::UIViewport::_renderToFileData;
 bool c3d::UIViewport::_showRenderToFilePopup = false;
-std::shared_ptr<c3d::VKImage> c3d::UIViewport::_lastViewportImage;
+cgpu::ImagePtr c3d::UIViewport::_lastViewportImage;
 
-void c3d::UIViewport::show()
+void c3d::UIViewport::show(cgpu::CommandRecorder& commandRecorder)
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -96,7 +98,7 @@ void c3d::UIViewport::show()
 
 		Window& window = Engine::getWindow();
 
-		if (_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Released)
+		if (_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::eReleased)
 		{
 			_cameraFocused = false;
 			window.setInputMode(GLFW_CURSOR_NORMAL);
@@ -160,11 +162,13 @@ void c3d::UIViewport::show()
 				_renderToFileData->renderer->setSampleCountPerRender(thisBatchSamples);
 				_renderToFileData->renderer->setAccumulationOnlyMode(thisBatchSamples != remainingSamples);
 
-				Engine::getVKContext().executeImmediate(
-					[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer) {
-						_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandBuffer, _renderToFileData->camera, _renderToFileData->registry, false, false);
-					}
-				);
+				cgpu::CommandContext commandContext{Engine::getDeviceSession()};
+
+				auto commandRecorder = commandContext.createRecorder(Engine::getDeviceSession()->getMainQueue());
+				_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandRecorder, _renderToFileData->camera, _renderToFileData->registry, false, false);
+				commandRecorder.submit().waitFinished();
+
+				commandContext.finish();
 
 				_renderToFileData->renderedSamples += thisBatchSamples;
 
@@ -180,68 +184,52 @@ void c3d::UIViewport::show()
 			{
 				if (_renderToFileData->lastRenderedTexture)
 				{
-					VKImageInfo conversionImageInfo(
-						vk::Format::eR8G8B8A8Unorm,
-						_renderToFileData->lastRenderedTexture->getInfo().getSize(),
-						1,
-						1,
-						vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst
-					);
-					conversionImageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-					std::shared_ptr<VKImage> conversionImage = VKImage::create(Engine::getVKContext(), conversionImageInfo);
-
-					VKBufferInfo stagingBufferInfo(conversionImage->getLevelByteSize(0), vk::BufferUsageFlagBits::eTransferDst);
-					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-					stagingBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
-
-					std::shared_ptr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), stagingBufferInfo);
-
-					Engine::getVKContext().executeImmediate(
-						[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer) {
-							commandBuffer->imageMemoryBarrier(
-								_renderToFileData->lastRenderedTexture,
-								vk::PipelineStageFlagBits2::eBlit,
-								vk::AccessFlagBits2::eTransferRead,
-								vk::ImageLayout::eTransferSrcOptimal
-							);
-
-							commandBuffer->imageMemoryBarrier(
-								conversionImage,
-								vk::PipelineStageFlagBits2::eBlit,
-								vk::AccessFlagBits2::eTransferWrite,
-								vk::ImageLayout::eTransferDstOptimal
-							);
-
-							commandBuffer->blitImage(_renderToFileData->lastRenderedTexture, 0, 0, conversionImage, 0, 0);
-
-							commandBuffer->imageMemoryBarrier(
-								conversionImage,
-								vk::PipelineStageFlagBits2::eCopy,
-								vk::AccessFlagBits2::eTransferRead,
-								vk::ImageLayout::eTransferSrcOptimal
-							);
-
-							commandBuffer->bufferMemoryBarrier(
-								stagingBuffer,
-								vk::PipelineStageFlagBits2::eCopy,
-								vk::AccessFlagBits2::eTransferWrite
-							);
-
-							commandBuffer->copyImageToBuffer(conversionImage, 0, 0, stagingBuffer, 0);
+					cgpu::ImagePtr conversionImage = cgpu::Image::create(
+						Engine::getDeviceSession(),
+						{
+							.name = "Render-to-file conversion image",
+							.format = vk::Format::eR8G8B8A8Unorm,
+							.extent = _renderToFileData->lastRenderedTexture->getDesc().extent,
+							.usages =
+								vk::ImageUsageFlagBits::eTransferDst |
+								vk::ImageUsageFlagBits::eTransferSrc,
 						}
 					);
 
-					glm::ivec2 textureSize = _renderToFileData->lastRenderedTexture->getSize(0);
+					cgpu::BufferPtr stagingBuffer = cgpu::Buffer::create(
+						Engine::getDeviceSession(),
+						{
+							.name = "Render-to-file staging buffer",
+							.size = conversionImage->calcByteSize({0, 1}, 1),
+							.usages = vk::BufferUsageFlagBits2::eTransferDst,
+							.memory_type = cgpu::MemoryType::eCPUCached,
+						}
+					);
+
+					cgpu::CommandContext commandContext{Engine::getDeviceSession()};
+
+					auto commandRecorder = commandContext.createRecorder(Engine::getDeviceSession()->getMainQueue());
+					commandRecorder.blit({
+						.src_image = _renderToFileData->lastRenderedTexture,
+						.dst_image = conversionImage,
+					});
+					commandRecorder.copyImageToBuffer({
+						.src_image = conversionImage,
+						.dst_buffer = stagingBuffer,
+					});
+					commandRecorder.submit().waitFinished();
+
+					commandContext.finish();
+
+					glm::ivec2 textureSize = _renderToFileData->lastRenderedTexture->getDesc().extent;
 
 					if (_renderToFileData->outputFile.extension() == ".png")
 					{
-						stbi_write_png(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), textureSize.x * 4);
+						stbi_write_png(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPtr(), textureSize.x * 4);
 					}
 					else if (_renderToFileData->outputFile.extension() == ".jpg")
 					{
-						stbi_write_jpg(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPointer(), 95);
+						stbi_write_jpg(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPtr(), 95);
 					}
 				}
 				else
@@ -263,21 +251,14 @@ void c3d::UIViewport::show()
 					Engine::getScene().onPreRender(_renderRegistry, _camera);
 				}
 
-				_lastViewportImage = _sceneRenderer->render(Engine::getVKContext().getDefaultCommandBuffer(), _camera, _renderRegistry, sceneChanged, cameraChanged);
-
-				Engine::getVKContext().getDefaultCommandBuffer()->imageMemoryBarrier(
-					_lastViewportImage,
-					vk::PipelineStageFlagBits2::eFragmentShader,
-					vk::AccessFlagBits2::eShaderSampledRead,
-					vk::ImageLayout::eReadOnlyOptimal
-				);
+				_lastViewportImage = _sceneRenderer->render(commandRecorder, _camera, _renderRegistry, sceneChanged, cameraChanged);
 
 				_sceneChangeVersion = currentSceneChangeVersion;
 			}
 
 			ImGui::Image(
-				ImGui_ImplVKObject_ToTextureID(_lastViewportImage),
-				glm::vec2(_lastViewportImage->getSize(0)),
+				ImGui_ImplCyphGPU_ToTextureID(_lastViewportImage),
+				glm::vec2(_lastViewportImage->getDesc().extent),
 				ImVec2(0, 0),
 				ImVec2(1, 1)
 			);
@@ -287,7 +268,7 @@ void c3d::UIViewport::show()
 				drawGizmo(viewportStartGlobal, viewportSize);
 			}
 
-			if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
+			if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::eClicked && ImGui::IsItemHovered())
 			{
 				_cameraFocused = true;
 				_lockedCursorPos = window.getCursorPos();
@@ -298,13 +279,13 @@ void c3d::UIViewport::show()
 
 			glm::vec2 viewportCursorPos = window.getCursorPos() - glm::vec2(viewportStartGlobal);
 
-			if (!_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::Clicked && ImGui::IsItemHovered())
+			if (!_cameraFocused && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::eClicked && ImGui::IsItemHovered())
 			{
 				_leftClickPressedOnViewport = true;
 				_leftClickPressPos = viewportCursorPos;
 			}
 
-			if (_leftClickPressedOnViewport && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::Released)
+			if (_leftClickPressedOnViewport && window.getMouseButtonState(GLFW_MOUSE_BUTTON_LEFT) == Window::MouseButtonState::eReleased)
 			{
 				_leftClickPressedOnViewport = false;
 				if (ImGui::IsItemHovered() && glm::distance(_leftClickPressPos, viewportCursorPos) < 5.0f)
@@ -438,7 +419,7 @@ void c3d::UIViewport::drawHeader()
 	{
 		for (UIViewport::RendererType sceneRendererType : magic_enum::enum_values<UIViewport::RendererType>())
 		{
-			if (sceneRendererType == RendererType::PathTracing && !Engine::getVKContext().isRayTracingSupported())
+			if (sceneRendererType == RendererType::PathTracing && !(Engine::getDeviceSession()->getDevice()->getCapabilities() & cgpu::Device::Capability::eRayTracing))
 			{
 				continue;
 			}

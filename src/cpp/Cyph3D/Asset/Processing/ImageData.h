@@ -18,7 +18,7 @@ enum class ImageType
 struct ImageData
 {
 	vk::Format format;
-	glm::uvec2 size;
+	glm::uvec2 extent;
 	std::vector<std::vector<std::byte>> levels; // Level<Data>
 };
 }

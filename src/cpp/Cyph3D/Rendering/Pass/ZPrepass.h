@@ -4,11 +4,8 @@
 
 namespace c3d
 {
-struct RenderRegistry;
+class RenderRegistry;
 class Camera;
-class VKPipelineLayout;
-class VKGraphicsPipeline;
-class VKImage;
 
 struct ZPrepassInput
 {
@@ -18,7 +15,7 @@ struct ZPrepassInput
 
 struct ZPrepassOutput
 {
-	const std::shared_ptr<VKImage>& multisampledDepthImage;
+	const cgpu::ImagePtr& multisampledDepthImage;
 };
 
 class ZPrepass : public RenderPass<ZPrepassInput, ZPrepassOutput>
@@ -27,21 +24,17 @@ public:
 	explicit ZPrepass(glm::uvec2 size);
 
 private:
-	struct PushConstantData
-	{
-		glm::mat4 mvp;
-	};
+	cgpu::ImagePtr _multisampledDepthImage;
 
-	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
-	std::shared_ptr<VKGraphicsPipeline> _pipeline;
+	cgpu::VertexInputStatePtr _vertexInputState;
+	cgpu::PreRasterizationShaderStatePtr _preRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _fragmentShaderState;
+	cgpu::FragmentOutputStatePtr _fragmentOutputState;
 
-	std::shared_ptr<VKImage> _depthImage;
-
-	ZPrepassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input) override;
+	ZPrepassOutput onRender(cgpu::CommandRecorder& commandRecorder, ZPrepassInput& input) override;
 	void onResize() override;
 
-	void createPipelineLayout();
-	void createPipeline();
 	void createImage();
+	void createPipelineStates();
 };
 }

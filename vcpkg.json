@@ -10,8 +10,6 @@
     "freetype",
     "sqlitecpp",
     "crossguid",
-    "vulkan-headers",
-    "vulkan-memory-allocator",
     "bshoshany-thread-pool",
     "nativefiledialog-extended",
     "cmakerc",
@@ -23,10 +21,23 @@
     "ispc-texcomp",
     "spdlog",
     {
-      "name": "glslang",
+      "name": "cyphgpu",
       "features": [
-        "tools"
+        "imgui-backend"
       ]
     }
-  ]
+  ],
+  "features": {
+    "tracy": {
+      "description": "Enable Tracy integration",
+      "dependencies": [
+        {
+          "name": "cyphgpu",
+          "features": [
+            "tracy"
+          ]
+        }
+      ]
+    }
+  }
 }

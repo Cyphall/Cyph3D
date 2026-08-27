@@ -5,20 +5,15 @@
 namespace c3d
 {
 class Camera;
-class VKDescriptorSetLayout;
-class VKPipelineLayout;
-class VKGraphicsPipeline;
-class VKSampler;
-class VKImage;
 
 struct ToneMappingPassInput
 {
-	const std::shared_ptr<VKImage>& inputImage;
+	const cgpu::ImagePtr& lightImage;
 };
 
 struct ToneMappingPassOutput
 {
-	const std::shared_ptr<VKImage>& outputImage;
+	const cgpu::ImagePtr& colorImage;
 };
 
 class ToneMappingPass : public RenderPass<ToneMappingPassInput, ToneMappingPassOutput>
@@ -27,22 +22,17 @@ public:
 	explicit ToneMappingPass(glm::uvec2 size);
 
 private:
-	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
+	cgpu::VertexInputStatePtr _vertexInputState;
+	cgpu::PreRasterizationShaderStatePtr _preRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _fragmentShaderState;
+	cgpu::FragmentOutputStatePtr _fragmentOutputState;
 
-	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
-	std::shared_ptr<VKGraphicsPipeline> _pipeline;
+	cgpu::ImagePtr _outputImage;
 
-	std::shared_ptr<VKSampler> _inputSampler;
-
-	std::shared_ptr<VKImage> _outputImage;
-
-	void createDescriptorSetLayout();
-	void createPipelineLayout();
-	void createPipeline();
-	void createSampler();
+	void createPipelineStates();
 	void createImage();
 
-	ToneMappingPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ToneMappingPassInput& input) override;
+	ToneMappingPassOutput onRender(cgpu::CommandRecorder& commandRecorder, ToneMappingPassInput& input) override;
 	void onResize() override;
 };
 }

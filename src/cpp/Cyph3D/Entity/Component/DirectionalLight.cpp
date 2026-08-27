@@ -19,6 +19,7 @@ c3d::DirectionalLight::DirectionalLight(Entity& entity):
 void c3d::DirectionalLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	RenderData data{
+		.name = getEntity().getName(),
 		.transform = getTransform(),
 		.intensity = getIntensity(),
 		.color = getLinearColor(),

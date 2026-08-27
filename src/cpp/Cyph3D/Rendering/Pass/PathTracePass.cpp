@@ -1,7 +1,6 @@
 #include "PathTracePass.h"
 
 #include <Cyph3D/Asset/AssetManager.h>
-#include <Cyph3D/Asset/BindlessTextureManager.h>
 #include <Cyph3D/Asset/RuntimeAsset/MaterialAsset.h>
 #include <Cyph3D/Asset/RuntimeAsset/MeshAsset.h>
 #include <Cyph3D/Engine.h>
@@ -12,267 +11,263 @@
 #include <Cyph3D/Scene/Camera.h>
 #include <Cyph3D/Scene/Scene.h>
 #include <Cyph3D/Scene/Transform.h>
-#include <Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/Buffer/VKResizableBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
-#include <Cyph3D/VKObject/Pipeline/VKRayTracingPipeline.h>
-#include <Cyph3D/VKObject/ShaderBindingTable/VKShaderBindingTable.h>
-#include <Cyph3D/VKObject/VKHelper.h>
 
+#include <CyphGPU/ComputePassContext.hpp>
+#include <CyphGPU/ComputeShaderState.hpp>
+#include <CyphGPU/Device.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/TLAS.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>
+
+namespace
+{
+using namespace cgpu::shader_types;
+
+struct GPUInstance
+{
+	float3x3 normalMatrix{};
+	c3d::PositionVertexData* positionVertexBuffer{};
+	c3d::MaterialVertexData* materialVertexBuffer{};
+	uint32_t* indexBuffer{};
+	Texture2D<>::Handle albedoImage{};
+	Texture2D<>::Handle normalImage{};
+	Texture2D<>::Handle roughnessImage{};
+	Texture2D<>::Handle metalnessImage{};
+	Texture2D<>::Handle displacementImage{};
+	Texture2D<>::Handle emissiveImage{};
+	float3 albedoValue{};
+	float roughnessValue{};
+	float metalnessValue{};
+	float emissiveScale{};
+};
+}
 
 c3d::PathTracePass::PathTracePass(const glm::uvec2& size):
 	RenderPass(size, "Path trace pass")
 {
-	createDescriptorSetLayout();
-	createPipelineLayout();
-	createPipeline();
-	createImage();
+	createPipelineState();
+	createImages();
 }
 
-c3d::PathTracePassOutput c3d::PathTracePass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, PathTracePassInput& input)
+c3d::PathTracePassOutput c3d::PathTracePass::onRender(cgpu::CommandRecorder& commandRecorder, PathTracePassInput& input)
 {
 	if (input.sceneChanged || input.cameraChanged)
 	{
 		_accumulatedSamples = 0;
 	}
 
-	for (int i = 0; i < 3; i++)
-	{
-		commandBuffer->imageMemoryBarrier(
-			_rawRenderImage[i],
-			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eShaderStorageRead | vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::ImageLayout::eGeneral
-		);
-	}
-
-	bool recreateDescriptorSet = false;
-
 	if (input.sceneChanged)
 	{
-		setupTLAS(commandBuffer, input);
-
-		recreateDescriptorSet = true;
+		recreateTLAS(commandRecorder, input);
 	}
 
-	if (input.sceneChanged || input.cameraChanged)
-	{
-		setupSBT(commandBuffer, input);
+	commandRecorder.computePass({
+		.callback = [&](cgpu::ComputePassContext& ctx) {
+			std::optional<cgpu::BufferPtr> instanceBuffer;
+			if (!input.registry.getModelRenderRequests().empty())
+			{
+				instanceBuffer = cgpu::Buffer::create(
+					Engine::getDeviceSession(),
+					{
+						.name = "Instance buffer",
+						.size = input.registry.getModelRenderRequests().size() * sizeof(GPUInstance),
+						.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+						.min_alignment = alignof(GPUInstance),
+					}
+				);
 
-		recreateDescriptorSet = true;
-	}
+				GPUInstance* instancePtr = (*instanceBuffer)->getHostPtr<GPUInstance>();
+				for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
+				{
+					const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
 
-	if (recreateDescriptorSet)
-	{
-		VKDescriptorSetInfo info(_descriptorSetLayout);
+					auto albedoImage = model.material.getAlbedoImage();
+					auto normalImage = model.material.getNormalImage();
+					auto roughnessImage = model.material.getRoughnessImage();
+					auto metalnessImage = model.material.getMetalnessImage();
+					auto displacementImage = model.material.getDisplacementImage();
+					auto emissiveImage = model.material.getEmissiveImage();
 
-		_descriptorSet = VKDescriptorSet::create(Engine::getVKContext(), info);
+					instancePtr[i].normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix()));
+					instancePtr[i].positionVertexBuffer = ctx.getBufferDevicePtr<PositionVertexData>(model.mesh.getPositionVertexBuffer(), cgpu::StorageAccess::eReadonly);
+					instancePtr[i].materialVertexBuffer = ctx.getBufferDevicePtr<MaterialVertexData>(model.mesh.getMaterialVertexBuffer(), cgpu::StorageAccess::eReadonly);
+					instancePtr[i].indexBuffer = ctx.getBufferDevicePtr<uint32_t>(model.mesh.getIndexBuffer(), cgpu::StorageAccess::eReadonly);
+					instancePtr[i].albedoImage = albedoImage ? ctx.getSampledImageDescriptor(*albedoImage) : nullptr;
+					instancePtr[i].normalImage = normalImage ? ctx.getSampledImageDescriptor(*normalImage) : nullptr;
+					instancePtr[i].roughnessImage = roughnessImage ? ctx.getSampledImageDescriptor(*roughnessImage) : nullptr;
+					instancePtr[i].metalnessImage = metalnessImage ? ctx.getSampledImageDescriptor(*metalnessImage) : nullptr;
+					instancePtr[i].displacementImage = displacementImage ? ctx.getSampledImageDescriptor(*displacementImage) : nullptr;
+					instancePtr[i].emissiveImage = emissiveImage ? ctx.getSampledImageDescriptor(*emissiveImage) : nullptr;
+					instancePtr[i].albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue());
+					instancePtr[i].roughnessValue = model.material.getRoughnessValue();
+					instancePtr[i].metalnessValue = model.material.getMetalnessValue();
+					instancePtr[i].emissiveScale = model.material.getEmissiveScale();
+				}
+			}
 
-		for (int i = 0; i < 3; i++)
-		{
-			_descriptorSet->bindDescriptor(0, _rawRenderImage[i], i);
-		}
-	}
+			using namespace cgpu::shader_types;
+			struct
+			{
+				uint2 u_size;
+				uint64_t u_tlas;
+				GPUInstance* u_instanceBuffer;
+				SamplerState::Handle u_sampler;
+				SamplerState::Handle u_skyboxSampler;
+				RWTexture2D<>::Handle u_lightImage;
+				TextureCube<>::Handle u_skyboxImage;
+				float3x3 u_skyboxRotation;
+				float3 u_camPosition;
+				float3 u_camRayTL;
+				float3 u_camRayTR;
+				float3 u_camRayBL;
+				float3 u_camRayBR;
+				uint32_t u_batchIndex;
+				uint32_t u_sampleCount;
+				bool u_resetAccumulation;
+			} parameters{};
 
-	commandBuffer->bufferMemoryBarrier(
-		_tlas->getBackingBuffer(),
-		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eAccelerationStructureReadKHR
-	);
+			SkyboxAsset* skybox = Engine::getScene().getSkybox();
 
-	commandBuffer->bufferMemoryBarrier(
-		_sbt->getBuffer(),
-		vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-		vk::AccessFlagBits2::eShaderBindingTableReadKHR
-	);
+			parameters.u_size = _size;
+			parameters.u_tlas = ctx.getTLASDevicePtr(_tlas);
+			parameters.u_instanceBuffer = instanceBuffer ? ctx.getBufferDevicePtr<GPUInstance>(*instanceBuffer, cgpu::StorageAccess::eReadonly) : nullptr;
+			parameters.u_sampler = Engine::getAssetManager().getTextureSampler()->getDescriptor();
+			parameters.u_skyboxSampler = Engine::getAssetManager().getCubemapSampler()->getDescriptor();
+			parameters.u_lightImage = ctx.getStorageImageDescriptor(_lightImage, cgpu::StorageAccess::eReadWrite);
+			if (skybox && skybox->isLoaded())
+			{
+				parameters.u_skyboxImage = ctx.getSampledImageDescriptor(skybox->getCubemap()->getImage(), {.type = vk::ImageViewType::eCube});
+				parameters.u_skyboxRotation = glm::mat3{glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3{0, 1, 0})};
+			}
+			parameters.u_camPosition = input.camera.getPosition();
+			parameters.u_camRayTL = input.camera.getCornerRays()[0];
+			parameters.u_camRayTR = input.camera.getCornerRays()[1];
+			parameters.u_camRayBL = input.camera.getCornerRays()[2];
+			parameters.u_camRayBR = input.camera.getCornerRays()[3];
+			parameters.u_batchIndex = _batchIndex;
+			parameters.u_sampleCount = input.sampleCount;
+			parameters.u_resetAccumulation = _accumulatedSamples == 0;
 
-	commandBuffer->bindPipeline(_pipeline);
-
-	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
-	commandBuffer->bindDescriptorSet(1, _descriptorSet);
-
-	FramePushConstants framePushConstants{
-		.topLevelAS = std::bit_cast<glm::uvec2>(_tlas->getDeviceAddress()),
-		.batchIndex = _batchIndex,
-		.sampleCount = input.sampleCount,
-		.resetAccumulation = _accumulatedSamples == 0
-	};
-
-	commandBuffer->pushConstants(framePushConstants);
-	commandBuffer->addExternallyUsedObject(_tlas);
-
-	commandBuffer->traceRays(_sbt, _size);
+			ctx.dispatch(_computeShaderState, {cgpu::alignUp(_size, glm::uvec2{8u}) / 8u, 1}, parameters);
+		},
+	});
 
 	_accumulatedSamples += input.sampleCount;
 	_batchIndex++;
 
-	commandBuffer->unbindPipeline();
-
 	return {
-		.rawRenderImage = _rawRenderImage,
-		.accumulatedSamples = _accumulatedSamples
+		.lightImage = _lightImage,
+		.accumulatedSamples = _accumulatedSamples,
 	};
 }
 
 void c3d::PathTracePass::onResize()
 {
-	createImage();
-}
-
-void c3d::PathTracePass::setupTLAS(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
-{
-	VKTopLevelAccelerationStructureBuildInfo buildInfo;
-	buildInfo.instancesInfos.reserve(input.registry.getModelRenderRequests().size());
-	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
-	{
-		const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
-
-		VKTopLevelAccelerationStructureBuildInfo::InstanceInfo& instanceInfo = buildInfo.instancesInfos.emplace_back();
-		instanceInfo.localToWorld = model.transform.getLocalToWorldMatrix();
-		instanceInfo.customIndex = 0;
-		instanceInfo.recordIndex = i;
-		instanceInfo.accelerationStructure = model.mesh.getAccelerationStructure();
-	}
-
-	vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getTopLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
-
-	_tlas = VKAccelerationStructure::create(
-		Engine::getVKContext(),
-		vk::AccelerationStructureTypeKHR::eTopLevel,
-		buildSizesInfo.accelerationStructureSize
-	);
-
-	VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
-	scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
-	std::shared_ptr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
-
-	VKResizableBufferInfo instancesBufferInfo(vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR);
-	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	instancesBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	instancesBufferInfo.setRequiredAlignment(16);
-	std::shared_ptr<VKResizableBuffer<vk::AccelerationStructureInstanceKHR>> instancesBuffer = VKResizableBuffer<vk::AccelerationStructureInstanceKHR>::create(Engine::getVKContext(), instancesBufferInfo);
-
-	commandBuffer->bufferMemoryBarrier(
-		_tlas->getBackingBuffer(),
-		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
-		vk::AccessFlagBits2::eAccelerationStructureWriteKHR
-	);
-
-	commandBuffer->bufferMemoryBarrier(
-		scratchBuffer,
-		vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
-		vk::AccessFlagBits2::eAccelerationStructureReadKHR | vk::AccessFlagBits2::eAccelerationStructureWriteKHR
-	);
-
-	commandBuffer->buildTopLevelAccelerationStructure(_tlas, scratchBuffer, buildInfo, instancesBuffer);
-}
-
-void c3d::PathTracePass::setupSBT(const std::shared_ptr<VKCommandBuffer>& commandBuffer, const PathTracePassInput& input)
-{
-	RayGenUniforms rayGenUniforms{
-		.cameraPosition = input.camera.getPosition(),
-		.cameraRayTL = input.camera.getCornerRays()[0],
-		.cameraRayTR = input.camera.getCornerRays()[1],
-		.cameraRayBL = input.camera.getCornerRays()[2],
-		.cameraRayBR = input.camera.getCornerRays()[3]
-	};
-
-	VKShaderBindingTableInfo info(_pipeline->getRaygenGroupHandle(0), rayGenUniforms);
-
-	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
-	{
-		const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
-
-		RayClosestHitUniforms rayClosestHitUniforms{
-			.normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix())),
-			.positionVertexBuffer = model.mesh.getPositionVertexBuffer()->getDeviceAddress(),
-			.materialVertexBuffer = model.mesh.getMaterialVertexBuffer()->getDeviceAddress(),
-			.indexBuffer = model.mesh.getIndexBuffer()->getDeviceAddress(),
-			.albedoIndex = model.material.getAlbedoTextureBindlessIndex(),
-			.normalIndex = model.material.getNormalTextureBindlessIndex(),
-			.roughnessIndex = model.material.getRoughnessTextureBindlessIndex(),
-			.metalnessIndex = model.material.getMetalnessTextureBindlessIndex(),
-			.displacementIndex = model.material.getDisplacementTextureBindlessIndex(),
-			.emissiveIndex = model.material.getEmissiveTextureBindlessIndex(),
-			.albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue()),
-			.roughnessValue = model.material.getRoughnessValue(),
-			.metalnessValue = model.material.getMetalnessValue(),
-			.emissiveScale = model.material.getEmissiveScale()
-		};
-
-		info.addTriangleHitRecord(_pipeline->getTriangleHitGroupHandle(0), rayClosestHitUniforms);
-	}
-
-	RayMissUniforms rayMissUniforms{
-		.hasSkybox = false,
-	};
-
-	SkyboxAsset* skybox = Engine::getScene().getSkybox();
-	if (skybox && skybox->isLoaded())
-	{
-		rayMissUniforms.hasSkybox = true;
-		rayMissUniforms.skyboxIndex = skybox->getCubemap()->getBindlessIndex();
-		rayMissUniforms.skyboxRotation = glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
-	}
-
-	info.addMissRecord(_pipeline->getMissGroupHandle(0), rayMissUniforms);
-
-	_sbt = VKShaderBindingTable::create(Engine::getVKContext(), info);
-}
-
-void c3d::PathTracePass::createDescriptorSetLayout()
-{
-	VKDescriptorSetLayoutInfo info(false);
-	info.addBinding(vk::DescriptorType::eStorageImage, 3, vk::ShaderStageFlagBits::eRaygenKHR);
-
-	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::PathTracePass::createPipelineLayout()
-{
-	VKPipelineLayoutInfo info;
-	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
-	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<FramePushConstants>(vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eClosestHitKHR | vk::ShaderStageFlagBits::eMissKHR);
-
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::PathTracePass::createPipeline()
-{
-	VKRayTracingPipelineInfo info(_pipelineLayout);
-
-	info.addRaygenGroupsInfos("path tracing/path trace.rgen");
-	info.addTriangleHitGroupsInfos("path tracing/path trace.rchit", std::nullopt);
-	info.addMissGroupsInfos("path tracing/path trace.rmiss");
-
-	_pipeline = VKRayTracingPipeline::create(Engine::getVKContext(), info);
-}
-
-void c3d::PathTracePass::createImage()
-{
-	for (int i = 0; i < 3; i++)
-	{
-		VKImageInfo imageInfo(
-			SceneRenderer::ACCUMULATION_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageUsageFlagBits::eStorage
-		);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		imageInfo.setName("Raw render image");
-
-		_rawRenderImage[i] = VKImage::create(Engine::getVKContext(), imageInfo);
-	}
-
+	createImages();
 	_accumulatedSamples = 0;
+}
+
+void c3d::PathTracePass::recreateTLAS(cgpu::CommandRecorder& commandRecorder, const PathTracePassInput& input)
+{
+	cgpu::TLAS::ASInfo tlasInfo{
+		.instance_count = static_cast<uint32_t>(input.registry.getModelRenderRequests().size()),
+	};
+
+	auto sizes = cgpu::TLAS::calcSizes(Engine::getDeviceSession(), tlasInfo);
+
+	cgpu::BufferPtr tlas_buffer = cgpu::Buffer::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "TLAS buffer",
+			.size = sizes.accelerationStructureSize,
+			.usages = vk::BufferUsageFlagBits2::eAccelerationStructureStorageKHR,
+			.min_alignment = 256,
+		}
+	);
+
+	_tlas = cgpu::TLAS::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "TLAS",
+			.as_info = tlasInfo,
+			.buffer = tlas_buffer,
+			.sizes = sizes,
+		}
+	);
+
+	std::optional<cgpu::CommandRecorder::TLASParams::InstanceInfo> tlas_instance_info;
+	if (!input.registry.getModelRenderRequests().empty())
+	{
+		tlas_instance_info = {{
+			.data = {{}},
+			.buffer = cgpu::Buffer::create(
+				Engine::getDeviceSession(),
+				{
+					.name = "TLAS (build instance memory)",
+					.size = input.registry.getModelRenderRequests().size() * sizeof(vk::AccelerationStructureInstanceKHR),
+					.usages = vk::BufferUsageFlagBits2::eAccelerationStructureBuildInputReadOnlyKHR,
+					.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+					.min_alignment = 16,
+				}
+			),
+		}};
+
+		for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
+		{
+			const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
+
+			tlas_instance_info->data->push_back({
+				.blas = model.mesh.getBLAS(),
+				.local_to_world = model.transform.getLocalToWorldMatrix(),
+			});
+		}
+	}
+
+	std::optional<cgpu::CommandRecorder::TLASParams::ScratchBuffer> tlas_scratch_buffer;
+	if (_tlas->getDesc().sizes.buildScratchSize > 0)
+	{
+		tlas_scratch_buffer = {{
+			.buffer = cgpu::Buffer::create(
+				Engine::getDeviceSession(),
+				{
+					.name = "TLAS (build scratch memory)",
+					.size = _tlas->getDesc().sizes.buildScratchSize,
+					.usages = vk::BufferUsageFlagBits2::eStorageBuffer,
+					.min_alignment = Engine::getDeviceSession()->getDevice()->getProperties<vk::PhysicalDeviceAccelerationStructurePropertiesKHR>().minAccelerationStructureScratchOffsetAlignment,
+				}
+			),
+		}};
+	}
+
+	commandRecorder.buildTLAS({
+		.tlas = _tlas,
+		.instance_info = tlas_instance_info,
+		.scratch_buffer = tlas_scratch_buffer,
+	});
+}
+
+void c3d::PathTracePass::createPipelineState()
+{
+	_computeShaderState = cgpu::ComputeShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.compute_shader = {.source = "Cyph3D/path tracing/trace.slang"},
+		}
+	);
+}
+
+void c3d::PathTracePass::createImages()
+{
+	_lightImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Light image",
+			.format = SceneRenderer::ACCUMULATION_FORMAT,
+			.extent = {_size, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eStorage |
+				vk::ImageUsageFlagBits::eSampled,
+		}
+	);
 }

@@ -4,14 +4,13 @@
 #include <Cyph3D/Asset/RuntimeAsset/GPUAsset.h>
 #include <Cyph3D/HashBuilder.h>
 
+#include <CyphGPU/fwd.hpp>
 #include <memory>
 #include <string>
 
 namespace c3d
 {
 class AssetManager;
-class VKImage;
-class VKSampler;
 
 struct TextureAssetSignature
 {
@@ -24,9 +23,7 @@ struct TextureAssetSignature
 class TextureAsset : public GPUAsset<TextureAssetSignature>
 {
 public:
-	~TextureAsset() override;
-
-	const uint32_t& getBindlessIndex() const;
+	const cgpu::ImagePtr& getImage() const;
 
 private:
 	friend class AssetManager;
@@ -35,8 +32,7 @@ private:
 
 	void load_async();
 
-	std::shared_ptr<VKImage> _image;
-	uint32_t _bindlessIndex;
+	cgpu::ImagePtr _image;
 };
 }
 

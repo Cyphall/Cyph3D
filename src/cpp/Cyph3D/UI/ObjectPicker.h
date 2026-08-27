@@ -1,5 +1,7 @@
 #pragma once
 
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/fwd.hpp>
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <memory>
@@ -7,15 +9,8 @@
 namespace c3d
 {
 class Entity;
-class VKCommandBuffer;
 class Camera;
 class RenderRegistry;
-class VKDescriptorSetLayout;
-class VKPipelineLayout;
-class VKGraphicsPipeline;
-class VKImage;
-template<typename T>
-class VKBuffer;
 
 class ObjectPicker
 {
@@ -26,29 +21,19 @@ public:
 	Entity* getPickedEntity(const Camera& camera, const RenderRegistry& renderRegistry, const glm::uvec2& viewportSize, const glm::uvec2& clickPos);
 
 private:
-	struct PushConstantData
-	{
-		glm::mat4 mvp;
-		int32_t objectIndex;
-	};
-
 	glm::uvec2 _currentSize = {0, 0};
 
-	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
+	cgpu::CommandContext _commandContext;
 
-	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
+	cgpu::ImagePtr _objectIndexImage;
+	cgpu::ImagePtr _depthImage;
 
-	std::shared_ptr<VKGraphicsPipeline> _pipeline;
+	cgpu::VertexInputStatePtr _vertexInputState;
+	cgpu::PreRasterizationShaderStatePtr _preRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _fragmentShaderState;
+	cgpu::FragmentOutputStatePtr _fragmentOutputState;
 
-	std::shared_ptr<VKBuffer<int32_t>> _readbackBuffer;
-
-	std::shared_ptr<VKImage> _objectIndexImage;
-	std::shared_ptr<VKImage> _depthImage;
-
-	void createDescriptorSetLayout();
-	void createPipelineLayout();
-	void createPipeline();
-	void createBuffer();
-	void createImage();
+	void createImages();
+	void createPipelineStates();
 };
 }

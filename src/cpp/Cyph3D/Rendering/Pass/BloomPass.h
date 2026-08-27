@@ -5,20 +5,15 @@
 namespace c3d
 {
 class Camera;
-class VKDescriptorSetLayout;
-class VKPipelineLayout;
-class VKGraphicsPipeline;
-class VKSampler;
-class VKImage;
 
 struct BloomPassInput
 {
-	const std::shared_ptr<VKImage>& inputImage;
+	const cgpu::ImagePtr& lightImage;
 };
 
 struct BloomPassOutput
 {
-	const std::shared_ptr<VKImage>& outputImage;
+	const cgpu::ImagePtr& lightImage;
 };
 
 class BloomPass : public RenderPass<BloomPassInput, BloomPassOutput>
@@ -29,65 +24,31 @@ public:
 private:
 	// common
 
-	std::shared_ptr<VKImage> _workImage;
-	std::shared_ptr<VKImage> _outputImage;
+	cgpu::ImagePtr _workImage;
+	cgpu::ImagePtr _outputImage;
 
-	std::shared_ptr<VKSampler> _downsampleSampler;
-	std::shared_ptr<VKSampler> _upsampleSampler;
+	cgpu::SamplerPtr _downsampleSampler;
+	cgpu::SamplerPtr _upsampleSampler;
+	cgpu::SamplerPtr _composeSampler;
 
-	// downsample
-
-	struct DownsamplePushConstantData
-	{
-		glm::vec2 srcPixelSize;
-		int32_t srcLevel;
-	};
-
-	std::shared_ptr<VKDescriptorSetLayout> _downsampleDescriptorSetLayout;
-
-	std::shared_ptr<VKPipelineLayout> _downsamplePipelineLayout;
-	std::shared_ptr<VKGraphicsPipeline> _downsamplePipeline;
-
-	// upsample
-
-	struct UpsamplePushConstantData
-	{
-		glm::vec2 srcPixelSize;
-		int32_t srcLevel;
-		float bloomRadius;
-	};
-
-	std::shared_ptr<VKDescriptorSetLayout> _upsampleDescriptorSetLayout;
-
-	std::shared_ptr<VKPipelineLayout> _upsamplePipelineLayout;
-	std::shared_ptr<VKGraphicsPipeline> _upsamplePipeline;
-
-	// compose
-
-	struct ComposePushConstantData
-	{
-		float factor;
-	};
-
-	std::shared_ptr<VKDescriptorSetLayout> _composeDescriptorSetLayout;
-
-	std::shared_ptr<VKPipelineLayout> _composePipelineLayout;
-	std::shared_ptr<VKGraphicsPipeline> _composePipeline;
-
-	std::shared_ptr<VKSampler> _inputImageSampler;
+	cgpu::VertexInputStatePtr _vertexInputState;
+	cgpu::PreRasterizationShaderStatePtr _preRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _downsampleFragmentShaderState;
+	cgpu::FragmentShaderStatePtr _upsampleFragmentShaderState;
+	cgpu::FragmentShaderStatePtr _composeFragmentShaderState;
+	cgpu::FragmentOutputStatePtr _downsampleComposeFragmentOutputState;
+	cgpu::FragmentOutputStatePtr _upsampleFragmentOutputState;
 
 
-	void downsampleAnsBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel);
-	void upsampleAndBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel);
-	void compose(const std::shared_ptr<VKImage>& input, const std::shared_ptr<VKCommandBuffer>& commandBuffer);
+	void downsampleAndBlur(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel);
+	void upsampleAndBlur(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel);
+	void compose(cgpu::CommandRecorder& commandRecorder, const cgpu::ImagePtr& input);
 
-	void createDescriptorSetLayouts();
-	void createPipelineLayouts();
-	void createPipelines();
+	void createPipelineStates();
 	void createImages();
 	void createSamplers();
 
-	BloomPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, BloomPassInput& input) override;
+	BloomPassOutput onRender(cgpu::CommandRecorder& commandRecorder, BloomPassInput& input) override;
 	void onResize() override;
 };
 }

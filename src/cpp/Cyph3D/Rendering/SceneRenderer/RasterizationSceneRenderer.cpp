@@ -1,7 +1,6 @@
 #include "RasterizationSceneRenderer.h"
 
 #include <Cyph3D/Asset/RuntimeAsset/CubemapAsset.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
 
 c3d::RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Rasterization SceneRenderer", size),
@@ -15,7 +14,7 @@ c3d::RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 {
 }
 
-std::shared_ptr<c3d::VKImage> c3d::RasterizationSceneRenderer::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+cgpu::ImagePtr c3d::RasterizationSceneRenderer::onRender(cgpu::CommandRecorder& commandRecorder, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	// Z prepass
 
@@ -24,7 +23,7 @@ std::shared_ptr<c3d::VKImage> c3d::RasterizationSceneRenderer::onRender(const st
 		.camera = camera
 	};
 
-	ZPrepassOutput zPrepassOutput = _zPrepass.render(commandBuffer, zPrepassInput);
+	ZPrepassOutput zPrepassOutput = _zPrepass.render(commandRecorder, zPrepassInput);
 
 	// Shadow map pass
 
@@ -34,7 +33,7 @@ std::shared_ptr<c3d::VKImage> c3d::RasterizationSceneRenderer::onRender(const st
 		.cameraChanged = cameraChanged
 	};
 
-	ShadowMapPassOutput shadowMapPassOutput = _shadowMapPass.render(commandBuffer, shadowMapPassInput);
+	ShadowMapPassOutput shadowMapPassOutput = _shadowMapPass.render(commandRecorder, shadowMapPassInput);
 
 	// Lighting pass
 
@@ -47,44 +46,44 @@ std::shared_ptr<c3d::VKImage> c3d::RasterizationSceneRenderer::onRender(const st
 		.pointLightMaxDistance = shadowMapPassOutput.pointLightMaxDistance
 	};
 
-	LightingPassOutput lightingPassOutput = _lightingPass.render(commandBuffer, lightingPassInput);
+	LightingPassOutput lightingPassOutput = _lightingPass.render(commandRecorder, lightingPassInput);
 
 	// Skybox pass
 
 	SkyboxPassInput skyboxPassInput{
 		.camera = camera,
-		.multisampledRawRenderImage = lightingPassOutput.multisampledRawRenderImage,
+		.multisampledLightImage = lightingPassOutput.multisampledLightImage,
 		.multisampledDepthImage = zPrepassOutput.multisampledDepthImage
 	};
 
-	SkyboxPassOutput skyboxPassOutput = _skyboxPass.render(commandBuffer, skyboxPassInput);
+	SkyboxPassOutput skyboxPassOutput = _skyboxPass.render(commandRecorder, skyboxPassInput);
 
 	// Exposure pass
 
 	ExposurePassInput exposurePassInput{
-		.inputImage = skyboxPassOutput.rawRenderImage,
+		.lightImage = skyboxPassOutput.lightImage,
 		.camera = camera
 	};
 
-	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput);
+	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandRecorder, exposurePassInput);
 
 	// Bloom pass
 
 	BloomPassInput bloomPassInput{
-		.inputImage = exposurePassOutput.outputImage
+		.lightImage = exposurePassOutput.lightImage
 	};
 
-	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput);
+	BloomPassOutput bloomPassOutput = _bloomPass.render(commandRecorder, bloomPassInput);
 
 	// Tone mapping pass
 
 	ToneMappingPassInput toneMappingPassInput{
-		.inputImage = bloomPassOutput.outputImage
+		.lightImage = bloomPassOutput.lightImage
 	};
 
-	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput);
+	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandRecorder, toneMappingPassInput);
 
-	return toneMappingPassOutput.outputImage;
+	return toneMappingPassOutput.colorImage;
 }
 
 void c3d::RasterizationSceneRenderer::onResize()

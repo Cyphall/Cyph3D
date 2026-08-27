@@ -5,14 +5,13 @@
 #include <Cyph3D/Engine.h>
 #include <Cyph3D/Helper/FileHelper.h>
 #include <Cyph3D/StbImage.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKComputePipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
-#include <Cyph3D/VKObject/Queue/VKQueue.h>
 
+#include <CyphGPU/Buffer.hpp>
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/CommandRecorder.hpp>
+#include <CyphGPU/ComputeShaderState.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/Image.hpp>
 #include <filesystem>
 #include <half.hpp>
 #include <magic_enum/magic_enum.hpp>
@@ -20,23 +19,17 @@
 
 namespace
 {
-struct PushConstantData
-{
-	vk::Bool32 srgb;
-	uint32_t reduceMode;
-};
-
 void writeProcessedImage(const std::filesystem::path& path, const c3d::ImageData& imageData)
 {
 	std::filesystem::create_directories(path.parent_path());
 	std::ofstream file = c3d::FileHelper::openFileForWriting(path);
 
-	uint8_t version = 4;
+	uint8_t version = 5;
 	c3d::FileHelper::write(file, &version);
 
 	c3d::FileHelper::write(file, &imageData.format);
 
-	c3d::FileHelper::write(file, &imageData.size);
+	c3d::FileHelper::write(file, &imageData.extent);
 
 	uint32_t levels = imageData.levels.size();
 	c3d::FileHelper::write(file, &levels);
@@ -54,14 +47,14 @@ bool readProcessedImage(const std::filesystem::path& path, c3d::ImageData& image
 	uint8_t version;
 	c3d::FileHelper::read(file, &version);
 
-	if (version != 4)
+	if (version != 5)
 	{
 		return false;
 	}
 
 	c3d::FileHelper::read(file, &imageData.format);
 
-	c3d::FileHelper::read(file, &imageData.size);
+	c3d::FileHelper::read(file, &imageData.extent);
 
 	uint32_t levels;
 	c3d::FileHelper::read(file, &levels);
@@ -107,50 +100,30 @@ std::vector<std::byte> convertFloatToHalf(std::span<const std::byte> input)
 	return output;
 }
 
-c3d::ImageData compressTexture(const c3d::ImageData& mipmappedImageData, vk::Format requestedFormat)
+c3d::ImageData compressImage(const c3d::ImageData& mipmappedImageData, vk::Format compressionFormat)
 {
 	c3d::ImageData compressedImageData;
-	compressedImageData.format = requestedFormat;
-	compressedImageData.size = mipmappedImageData.size;
+	compressedImageData.format = compressionFormat;
+	compressedImageData.extent = mipmappedImageData.extent;
 
-	glm::uvec2 size = mipmappedImageData.size;
-	for (const std::vector<std::byte>& level : mipmappedImageData.levels)
+	glm::uvec2 extent = mipmappedImageData.extent;
+	for (const std::vector<std::byte>& srcStorage : mipmappedImageData.levels)
 	{
-		std::vector<std::byte> compressedData;
-		if (!c3d::ImageCompressor::tryCompressImage(level, size, requestedFormat, compressedData))
-		{
-			break;
-		}
+		auto& dstStorage = compressedImageData.levels.emplace_back();
+		dstStorage.resize(cgpu::calcImageByteSize(compressionFormat, glm::uvec3{extent, 1}, 1));
 
-		compressedImageData.levels.emplace_back(std::move(compressedData));
+		c3d::ImageCompressor::compressImage(
+			srcStorage,
+			extent,
+			compressionFormat,
+			dstStorage
+		);
 
-		size = glm::max(size / 2u, glm::uvec2(1, 1));
+		extent = glm::max(extent >> 1u, glm::uvec2{1, 1});
 	}
 
 	return compressedImageData;
 }
-}
-
-c3d::ImageProcessor::ImageProcessor()
-{
-	VKDescriptorSetLayoutInfo descriptorSetLayoutInfo(true);
-	descriptorSetLayoutInfo.addBinding(vk::DescriptorType::eStorageImage, 1);
-	descriptorSetLayoutInfo.addBinding(vk::DescriptorType::eStorageImage, 1);
-
-	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), descriptorSetLayoutInfo);
-
-	VKPipelineLayoutInfo pipelineLayoutInfo;
-	pipelineLayoutInfo.addDescriptorSetLayout(_descriptorSetLayout);
-	pipelineLayoutInfo.setPushConstantLayout<PushConstantData>();
-
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), pipelineLayoutInfo);
-
-	VKComputePipelineInfo computePipelineInfo(
-		_pipelineLayout,
-		"asset processing/gen mipmap.comp"
-	);
-
-	_pipeline = VKComputePipeline::create(Engine::getVKContext(), computePipelineInfo);
 }
 
 c3d::ImageData c3d::ImageProcessor::readImageData(std::string_view path, ImageType type, std::string_view cachePath)
@@ -219,7 +192,6 @@ c3d::ImageData c3d::ImageProcessor::processImage(const std::filesystem::path& in
 	}
 
 	vk::Format mipmapGenFormat;
-	bool isMipmapGenFormatSrgb;
 	vk::Format compressionFormat;
 	switch (type)
 	{
@@ -227,8 +199,7 @@ c3d::ImageData c3d::ImageProcessor::processImage(const std::filesystem::path& in
 		switch (image.getBitsPerChannel())
 		{
 		case 8:
-			mipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
-			isMipmapGenFormatSrgb = true;
+			mipmapGenFormat = vk::Format::eR8G8B8A8Srgb;
 			compressionFormat = vk::Format::eBc7SrgbBlock;
 			break;
 		default:
@@ -240,7 +211,6 @@ c3d::ImageData c3d::ImageProcessor::processImage(const std::filesystem::path& in
 		{
 		case 8:
 			mipmapGenFormat = vk::Format::eR8G8Unorm;
-			isMipmapGenFormatSrgb = false;
 			compressionFormat = vk::Format::eBc5UnormBlock;
 			break;
 		default:
@@ -252,7 +222,6 @@ c3d::ImageData c3d::ImageProcessor::processImage(const std::filesystem::path& in
 		{
 		case 8:
 			mipmapGenFormat = vk::Format::eR8Unorm;
-			isMipmapGenFormatSrgb = false;
 			compressionFormat = vk::Format::eBc4UnormBlock;
 			break;
 		default:
@@ -263,13 +232,11 @@ c3d::ImageData c3d::ImageProcessor::processImage(const std::filesystem::path& in
 		switch (image.getBitsPerChannel())
 		{
 		case 8:
-			mipmapGenFormat = vk::Format::eR8G8B8A8Unorm;
-			isMipmapGenFormatSrgb = true;
+			mipmapGenFormat = vk::Format::eR8G8B8A8Srgb;
 			compressionFormat = vk::Format::eBc7SrgbBlock;
 			break;
 		case 32:
 			mipmapGenFormat = vk::Format::eR16G16B16A16Sfloat;
-			isMipmapGenFormatSrgb = false;
 			compressionFormat = vk::Format::eBc6HUfloatBlock;
 			break;
 		default:
@@ -297,11 +264,11 @@ c3d::ImageData c3d::ImageProcessor::processImage(const std::filesystem::path& in
 		data = {image.getPtr(), image.getByteSize()};
 	}
 
-	ImageData imageData = genMipmaps(mipmapGenFormat, image.getSize(), data, isMipmapGenFormatSrgb);
+	ImageData imageData = genMipmaps(mipmapGenFormat, image.getSize(), data);
 
 	if (compressionFormat != vk::Format::eUndefined)
 	{
-		imageData = compressTexture(imageData, compressionFormat);
+		imageData = compressImage(imageData, compressionFormat);
 	}
 
 	writeProcessedImage(output, imageData);
@@ -309,178 +276,119 @@ c3d::ImageData c3d::ImageProcessor::processImage(const std::filesystem::path& in
 	return imageData;
 }
 
-c3d::ImageData c3d::ImageProcessor::genMipmaps(vk::Format format, glm::uvec2 size, std::span<const std::byte> data, bool isSrgb)
+c3d::ImageData c3d::ImageProcessor::genMipmaps(vk::Format format, glm::uvec2 extent, std::span<const std::byte> data)
 {
-	// create texture
-	VKImageInfo imageInfo(
-		format,
-		size,
-		1,
-		VKImage::calcMaxMipLevels(size),
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage
+	// create image
+	auto image = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Image processing image",
+			.format = format,
+			.extent = {extent, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eTransferDst |
+				vk::ImageUsageFlagBits::eTransferSrc,
+			.levels = cgpu::calcImageMaxLevelCount({extent, 1}),
+		}
 	);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-	std::shared_ptr<VKImage> texture = VKImage::create(Engine::getVKContext(), imageInfo);
 
 	// create staging buffer
-	VKBufferInfo bufferInfo(texture->getLayerByteSize(), vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-
-	std::shared_ptr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
-
-	// copy texture data to staging buffer
-	std::copy_n(data.data(), texture->getLevelByteSize(0), stagingBuffer->getHostPointer());
-
-	// upload staging buffer to texture
-	assetTransferCommandBuffer->begin();
-
-	assetTransferCommandBuffer->bufferMemoryBarrier(
-		stagingBuffer,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferRead
+	cgpu::BufferPtr stagingBuffer = cgpu::Buffer::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Image processing staging buffer",
+			.size = image->calcByteSize({0, image->getDesc().levels}, 1),
+			.usages =
+				vk::BufferUsageFlagBits2::eTransferSrc |
+				vk::BufferUsageFlagBits2::eTransferDst,
+			.memory_type = cgpu::MemoryType::eCPUCached,
+		}
 	);
 
-	assetTransferCommandBuffer->imageMemoryBarrier(
-		texture,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferWrite,
-		vk::ImageLayout::eTransferDstOptimal,
-		{0, 0},
-		{0, 0}
-	);
+	// copy image data to staging buffer
+	std::copy_n(data.data(), data.size_bytes(), stagingBuffer->getHostPtr());
 
-	assetTransferCommandBuffer->copyBufferToImage(stagingBuffer, 0, texture, 0, 0);
+	// upload staging buffer to image
+	{
+		auto commandRecorder = assetCommandContext->createRecorder(Engine::getDeviceSession()->getAsyncTransferQueue());
 
-	assetTransferCommandBuffer->releaseImageOwnership(
-		texture,
-		Engine::getVKContext().getComputeQueue(),
-		vk::ImageLayout::eGeneral,
-		{0, 0},
-		{0, 0}
-	);
+		commandRecorder.copyBufferToImage({
+			.src_buffer = stagingBuffer,
+			.dst_image = image,
+			.ranges = {{
+				{
+					.src = {{.byte_range = {{0, image->calcByteSize({0, 1}, 1)}}}},
+				},
+			}},
+		});
 
-	assetTransferCommandBuffer->end();
-
-	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
-
-	assetTransferCommandBuffer->waitExecution();
-	assetTransferCommandBuffer->reset();
+		commandRecorder.submit();
+	}
 
 	// generate mipmaps
-	assetComputeCommandBuffer->begin();
-
-	assetComputeCommandBuffer->bindPipeline(_pipeline);
-
-	PushConstantData pushConstantData{
-		.srgb = isSrgb,
-		.reduceMode = 0
-	};
-	assetComputeCommandBuffer->pushConstants(pushConstantData);
-
-	assetComputeCommandBuffer->acquireImageOwnership(
-		texture,
-		Engine::getVKContext().getTransferQueue(),
-		vk::PipelineStageFlagBits2::eComputeShader,
-		vk::AccessFlagBits2::eShaderStorageRead,
-		vk::ImageLayout::eGeneral,
-		{0, 0},
-		{0, 0}
-	);
-
-	for (int i = 1; i < texture->getInfo().getLevels(); i++)
 	{
-		assetComputeCommandBuffer->imageMemoryBarrier(
-			texture,
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageWrite,
-			vk::ImageLayout::eGeneral,
-			{0, 0},
-			{i, i}
-		);
+		auto commandRecorder = assetCommandContext->createRecorder(Engine::getDeviceSession()->getAsyncGraphicsQueue());
 
-		assetComputeCommandBuffer->pushDescriptor(
-			0,
-			0,
-			texture,
-			vk::ImageViewType::e2D,
-			{0, 0},
-			{i - 1, i - 1},
-			texture->getInfo().getFormat()
-		);
+		for (uint32_t i = 1; i < image->getDesc().levels; i++)
+		{
+			commandRecorder.blit({
+				.src_image = image,
+				.dst_image = image,
+				.filter = vk::Filter::eLinear,
+				.ranges = {{
+					{
+						.src = {{.level = i - 1}},
+						.dst = {{.level = i - 0}},
+					},
+				}},
+			});
+		}
 
-		assetComputeCommandBuffer->pushDescriptor(
-			0,
-			1,
-			texture,
-			vk::ImageViewType::e2D,
-			{0, 0},
-			{i, i},
-			texture->getInfo().getFormat()
-		);
-
-		glm::uvec2 dstSize = texture->getSize(i);
-		assetComputeCommandBuffer->dispatch({(dstSize.x + 7) / 8, (dstSize.y + 7) / 8, 1});
-
-		assetComputeCommandBuffer->imageMemoryBarrier(
-			texture,
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral,
-			{0, 0},
-			{i, i}
-		);
+		commandRecorder.submit();
 	}
 
-	assetComputeCommandBuffer->releaseImageOwnership(
-		texture,
-		Engine::getVKContext().getTransferQueue(),
-		vk::ImageLayout::eTransferSrcOptimal
-	);
-
-	assetComputeCommandBuffer->end();
-
-	Engine::getVKContext().getComputeQueue().submit(assetComputeCommandBuffer, {}, {});
-
-	assetComputeCommandBuffer->waitExecution();
-	assetComputeCommandBuffer->reset();
-
-	// download texture to staging buffer
-	assetTransferCommandBuffer->begin();
-
-	assetTransferCommandBuffer->acquireImageOwnership(
-		texture,
-		Engine::getVKContext().getComputeQueue(),
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferRead,
-		vk::ImageLayout::eTransferSrcOptimal
-	);
-
-	vk::DeviceSize bufferOffset = texture->getLevelByteSize(0);
-	for (uint32_t i = 1; i < texture->getInfo().getLevels(); i++)
+	// download generated image levels to staging buffer
 	{
-		assetTransferCommandBuffer->copyImageToBuffer(texture, 0, i, stagingBuffer, bufferOffset);
-		bufferOffset += texture->getLevelByteSize(i);
+		auto commandRecorder = assetCommandContext->createRecorder(Engine::getDeviceSession()->getAsyncTransferQueue());
+
+		std::vector<cgpu::CommandRecorder::CopyImageToBufferParams::Range> ranges;
+		vk::DeviceSize bufferOffset = image->calcByteSize({0, 1}, 1);
+		for (uint32_t level = 1; level < image->getDesc().levels; level++)
+		{
+			size_t size = image->calcByteSize({level, 1}, 1);
+
+			ranges.push_back({
+				.src = {{
+					.level = level,
+				}},
+				.dst = {{
+					.byte_range = {{bufferOffset, size}},
+				}},
+			});
+
+			bufferOffset += size;
+		}
+
+		commandRecorder.copyImageToBuffer({
+			.src_image = image,
+			.dst_buffer = stagingBuffer,
+			.ranges = ranges,
+		});
+
+		commandRecorder.submit().waitFinished();
 	}
 
-	assetTransferCommandBuffer->end();
-
-	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
-
-	assetTransferCommandBuffer->waitExecution();
-	assetTransferCommandBuffer->reset();
+	assetCommandContext->finish();
 
 	ImageData imageData;
 	imageData.format = format;
-	imageData.size = size;
-	imageData.levels.resize(texture->getInfo().getLevels());
+	imageData.extent = extent;
+	imageData.levels.resize(image->getDesc().levels);
 
-	std::byte* ptr = stagingBuffer->getHostPointer();
+	std::byte* ptr = stagingBuffer->getHostPtr();
 	for (uint32_t i = 0; i < imageData.levels.size(); i++)
 	{
-		imageData.levels[i].resize(texture->getLevelByteSize(i));
+		imageData.levels[i].resize(image->calcByteSize({i, 1}, 1));
 
 		std::copy_n(ptr, imageData.levels[i].size(), imageData.levels[i].data());
 		ptr += imageData.levels[i].size();

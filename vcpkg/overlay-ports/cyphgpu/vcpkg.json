@@ -1,0 +1,40 @@
+{
+	"name": "cyphgpu",
+	"version": "1.0.0",
+	"description": "A rendering backend over modern Vulkan for my other projects.",
+	"homepage": "https://github.com/Cyphall/CyphGPU",
+	"license": "MIT",
+	"dependencies": [
+		"glm",
+		"vulkan-headers",
+		"vulkan-memory-allocator",
+		"magic-enum",
+		"boost-optional",
+		"spdlog",
+		"tracy",
+		"cmakerc",
+		"half",
+		"slang",
+		"unordered-dense",
+		"boost-container",
+		{
+			"name": "vcpkg-cmake",
+			"host": true
+		},
+		{
+			"name": "vcpkg-cmake-config",
+			"host": true
+		}
+	],
+	"features": {
+		"tracy": {
+			"description": "Enable Tracy"
+		},
+		"imgui-backend": {
+			"description": "Enable ImGui backend",
+			"dependencies": [
+				"imgui"
+			]
+		}
+	}
+}

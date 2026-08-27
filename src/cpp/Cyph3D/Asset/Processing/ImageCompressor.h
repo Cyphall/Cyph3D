@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <vector>
+#include <span>
 #include <vulkan/vulkan.hpp>
 
 namespace c3d
@@ -9,6 +9,6 @@ namespace c3d
 class ImageCompressor
 {
 public:
-	static bool tryCompressImage(const std::vector<std::byte>& uncompressedImage, const glm::uvec2& uncompressedImageSize, vk::Format compressedFormat, std::vector<std::byte>& compressedImage);
+	static void compressImage(std::span<const std::byte> uncompressedImage, const glm::uvec2& uncompressedExtent, vk::Format compressedFormat, std::span<std::byte> compressedImage);
 };
 }

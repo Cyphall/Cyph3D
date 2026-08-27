@@ -4,74 +4,58 @@
 #include <Cyph3D/Helper/FileHelper.h>
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
 #include <Cyph3D/Scene/Camera.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
-#include <Cyph3D/VKObject/Sampler/VKSampler.h>
+
+#include <CyphGPU/FragmentOutputState.hpp>
+#include <CyphGPU/FragmentShaderState.hpp>
+#include <CyphGPU/GraphicsPassContext.hpp>
+#include <CyphGPU/PreRasterizationShaderState.hpp>
+#include <CyphGPU/Sampler.hpp>
+#include <CyphGPU/VertexInputState.hpp>
 
 c3d::ExposurePass::ExposurePass(glm::uvec2 size):
 	RenderPass(size, "Exposure pass")
 {
-	createDescriptorSetLayout();
-	createPipelineLayout();
-	createPipeline();
-	createSampler();
+	createPipelineStates();
 	createImage();
 }
 
-c3d::ExposurePassOutput c3d::ExposurePass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ExposurePassInput& input)
+c3d::ExposurePassOutput c3d::ExposurePass::onRender(cgpu::CommandRecorder& commandRecorder, ExposurePassInput& input)
 {
-	commandBuffer->imageMemoryBarrier(
-		input.inputImage,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
+	commandRecorder.graphicsPass({
+		.color_attachments = {{
+			{
+				.image = _outputImage,
+				.load_op = vk::AttachmentLoadOp::eDontCare,
+				.store_op = vk::AttachmentStoreOp::eStore,
+			},
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_preRasterizationShaderState,
+				_fragmentShaderState,
+				_fragmentOutputState
+			);
 
-	commandBuffer->imageMemoryBarrier(
-		_outputImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal
-	);
+			using namespace cgpu::shader_types;
+			struct
+			{
+				Texture2D<>::Handle u_image;
+				float u_exposure;
+			} parameters{};
 
-	VKRenderingInfo renderingInfo(_size);
+			parameters.u_image = ctx.getSampledImageDescriptor(
+				input.lightImage,
+				cgpu::GraphicsStage::eFragment
+			);
+			parameters.u_exposure = input.camera.getExposure();
 
-	renderingInfo.addColorAttachment(_outputImage)
-		.setLoadOpDontCare()
-		.setStoreOpStore();
-
-	commandBuffer->beginRendering(renderingInfo);
-
-	commandBuffer->bindPipeline(_pipeline);
-
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = _size;
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = _size;
-	commandBuffer->setScissor(scissor);
-
-	commandBuffer->pushDescriptor(0, 0, input.inputImage, _inputSampler);
-
-	PushConstantData pushConstantData{};
-	pushConstantData.exposure = input.camera.getExposure();
-	commandBuffer->pushConstants(pushConstantData);
-
-	commandBuffer->draw(3, 0);
-
-	commandBuffer->unbindPipeline();
-
-	commandBuffer->endRendering();
+			ctx.draw(3, 1, 0, 0, parameters);
+		},
+	});
 
 	return {
-		_outputImage
+		.lightImage = _outputImage,
 	};
 }
 
@@ -80,74 +64,51 @@ void c3d::ExposurePass::onResize()
 	createImage();
 }
 
-void c3d::ExposurePass::createDescriptorSetLayout()
+void c3d::ExposurePass::createPipelineStates()
 {
-	VKDescriptorSetLayoutInfo info(true);
-	info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-
-	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::ExposurePass::createPipelineLayout()
-{
-	VKPipelineLayoutInfo info;
-	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<PushConstantData>();
-
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::ExposurePass::createPipeline()
-{
-	VKGraphicsPipelineInfo info(
-		_pipelineLayout,
-		"fullscreen quad.vert",
-		vk::PrimitiveTopology::eTriangleList,
-		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise
+	_vertexInputState = cgpu::VertexInputState::create(
+		Engine::getDeviceSession(),
+		{}
 	);
 
-	info.setFragmentShader("post-processing/exposure/exposure.frag");
+	_preRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.vertex_shader = {.source = "Cyph3D/fullscreen quad.slang"},
+		}
+	);
 
-	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
+	_fragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.fragment_shader = {{.source = "Cyph3D/post-processing/exposure/exposure.slang"}},
+		}
+	);
 
-	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
-}
-
-void c3d::ExposurePass::createSampler()
-{
-	vk::SamplerCreateInfo createInfo;
-	createInfo.flags = {};
-	createInfo.magFilter = vk::Filter::eNearest;
-	createInfo.minFilter = vk::Filter::eNearest;
-	createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
-	createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
-	createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
-	createInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
-	createInfo.mipLodBias = 0.0f;
-	createInfo.anisotropyEnable = false;
-	createInfo.maxAnisotropy = 1;
-	createInfo.compareEnable = false;
-	createInfo.compareOp = vk::CompareOp::eNever;
-	createInfo.minLod = -1000.0f;
-	createInfo.maxLod = 1000.0f;
-	createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-	createInfo.unnormalizedCoordinates = false;
-
-	_inputSampler = VKSampler::create(Engine::getVKContext(), createInfo);
+	_fragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.color_attachments = {
+				{
+					.format = SceneRenderer::HDR_COLOR_FORMAT,
+				},
+			},
+		}
+	);
 }
 
 void c3d::ExposurePass::createImage()
 {
-	VKImageInfo imageInfo(
-		SceneRenderer::HDR_COLOR_FORMAT,
-		_size,
-		1,
-		1,
-		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc
+	_outputImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Exposure output image",
+			.format = SceneRenderer::HDR_COLOR_FORMAT,
+			.extent = {_size, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eColorAttachment |
+				vk::ImageUsageFlagBits::eSampled |
+				vk::ImageUsageFlagBits::eTransferSrc,
+		}
 	);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	imageInfo.setName("Exposure output image");
-
-	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 }

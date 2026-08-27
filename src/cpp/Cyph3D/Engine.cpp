@@ -6,20 +6,23 @@
 #include <Cyph3D/Scene/Scene.h>
 #include <Cyph3D/UI/UIHelper.h>
 #include <Cyph3D/UI/Window/UIInspector.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/Fence/VKFence.h>
-#include <Cyph3D/VKObject/Image/VKSwapchainImage.h>
-#include <Cyph3D/VKObject/Queue/VKQueue.h>
-#include <Cyph3D/VKObject/Semaphore/VKSemaphore.h>
-#include <Cyph3D/VKObject/VKContext.h>
-#include <Cyph3D/VKObject/VKSwapchain.h>
 #include <Cyph3D/Window.h>
 
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/Context.hpp>
+#include <CyphGPU/ContextSession.hpp>
+#include <CyphGPU/Device.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/ShaderBundle.hpp>
+#include <CyphGPU/Swapchain.hpp>
 #include <GLFW/glfw3.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/callback_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
+
+CGPU_DECLARE_SHADER_BUNDLE(shaders)
 
 namespace
 {
@@ -59,9 +62,86 @@ void initLogger(spdlog::level::level_enum logLevel)
 
 	spdlog::set_default_logger(std::move(logger));
 }
+
+uint32_t rankDevice(const cgpu::DevicePtr& device)
+{
+	if (device->getVulkanVersion() < cgpu::Context::VULKAN_API_VERSION)
+	{
+		return 0;
+	}
+
+	cgpu::Device::Capabilities requiredCaps;
+	requiredCaps |= cgpu::Device::Capability::eCore;
+	requiredCaps |= cgpu::Device::Capability::eSwapchain;
+
+	if ((device->getCapabilities() & requiredCaps) != requiredCaps)
+	{
+		return 0;
+	}
+
+	// from here, device is at least compatible
+
+	uint32_t score = 1;
+
+	switch (device->getType())
+	{
+	case vk::PhysicalDeviceType::eDiscreteGpu: score += 1000; break;
+	case vk::PhysicalDeviceType::eIntegratedGpu: score += 100; break;
+	default: break;
+	}
+
+	if (device->getCapabilities() & cgpu::Device::Capability::eRayTracing)
+	{
+		score += 1000;
+	}
+
+	return score;
 }
 
-std::unique_ptr<c3d::VKContext> c3d::Engine::_vkContext;
+std::optional<cgpu::DeviceSessionPtr> tryCreateDeviceSession()
+{
+	cgpu::ContextPtr context = cgpu::Context::create({
+		.shader_bundles = {&shaders},
+	});
+
+	cgpu::ContextSessionPtr contextSession = cgpu::ContextSession::create(
+		context,
+		{
+			.application_name = "Cyph3D",
+		}
+	);
+
+	cgpu::Device::Capabilities requiredCaps;
+	requiredCaps |= cgpu::Device::Capability::eCore;
+	requiredCaps |= cgpu::Device::Capability::eSwapchain;
+
+	std::optional<cgpu::DevicePtr> selectedDevice;
+	uint32_t selectedDeviceScore = 0;
+	for (const cgpu::DevicePtr& device : contextSession->getDevices())
+	{
+		uint32_t score = rankDevice(device);
+		if (score > selectedDeviceScore)
+		{
+			selectedDevice = device;
+			selectedDeviceScore = score;
+		}
+	}
+
+	if (!selectedDevice)
+	{
+		spdlog::error("Could not find a compatible device.");
+		return std::nullopt;
+	}
+
+	// Create device session
+	return cgpu::DeviceSession::create(
+		*selectedDevice,
+		{}
+	);
+}
+}
+
+cgpu::DeviceSessionPtr c3d::Engine::_deviceSession;
 std::unique_ptr<c3d::Window> c3d::Engine::_window;
 std::unique_ptr<c3d::AssetManager> c3d::Engine::_assetManager;
 std::unique_ptr<c3d::Scene> c3d::Engine::_scene;
@@ -80,14 +160,17 @@ void c3d::Engine::init()
 
 	glfwSetErrorCallback([](int code, const char* message) { spdlog::error(message); });
 
-	_vkContext = VKContext::create(2);
+	auto deviceSession = tryCreateDeviceSession();
+	if (!deviceSession)
+	{
+		throw std::runtime_error("Could not find a compatible device.");
+	}
 
-	vk::PhysicalDeviceDriverProperties driverProperties;
-	vk::PhysicalDeviceProperties2 properties;
-	properties.pNext = &driverProperties;
-	_vkContext->getPhysicalDevice().getProperties2(&properties);
-	spdlog::info("GPU: {}", static_cast<std::string_view>(properties.properties.deviceName));
-	spdlog::info("Driver: {} {}", static_cast<std::string_view>(driverProperties.driverName), static_cast<std::string_view>(driverProperties.driverInfo));
+	_deviceSession = *deviceSession;
+
+	const auto& device = _deviceSession->getDevice();
+	spdlog::info("GPU: {}", device->getDeviceName());
+	spdlog::info("Driver: {} {}", device->getDriverName(), device->getDriverInfo());
 
 	_window = std::make_unique<Window>();
 
@@ -105,30 +188,9 @@ void c3d::Engine::init()
 
 void c3d::Engine::run()
 {
-	vk::FenceCreateInfo fenceCreateInfo;
-	std::shared_ptr<VKFence> acquireFence = VKFence::create(*_vkContext, fenceCreateInfo);
-
-	std::vector<std::shared_ptr<VKSemaphore>> presentSemaphores;
-	presentSemaphores.reserve(3);
-	for (int i = 0; i < 3; i++)
-	{
-		vk::SemaphoreCreateInfo semaphoreCreateInfo;
-		presentSemaphores.emplace_back(VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo));
-	}
-
+	cgpu::CommandContext commandContext{_deviceSession};
 	while (!_window->shouldClose())
 	{
-		_vkContext->onNewFrame();
-		_assetManager->onNewFrame();
-
-		_vkContext->getDefaultCommandBuffer()->waitExecution();
-		_vkContext->getDefaultCommandBuffer()->reset();
-
-		const std::shared_ptr<VKSwapchainImage>& image = _window->getSwapchain().retrieveNextImage(*acquireFence);
-
-		acquireFence->wait();
-		acquireFence->reset();
-
 		_timer.onNewFrame();
 
 		glfwPollEvents();
@@ -138,50 +200,34 @@ void c3d::Engine::run()
 
 		_scene->onUpdate();
 
-		const std::shared_ptr<VKSemaphore>& presentSemaphore = presentSemaphores[image->getIndex()];
-		UIHelper::render(image->getImage(), presentSemaphore);
+		_window->ensureValidSwapchain();
+		UIHelper::render(commandContext, *_window->getSwapchain()->tryGetImage());
 
-		if (!_vkContext->getMainQueue().present(image, presentSemaphore))
-		{
-			glm::uvec2 surfaceSize = _window->getSurfaceSize();
+		commandContext.finish();
 
-			while (surfaceSize.x * surfaceSize.y == 0)
-			{
-				glfwWaitEvents();
-				surfaceSize = _window->getSurfaceSize();
-			}
+		_window->getSwapchain()->presentImage();
 
-			_window->recreateSwapchain();
-			_vkContext->getDevice().waitIdle();
-			presentSemaphores.clear();
-			for (int i = 0; i < 3; i++)
-			{
-				vk::SemaphoreCreateInfo semaphoreCreateInfo;
-				presentSemaphores.emplace_back(VKSemaphore::create(Engine::getVKContext(), semaphoreCreateInfo));
-			}
-		}
+		FrameMark;
 	}
-
-	_vkContext->getDevice().waitIdle();
 }
 
 void c3d::Engine::shutdown()
 {
-	_vkContext->getDevice().waitIdle();
+	_deviceSession->waitIdle();
 
 	FileHelper::shutdown();
 	UIHelper::shutdown();
 	_scene.reset();
 	_assetManager.reset();
 	_window.reset();
-	_vkContext.reset();
+	_deviceSession.reset();
 	glfwTerminate();
 	spdlog::shutdown();
 }
 
-c3d::VKContext& c3d::Engine::getVKContext()
+const cgpu::DeviceSessionPtr& c3d::Engine::getDeviceSession()
 {
-	return *_vkContext;
+	return _deviceSession;
 }
 
 c3d::Window& c3d::Engine::getWindow()

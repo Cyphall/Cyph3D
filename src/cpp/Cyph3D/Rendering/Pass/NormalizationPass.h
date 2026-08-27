@@ -4,21 +4,15 @@
 
 namespace c3d
 {
-class VKDescriptorSetLayout;
-class VKPipelineLayout;
-class VKComputePipeline;
-class VKSampler;
-class VKImage;
-
 struct NormalizationPassInput
 {
-	std::array<std::shared_ptr<VKImage>, 3> inputImage;
+	cgpu::ImagePtr lightImage;
 	uint32_t accumulatedSamples;
 };
 
 struct NormalizationPassOutput
 {
-	const std::shared_ptr<VKImage>& outputImage;
+	const cgpu::ImagePtr& lightImage;
 };
 
 class NormalizationPass : public RenderPass<NormalizationPassInput, NormalizationPassOutput>
@@ -27,24 +21,14 @@ public:
 	explicit NormalizationPass(glm::uvec2 size);
 
 private:
-	struct PushConstantData
-	{
-		uint32_t accumulatedSamples;
-	};
+	cgpu::ComputeShaderStatePtr _computeShaderState;
 
-	std::shared_ptr<VKDescriptorSetLayout> _descriptorSetLayout;
+	cgpu::ImagePtr _outputImage;
 
-	std::shared_ptr<VKPipelineLayout> _pipelineLayout;
-	std::shared_ptr<VKComputePipeline> _pipeline;
-
-	std::shared_ptr<VKImage> _outputImage;
-
-	void createDescriptorSetLayout();
-	void createPipelineLayout();
-	void createPipeline();
+	void createPipelineState();
 	void createImage();
 
-	NormalizationPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input) override;
+	NormalizationPassOutput onRender(cgpu::CommandRecorder& commandRecorder, NormalizationPassInput& input) override;
 	void onResize() override;
 };
 }

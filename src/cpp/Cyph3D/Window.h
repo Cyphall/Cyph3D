@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <CyphGPU/fwd.hpp>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vulkan/vulkan.hpp>
@@ -9,18 +10,15 @@ struct GLFWwindow;
 
 namespace c3d
 {
-class VKContext;
-class VKSwapchain;
-
 class Window
 {
 public:
 	enum class MouseButtonState
 	{
-		Clicked,
-		Held,
-		Released,
-		None
+		eClicked,
+		eHeld,
+		eReleased,
+		eNone
 	};
 
 	explicit Window();
@@ -49,9 +47,11 @@ public:
 
 	void onPollEvents();
 
-	VKSwapchain& getSwapchain();
+	const vk::SurfaceFormatKHR& getSurfaceFormat();
 
-	void recreateSwapchain();
+	const cgpu::SwapchainPtr& getSwapchain();
+
+	void ensureValidSwapchain();
 
 private:
 	GLFWwindow* _glfwWindow;
@@ -59,7 +59,8 @@ private:
 	std::array<bool, 8> _previousFrameMouseButtonsPressed;
 	std::array<bool, 8> _currentFrameMouseButtonsPressed;
 
-	vk::SurfaceKHR _surface;
-	std::unique_ptr<VKSwapchain> _swapchain;
+	vk::SurfaceFormatKHR _surfaceFormat;
+	cgpu::SurfacePtr _surface;
+	cgpu::SwapchainPtr _swapchain;
 };
 }

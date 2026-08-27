@@ -8,73 +8,63 @@
 #include <Cyph3D/Rendering/VertexData.h>
 #include <Cyph3D/Scene/Camera.h>
 #include <Cyph3D/Scene/Transform.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
+
+#include <CyphGPU/FragmentOutputState.hpp>
+#include <CyphGPU/FragmentShaderState.hpp>
+#include <CyphGPU/GraphicsPassContext.hpp>
+#include <CyphGPU/PreRasterizationShaderState.hpp>
+#include <CyphGPU/VertexInputState.hpp>
 
 c3d::ZPrepass::ZPrepass(glm::uvec2 size):
 	RenderPass(size, "Z prepass")
 {
-	createPipelineLayout();
-	createPipeline();
 	createImage();
+	createPipelineStates();
 }
 
-c3d::ZPrepassOutput c3d::ZPrepass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ZPrepassInput& input)
+c3d::ZPrepassOutput c3d::ZPrepass::onRender(cgpu::CommandRecorder& commandRecorder, ZPrepassInput& input)
 {
-	commandBuffer->imageMemoryBarrier(
-		_depthImage,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-		vk::AccessFlagBits2::eDepthStencilAttachmentRead | vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::ImageLayout::eDepthAttachmentOptimal
-	);
+	commandRecorder.graphicsPass({
+		.depth_stencil_attachment = {{
+			.image = _multisampledDepthImage,
+			.load_op = vk::AttachmentLoadOp::eClear,
+			.store_op = vk::AttachmentStoreOp::eStore,
+			.clear_depth_value = 1.0f,
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_preRasterizationShaderState,
+				_fragmentShaderState,
+				_fragmentOutputState
+			);
 
-	VKRenderingInfo renderingInfo(_size);
+			glm::mat4 vpMatrix = input.camera.getProjection() * input.camera.getView();
+			for (const ModelRenderer::RenderData& model : input.registry.getModelRenderRequests())
+			{
+				ctx.bindIndexBuffer(model.mesh.getIndexBuffer(), model.mesh.getIndexType());
 
-	renderingInfo.setDepthAttachment(_depthImage)
-		.setLoadOpClear(1.0f)
-		.setStoreOpStore();
+				using namespace cgpu::shader_types;
+				struct
+				{
+					float4x4 u_mvpMatrix{};
+					PositionVertexData* u_vertexList{};
+				} parameters{};
 
-	commandBuffer->beginRendering(renderingInfo);
+				parameters.u_mvpMatrix = vpMatrix * model.transform.getLocalToWorldMatrix();
+				parameters.u_vertexList = ctx.getBufferDevicePtr<PositionVertexData>(
+					model.mesh.getPositionVertexBuffer(),
+					cgpu::GraphicsStage::eVertex,
+					cgpu::StorageAccess::eReadonly
+				);
 
-	commandBuffer->bindPipeline(_pipeline);
-
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = _size;
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = _size;
-	commandBuffer->setScissor(scissor);
-
-	glm::mat4 vp = input.camera.getProjection() * input.camera.getView();
-
-	for (const ModelRenderer::RenderData& model : input.registry.getModelRenderRequests())
-	{
-		const std::shared_ptr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-		const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
-
-		commandBuffer->bindVertexBuffer(0, vertexBuffer);
-		commandBuffer->bindIndexBuffer(indexBuffer);
-
-		PushConstantData pushConstantData{};
-		pushConstantData.mvp = vp * model.transform.getLocalToWorldMatrix();
-		commandBuffer->pushConstants(pushConstantData);
-
-		commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
-	}
-
-	commandBuffer->unbindPipeline();
-
-	commandBuffer->endRendering();
+				ctx.drawIndexed(model.mesh.getIndexCount(), 1, 0, 0, 0, parameters);
+			}
+		},
+	});
 
 	return {
-		.multisampledDepthImage = _depthImage
+		.multisampledDepthImage = _multisampledDepthImage,
 	};
 }
 
@@ -83,46 +73,51 @@ void c3d::ZPrepass::onResize()
 	createImage();
 }
 
-void c3d::ZPrepass::createPipelineLayout()
-{
-	VKPipelineLayoutInfo info;
-	info.setPushConstantLayout<PushConstantData>();
-
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::ZPrepass::createPipeline()
-{
-	VKGraphicsPipelineInfo info(
-		_pipelineLayout,
-		"z-prepass/z-prepass.vert",
-		vk::PrimitiveTopology::eTriangleList,
-		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise
-	);
-
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
-
-	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
-
-	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLess, true);
-
-	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
-}
-
 void c3d::ZPrepass::createImage()
 {
-	VKImageInfo imageInfo(
-		SceneRenderer::DEPTH_FORMAT,
-		_size,
-		1,
-		1,
-		vk::ImageUsageFlagBits::eDepthStencilAttachment
+	_multisampledDepthImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Multisampled depth image",
+			.format = SceneRenderer::DEPTH_FORMAT,
+			.extent = {_size, 1},
+			.usages = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+			.samples = vk::SampleCountFlagBits::e4,
+		}
 	);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
-	imageInfo.setName("Depth image");
+}
 
-	_depthImage = VKImage::create(Engine::getVKContext(), imageInfo);
+void c3d::ZPrepass::createPipelineStates()
+{
+	_vertexInputState = cgpu::VertexInputState::create(
+		Engine::getDeviceSession(),
+		{}
+	);
+
+	_preRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.vertex_shader = {.source = "Cyph3D/z-prepass/z-prepass.slang"},
+		}
+	);
+
+	_fragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.depth_state = {{
+				.test_pass_condition = vk::CompareOp::eLess,
+				.write_enabled = true,
+			}},
+		}
+	);
+
+	_fragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.depth_stencil_attachment = {{
+				.format = SceneRenderer::DEPTH_FORMAT,
+			}},
+			.samples = vk::SampleCountFlagBits::e4,
+		}
+	);
 }

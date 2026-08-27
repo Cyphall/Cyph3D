@@ -1,7 +1,6 @@
 #include "LightingPass.h"
 
 #include <Cyph3D/Asset/AssetManager.h>
-#include <Cyph3D/Asset/BindlessTextureManager.h>
 #include <Cyph3D/Asset/RuntimeAsset/MaterialAsset.h>
 #include <Cyph3D/Asset/RuntimeAsset/MeshAsset.h>
 #include <Cyph3D/Engine.h>
@@ -11,203 +10,233 @@
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
 #include <Cyph3D/Scene/Camera.h>
 #include <Cyph3D/Scene/Transform.h>
-#include <Cyph3D/VKObject/Buffer/VKResizableBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSet.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
-#include <Cyph3D/VKObject/Sampler/VKSampler.h>
 
+#include <CyphGPU/FragmentOutputState.hpp>
+#include <CyphGPU/FragmentShaderState.hpp>
+#include <CyphGPU/GraphicsPassContext.hpp>
+#include <CyphGPU/PreRasterizationShaderState.hpp>
+#include <CyphGPU/Sampler.hpp>
+#include <CyphGPU/VertexInputState.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+
+namespace
+{
+using namespace cgpu::shader_types;
+
+struct GPUDirectionalLight
+{
+	float3 fragToLightDirection{};
+	float intensity{};
+	float3 color{};
+	bool castShadows{};
+	float4x4 vpMatrix{};
+	Texture2D<>::Handle image{};
+	float shadowMapTexelWorldSize{};
+};
+
+struct GPUPointLight
+{
+	float3 pos{};
+	float intensity{};
+	float3 color{};
+	bool castShadows{};
+	TextureCube<>::Handle image{};
+	float maxTexelSizeAtUnitDistance{};
+};
+}
 
 c3d::LightingPass::LightingPass(glm::uvec2 size):
 	RenderPass(size, "Lighting pass")
 {
-	createUniformBuffers();
-	createSamplers();
-	createDescriptorSetLayouts();
-	createPipelineLayout();
-	createPipeline();
 	createImage();
+	createSamplers();
+	createPipelineStates();
 }
 
-c3d::LightingPassOutput c3d::LightingPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, LightingPassInput& input)
+c3d::LightingPassOutput c3d::LightingPass::onRender(cgpu::CommandRecorder& commandRecorder, LightingPassInput& input)
 {
-	commandBuffer->imageMemoryBarrier(
-		input.multisampledDepthImage,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests,
-		vk::AccessFlagBits2::eDepthStencilAttachmentRead,
-		vk::ImageLayout::eDepthAttachmentOptimal
-	);
+	commandRecorder.graphicsPass({
+		.color_attachments = {{
+			{
+				.image = _multisampledLightImage,
+				.load_op = vk::AttachmentLoadOp::eClear,
+				.store_op = vk::AttachmentStoreOp::eStore,
+				.clear_color_value = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f},
+			},
+		}},
+		.depth_stencil_attachment = {{
+			.image = input.multisampledDepthImage,
+			.load_op = vk::AttachmentLoadOp::eLoad,
+			.store_op = vk::AttachmentStoreOp::eNone,
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			std::optional<cgpu::BufferPtr> directionalLightBuffer;
+			if (!input.registry.getDirectionalLightRenderRequests().empty())
+			{
+				directionalLightBuffer = cgpu::Buffer::create(
+					Engine::getDeviceSession(),
+					{
+						.name = "Directional light buffer",
+						.size = input.registry.getDirectionalLightRenderRequests().size() * sizeof(GPUDirectionalLight),
+						.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+						.min_alignment = alignof(GPUDirectionalLight),
+					}
+				);
 
-	for (const DirectionalShadowMapInfo& info : input.directionalShadowMapInfos)
-	{
-		commandBuffer->imageMemoryBarrier(
-			info.image,
-			vk::PipelineStageFlagBits2::eFragmentShader,
-			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal
-		);
-	}
+				GPUDirectionalLight* directionalLightPtr = (*directionalLightBuffer)->getHostPtr<GPUDirectionalLight>();
+				for (int i = 0; i < input.registry.getDirectionalLightRenderRequests().size(); i++)
+				{
+					const DirectionalLight::RenderData& light = input.registry.getDirectionalLightRenderRequests()[i];
 
-	for (const PointShadowMapInfo& info : input.pointShadowMapInfos)
-	{
-		commandBuffer->imageMemoryBarrier(
-			info.image,
-			vk::PipelineStageFlagBits2::eFragmentShader,
-			vk::AccessFlagBits2::eShaderSampledRead,
-			vk::ImageLayout::eReadOnlyOptimal
-		);
-	}
+					directionalLightPtr[i].fragToLightDirection = light.transform.getUp();
+					directionalLightPtr[i].intensity = light.intensity;
+					directionalLightPtr[i].color = light.color;
+					directionalLightPtr[i].castShadows = light.castShadows;
+					if (light.castShadows)
+					{
+						const DirectionalShadowMapInfo& shadowMapInfo = *input.directionalShadowMapInfos[i];
 
-	commandBuffer->imageMemoryBarrier(
-		_multisampledRawRenderImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal
-	);
+						directionalLightPtr[i].vpMatrix = shadowMapInfo.vpMatrix;
+						directionalLightPtr[i].image = ctx.getSampledImageDescriptor(shadowMapInfo.image, cgpu::GraphicsStage::eFragment);
+						directionalLightPtr[i].shadowMapTexelWorldSize = shadowMapInfo.worldSize / static_cast<float>(light.shadowMapResolution);
+					}
+				}
+			}
 
-	descriptorSetsResizeSmart(input.directionalShadowMapInfos.size(), input.pointShadowMapInfos.size());
+			std::optional<cgpu::BufferPtr> pointLightBuffer;
+			if (!input.registry.getPointLightRenderRequests().empty())
+			{
+				pointLightBuffer = cgpu::Buffer::create(
+					Engine::getDeviceSession(),
+					{
+						.name = "Point light buffer",
+						.size = input.registry.getPointLightRenderRequests().size() * sizeof(GPUPointLight),
+						.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+						.min_alignment = alignof(GPUPointLight),
+					}
+				);
 
-	_directionalLightsUniforms->resizeSmart(input.registry.getDirectionalLightRenderRequests().size());
-	uint32_t directionalLightShadowIndex = 0;
-	for (int i = 0; i < input.registry.getDirectionalLightRenderRequests().size(); i++)
-	{
-		const DirectionalLight::RenderData& light = input.registry.getDirectionalLightRenderRequests()[i];
+				GPUPointLight* pointLightPtr = (*pointLightBuffer)->getHostPtr<GPUPointLight>();
+				for (int i = 0; i < input.registry.getPointLightRenderRequests().size(); i++)
+				{
+					const PointLight::RenderData& light = input.registry.getPointLightRenderRequests()[i];
 
-		DirectionalLightUniforms* directionalLightUniformsPtr = _directionalLightsUniforms->getHostPointer() + i;
-		directionalLightUniformsPtr->fragToLightDirection = light.transform.getUp();
-		directionalLightUniformsPtr->intensity = light.intensity;
-		directionalLightUniformsPtr->color = light.color;
-		directionalLightUniformsPtr->castShadows = light.castShadows;
-		if (light.castShadows)
-		{
-			const DirectionalShadowMapInfo& shadowMapInfo = input.directionalShadowMapInfos[directionalLightShadowIndex];
+					pointLightPtr[i].pos = light.transform.getWorldPosition();
+					pointLightPtr[i].intensity = light.intensity;
+					pointLightPtr[i].color = light.color;
+					pointLightPtr[i].castShadows = light.castShadows;
+					if (light.castShadows)
+					{
+						const PointShadowMapInfo& shadowMapInfo = *input.pointShadowMapInfos[i];
 
-			directionalLightUniformsPtr->lightViewProjection = shadowMapInfo.viewProjection;
-			directionalLightUniformsPtr->textureIndex = directionalLightShadowIndex;
-			directionalLightUniformsPtr->shadowMapTexelWorldSize = shadowMapInfo.worldSize / light.shadowMapResolution;
+						pointLightPtr[i].image = ctx.getSampledImageDescriptor(shadowMapInfo.image, cgpu::GraphicsStage::eFragment, {.type = vk::ImageViewType::eCube});
+						pointLightPtr[i].maxTexelSizeAtUnitDistance = 2.0f / static_cast<float>(light.shadowMapResolution);
+					}
+				}
+			}
 
-			_directionalLightDescriptorSet->bindDescriptor(1, shadowMapInfo.image, _directionalLightSampler, directionalLightShadowIndex);
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_preRasterizationShaderState,
+				_fragmentShaderState,
+				_fragmentOutputState
+			);
 
-			directionalLightShadowIndex++;
-		}
-	}
-	if (!input.registry.getDirectionalLightRenderRequests().empty())
-	{
-		_directionalLightDescriptorSet->bindDescriptor(0, _directionalLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getDirectionalLightRenderRequests().size());
-	}
+			using namespace cgpu::shader_types;
+			struct
+			{
+				GPUDirectionalLight* u_directionalLightList{};
+				GPUPointLight* u_pointLightList{};
+				SamplerState::Handle u_materialSampler{};
+				SamplerComparisonState::Handle u_directionalLightSampler{};
+				SamplerComparisonState::Handle u_pointLightSampler{};
+				float3 u_viewPos{};
+				uint32_t u_frameIndex{};
+				uint32_t u_directionalLightCount{};
+				uint32_t u_pointLightCount{};
+				float u_pointLightMaxDistance{};
 
-	_pointLightsUniforms->resizeSmart(input.registry.getPointLightRenderRequests().size());
-	uint32_t pointLightShadowIndex = 0;
-	for (int i = 0; i < input.registry.getPointLightRenderRequests().size(); i++)
-	{
-		const PointLight::RenderData& light = input.registry.getPointLightRenderRequests()[i];
+				float3x3 u_normalMatrix{};
+				float4x4 u_mMatrix{};
+				float4x4 u_mvpMatrix{};
+				PositionVertexData* u_positionVertexList{};
+				MaterialVertexData* u_materialVertexList{};
+				Texture2D<>::Handle u_albedoImage{};
+				Texture2D<>::Handle u_normalImage{};
+				Texture2D<>::Handle u_roughnessImage{};
+				Texture2D<>::Handle u_metalnessImage{};
+				Texture2D<>::Handle u_displacementImage{};
+				Texture2D<>::Handle u_emissiveImage{};
+				float3 u_albedoValue{};
+				float u_roughnessValue{};
+				float u_metalnessValue{};
+				float u_displacementScale{};
+				float u_emissiveScale{};
+			} parameters{};
 
-		PointLightUniforms* pointLightUniformsPtr = _pointLightsUniforms->getHostPointer() + i;
-		pointLightUniformsPtr->pos = light.transform.getWorldPosition();
-		pointLightUniformsPtr->intensity = light.intensity;
-		pointLightUniformsPtr->color = light.color;
-		pointLightUniformsPtr->castShadows = light.castShadows;
-		if (light.castShadows)
-		{
-			const PointShadowMapInfo& shadowMapInfo = input.pointShadowMapInfos[pointLightShadowIndex];
+			parameters.u_directionalLightList =
+				directionalLightBuffer ?
+					ctx.getBufferDevicePtr<GPUDirectionalLight>(*directionalLightBuffer, cgpu::GraphicsStage::eFragment, cgpu::StorageAccess::eReadonly) :
+					nullptr;
+			parameters.u_pointLightList =
+				pointLightBuffer ?
+					ctx.getBufferDevicePtr<GPUPointLight>(*pointLightBuffer, cgpu::GraphicsStage::eFragment, cgpu::StorageAccess::eReadonly) :
+					nullptr;
+			parameters.u_materialSampler = Engine::getAssetManager().getTextureSampler()->getDescriptor();
+			parameters.u_directionalLightSampler = _directionalLightSampler->getDescriptor();
+			parameters.u_pointLightSampler = _pointLightSampler->getDescriptor();
+			parameters.u_viewPos = input.camera.getPosition();
+			parameters.u_frameIndex = _frameIndex;
+			parameters.u_directionalLightCount = static_cast<uint32_t>(input.registry.getDirectionalLightRenderRequests().size());
+			parameters.u_pointLightCount = static_cast<uint32_t>(input.registry.getPointLightRenderRequests().size());
+			parameters.u_pointLightMaxDistance = input.pointLightMaxDistance;
 
-			pointLightUniformsPtr->textureIndex = pointLightShadowIndex;
-			pointLightUniformsPtr->maxTexelSizeAtUnitDistance = 2.0f / light.shadowMapResolution;
+			glm::mat4 vpMatrix = input.camera.getProjection() * input.camera.getView();
+			for (const ModelRenderer::RenderData& model : input.registry.getModelRenderRequests())
+			{
+				ctx.bindIndexBuffer(model.mesh.getIndexBuffer(), model.mesh.getIndexType());
 
-			_pointLightDescriptorSet->bindDescriptor(1, shadowMapInfo.image, _pointLightSampler, pointLightShadowIndex);
+				auto albedoImage = model.material.getAlbedoImage();
+				auto normalImage = model.material.getNormalImage();
+				auto roughnessImage = model.material.getRoughnessImage();
+				auto metalnessImage = model.material.getMetalnessImage();
+				auto displacementImage = model.material.getDisplacementImage();
+				auto emissiveImage = model.material.getEmissiveImage();
 
-			pointLightShadowIndex++;
-		}
-	}
-	if (!input.registry.getPointLightRenderRequests().empty())
-	{
-		_pointLightDescriptorSet->bindDescriptor(0, _pointLightsUniforms.getCurrent()->getBuffer(), 0, input.registry.getPointLightRenderRequests().size());
-	}
+				parameters.u_normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix()));
+				parameters.u_mMatrix = model.transform.getLocalToWorldMatrix();
+				parameters.u_mvpMatrix = vpMatrix * model.transform.getLocalToWorldMatrix();
+				parameters.u_positionVertexList = ctx.getBufferDevicePtr<PositionVertexData>(
+					model.mesh.getPositionVertexBuffer(),
+					cgpu::GraphicsStage::eVertex,
+					cgpu::StorageAccess::eReadonly
+				);
+				parameters.u_materialVertexList = ctx.getBufferDevicePtr<MaterialVertexData>(
+					model.mesh.getMaterialVertexBuffer(),
+					cgpu::GraphicsStage::eVertex,
+					cgpu::StorageAccess::eReadonly
+				);
+				parameters.u_albedoImage = albedoImage ? ctx.getSampledImageDescriptor(*albedoImage, cgpu::GraphicsStage::eFragment) : nullptr;
+				parameters.u_normalImage = normalImage ? ctx.getSampledImageDescriptor(*normalImage, cgpu::GraphicsStage::eFragment) : nullptr;
+				parameters.u_roughnessImage = roughnessImage ? ctx.getSampledImageDescriptor(*roughnessImage, cgpu::GraphicsStage::eFragment) : nullptr;
+				parameters.u_metalnessImage = metalnessImage ? ctx.getSampledImageDescriptor(*metalnessImage, cgpu::GraphicsStage::eFragment) : nullptr;
+				parameters.u_displacementImage = displacementImage ? ctx.getSampledImageDescriptor(*displacementImage, cgpu::GraphicsStage::eFragment) : nullptr;
+				parameters.u_emissiveImage = emissiveImage ? ctx.getSampledImageDescriptor(*emissiveImage, cgpu::GraphicsStage::eFragment) : nullptr;
+				parameters.u_albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue());
+				parameters.u_roughnessValue = model.material.getRoughnessValue();
+				parameters.u_metalnessValue = model.material.getMetalnessValue();
+				parameters.u_displacementScale = model.material.getDisplacementScale();
+				parameters.u_emissiveScale = model.material.getEmissiveScale();
 
-	VKRenderingInfo renderingInfo(_size);
-
-	renderingInfo.addColorAttachment(_multisampledRawRenderImage)
-		.setLoadOpClear(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
-		.setStoreOpStore();
-
-	renderingInfo.setDepthAttachment(input.multisampledDepthImage)
-		.setLoadOpLoad()
-		.setStoreOpNone();
-
-	commandBuffer->beginRendering(renderingInfo);
-
-	commandBuffer->bindPipeline(_pipeline);
-
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = _size;
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = _size;
-	commandBuffer->setScissor(scissor);
-
-	commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
-	commandBuffer->bindDescriptorSet(1, _directionalLightDescriptorSet.getCurrent());
-	commandBuffer->bindDescriptorSet(2, _pointLightDescriptorSet.getCurrent());
-
-	PushConstantData pushConstantData{};
-	pushConstantData.viewPos = input.camera.getPosition();
-	pushConstantData.frameIndex = _frameIndex;
-	pushConstantData.directionalLightCount = input.registry.getDirectionalLightRenderRequests().size();
-	pushConstantData.pointLightCount = input.registry.getPointLightRenderRequests().size();
-	pushConstantData.pointLightMaxDistance = input.pointLightMaxDistance;
-	commandBuffer->pushConstants(pushConstantData);
-
-	glm::mat4 viewProjection = input.camera.getProjection() * input.camera.getView();
-
-	_objectUniforms->resizeSmart(input.registry.getModelRenderRequests().size());
-	for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
-	{
-		ModelRenderer::RenderData model = input.registry.getModelRenderRequests()[i];
-
-		const std::shared_ptr<VKBuffer<PositionVertexData>>& positionVertexBuffer = model.mesh.getPositionVertexBuffer();
-		const std::shared_ptr<VKBuffer<MaterialVertexData>>& materialVertexBuffer = model.mesh.getMaterialVertexBuffer();
-		const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
-
-		commandBuffer->bindVertexBuffer(0, positionVertexBuffer);
-		commandBuffer->bindVertexBuffer(1, materialVertexBuffer);
-		commandBuffer->bindIndexBuffer(indexBuffer);
-
-		ObjectUniforms* objectUniformsPtr = _objectUniforms->getHostPointer() + i;
-		objectUniformsPtr->normalMatrix = glm::inverseTranspose(glm::mat3(model.transform.getLocalToWorldMatrix()));
-		objectUniformsPtr->model = model.transform.getLocalToWorldMatrix();
-		objectUniformsPtr->mvp = viewProjection * model.transform.getLocalToWorldMatrix();
-		objectUniformsPtr->albedoIndex = model.material.getAlbedoTextureBindlessIndex();
-		objectUniformsPtr->normalIndex = model.material.getNormalTextureBindlessIndex();
-		objectUniformsPtr->roughnessIndex = model.material.getRoughnessTextureBindlessIndex();
-		objectUniformsPtr->metalnessIndex = model.material.getMetalnessTextureBindlessIndex();
-		objectUniformsPtr->displacementIndex = model.material.getDisplacementTextureBindlessIndex();
-		objectUniformsPtr->emissiveIndex = model.material.getEmissiveTextureBindlessIndex();
-		objectUniformsPtr->albedoValue = MathHelper::srgbToLinear(model.material.getAlbedoValue());
-		objectUniformsPtr->roughnessValue = model.material.getRoughnessValue();
-		objectUniformsPtr->metalnessValue = model.material.getMetalnessValue();
-		objectUniformsPtr->displacementScale = model.material.getDisplacementScale();
-		objectUniformsPtr->emissiveScale = model.material.getEmissiveScale();
-
-		commandBuffer->pushDescriptor(3, 0, _objectUniforms.getCurrent()->getBuffer(), i, 1);
-
-		commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
-	}
-
-	commandBuffer->unbindPipeline();
-
-	commandBuffer->endRendering();
+				ctx.drawIndexed(model.mesh.getIndexCount(), 1, 0, 0, 0, parameters);
+			}
+		},
+	});
 
 	_frameIndex++;
 
 	return {
-		.multisampledRawRenderImage = _multisampledRawRenderImage
+		.multisampledLightImage = _multisampledLightImage,
 	};
 }
 
@@ -216,215 +245,88 @@ void c3d::LightingPass::onResize()
 	createImage();
 }
 
-void c3d::LightingPass::createUniformBuffers()
-{
-	VKResizableBufferInfo directionalLightsUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
-	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	directionalLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	directionalLightsUniformsBufferInfo.setName("Directional lights uniform buffer");
-
-	_directionalLightsUniforms = VKDynamic<VKResizableBuffer<DirectionalLightUniforms>>(
-		Engine::getVKContext(),
-		[&](VKContext& context, int index) {
-			return VKResizableBuffer<DirectionalLightUniforms>::create(context, directionalLightsUniformsBufferInfo);
-		}
-	);
-
-	VKResizableBufferInfo pointLightsUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
-	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	pointLightsUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	pointLightsUniformsBufferInfo.setName("Point lights uniform buffer");
-
-	_pointLightsUniforms = VKDynamic<VKResizableBuffer<PointLightUniforms>>(
-		Engine::getVKContext(),
-		[&](VKContext& context, int index) {
-			return VKResizableBuffer<PointLightUniforms>::create(context, pointLightsUniformsBufferInfo);
-		}
-	);
-
-	VKResizableBufferInfo objectUniformsBufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	objectUniformsBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	objectUniformsBufferInfo.setName("Objects uniform buffer");
-
-	_objectUniforms = VKDynamic<VKResizableBuffer<ObjectUniforms>>(
-		Engine::getVKContext(),
-		[&](VKContext& context, int index) {
-			return VKResizableBuffer<ObjectUniforms>::create(context, objectUniformsBufferInfo);
-		}
-	);
-}
-
 void c3d::LightingPass::createSamplers()
 {
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eLinear;
-		createInfo.minFilter = vk::Filter::eLinear;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
-		createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = false;
-		createInfo.maxAnisotropy = 1;
-		createInfo.compareEnable = true;
-		createInfo.compareOp = vk::CompareOp::eGreater;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
-		createInfo.unnormalizedCoordinates = false;
-
-		_directionalLightSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
-
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eLinear;
-		createInfo.minFilter = vk::Filter::eLinear;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
-		createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = false;
-		createInfo.maxAnisotropy = 1;
-		createInfo.compareEnable = true;
-		createInfo.compareOp = vk::CompareOp::eGreater;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
-		createInfo.unnormalizedCoordinates = false;
-
-		_pointLightSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
-}
-
-void c3d::LightingPass::createDescriptorSetLayouts()
-{
-	{
-		VKDescriptorSetLayoutInfo info(false);
-		info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
-		info.addIndexedBinding(vk::DescriptorType::eCombinedImageSampler, 1024);
-
-		_directionalLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
-
-	{
-		VKDescriptorSetLayoutInfo info(false);
-		info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
-		info.addIndexedBinding(vk::DescriptorType::eCombinedImageSampler, 1024);
-
-		_pointLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
-
-	{
-		VKDescriptorSetLayoutInfo info(true);
-		info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
-
-		_objectDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
-}
-
-void c3d::LightingPass::createPipelineLayout()
-{
-	VKPipelineLayoutInfo info;
-	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
-	info.addDescriptorSetLayout(_directionalLightDescriptorSetLayout);
-	info.addDescriptorSetLayout(_pointLightDescriptorSetLayout);
-	info.addDescriptorSetLayout(_objectDescriptorSetLayout);
-	info.setPushConstantLayout<PushConstantData>();
-
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::LightingPass::createPipeline()
-{
-	VKGraphicsPipelineInfo info(
-		_pipelineLayout,
-		"lighting/lighting.vert",
-		vk::PrimitiveTopology::eTriangleList,
-		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise
+	_directionalLightSampler = cgpu::Sampler::create(
+		Engine::getDeviceSession(),
+		{
+			.min_filter = vk::Filter::eLinear,
+			.mag_filter = vk::Filter::eLinear,
+			.wrapping_u = vk::SamplerAddressMode::eClampToBorder,
+			.wrapping_v = vk::SamplerAddressMode::eClampToBorder,
+			.wrapping_w = vk::SamplerAddressMode::eClampToBorder,
+			.comparison_mode = vk::CompareOp::eGreater,
+			.border_color = vk::BorderColor::eFloatOpaqueWhite,
+		}
 	);
 
-	info.setFragmentShader("lighting/lighting.frag");
+	_pointLightSampler = cgpu::Sampler::create(
+		Engine::getDeviceSession(),
+		{
+			.min_filter = vk::Filter::eLinear,
+			.mag_filter = vk::Filter::eLinear,
+			.wrapping_u = vk::SamplerAddressMode::eClampToEdge,
+			.wrapping_v = vk::SamplerAddressMode::eClampToEdge,
+			.wrapping_w = vk::SamplerAddressMode::eClampToEdge,
+			.comparison_mode = vk::CompareOp::eGreater,
+			.border_color = vk::BorderColor::eFloatOpaqueWhite,
+		}
+	);
+}
 
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineSlot(1, sizeof(MaterialVertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
-	info.getVertexInputLayoutInfo().defineAttribute(1, 1, vk::Format::eR32G32Sfloat, offsetof(MaterialVertexData, uv));
-	info.getVertexInputLayoutInfo().defineAttribute(1, 2, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertexData, normal));
-	info.getVertexInputLayoutInfo().defineAttribute(1, 3, vk::Format::eR32G32B32A32Sfloat, offsetof(MaterialVertexData, tangent));
+void c3d::LightingPass::createPipelineStates()
+{
+	_vertexInputState = cgpu::VertexInputState::create(
+		Engine::getDeviceSession(),
+		{}
+	);
 
-	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
+	_preRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.vertex_shader = {.source = "Cyph3D/lighting/lighting.slang"},
+		}
+	);
 
-	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
-	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eEqual, false);
+	_fragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.fragment_shader = {{.source = "Cyph3D/lighting/lighting.slang"}},
+			.depth_state = {{
+				.test_pass_condition = vk::CompareOp::eEqual,
+				.write_enabled = false,
+			}},
+		}
+	);
 
-	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
+	_fragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.color_attachments = {
+				{
+					.format = SceneRenderer::HDR_COLOR_FORMAT,
+				},
+			},
+			.depth_stencil_attachment = {{
+				.format = SceneRenderer::DEPTH_FORMAT,
+			}},
+			.samples = vk::SampleCountFlagBits::e4,
+		}
+	);
 }
 
 void c3d::LightingPass::createImage()
 {
-	VKImageInfo imageInfo(
-		SceneRenderer::HDR_COLOR_FORMAT,
-		_size,
-		1,
-		1,
-		vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
+	_multisampledLightImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Multisampled light image",
+			.format = SceneRenderer::HDR_COLOR_FORMAT,
+			.extent = {_size, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eColorAttachment |
+				vk::ImageUsageFlagBits::eTransferSrc,
+			.samples = vk::SampleCountFlagBits::e4,
+		}
 	);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	imageInfo.setSampleCount(vk::SampleCountFlagBits::e4);
-	imageInfo.setName("Multisampled raw render image");
-
-	_multisampledRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
-}
-
-void c3d::LightingPass::descriptorSetsResizeSmart(uint32_t directionalLightShadowsCount, uint32_t pointLightShadowsCount)
-{
-	if (!_directionalLightDescriptorSet || _directionalLightDescriptorSet->getInfo().getVariableSizeAllocatedCount() < directionalLightShadowsCount)
-	{
-		// resize to next power of 2
-		size_t tentativeCount = 1;
-		while (tentativeCount < directionalLightShadowsCount)
-		{
-			tentativeCount *= 2;
-		}
-
-		VKDescriptorSetInfo info(_directionalLightDescriptorSetLayout);
-		info.setVariableSizeAllocatedCount(tentativeCount);
-
-		_directionalLightDescriptorSet = VKDynamic<VKDescriptorSet>(
-			Engine::getVKContext(),
-			[&](VKContext& context, int index) {
-				return VKDescriptorSet::create(context, info);
-			}
-		);
-	}
-
-	if (!_pointLightDescriptorSet || _pointLightDescriptorSet->getInfo().getVariableSizeAllocatedCount() < pointLightShadowsCount)
-	{
-		// resize to next power of 2
-		size_t tentativeCount = 1;
-		while (tentativeCount < pointLightShadowsCount)
-		{
-			tentativeCount *= 2;
-		}
-
-		VKDescriptorSetInfo info(_pointLightDescriptorSetLayout);
-		info.setVariableSizeAllocatedCount(tentativeCount);
-
-		_pointLightDescriptorSet = VKDynamic<VKDescriptorSet>(
-			Engine::getVKContext(),
-			[&](VKContext& context, int index) {
-				return VKDescriptorSet::create(context, info);
-			}
-		);
-	}
 }

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-
+#include <CyphGPU/CommandRecorder.hpp>
 #include <glm/glm.hpp>
 
 namespace c3d
@@ -18,13 +17,10 @@ public:
 
 	virtual ~RenderPass() = default;
 
-	TOutput render(const std::shared_ptr<VKCommandBuffer>& commandBuffer, TInput& input)
+	TOutput render(cgpu::CommandRecorder& commandRecorder, TInput& input)
 	{
-		commandBuffer->pushDebugGroup(_name);
-		TOutput output = onRender(commandBuffer, input);
-		commandBuffer->popDebugGroup();
-
-		return output;
+		cgpu::ScopedDebugRegion debugRegion{commandRecorder, _name};
+		return onRender(commandRecorder, input);
 	}
 
 	void resize(glm::uvec2 size)
@@ -36,7 +32,7 @@ public:
 protected:
 	glm::uvec2 _size;
 
-	virtual TOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, TInput& input) = 0;
+	virtual TOutput onRender(cgpu::CommandRecorder& commandRecorder, TInput& input) = 0;
 	virtual void onResize() = 0;
 
 private:

@@ -8,22 +8,20 @@
 #include <Cyph3D/Rendering/VertexData.h>
 #include <Cyph3D/Scene/Camera.h>
 #include <Cyph3D/Scene/Transform.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayoutInfo.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipelineInfo.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayoutInfo.h>
 
-c3d::ObjectPicker::ObjectPicker()
+#include <CyphGPU/CommandRecorder.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/FragmentOutputState.hpp>
+#include <CyphGPU/FragmentShaderState.hpp>
+#include <CyphGPU/GraphicsPassContext.hpp>
+#include <CyphGPU/Image.hpp>
+#include <CyphGPU/PreRasterizationShaderState.hpp>
+#include <CyphGPU/VertexInputState.hpp>
+
+c3d::ObjectPicker::ObjectPicker():
+	_commandContext{Engine::getDeviceSession()}
 {
-	createDescriptorSetLayout();
-	createPipelineLayout();
-	createPipeline();
-	createBuffer();
+	createPipelineStates();
 }
 
 c3d::ObjectPicker::~ObjectPicker() = default;
@@ -38,170 +36,158 @@ c3d::Entity* c3d::ObjectPicker::getPickedEntity(const Camera& camera, const Rend
 	if (viewportSize != _currentSize)
 	{
 		_currentSize = viewportSize;
-		createImage();
+		createImages();
 	}
 
-	Engine::getVKContext().executeImmediate(
-		[&](const std::shared_ptr<VKCommandBuffer>& commandBuffer) {
-			commandBuffer->imageMemoryBarrier(
-				_objectIndexImage,
-				vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-				vk::AccessFlagBits2::eColorAttachmentWrite,
-				vk::ImageLayout::eColorAttachmentOptimal
+	auto commandRecorder = _commandContext.createRecorder(Engine::getDeviceSession()->getMainQueue());
+
+	commandRecorder.graphicsPass({
+		.color_attachments = {{
+			{
+				.image = _objectIndexImage,
+				.load_op = vk::AttachmentLoadOp::eClear,
+				.store_op = vk::AttachmentStoreOp::eStore,
+				.clear_color_value = glm::ivec4{-1, 0, 0, 0},
+			},
+		}},
+		.depth_stencil_attachment = {{
+			.image = _depthImage,
+			.load_op = vk::AttachmentLoadOp::eClear,
+			.store_op = vk::AttachmentStoreOp::eDontCare,
+			.clear_depth_value = 1.0f,
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_preRasterizationShaderState,
+				_fragmentShaderState,
+				_fragmentOutputState
 			);
 
-			commandBuffer->imageMemoryBarrier(
-				_depthImage,
-				vk::PipelineStageFlagBits2::eEarlyFragmentTests,
-				vk::AccessFlagBits2::eDepthStencilAttachmentRead | vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-				vk::ImageLayout::eDepthAttachmentOptimal
-			);
-
-			VKRenderingInfo renderingInfo(_currentSize);
-
-			renderingInfo.addColorAttachment(_objectIndexImage)
-				.setLoadOpClear(glm::ivec4(0, 0, 0, 0))
-				.setStoreOpStore();
-
-			renderingInfo.setDepthAttachment(_depthImage)
-				.setLoadOpClear(1.0f)
-				.setStoreOpStore();
-
-			commandBuffer->beginRendering(renderingInfo);
-
-			commandBuffer->bindPipeline(_pipeline);
-
-			VKPipelineViewport viewport;
-			viewport.offset = {0, 0};
-			viewport.size = _currentSize;
-			viewport.depthRange = {0.0f, 1.0f};
-			commandBuffer->setViewport(viewport);
-
-			VKPipelineScissor scissor;
-			scissor.offset = {0, 0};
-			scissor.size = _currentSize;
-			commandBuffer->setScissor(scissor);
-
-			glm::mat4 vp = camera.getProjection() * camera.getView();
-
+			glm::mat4 vpMatrix = camera.getProjection() * camera.getView();
 			for (int i = 0; i < renderRegistry.getModelRenderRequests().size(); i++)
 			{
-				const ModelRenderer::RenderData& model = renderRegistry.getModelRenderRequests()[i];
+				const auto& model = renderRegistry.getModelRenderRequests()[i];
 
-				const std::shared_ptr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-				const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
+				ctx.bindIndexBuffer(model.mesh.getIndexBuffer(), model.mesh.getIndexType());
 
-				commandBuffer->bindVertexBuffer(0, vertexBuffer);
-				commandBuffer->bindIndexBuffer(indexBuffer);
+				using namespace cgpu::shader_types;
+				struct
+				{
+					float4x4 u_mvpMatrix{};
+					PositionVertexData* u_vertexList{};
+					int32_t u_objectIndex{};
+				} parameters{};
 
-				PushConstantData pushConstantData{};
-				pushConstantData.mvp = vp * model.transform.getLocalToWorldMatrix();
-				pushConstantData.objectIndex = i + 1;
-				commandBuffer->pushConstants(pushConstantData);
+				parameters.u_mvpMatrix = vpMatrix * model.transform.getLocalToWorldMatrix();
+				parameters.u_vertexList = ctx.getBufferDevicePtr<PositionVertexData>(
+					model.mesh.getPositionVertexBuffer(),
+					cgpu::GraphicsStage::eVertex,
+					cgpu::StorageAccess::eReadonly
+				);
+				parameters.u_objectIndex = i;
 
-				commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
+				ctx.drawIndexed(model.mesh.getIndexCount(), 1, 0, 0, 0, parameters);
 			}
+		},
+	});
 
-			commandBuffer->unbindPipeline();
-
-			commandBuffer->endRendering();
-
-			commandBuffer->imageMemoryBarrier(
-				_objectIndexImage,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferRead,
-				vk::ImageLayout::eTransferSrcOptimal
-			);
-
-			commandBuffer->bufferMemoryBarrier(
-				_readbackBuffer,
-				vk::PipelineStageFlagBits2::eCopy,
-				vk::AccessFlagBits2::eTransferWrite
-			);
-
-			commandBuffer->copyPixelToBuffer(_objectIndexImage, 0, 0, clickPos, _readbackBuffer, 0);
+	cgpu::BufferPtr stagingBuffer = cgpu::Buffer::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Object picker staging buffer",
+			.size = sizeof(int32_t),
+			.usages = vk::BufferUsageFlagBits2::eTransferDst,
+			.memory_type = cgpu::MemoryType::eCPUCached,
+			.min_alignment = alignof(int32_t),
 		}
 	);
 
-	int objectIndex = *_readbackBuffer->getHostPointer();
+	commandRecorder.copyImageToBuffer({
+		.src_image = _objectIndexImage,
+		.dst_buffer = stagingBuffer,
+		.ranges = {{
+			{
+				.src = {{
+					.pixels = {{
+						.offset = {clickPos, 0},
+						.size = {1, 1, 1},
+					}},
+				}},
+			},
+		}},
+	});
 
-	return objectIndex > 0 ? &renderRegistry.getModelRenderRequests()[objectIndex - 1].owner : nullptr;
+	commandRecorder.submit().waitFinished();
+
+	_commandContext.finish();
+
+	int objectIndex = *stagingBuffer->getHostPtr<int32_t>();
+
+	return objectIndex != -1 ? &renderRegistry.getModelRenderRequests()[objectIndex].owner : nullptr;
 }
 
-void c3d::ObjectPicker::createDescriptorSetLayout()
+void c3d::ObjectPicker::createImages()
 {
-	VKDescriptorSetLayoutInfo info(true);
-	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
-
-	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::ObjectPicker::createPipelineLayout()
-{
-	VKPipelineLayoutInfo info;
-	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<PushConstantData>();
-
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::ObjectPicker::createPipeline()
-{
-	VKGraphicsPipelineInfo info(
-		_pipelineLayout,
-		"object picker/object picker.vert",
-		vk::PrimitiveTopology::eTriangleList,
-		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise
+	_objectIndexImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Object picker object index image",
+			.format = vk::Format::eR32Sint,
+			.extent = {_currentSize, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eColorAttachment |
+				vk::ImageUsageFlagBits::eTransferSrc,
+		}
 	);
 
-	info.setFragmentShader("object picker/object picker.frag");
-
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
-
-	info.getPipelineAttachmentInfo().addColorAttachment(vk::Format::eR32Sint);
-	info.getPipelineAttachmentInfo().setDepthAttachment(vk::Format::eD32Sfloat, vk::CompareOp::eLess, true);
-
-	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
+	_depthImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Object picker depth image",
+			.format = vk::Format::eD32Sfloat,
+			.extent = {_currentSize, 1},
+			.usages = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+		}
+	);
 }
 
-void c3d::ObjectPicker::createBuffer()
+void c3d::ObjectPicker::createPipelineStates()
 {
-	VKBufferInfo bufferInfo(1, vk::BufferUsageFlagBits::eTransferDst);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCached);
-	bufferInfo.setName("Object picker readback buffer");
+	_vertexInputState = cgpu::VertexInputState::create(
+		Engine::getDeviceSession(),
+		{}
+	);
 
-	_readbackBuffer = VKBuffer<int32_t>::create(Engine::getVKContext(), bufferInfo);
-}
+	_preRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.vertex_shader = {.source = "Cyph3D/object picker/object picker.slang"},
+		}
+	);
 
-void c3d::ObjectPicker::createImage()
-{
-	{
-		VKImageInfo imageInfo(
-			vk::Format::eR32Sint,
-			_currentSize,
-			1,
-			1,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc
-		);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	_fragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.fragment_shader = {{.source = "Cyph3D/object picker/object picker.slang"}},
+			.depth_state = {{
+				.test_pass_condition = vk::CompareOp::eLess,
+				.write_enabled = true,
+			}},
+		}
+	);
 
-		_objectIndexImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	}
-
-	{
-		VKImageInfo imageInfo(
-			vk::Format::eD32Sfloat,
-			_currentSize,
-			1,
-			1,
-			vk::ImageUsageFlagBits::eDepthStencilAttachment
-		);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-		_depthImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	}
+	_fragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.color_attachments = {
+				{
+					.format = vk::Format::eR32Sint,
+				},
+			},
+			.depth_stencil_attachment = {{
+				.format = vk::Format::eD32Sfloat,
+			}},
+		}
+	);
 }

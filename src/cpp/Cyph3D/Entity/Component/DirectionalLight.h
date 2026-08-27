@@ -11,6 +11,7 @@ class DirectionalLight : public LightBase
 public:
 	struct RenderData
 	{
+		std::string_view name;
 		Transform& transform;
 		float intensity;
 		glm::vec3 color;

@@ -4,6 +4,7 @@
 #include <Cyph3D/Scene/Camera.h>
 #include <Cyph3D/UI/ObjectPicker.h>
 
+#include <CyphGPU/fwd.hpp>
 #include <ImGuizmo.h>
 #include <memory>
 
@@ -14,7 +15,7 @@ class SceneRenderer;
 class UIViewport
 {
 public:
-	static void show();
+	static void show(cgpu::CommandRecorder& commandRecorder);
 
 	static Camera& getCamera();
 	static void setCamera(const Camera& camera);
@@ -60,7 +61,7 @@ private:
 
 	static std::unique_ptr<RenderToFileData> _renderToFileData;
 	static bool _showRenderToFilePopup;
-	static std::shared_ptr<VKImage> _lastViewportImage;
+	static cgpu::ImagePtr _lastViewportImage;
 
 	static void drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize);
 	static void drawHeader();

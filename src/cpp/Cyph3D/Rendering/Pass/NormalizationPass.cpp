@@ -3,61 +3,41 @@
 #include <Cyph3D/Engine.h>
 #include <Cyph3D/Helper/FileHelper.h>
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKComputePipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
+
+#include <CyphGPU/ComputePassContext.hpp>
+#include <CyphGPU/ComputeShaderState.hpp>
 
 c3d::NormalizationPass::NormalizationPass(glm::uvec2 size):
 	RenderPass(size, "Normalization pass")
 {
-	createDescriptorSetLayout();
-	createPipelineLayout();
-	createPipeline();
+	createPipelineState();
 	createImage();
 }
 
-c3d::NormalizationPassOutput c3d::NormalizationPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, NormalizationPassInput& input)
+c3d::NormalizationPassOutput c3d::NormalizationPass::onRender(cgpu::CommandRecorder& commandRecorder, NormalizationPassInput& input)
 {
-	for (int i = 0; i < 3; i++)
-	{
-		commandBuffer->imageMemoryBarrier(
-			input.inputImage[i],
-			vk::PipelineStageFlagBits2::eComputeShader,
-			vk::AccessFlagBits2::eShaderStorageRead,
-			vk::ImageLayout::eGeneral
-		);
-	}
+	commandRecorder.computePass({
+		.callback = [&](cgpu::ComputePassContext& ctx) {
+			using namespace cgpu::shader_types;
+			struct
+			{
+				Texture2D<>::Handle u_srcImage;
+				WTexture2D<>::Handle u_dstImage;
+				uint32_t u_accumulatedSamples;
+				uint2 u_size;
+			} parameters{};
 
-	commandBuffer->imageMemoryBarrier(
-		_outputImage,
-		vk::PipelineStageFlagBits2::eComputeShader,
-		vk::AccessFlagBits2::eShaderStorageWrite,
-		vk::ImageLayout::eGeneral
-	);
+			parameters.u_srcImage = ctx.getSampledImageDescriptor(input.lightImage);
+			parameters.u_dstImage = ctx.getStorageImageDescriptor(_outputImage, cgpu::StorageAccess::eWriteonly);
+			parameters.u_accumulatedSamples = input.accumulatedSamples;
+			parameters.u_size = _size;
 
-	VKRenderingInfo renderingInfo(_size);
-
-	commandBuffer->bindPipeline(_pipeline);
-
-	for (int i = 0; i < 3; i++)
-	{
-		commandBuffer->pushDescriptor(0, 0, input.inputImage[i], i);
-	}
-	commandBuffer->pushDescriptor(0, 1, _outputImage, 0);
-
-	PushConstantData pushConstantData{
-		.accumulatedSamples = input.accumulatedSamples
-	};
-	commandBuffer->pushConstants(pushConstantData);
-
-	commandBuffer->dispatch({(_size.x + 7) / 8, (_size.y + 7) / 8, 1});
-
-	commandBuffer->unbindPipeline();
+			ctx.dispatch(_computeShaderState, {cgpu::alignUp(_size, glm::uvec2{8u}) / 8u, 1}, parameters);
+		},
+	});
 
 	return {
-		_outputImage
+		.lightImage = _outputImage,
 	};
 }
 
@@ -66,45 +46,27 @@ void c3d::NormalizationPass::onResize()
 	createImage();
 }
 
-void c3d::NormalizationPass::createDescriptorSetLayout()
+void c3d::NormalizationPass::createPipelineState()
 {
-	VKDescriptorSetLayoutInfo info(true);
-	info.addBinding(vk::DescriptorType::eStorageImage, 3);
-	info.addBinding(vk::DescriptorType::eStorageImage, 1);
-
-	_descriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::NormalizationPass::createPipelineLayout()
-{
-	VKPipelineLayoutInfo info;
-	info.addDescriptorSetLayout(_descriptorSetLayout);
-	info.setPushConstantLayout<PushConstantData>();
-
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::NormalizationPass::createPipeline()
-{
-	VKComputePipelineInfo info(
-		_pipelineLayout,
-		"post-processing/normalization/normalization.comp"
+	_computeShaderState = cgpu::ComputeShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.compute_shader = {.source = "Cyph3D/post-processing/normalization/normalization.slang"},
+		}
 	);
-
-	_pipeline = VKComputePipeline::create(Engine::getVKContext(), info);
 }
 
 void c3d::NormalizationPass::createImage()
 {
-	VKImageInfo imageInfo(
-		SceneRenderer::HDR_COLOR_FORMAT,
-		_size,
-		1,
-		1,
-		vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled
+	_outputImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Normalization output image",
+			.format = SceneRenderer::HDR_COLOR_FORMAT,
+			.extent = {_size, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eStorage |
+				vk::ImageUsageFlagBits::eSampled,
+		}
 	);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	imageInfo.setName("Normalization output image");
-
-	_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
 }

@@ -1,7 +1,6 @@
 #include "SkyboxPass.h"
 
 #include <Cyph3D/Asset/AssetManager.h>
-#include <Cyph3D/Asset/BindlessTextureManager.h>
 #include <Cyph3D/Asset/RuntimeAsset/CubemapAsset.h>
 #include <Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h>
 #include <Cyph3D/Engine.h>
@@ -9,94 +8,86 @@
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
 #include <Cyph3D/Scene/Camera.h>
 #include <Cyph3D/Scene/Scene.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
 
+#include <CyphGPU/FragmentOutputState.hpp>
+#include <CyphGPU/FragmentShaderState.hpp>
+#include <CyphGPU/GraphicsPassContext.hpp>
+#include <CyphGPU/PreRasterizationShaderState.hpp>
+#include <CyphGPU/Sampler.hpp>
+#include <CyphGPU/VertexInputState.hpp>
 #include <glm/gtx/transform.hpp>
 
 c3d::SkyboxPass::SkyboxPass(glm::uvec2 size):
 	RenderPass(size, "Skybox pass")
 {
-	createPipelineLayout();
-	createPipeline();
+	createPipelineStates();
 	createImages();
 	createBuffer();
 }
 
-c3d::SkyboxPassOutput c3d::SkyboxPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, SkyboxPassInput& input)
+c3d::SkyboxPassOutput c3d::SkyboxPass::onRender(cgpu::CommandRecorder& commandRecorder, SkyboxPassInput& input)
 {
-	commandBuffer->imageMemoryBarrier(
-		input.multisampledRawRenderImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal
-	);
-
-	commandBuffer->imageMemoryBarrier(
-		_resolvedRawRenderImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal
-	);
-
-	commandBuffer->bufferMemoryBarrier(
-		_vertexBuffer,
-		vk::PipelineStageFlagBits2::eVertexAttributeInput,
-		vk::AccessFlagBits2::eVertexAttributeRead
-	);
-
-	VKRenderingInfo renderingInfo(_size);
-
-	renderingInfo.addColorAttachment(input.multisampledRawRenderImage)
-		.enableResolve(vk::ResolveModeFlagBits::eAverage, _resolvedRawRenderImage)
-		.setLoadOpLoad()
-		.setStoreOpStore();
-
-	renderingInfo.setDepthAttachment(input.multisampledDepthImage)
-		.setLoadOpLoad()
-		.setStoreOpNone();
-
-	commandBuffer->beginRendering(renderingInfo);
-
 	if (Engine::getScene().getSkybox() != nullptr && Engine::getScene().getSkybox()->isLoaded())
 	{
-		commandBuffer->bindPipeline(_pipeline);
+		commandRecorder.graphicsPass({
+			.color_attachments = {{
+				{
+					.image = input.multisampledLightImage,
+					.load_op = vk::AttachmentLoadOp::eLoad,
+					.store_op = vk::AttachmentStoreOp::eStore,
+				},
+			}},
+			.depth_stencil_attachment = {{
+				.image = input.multisampledDepthImage,
+				.load_op = vk::AttachmentLoadOp::eLoad,
+				.store_op = vk::AttachmentStoreOp::eDontCare,
+			}},
+			.callback = [&](cgpu::GraphicsPassContext& ctx) {
+				ctx.bindPipelineStates(
+					_vertexInputState,
+					_preRasterizationShaderState,
+					_fragmentShaderState,
+					_fragmentOutputState
+				);
 
-		VKPipelineViewport viewport;
-		viewport.offset = {0, 0};
-		viewport.size = _size;
-		viewport.depthRange = {0.0f, 1.0f};
-		commandBuffer->setViewport(viewport);
+				using namespace cgpu::shader_types;
+				struct
+				{
+					float4x4 u_mvpMatrix;
+					float3* u_positionList;
+					TextureCube<>::Handle u_image;
+					SamplerState::Handle u_sampler;
+				} parameters{};
 
-		VKPipelineScissor scissor;
-		scissor.offset = {0, 0};
-		scissor.size = _size;
-		commandBuffer->setScissor(scissor);
+				parameters.u_mvpMatrix =
+					input.camera.getProjection() *
+					glm::mat4(glm::mat3(input.camera.getView())) *
+					glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
+				parameters.u_positionList = ctx.getBufferDevicePtr<float3>(
+					_vertexBuffer,
+					cgpu::GraphicsStage::eVertex,
+					cgpu::StorageAccess::eReadonly
+				);
+				parameters.u_image = ctx.getSampledImageDescriptor(
+					Engine::getScene().getSkybox()->getCubemap()->getImage(),
+					cgpu::GraphicsStage::eFragment,
+					{.type = vk::ImageViewType::eCube}
+				);
+				parameters.u_sampler = Engine::getAssetManager().getCubemapSampler()->getDescriptor();
 
-		commandBuffer->bindDescriptorSet(0, Engine::getAssetManager().getBindlessTextureManager().getDescriptorSet());
-
-		PushConstantData pushConstantData{};
-		pushConstantData.mvp = input.camera.getProjection() *
-		                       glm::mat4(glm::mat3(input.camera.getView())) *
-		                       glm::rotate(glm::radians(Engine::getScene().getSkyboxRotation()), glm::vec3(0, 1, 0));
-		pushConstantData.textureIndex = Engine::getScene().getSkybox()->getCubemap()->getBindlessIndex();
-		commandBuffer->pushConstants(pushConstantData);
-
-		commandBuffer->bindVertexBuffer(0, _vertexBuffer);
-
-		commandBuffer->draw(_vertexBuffer->getInfo().getSize(), 0);
-
-		commandBuffer->unbindPipeline();
+				ctx.draw(_vertexBuffer->getDesc().size / sizeof(float3), 1, 0, 0, parameters);
+			},
+		});
 	}
 
-	commandBuffer->endRendering();
+	//TODO: switch back to in-pass resolve when Nvidia driver is fixed
+	commandRecorder.resolve({
+		.src_image = input.multisampledLightImage,
+		.dst_image = _lightImage,
+	});
 
 	return {
-		.rawRenderImage = _resolvedRawRenderImage
+		.lightImage = _lightImage,
 	};
 }
 
@@ -105,58 +96,65 @@ void c3d::SkyboxPass::onResize()
 	createImages();
 }
 
-void c3d::SkyboxPass::createPipelineLayout()
+void c3d::SkyboxPass::createPipelineStates()
 {
-	VKPipelineLayoutInfo info;
-	info.addDescriptorSetLayout(Engine::getAssetManager().getBindlessTextureManager().getDescriptorSetLayout());
-	info.setPushConstantLayout<PushConstantData>();
-
-	_pipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-}
-
-void c3d::SkyboxPass::createPipeline()
-{
-	VKGraphicsPipelineInfo info(
-		_pipelineLayout,
-		"skybox/skybox.vert",
-		vk::PrimitiveTopology::eTriangleList,
-		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eCounterClockwise
+	_vertexInputState = cgpu::VertexInputState::create(
+		Engine::getDeviceSession(),
+		{}
 	);
 
-	info.setFragmentShader("skybox/skybox.frag");
+	_preRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.vertex_shader = {.source = "Cyph3D/skybox/skybox.slang"},
+		}
+	);
 
-	info.getVertexInputLayoutInfo().defineSlot(0, sizeof(SkyboxPass::VertexData), vk::VertexInputRate::eVertex);
-	info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(SkyboxPass::VertexData, position));
+	_fragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.fragment_shader = {{.source = "Cyph3D/skybox/skybox.slang"}},
+			.depth_state = {{
+				.test_pass_condition = vk::CompareOp::eLessOrEqual,
+				.write_enabled = false,
+			}},
+		}
+	);
 
-	info.setRasterizationSampleCount(vk::SampleCountFlagBits::e4);
-
-	info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
-	info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DEPTH_FORMAT, vk::CompareOp::eLessOrEqual, false);
-
-	_pipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
+	_fragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.color_attachments = {
+				{
+					.format = SceneRenderer::HDR_COLOR_FORMAT,
+				},
+			},
+			.depth_stencil_attachment = {{
+				.format = SceneRenderer::DEPTH_FORMAT,
+			}},
+			.samples = vk::SampleCountFlagBits::e4,
+		}
+	);
 }
 
 void c3d::SkyboxPass::createImages()
 {
-	{
-		VKImageInfo imageInfo(
-			SceneRenderer::HDR_COLOR_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
-		);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		imageInfo.setName("Resolved raw render image");
-
-		_resolvedRawRenderImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	}
+	_lightImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Light image",
+			.format = SceneRenderer::HDR_COLOR_FORMAT,
+			.extent = {_size, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eTransferDst |
+				vk::ImageUsageFlagBits::eSampled,
+		}
+	);
 }
 
 void c3d::SkyboxPass::createBuffer()
 {
-	std::vector<SkyboxPass::VertexData> vertices = {
+	std::vector<cgpu::shader_types::float3> vertices = {
 		{{-1.0f, 1.0f, -1.0f}},
 		{{-1.0f, -1.0f, -1.0f}},
 		{{1.0f, -1.0f, -1.0f}},
@@ -200,13 +198,15 @@ void c3d::SkyboxPass::createBuffer()
 		{{1.0f, -1.0f, 1.0f}}
 	};
 
-	VKBufferInfo vertexBufferInfo(vertices.size(), vk::BufferUsageFlagBits::eVertexBuffer);
-	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	vertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	vertexBufferInfo.setName("Skybox vertex buffer");
+	_vertexBuffer = cgpu::Buffer::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Skybox vertex buffer",
+			.size = vertices.size() * sizeof(cgpu::shader_types::float3),
+			.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+			.min_alignment = alignof(cgpu::shader_types::float3),
+		}
+	);
 
-	_vertexBuffer = VKBuffer<VertexData>::create(Engine::getVKContext(), vertexBufferInfo);
-
-	std::ranges::copy(vertices, _vertexBuffer->getHostPointer());
+	std::ranges::copy(vertices, _vertexBuffer->getHostPtr<cgpu::shader_types::float3>());
 }

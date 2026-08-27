@@ -19,6 +19,7 @@ c3d::PointLight::PointLight(Entity& entity):
 void c3d::PointLight::onPreRender(RenderRegistry& renderRegistry, Camera& camera)
 {
 	RenderData data{
+		.name = getEntity().getName(),
 		.transform = getTransform(),
 		.intensity = getIntensity(),
 		.color = getLinearColor(),

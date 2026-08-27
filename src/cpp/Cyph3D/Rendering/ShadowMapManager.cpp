@@ -3,50 +3,56 @@
 #include <Cyph3D/Engine.h>
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
 
+#include <CyphGPU/Image.hpp>
 #include <ranges>
 
-std::shared_ptr<c3d::VKImage> c3d::ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
+cgpu::ImagePtr c3d::ShadowMapManager::allocateDirectionalShadowMap(uint32_t resolution)
 {
 	ShadowMapContainer& container = _directionalShadowMaps[resolution];
 
 	// all shadow maps for this resolution are already in use, create a new one
 	if (container.allocatedShadowMaps == container.shadowMaps.size())
 	{
-		VKImageInfo imageInfo(
-			SceneRenderer::DIRECTIONAL_SHADOW_MAP_DEPTH_FORMAT,
-			glm::uvec2(resolution),
-			1,
-			1,
-			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled
+		container.shadowMaps.push_back(
+			cgpu::Image::create(
+				Engine::getDeviceSession(),
+				{
+					.name = "Directional light shadow map",
+					.format = SceneRenderer::DIRECTIONAL_SHADOW_MAP_DEPTH_FORMAT,
+					.extent = {resolution, resolution, 1},
+					.usages =
+						vk::ImageUsageFlagBits::eDepthStencilAttachment |
+						vk::ImageUsageFlagBits::eSampled,
+				}
+			)
 		);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		imageInfo.setName("Directional light shadow map");
-
-		container.shadowMaps.push_back(VKImage::create(Engine::getVKContext(), imageInfo));
 	}
 
 	return container.shadowMaps[container.allocatedShadowMaps++];
 }
 
-std::shared_ptr<c3d::VKImage> c3d::ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
+cgpu::ImagePtr c3d::ShadowMapManager::allocatePointShadowMap(uint32_t resolution)
 {
 	ShadowMapContainer& container = _pointShadowMaps[resolution];
 
 	// all shadow maps for this resolution are already in use, create a new one
 	if (container.allocatedShadowMaps == container.shadowMaps.size())
 	{
-		VKImageInfo imageInfo(
-			SceneRenderer::POINT_SHADOW_MAP_DEPTH_FORMAT,
-			glm::uvec2(resolution),
-			6,
-			1,
-			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled
+		container.shadowMaps.push_back(
+			cgpu::Image::create(
+				Engine::getDeviceSession(),
+				{
+					.name = "Point light shadow map",
+					.format = SceneRenderer::POINT_SHADOW_MAP_DEPTH_FORMAT,
+					.extent = {resolution, resolution, 1},
+					.usages =
+						vk::ImageUsageFlagBits::eDepthStencilAttachment |
+						vk::ImageUsageFlagBits::eSampled,
+					.layers = 6,
+					.allow_cube_view = true,
+				}
+			)
 		);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		imageInfo.enableCubeCompatibility();
-		imageInfo.setName("Point light shadow map");
-
-		container.shadowMaps.push_back(VKImage::create(Engine::getVKContext(), imageInfo));
 	}
 
 	return container.shadowMaps[container.allocatedShadowMaps++];

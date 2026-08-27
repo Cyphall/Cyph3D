@@ -29,7 +29,7 @@ private:
 
 	bool _accumulationOnlyMode = false;
 
-	std::shared_ptr<VKImage> onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
+	cgpu::ImagePtr onRender(cgpu::CommandRecorder& commandRecorder, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged) override;
 	void onResize() override;
 };
 }

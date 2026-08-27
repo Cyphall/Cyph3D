@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Cyph3D/Asset/AssetManagerWorkerData.h>
-#include <Cyph3D/Asset/BindlessTextureManager.h>
 #include <Cyph3D/Asset/Processing/AssetProcessor.h>
 #include <Cyph3D/Asset/Processing/ImageData.h>
 #include <Cyph3D/Asset/RuntimeAsset/CubemapAsset.h>
@@ -15,19 +14,15 @@
 
 namespace c3d
 {
-class VKSampler;
-
 class AssetManager
 {
 public:
 	explicit AssetManager();
 
-	const std::shared_ptr<VKSampler>& getTextureSampler();
-	const std::shared_ptr<VKSampler>& getCubemapSampler();
+	const cgpu::SamplerPtr& getTextureSampler();
+	const cgpu::SamplerPtr& getCubemapSampler();
 
 	AssetProcessor& getAssetProcessor();
-
-	BindlessTextureManager& getBindlessTextureManager();
 
 	TextureAsset* loadTexture(std::string_view path, ImageType type);
 	CubemapAsset* loadCubemap(std::string_view xposPath, std::string_view xnegPath, std::string_view yposPath, std::string_view ynegPath, std::string_view zposPath, std::string_view znegPath, ImageType type);
@@ -35,8 +30,6 @@ public:
 	MeshAsset* loadMesh(std::string_view path);
 	MaterialAsset* loadMaterial(std::string_view path);
 	SkyboxAsset* loadSkybox(std::string_view path);
-
-	void onNewFrame();
 
 	template<typename TTask, typename... TArgs>
 	void addThreadPoolTask(TTask&& task, TArgs&&... args)
@@ -47,10 +40,8 @@ public:
 private:
 	AssetProcessor _assetProcessor;
 
-	std::shared_ptr<VKSampler> _textureSampler;
-	std::shared_ptr<VKSampler> _cubemapSampler;
-
-	BindlessTextureManager _bindlessTextureManager;
+	cgpu::SamplerPtr _textureSampler;
+	cgpu::SamplerPtr _cubemapSampler;
 
 	std::unordered_map<TextureAssetSignature, std::unique_ptr<TextureAsset>> _textures;
 	std::unordered_map<CubemapAssetSignature, std::unique_ptr<CubemapAsset>> _cubemaps;

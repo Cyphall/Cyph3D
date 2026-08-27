@@ -3,7 +3,6 @@
 #include <Cyph3D/Rendering/Pass/BloomPass.h>
 #include <Cyph3D/Rendering/Pass/ExposurePass.h>
 #include <Cyph3D/Rendering/Pass/ToneMappingPass.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
 
 c3d::PathTracingSceneRenderer::PathTracingSceneRenderer(glm::uvec2 size):
 	SceneRenderer("Path tracing SceneRenderer", size),
@@ -25,7 +24,7 @@ void c3d::PathTracingSceneRenderer::setAccumulationOnlyMode(bool enabled)
 	_accumulationOnlyMode = enabled;
 }
 
-std::shared_ptr<c3d::VKImage> c3d::PathTracingSceneRenderer::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
+cgpu::ImagePtr c3d::PathTracingSceneRenderer::onRender(cgpu::CommandRecorder& commandRecorder, Camera& camera, const RenderRegistry& registry, bool sceneChanged, bool cameraChanged)
 {
 	// Path trace pass
 
@@ -37,7 +36,7 @@ std::shared_ptr<c3d::VKImage> c3d::PathTracingSceneRenderer::onRender(const std:
 		.cameraChanged = cameraChanged
 	};
 
-	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandBuffer, pathTracePassInput);
+	PathTracePassOutput pathTracePassOutput = _pathTracePass.render(commandRecorder, pathTracePassInput);
 
 	if (_accumulationOnlyMode)
 	{
@@ -47,38 +46,38 @@ std::shared_ptr<c3d::VKImage> c3d::PathTracingSceneRenderer::onRender(const std:
 	// Normalization pass
 
 	NormalizationPassInput normalizationPassInput{
-		.inputImage = pathTracePassOutput.rawRenderImage,
+		.lightImage = pathTracePassOutput.lightImage,
 		.accumulatedSamples = pathTracePassOutput.accumulatedSamples
 	};
 
-	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandBuffer, normalizationPassInput);
+	NormalizationPassOutput normalizationPassOutput = _normalizationPass.render(commandRecorder, normalizationPassInput);
 
 	// Exposure pass
 
 	ExposurePassInput exposurePassInput{
-		.inputImage = normalizationPassOutput.outputImage,
+		.lightImage = normalizationPassOutput.lightImage,
 		.camera = camera
 	};
 
-	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandBuffer, exposurePassInput);
+	ExposurePassOutput exposurePassOutput = _exposurePass.render(commandRecorder, exposurePassInput);
 
 	// Bloom pass
 
 	BloomPassInput bloomPassInput{
-		.inputImage = exposurePassOutput.outputImage
+		.lightImage = exposurePassOutput.lightImage
 	};
 
-	BloomPassOutput bloomPassOutput = _bloomPass.render(commandBuffer, bloomPassInput);
+	BloomPassOutput bloomPassOutput = _bloomPass.render(commandRecorder, bloomPassInput);
 
 	// Tone mapping pass
 
 	ToneMappingPassInput toneMappingPassInput{
-		.inputImage = bloomPassOutput.outputImage
+		.lightImage = bloomPassOutput.lightImage
 	};
 
-	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandBuffer, toneMappingPassInput);
+	ToneMappingPassOutput toneMappingPassOutput = _toneMappingPass.render(commandRecorder, toneMappingPassInput);
 
-	return toneMappingPassOutput.outputImage;
+	return toneMappingPassOutput.colorImage;
 }
 
 void c3d::PathTracingSceneRenderer::onResize()

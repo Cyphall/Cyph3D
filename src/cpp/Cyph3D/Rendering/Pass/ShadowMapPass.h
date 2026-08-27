@@ -3,27 +3,20 @@
 #include <Cyph3D/Rendering/Pass/RenderPass.h>
 #include <Cyph3D/Rendering/RenderRegistry.h>
 #include <Cyph3D/Rendering/ShadowMapManager.h>
-#include <Cyph3D/VKObject/VKDynamic.h>
 
 namespace c3d
 {
-class VKPipelineLayout;
-class VKGraphicsPipeline;
-class VKDescriptorSetLayout;
-template<typename T>
-class VKResizableBuffer;
-
 struct DirectionalShadowMapInfo
 {
 	float worldSize;
 	float worldDepth;
-	glm::mat4 viewProjection;
-	std::shared_ptr<VKImage> image;
+	glm::mat4 vpMatrix;
+	cgpu::ImagePtr image;
 };
 
 struct PointShadowMapInfo
 {
-	std::shared_ptr<VKImage> image;
+	cgpu::ImagePtr image;
 };
 
 struct ShadowMapPassInput
@@ -35,8 +28,8 @@ struct ShadowMapPassInput
 
 struct ShadowMapPassOutput
 {
-	const std::vector<DirectionalShadowMapInfo>& directionalShadowMapInfos;
-	const std::vector<PointShadowMapInfo>& pointShadowMapInfos;
+	const std::vector<std::optional<DirectionalShadowMapInfo>>& directionalShadowMapInfos;
+	const std::vector<std::optional<PointShadowMapInfo>>& pointShadowMapInfos;
 	float pointLightMaxDistance;
 };
 
@@ -46,55 +39,36 @@ public:
 	explicit ShadowMapPass(glm::uvec2 size);
 
 private:
-	struct DirectionalLightPushConstantData
-	{
-		glm::mat4 mvp;
-	};
-
-	//FIXME: properly align storage buffer offset
-	struct alignas(16) PointLightUniforms
-	{
-		glm::mat4 viewProjection;
-		glm::vec3 lightPos;
-		float maxDistance;
-	};
-
-	struct PointLightPushConstantData
-	{
-		glm::mat4 model;
-	};
-
 	ShadowMapManager _shadowMapManager;
 
-	std::shared_ptr<VKPipelineLayout> _directionalLightPipelineLayout;
-	std::shared_ptr<VKGraphicsPipeline> _directionalLightPipeline;
-	std::vector<DirectionalShadowMapInfo> _directionalShadowMapInfos;
+	cgpu::VertexInputStatePtr _vertexInputState;
 
-	std::shared_ptr<VKDescriptorSetLayout> _pointLightDescriptorSetLayout;
-	VKDynamic<VKResizableBuffer<PointLightUniforms>> _pointLightUniformBuffer;
-	std::shared_ptr<VKPipelineLayout> _pointLightPipelineLayout;
-	std::shared_ptr<VKGraphicsPipeline> _pointLightPipeline;
-	std::vector<PointShadowMapInfo> _pointShadowMapInfos;
+	cgpu::PreRasterizationShaderStatePtr _directionalPreRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _directionalFragmentShaderState;
+	cgpu::FragmentOutputStatePtr _directionalFragmentOutputState;
 
-	ShadowMapPassOutput onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input) override;
+	cgpu::PreRasterizationShaderStatePtr _pointPreRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _pointFragmentShaderState;
+	cgpu::FragmentOutputStatePtr _pointFragmentOutputState;
+
+	std::vector<std::optional<DirectionalShadowMapInfo>> _directionalShadowMapInfos;
+	std::vector<std::optional<PointShadowMapInfo>> _pointShadowMapInfos;
+
+	ShadowMapPassOutput onRender(cgpu::CommandRecorder& commandRecorder, ShadowMapPassInput& input) override;
 	void onResize() override;
 
-	void createDescriptorSetLayout();
-	void createBuffer();
-	void createPipelineLayouts();
-	void createPipelines();
+	void createPipelineStates();
 
-	void renderDirectionalShadowMap(
-		const std::shared_ptr<VKCommandBuffer>& commandBuffer,
+	DirectionalShadowMapInfo renderDirectionalShadowMap(
+		cgpu::CommandRecorder& commandRecorder,
 		const DirectionalLight::RenderData& light,
 		const std::vector<ModelRenderer::RenderData>& models
 	);
 
-	void renderPointShadowMap(
-		const std::shared_ptr<VKCommandBuffer>& commandBuffer,
+	PointShadowMapInfo renderPointShadowMap(
+		cgpu::CommandRecorder& commandRecorder,
 		const PointLight::RenderData& light,
-		const std::vector<ModelRenderer::RenderData>& models,
-		int uniformIndex
+		const std::vector<ModelRenderer::RenderData>& models
 	);
 };
 }

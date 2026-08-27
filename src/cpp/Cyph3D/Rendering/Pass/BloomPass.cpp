@@ -3,12 +3,13 @@
 #include <Cyph3D/Engine.h>
 #include <Cyph3D/Helper/FileHelper.h>
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
-#include <Cyph3D/VKObject/Sampler/VKSampler.h>
+
+#include <CyphGPU/FragmentOutputState.hpp>
+#include <CyphGPU/FragmentShaderState.hpp>
+#include <CyphGPU/GraphicsPassContext.hpp>
+#include <CyphGPU/PreRasterizationShaderState.hpp>
+#include <CyphGPU/Sampler.hpp>
+#include <CyphGPU/VertexInputState.hpp>
 
 namespace
 {
@@ -19,63 +20,55 @@ constexpr float BLOOM_STRENGTH = 0.15f;
 c3d::BloomPass::BloomPass(glm::uvec2 size):
 	RenderPass(size, "Bloom pass")
 {
-	createDescriptorSetLayouts();
-	createPipelineLayouts();
-	createPipelines();
+	createPipelineStates();
 	createImages();
 	createSamplers();
 }
 
-c3d::BloomPassOutput c3d::BloomPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, BloomPassInput& input)
+c3d::BloomPassOutput c3d::BloomPass::onRender(cgpu::CommandRecorder& commandRecorder, BloomPassInput& input)
 {
 	// copy inputImageView image level 0 to work image level 0
-	commandBuffer->pushDebugGroup("copyImageBaseLevel");
 	{
-		commandBuffer->imageMemoryBarrier(
-			input.inputImage,
-			vk::PipelineStageFlagBits2::eCopy,
-			vk::AccessFlagBits2::eTransferRead,
-			vk::ImageLayout::eTransferSrcOptimal
-		);
-
-		commandBuffer->imageMemoryBarrier(
-			_workImage,
-			vk::PipelineStageFlagBits2::eCopy,
-			vk::AccessFlagBits2::eTransferWrite,
-			vk::ImageLayout::eTransferDstOptimal,
-			{0, 0},
-			{0, 0}
-		);
-
-		commandBuffer->copyImageToImage(input.inputImage, 0, 0, _workImage, 0, 0);
+		cgpu::ScopedDebugRegion debugRegion{commandRecorder, "copyImageBaseLevel"};
+		commandRecorder.copyImageToImage({
+			.src_image = input.lightImage,
+			.dst_image = _workImage,
+			.ranges = {{
+				{
+					.dst = {{
+						.level = 0,
+					}},
+				},
+			}},
+		});
 	}
-	commandBuffer->popDebugGroup();
 
 	// downsample work image
-	for (int i = 1; i < _workImage->getInfo().getLevels(); i++)
+	for (size_t i = 0; i < _workImage->getDesc().levels - 1; i++)
 	{
-		commandBuffer->pushDebugGroup(std::format("downsampleAnsBlur({}->{})", i - 1, i));
-		downsampleAnsBlur(commandBuffer, i);
-		commandBuffer->popDebugGroup();
+		uint32_t srcLevel = i + 0;
+		uint32_t dstLevel = i + 1;
+		cgpu::ScopedDebugRegion debugRegion{commandRecorder, std::format("downsampleAndBlur({}->{})", srcLevel, dstLevel)};
+		downsampleAndBlur(commandRecorder, srcLevel, dstLevel);
 	}
 
 	// upsample and blur work image
-	for (int i = static_cast<int>(_workImage->getInfo().getLevels() - 2); i >= 0; i--)
+	for (size_t i = 0; i < _workImage->getDesc().levels - 1; i++)
 	{
-		commandBuffer->pushDebugGroup(std::format("upsampleAndBlur({}->{})", i + 1, i));
-		upsampleAndBlur(commandBuffer, i);
-		commandBuffer->popDebugGroup();
+		uint32_t srcLevel = _workImage->getDesc().levels - 1 - i;
+		uint32_t dstLevel = _workImage->getDesc().levels - 2 - i;
+		cgpu::ScopedDebugRegion debugRegion{commandRecorder, std::format("upsampleAndBlur({}->{})", srcLevel, dstLevel)};
+		upsampleAndBlur(commandRecorder, srcLevel, dstLevel);
 	}
 
 	// compose inputImageView image level 0 and work image level 0 to outputImageView image level 0
-	commandBuffer->pushDebugGroup("compose");
 	{
-		compose(input.inputImage, commandBuffer);
+		cgpu::ScopedDebugRegion debugRegion{commandRecorder, "compose"};
+		compose(commandRecorder, input.lightImage);
 	}
-	commandBuffer->popDebugGroup();
 
 	return {
-		_outputImage
+		.lightImage = _outputImage,
 	};
 }
 
@@ -84,425 +77,261 @@ void c3d::BloomPass::onResize()
 	createImages();
 }
 
-void c3d::BloomPass::downsampleAnsBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void c3d::BloomPass::downsampleAndBlur(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel)
 {
-	commandBuffer->imageMemoryBarrier(
-		_workImage,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal,
-		{0, 0},
-		{dstLevel - 1, dstLevel - 1}
-	);
+	commandRecorder.graphicsPass({
+		.color_attachments = {{
+			{
+				.image = _workImage,
+				.level = dstLevel,
+				.load_op = vk::AttachmentLoadOp::eDontCare,
+				.store_op = vk::AttachmentStoreOp::eStore,
+			},
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_preRasterizationShaderState,
+				_downsampleFragmentShaderState,
+				_downsampleComposeFragmentOutputState
+			);
 
-	commandBuffer->imageMemoryBarrier(
-		_workImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal,
-		{0, 0},
-		{dstLevel, dstLevel}
-	);
+			using namespace cgpu::shader_types;
+			struct
+			{
+				Texture2D<>::Handle u_image;
+				SamplerState::Handle u_sampler;
+				float2 u_srcPixelSize;
+			} parameters{};
 
-	VKRenderingInfo renderingInfo(_workImage->getSize(dstLevel));
+			parameters.u_image = ctx.getSampledImageDescriptor(
+				_workImage,
+				cgpu::GraphicsStage::eFragment,
+				{.levels = {{srcLevel, 1}}}
+			);
+			parameters.u_sampler = _downsampleSampler->getDescriptor();
+			parameters.u_srcPixelSize = glm::vec2{1.0f} / glm::vec2{_workImage->calcLevelExtent(srcLevel)};
 
-	renderingInfo.addColorAttachment(
-					 _workImage,
-					 vk::ImageViewType::e2D,
-					 {0, 0},
-					 {dstLevel, dstLevel},
-					 _workImage->getInfo().getFormat()
-	)
-		.setLoadOpDontCare()
-		.setStoreOpStore();
-
-	commandBuffer->beginRendering(renderingInfo);
-
-	commandBuffer->bindPipeline(_downsamplePipeline);
-
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = _workImage->getSize(dstLevel);
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = _workImage->getSize(dstLevel);
-	commandBuffer->setScissor(scissor);
-
-	commandBuffer->pushDescriptor(
-		0,
-		0,
-		_workImage,
-		vk::ImageViewType::e2D,
-		{0, 0},
-		{dstLevel - 1, dstLevel - 1},
-		_workImage->getInfo().getFormat(),
-		_downsampleSampler
-	);
-
-	DownsamplePushConstantData pushConstantData{};
-	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workImage->getSize(dstLevel - 1));
-	pushConstantData.srcLevel = dstLevel - 1;
-	commandBuffer->pushConstants(pushConstantData);
-
-	commandBuffer->draw(3, 0);
-
-	commandBuffer->unbindPipeline();
-
-	commandBuffer->endRendering();
+			ctx.draw(3, 1, 0, 0, parameters);
+		},
+	});
 }
 
-void c3d::BloomPass::upsampleAndBlur(const std::shared_ptr<VKCommandBuffer>& commandBuffer, int dstLevel)
+void c3d::BloomPass::upsampleAndBlur(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel)
 {
-	commandBuffer->imageMemoryBarrier(
-		_workImage,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal,
-		{0, 0},
-		{dstLevel + 1, dstLevel + 1}
-	);
+	commandRecorder.graphicsPass({
+		.color_attachments = {{
+			{
+				.image = _workImage,
+				.level = dstLevel,
+				.load_op = vk::AttachmentLoadOp::eLoad,
+				.store_op = vk::AttachmentStoreOp::eStore,
+			},
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_preRasterizationShaderState,
+				_upsampleFragmentShaderState,
+				_upsampleFragmentOutputState
+			);
 
-	commandBuffer->imageMemoryBarrier(
-		_workImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentRead | vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal,
-		{0, 0},
-		{dstLevel, dstLevel}
-	);
+			using namespace cgpu::shader_types;
+			struct
+			{
+				Texture2D<>::Handle u_image;
+				SamplerState::Handle u_sampler;
+				float2 u_srcPixelSize;
+				float u_bloomRadius;
+			} parameters{};
 
-	VKRenderingInfo renderingInfo(_workImage->getSize(dstLevel));
+			parameters.u_image = ctx.getSampledImageDescriptor(
+				_workImage,
+				cgpu::GraphicsStage::eFragment,
+				{.levels = {{srcLevel, 1}}}
+			);
+			parameters.u_sampler = _upsampleSampler->getDescriptor();
+			parameters.u_srcPixelSize = glm::vec2{1.0f} / glm::vec2{_workImage->calcLevelExtent(srcLevel)};
+			parameters.u_bloomRadius = glm::clamp(BLOOM_RADIUS, 0.0f, 1.0f);
 
-	renderingInfo
-		.addColorAttachment(
-			_workImage,
-			vk::ImageViewType::e2D,
-			{0, 0},
-			{dstLevel, dstLevel},
-			_workImage->getInfo().getFormat()
-		)
-		.setLoadOpLoad()
-		.setStoreOpStore();
-
-	commandBuffer->beginRendering(renderingInfo);
-
-	commandBuffer->bindPipeline(_upsamplePipeline);
-
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = _workImage->getSize(dstLevel);
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = _workImage->getSize(dstLevel);
-	commandBuffer->setScissor(scissor);
-
-	commandBuffer->pushDescriptor(
-		0,
-		0,
-		_workImage,
-		vk::ImageViewType::e2D,
-		{0, 0},
-		{dstLevel + 1, dstLevel + 1},
-		_workImage->getInfo().getFormat(),
-		_upsampleSampler
-	);
-
-	UpsamplePushConstantData pushConstantData{};
-	pushConstantData.srcPixelSize = glm::vec2(1.0f) / glm::vec2(_workImage->getSize(dstLevel + 1));
-	pushConstantData.srcLevel = dstLevel + 1;
-	pushConstantData.bloomRadius = glm::clamp(BLOOM_RADIUS, 0.0f, 1.0f);
-	commandBuffer->pushConstants(pushConstantData);
-
-	commandBuffer->draw(3, 0);
-
-	commandBuffer->unbindPipeline();
-
-	commandBuffer->endRendering();
+			ctx.draw(3, 1, 0, 0, parameters);
+		},
+	});
 }
 
-void c3d::BloomPass::compose(const std::shared_ptr<VKImage>& input, const std::shared_ptr<VKCommandBuffer>& commandBuffer)
+void c3d::BloomPass::compose(cgpu::CommandRecorder& commandRecorder, const cgpu::ImagePtr& input)
 {
-	commandBuffer->imageMemoryBarrier(
-		input,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
+	commandRecorder.graphicsPass({
+		.color_attachments = {{
+			{
+				.image = _outputImage,
+				.load_op = vk::AttachmentLoadOp::eDontCare,
+				.store_op = vk::AttachmentStoreOp::eStore,
+			},
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_preRasterizationShaderState,
+				_composeFragmentShaderState,
+				_downsampleComposeFragmentOutputState
+			);
 
-	commandBuffer->imageMemoryBarrier(
-		_workImage,
-		vk::PipelineStageFlagBits2::eFragmentShader,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal,
-		{0, 0},
-		{0, 0}
-	);
+			using namespace cgpu::shader_types;
+			struct
+			{
+				Texture2D<>::Handle u_srcAImage;
+				Texture2D<>::Handle u_srcBImage;
+				SamplerState::Handle u_sampler;
+				float u_factor;
+			} parameters{};
 
-	commandBuffer->imageMemoryBarrier(
-		_outputImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal
-	);
+			parameters.u_srcAImage = ctx.getSampledImageDescriptor(
+				input,
+				cgpu::GraphicsStage::eFragment
+			);
+			parameters.u_srcBImage = ctx.getSampledImageDescriptor(
+				_workImage,
+				cgpu::GraphicsStage::eFragment,
+				{.levels = {{0, 1}}}
+			);
+			parameters.u_sampler = _composeSampler->getDescriptor();
+			parameters.u_factor = glm::clamp(BLOOM_STRENGTH, 0.0f, 1.0f);
 
-	VKRenderingInfo renderingInfo(_size);
-
-	renderingInfo.addColorAttachment(_outputImage)
-		.setLoadOpDontCare()
-		.setStoreOpStore();
-
-	commandBuffer->beginRendering(renderingInfo);
-
-	commandBuffer->bindPipeline(_composePipeline);
-
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = _size;
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = _size;
-	commandBuffer->setScissor(scissor);
-
-	commandBuffer->pushDescriptor(0, 0, input, _inputImageSampler);
-	commandBuffer->pushDescriptor(
-		0,
-		1,
-		_workImage,
-		vk::ImageViewType::e2D,
-		{0, 0},
-		{0, 0},
-		_workImage->getInfo().getFormat(),
-		_inputImageSampler
-	);
-
-	ComposePushConstantData pushConstantData{};
-	pushConstantData.factor = glm::clamp(BLOOM_STRENGTH, 0.0f, 1.0f);
-	commandBuffer->pushConstants(pushConstantData);
-
-	commandBuffer->draw(3, 0);
-
-	commandBuffer->unbindPipeline();
-
-	commandBuffer->endRendering();
+			ctx.draw(3, 1, 0, 0, parameters);
+		},
+	});
 }
 
-void c3d::BloomPass::createDescriptorSetLayouts()
+void c3d::BloomPass::createPipelineStates()
 {
-	{
-		VKDescriptorSetLayoutInfo info(true);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+	_vertexInputState = cgpu::VertexInputState::create(
+		Engine::getDeviceSession(),
+		{}
+	);
 
-		_downsampleDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
+	_preRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.vertex_shader = {.source = "Cyph3D/fullscreen quad.slang"},
+		}
+	);
 
-	{
-		VKDescriptorSetLayoutInfo info(true);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+	_downsampleFragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.fragment_shader = {{.source = "Cyph3D/post-processing/bloom/downsample.slang"}},
+		}
+	);
 
-		_upsampleDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
+	_upsampleFragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.fragment_shader = {{.source = "Cyph3D/post-processing/bloom/upsample.slang"}},
+		}
+	);
 
-	{
-		VKDescriptorSetLayoutInfo info(true);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
-		info.addBinding(vk::DescriptorType::eCombinedImageSampler, 1);
+	_composeFragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.fragment_shader = {{.source = "Cyph3D/post-processing/bloom/compose.slang"}},
+		}
+	);
 
-		_composeDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-	}
-}
+	_downsampleComposeFragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.color_attachments = {
+				{
+					.format = SceneRenderer::HDR_COLOR_FORMAT,
+				},
+			},
+		}
+	);
 
-void c3d::BloomPass::createPipelineLayouts()
-{
-	{
-		VKPipelineLayoutInfo info;
-		info.addDescriptorSetLayout(_downsampleDescriptorSetLayout);
-		info.setPushConstantLayout<DownsamplePushConstantData>();
-
-		_downsamplePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-	}
-
-	{
-		VKPipelineLayoutInfo info;
-		info.addDescriptorSetLayout(_upsampleDescriptorSetLayout);
-		info.setPushConstantLayout<UpsamplePushConstantData>();
-
-		_upsamplePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-	}
-
-	{
-		VKPipelineLayoutInfo info;
-		info.addDescriptorSetLayout(_composeDescriptorSetLayout);
-		info.setPushConstantLayout<ComposePushConstantData>();
-
-		_composePipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-	}
-}
-
-void c3d::BloomPass::createPipelines()
-{
-	{
-		VKGraphicsPipelineInfo info(
-			_downsamplePipelineLayout,
-			"fullscreen quad.vert",
-			vk::PrimitiveTopology::eTriangleList,
-			vk::CullModeFlagBits::eBack,
-			vk::FrontFace::eCounterClockwise
-		);
-
-		info.setFragmentShader("post-processing/bloom/downsample.frag");
-
-		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
-
-		_downsamplePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
-	}
-
-	{
-		VKGraphicsPipelineInfo info(
-			_upsamplePipelineLayout,
-			"fullscreen quad.vert",
-			vk::PrimitiveTopology::eTriangleList,
-			vk::CullModeFlagBits::eBack,
-			vk::FrontFace::eCounterClockwise
-		);
-
-		info.setFragmentShader("post-processing/bloom/upsample and blur.frag");
-
-		VKPipelineBlendingInfo blendingInfo{
-			.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
-			.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
-			.colorBlendOp = vk::BlendOp::eAdd,
-			.srcAlphaBlendFactor = vk::BlendFactor::eOne,
-			.dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
-			.alphaBlendOp = vk::BlendOp::eAdd
-		};
-
-		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT, blendingInfo);
-
-		_upsamplePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
-	}
-
-	{
-		VKGraphicsPipelineInfo info(
-			_composePipelineLayout,
-			"fullscreen quad.vert",
-			vk::PrimitiveTopology::eTriangleList,
-			vk::CullModeFlagBits::eBack,
-			vk::FrontFace::eCounterClockwise
-		);
-
-		info.setFragmentShader("post-processing/bloom/compose.frag");
-
-		info.getPipelineAttachmentInfo().addColorAttachment(SceneRenderer::HDR_COLOR_FORMAT);
-
-		_composePipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
-	}
+	_upsampleFragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.color_attachments = {
+				{
+					.format = SceneRenderer::HDR_COLOR_FORMAT,
+					.blend = {{
+						.color = {
+							.src_factor = vk::BlendFactor::eSrcAlpha,
+							.dst_factor = vk::BlendFactor::eOneMinusSrcAlpha,
+							.op = vk::BlendOp::eAdd,
+						},
+						.alpha = {
+							.src_factor = vk::BlendFactor::eOne,
+							.dst_factor = vk::BlendFactor::eOneMinusSrcAlpha,
+							.op = vk::BlendOp::eAdd,
+						},
+					}},
+				},
+			},
+		}
+	);
 }
 
 void c3d::BloomPass::createImages()
 {
-	{
-		VKImageInfo imageInfo(
-			SceneRenderer::HDR_COLOR_FORMAT,
-			_size,
-			1,
-			VKImage::calcMaxMipLevels(_size),
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst
-		);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		imageInfo.setName("Bloom work image");
+	_workImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Bloom work image",
+			.format = SceneRenderer::HDR_COLOR_FORMAT,
+			.extent = {_size, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eColorAttachment |
+				vk::ImageUsageFlagBits::eSampled |
+				vk::ImageUsageFlagBits::eTransferDst,
+			.levels = cgpu::calcImageMaxLevelCount({_size, 1}),
+		}
+	);
 
-		_workImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	}
-
-	{
-		VKImageInfo imageInfo(
-			SceneRenderer::HDR_COLOR_FORMAT,
-			_size,
-			1,
-			1,
-			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled
-		);
-		imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		imageInfo.setName("Bloom output image");
-
-		_outputImage = VKImage::create(Engine::getVKContext(), imageInfo);
-	}
+	_outputImage = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = "Bloom output image",
+			.format = SceneRenderer::HDR_COLOR_FORMAT,
+			.extent = {_size, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eColorAttachment |
+				vk::ImageUsageFlagBits::eSampled,
+		}
+	);
 }
 
 void c3d::BloomPass::createSamplers()
 {
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eLinear;
-		createInfo.minFilter = vk::Filter::eLinear;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
-		createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = false;
-		createInfo.maxAnisotropy = 1;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-		createInfo.unnormalizedCoordinates = false;
+	_downsampleSampler = cgpu::Sampler::create(
+		Engine::getDeviceSession(),
+		{
+			.min_filter = vk::Filter::eLinear,
+			.mag_filter = vk::Filter::eLinear,
+			.wrapping_u = vk::SamplerAddressMode::eClampToBorder,
+			.wrapping_v = vk::SamplerAddressMode::eClampToBorder,
+			.wrapping_w = vk::SamplerAddressMode::eClampToBorder,
+		}
+	);
 
-		_downsampleSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
+	_upsampleSampler = cgpu::Sampler::create(
+		Engine::getDeviceSession(),
+		{
+			.min_filter = vk::Filter::eLinear,
+			.mag_filter = vk::Filter::eLinear,
+			.wrapping_u = vk::SamplerAddressMode::eClampToEdge,
+			.wrapping_v = vk::SamplerAddressMode::eClampToEdge,
+			.wrapping_w = vk::SamplerAddressMode::eClampToEdge,
+		}
+	);
 
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eLinear;
-		createInfo.minFilter = vk::Filter::eLinear;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
-		createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = false;
-		createInfo.maxAnisotropy = 1;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-		createInfo.unnormalizedCoordinates = false;
-
-		_upsampleSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
-
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eNearest;
-		createInfo.minFilter = vk::Filter::eNearest;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eNearest;
-		createInfo.addressModeU = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.addressModeV = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.addressModeW = vk::SamplerAddressMode::eClampToBorder;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = false;
-		createInfo.maxAnisotropy = 1;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-		createInfo.unnormalizedCoordinates = false;
-
-		_inputImageSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
+	_composeSampler = cgpu::Sampler::create(
+		Engine::getDeviceSession(),
+		{
+			.wrapping_u = vk::SamplerAddressMode::eClampToBorder,
+			.wrapping_v = vk::SamplerAddressMode::eClampToBorder,
+			.wrapping_w = vk::SamplerAddressMode::eClampToBorder,
+		}
+	);
 }

@@ -5,9 +5,10 @@
 #include <Cyph3D/Helper/ImGuiHelper.h>
 #include <Cyph3D/Scene/Scene.h>
 #include <Cyph3D/UI/Window/UIViewport.h>
-#include <Cyph3D/VKObject/VKContext.h>
 #include <Cyph3D/Window.h>
 
+#include <CyphGPU/Device.hpp>
+#include <CyphGPU/DeviceSession.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
@@ -62,7 +63,7 @@ void c3d::UIMisc::show()
 
 		ImGui::Checkbox("Simulate", &_simulationEnabled);
 
-		if (Engine::getVKContext().isRayTracingSupported())
+		if (Engine::getDeviceSession()->getDevice()->getCapabilities() & cgpu::Device::Capability::eRayTracing)
 		{
 			ImGui::Separator();
 

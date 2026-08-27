@@ -1,12 +1,9 @@
 #pragma once
 
+#include <CyphGPU/fwd.hpp>
 #include <memory>
 
 namespace c3d
 {
-class VKCommandBuffer;
-
-extern thread_local std::shared_ptr<VKCommandBuffer> assetGraphicsCommandBuffer;
-extern thread_local std::shared_ptr<VKCommandBuffer> assetComputeCommandBuffer;
-extern thread_local std::shared_ptr<VKCommandBuffer> assetTransferCommandBuffer;
+extern thread_local std::unique_ptr<cgpu::CommandContext> assetCommandContext;
 }

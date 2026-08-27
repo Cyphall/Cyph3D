@@ -1,9 +1,11 @@
 #include "Window.h"
 
 #include <Cyph3D/Engine.h>
-#include <Cyph3D/VKObject/VKContext.h>
-#include <Cyph3D/VKObject/VKSwapchain.h>
 
+#include <CyphGPU/Device.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/Surface.hpp>
+#include <CyphGPU/Swapchain.hpp>
 #include <GLFW/glfw3.h>
 #include <thread>
 
@@ -22,15 +24,41 @@ c3d::Window::Window()
 
 	glfwSetInputMode(_glfwWindow, GLFW_RAW_MOUSE_MOTION, true);
 
-	VKContext& vkContext = Engine::getVKContext();
+	VkSurfaceKHR surfaceRaw{};
+	vk::detail::resultCheck(
+		static_cast<vk::Result>(
+			glfwCreateWindowSurface(Engine::getDeviceSession()->getDevice()->getContextSession()->getHandle(), _glfwWindow, nullptr, &surfaceRaw)
+		),
+		"glfwCreateWindowSurface"
+	);
 
-	VkSurfaceKHR surface;
-	glfwCreateWindowSurface(vkContext.getInstance(), _glfwWindow, nullptr, &surface);
-	_surface = surface;
+	_surface = cgpu::Surface::create(
+		Engine::getDeviceSession()->getDevice()->getContextSession(),
+		{
+			.surface = surfaceRaw,
+		}
+	);
 
-	glm::ivec2 extent;
-	glfwGetFramebufferSize(_glfwWindow, &extent.x, &extent.y);
-	_swapchain = VKSwapchain::create(vkContext, _surface, extent);
+	constexpr std::array<vk::SurfaceFormatKHR, 2> preferredSurfaceFormats = {
+		vk::SurfaceFormatKHR{
+			.format = vk::Format::eA2B10G10R10UnormPack32,
+			.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear
+		},
+		vk::SurfaceFormatKHR{
+			.format = vk::Format::eB8G8R8A8Unorm,
+			.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear
+		}
+	};
+
+	auto surfaceFormat = Engine::getDeviceSession()->getDevice()->selectBestSurfaceFormat(_surface, preferredSurfaceFormats);
+	if (!surfaceFormat)
+	{
+		throw std::runtime_error("None of the requested surface formats are available.");
+	}
+
+	_surfaceFormat = *surfaceFormat;
+
+	ensureValidSwapchain();
 
 	_previousFrameMouseButtonsPressed.fill(false);
 	_currentFrameMouseButtonsPressed.fill(false);
@@ -38,8 +66,9 @@ c3d::Window::Window()
 
 c3d::Window::~Window()
 {
+	Engine::getDeviceSession()->waitIdle();
 	_swapchain.reset();
-	Engine::getVKContext().getInstance().destroySurfaceKHR(_surface);
+	_surface.reset();
 	glfwDestroyWindow(_glfwWindow);
 }
 
@@ -108,19 +137,19 @@ c3d::Window::MouseButtonState c3d::Window::getMouseButtonState(int button)
 
 	if (previousState == GLFW_RELEASE && currentState == GLFW_PRESS)
 	{
-		return MouseButtonState::Clicked;
+		return MouseButtonState::eClicked;
 	}
 	if (previousState == GLFW_PRESS && currentState == GLFW_PRESS)
 	{
-		return MouseButtonState::Held;
+		return MouseButtonState::eHeld;
 	}
 	if (previousState == GLFW_PRESS && currentState == GLFW_RELEASE)
 	{
-		return MouseButtonState::Released;
+		return MouseButtonState::eReleased;
 	}
 	if (previousState == GLFW_RELEASE && currentState == GLFW_RELEASE)
 	{
-		return MouseButtonState::None;
+		return MouseButtonState::eNone;
 	}
 
 	throw;
@@ -140,14 +169,37 @@ void c3d::Window::onPollEvents()
 	}
 }
 
-c3d::VKSwapchain& c3d::Window::getSwapchain()
+const vk::SurfaceFormatKHR& c3d::Window::getSurfaceFormat()
 {
-	return *_swapchain;
+	return _surfaceFormat;
 }
 
-void c3d::Window::recreateSwapchain()
+const cgpu::SwapchainPtr& c3d::Window::getSwapchain()
 {
-	glm::ivec2 extent;
-	glfwGetFramebufferSize(_glfwWindow, &extent.x, &extent.y);
-	_swapchain = VKSwapchain::create(Engine::getVKContext(), _surface, extent, _swapchain.get());
+	return _swapchain;
+}
+
+void c3d::Window::ensureValidSwapchain()
+{
+	while (!_swapchain || !_swapchain->tryGetImage())
+	{
+		glm::ivec2 extent;
+		glfwGetFramebufferSize(_glfwWindow, &extent.x, &extent.y);
+		if (extent.x == 0 || extent.y == 0)
+		{
+			glfwWaitEvents();
+			continue;
+		}
+
+		_swapchain = cgpu::Swapchain::create(
+			Engine::getDeviceSession(),
+			_surface,
+			{
+				.format = _surfaceFormat,
+				.preferred_extent = extent,
+				.usages = vk::ImageUsageFlagBits::eColorAttachment,
+				.old_swapchain = _swapchain ? std::optional{_swapchain} : std::nullopt,
+			}
+		);
+	}
 }

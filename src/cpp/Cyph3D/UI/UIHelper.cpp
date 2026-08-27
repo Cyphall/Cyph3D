@@ -2,22 +2,20 @@
 
 #include <Cyph3D/Engine.h>
 #include <Cyph3D/Helper/FileHelper.h>
-#include <Cyph3D/UI/ImGuiVulkanBackend.h>
 #include <Cyph3D/UI/Window/UIAssetBrowser.h>
 #include <Cyph3D/UI/Window/UIHierarchy.h>
 #include <Cyph3D/UI/Window/UIInspector.h>
 #include <Cyph3D/UI/Window/UIMenuBar.h>
 #include <Cyph3D/UI/Window/UIMisc.h>
 #include <Cyph3D/UI/Window/UIViewport.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Queue/VKQueue.h>
-#include <Cyph3D/VKObject/Semaphore/VKSemaphore.h>
-#include <Cyph3D/VKObject/VKDynamic.h>
 #include <Cyph3D/Window.h>
 
 #include <backends/imgui_impl_glfw.h>
 #include <cmrc/cmrc.hpp>
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/CommandRecorder.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/ImGuiBackend.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
@@ -48,7 +46,7 @@ void c3d::UIHelper::init()
 	io.ConfigDpiScaleViewports = true;
 
 	ImGui_ImplGlfw_InitForVulkan(Engine::getWindow().getHandle(), true);
-	ImGui_ImplVKObject_Init();
+	ImGui_ImplCyphGPU_Init(Engine::getDeviceSession(), Engine::getWindow().getSurfaceFormat().format);
 
 	initStyles();
 	initFonts();
@@ -58,7 +56,7 @@ void c3d::UIHelper::init()
 	UIViewport::init();
 }
 
-void c3d::UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std::shared_ptr<VKSemaphore>& renderFinishedSemaphore)
+void c3d::UIHelper::render(cgpu::CommandContext& commandContext, const cgpu::ImagePtr& destImage)
 {
 	ImGuiID dockspaceId = ImGui::DockSpaceOverViewport();
 
@@ -68,11 +66,9 @@ void c3d::UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std:
 		_dockingLayoutInitialized = true;
 	}
 
-	const std::shared_ptr<VKCommandBuffer>& commandBuffer = Engine::getVKContext().getDefaultCommandBuffer();
+	auto commandRecorder = commandContext.createRecorder(Engine::getDeviceSession()->getMainQueue());
 
-	commandBuffer->begin();
-
-	UIViewport::show();
+	UIViewport::show(commandRecorder);
 	UIMenuBar::show();
 	if (!UIViewport::isFullscreen())
 	{
@@ -84,37 +80,15 @@ void c3d::UIHelper::render(const std::shared_ptr<VKImage>& destImage, const std:
 
 	ImGui::Render();
 
-	commandBuffer->imageMemoryBarrier(
-		destImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eColorAttachmentWrite,
-		vk::ImageLayout::eColorAttachmentOptimal
-	);
+	ImGui_ImplCyphGPU_RenderDrawData(*ImGui::GetDrawData(), commandRecorder, destImage);
 
-	ImGui_ImplVKObject_RenderDrawData(*ImGui::GetDrawData(), commandBuffer, destImage);
-
-	commandBuffer->imageMemoryBarrier(
-		destImage,
-		vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-		vk::AccessFlagBits2::eNone,
-		vk::ImageLayout::ePresentSrcKHR
-	);
-
-	commandBuffer->end();
-
-	Engine::getVKContext().getMainQueue().submit(
-		commandBuffer,
-		{},
-		{
-			{renderFinishedSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput},
-		}
-	);
+	commandRecorder.submit();
 }
 
 void c3d::UIHelper::shutdown()
 {
 	UIViewport::shutdown();
-	ImGui_ImplVKObject_Shutdown();
+	ImGui_ImplCyphGPU_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 
 	ImGui::DestroyContext(_context);
@@ -124,7 +98,7 @@ void c3d::UIHelper::shutdown()
 void c3d::UIHelper::onNewFrame()
 {
 	ImGui_ImplGlfw_NewFrame();
-	ImGui_ImplVKObject_NewFrame();
+	ImGui_ImplCyphGPU_NewFrame();
 	ImGui::NewFrame();
 	ImGuizmo::BeginFrame();
 }

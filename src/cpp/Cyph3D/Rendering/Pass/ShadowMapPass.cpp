@@ -8,12 +8,12 @@
 #include <Cyph3D/Rendering/RenderRegistry.h>
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
 #include <Cyph3D/Scene/Transform.h>
-#include <Cyph3D/VKObject/Buffer/VKResizableBuffer.h>
-#include <Cyph3D/VKObject/DescriptorSet/VKDescriptorSetLayout.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Pipeline/VKGraphicsPipeline.h>
-#include <Cyph3D/VKObject/Pipeline/VKPipelineLayout.h>
 
+#include <CyphGPU/FragmentOutputState.hpp>
+#include <CyphGPU/FragmentShaderState.hpp>
+#include <CyphGPU/GraphicsPassContext.hpp>
+#include <CyphGPU/PreRasterizationShaderState.hpp>
+#include <CyphGPU/VertexInputState.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
 namespace
@@ -84,7 +84,7 @@ std::array<glm::mat4, 6> calcPointShadowMapView(const c3d::PointLight::RenderDat
 		glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)),
 		glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1)),
 		glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)),
-		glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0))
+		glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0)),
 	};
 }
 }
@@ -92,32 +92,26 @@ std::array<glm::mat4, 6> calcPointShadowMapView(const c3d::PointLight::RenderDat
 c3d::ShadowMapPass::ShadowMapPass(glm::uvec2 size):
 	RenderPass(size, "Shadow map pass")
 {
-	createDescriptorSetLayout();
-	createBuffer();
-	createPipelineLayouts();
-	createPipelines();
+	createPipelineStates();
 }
 
-c3d::ShadowMapPassOutput c3d::ShadowMapPass::onRender(const std::shared_ptr<VKCommandBuffer>& commandBuffer, ShadowMapPassInput& input)
+c3d::ShadowMapPassOutput c3d::ShadowMapPass::onRender(cgpu::CommandRecorder& commandRecorder, ShadowMapPassInput& input)
 {
 	if (input.sceneChanged || input.cameraChanged)
 	{
 		_shadowMapManager.resetDirectionalShadowMapAllocations();
 		_directionalShadowMapInfos.clear();
 
-		int shadowCastingDirectionalLightIndex = 0;
 		for (const DirectionalLight::RenderData& light : input.registry.getDirectionalLightRenderRequests())
 		{
-			if (!light.castShadows)
+			if (light.castShadows)
 			{
-				continue;
+				_directionalShadowMapInfos.emplace_back(renderDirectionalShadowMap(commandRecorder, light, input.registry.getModelRenderRequests()));
 			}
-
-			commandBuffer->pushDebugGroup(std::format("Directional light ({})", shadowCastingDirectionalLightIndex));
-			renderDirectionalShadowMap(commandBuffer, light, input.registry.getModelRenderRequests());
-			commandBuffer->popDebugGroup();
-
-			shadowCastingDirectionalLightIndex++;
+			else
+			{
+				_directionalShadowMapInfos.emplace_back(std::nullopt);
+			}
 		}
 	}
 
@@ -126,37 +120,23 @@ c3d::ShadowMapPassOutput c3d::ShadowMapPass::onRender(const std::shared_ptr<VKCo
 		_shadowMapManager.resetPointShadowMapAllocations();
 		_pointShadowMapInfos.clear();
 
-		int shadowCastingPointLights = 0;
 		for (const PointLight::RenderData& light : input.registry.getPointLightRenderRequests())
 		{
 			if (light.castShadows)
 			{
-				shadowCastingPointLights++;
+				_pointShadowMapInfos.emplace_back(renderPointShadowMap(commandRecorder, light, input.registry.getModelRenderRequests()));
 			}
-		}
-
-		_pointLightUniformBuffer->resizeSmart(shadowCastingPointLights * 6);
-
-		int shadowCastingPointLightIndex = 0;
-		for (const PointLight::RenderData& light : input.registry.getPointLightRenderRequests())
-		{
-			if (!light.castShadows)
+			else
 			{
-				continue;
+				_pointShadowMapInfos.emplace_back(std::nullopt);
 			}
-
-			commandBuffer->pushDebugGroup(std::format("Point light ({})", shadowCastingPointLightIndex));
-			renderPointShadowMap(commandBuffer, light, input.registry.getModelRenderRequests(), shadowCastingPointLightIndex);
-			commandBuffer->popDebugGroup();
-
-			shadowCastingPointLightIndex++;
 		}
 	}
 
 	return {
 		.directionalShadowMapInfos = _directionalShadowMapInfos,
 		.pointShadowMapInfos = _pointShadowMapInfos,
-		.pointLightMaxDistance = POINT_SHADOW_MAP_FAR
+		.pointLightMaxDistance = POINT_SHADOW_MAP_FAR,
 	};
 }
 
@@ -164,246 +144,199 @@ void c3d::ShadowMapPass::onResize()
 {
 }
 
-void c3d::ShadowMapPass::createDescriptorSetLayout()
+void c3d::ShadowMapPass::createPipelineStates()
 {
-	VKDescriptorSetLayoutInfo info(true);
-	info.addBinding(vk::DescriptorType::eStorageBuffer, 1);
+	_vertexInputState = cgpu::VertexInputState::create(
+		Engine::getDeviceSession(),
+		{}
+	);
 
-	_pointLightDescriptorSetLayout = VKDescriptorSetLayout::create(Engine::getVKContext(), info);
-}
+	_directionalPreRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.vertex_shader = {.source = "Cyph3D/shadow mapping/directional light.slang"},
+		}
+	);
 
-void c3d::ShadowMapPass::createBuffer()
-{
-	VKResizableBufferInfo bufferInfo(vk::BufferUsageFlagBits::eStorageBuffer);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-	bufferInfo.setName("Point light shadow generation uniform buffer");
+	_directionalFragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.depth_state = {{
+				.test_pass_condition = vk::CompareOp::eLess,
+				.write_enabled = true,
+			}},
+		}
+	);
 
-	_pointLightUniformBuffer = VKDynamic<VKResizableBuffer<PointLightUniforms>>(
-		Engine::getVKContext(),
-		[&](VKContext& context, int index) {
-			return VKResizableBuffer<PointLightUniforms>::create(context, bufferInfo);
+	_directionalFragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.depth_stencil_attachment = {{
+				.format = SceneRenderer::DIRECTIONAL_SHADOW_MAP_DEPTH_FORMAT,
+			}},
+		}
+	);
+
+	_pointPreRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.vertex_shader = {.source = "Cyph3D/shadow mapping/point light.slang"},
+		}
+	);
+
+	_pointFragmentShaderState = cgpu::FragmentShaderState::create(
+		Engine::getDeviceSession(),
+		{
+			.fragment_shader = {{.source = "Cyph3D/shadow mapping/point light.slang"}},
+			.depth_state = {{
+				.test_pass_condition = vk::CompareOp::eLess,
+				.write_enabled = true,
+			}},
+		}
+	);
+
+	_pointFragmentOutputState = cgpu::FragmentOutputState::create(
+		Engine::getDeviceSession(),
+		{
+			.depth_stencil_attachment = {{
+				.format = SceneRenderer::POINT_SHADOW_MAP_DEPTH_FORMAT,
+			}},
 		}
 	);
 }
 
-void c3d::ShadowMapPass::createPipelineLayouts()
-{
-	{
-		VKPipelineLayoutInfo info;
-		info.setPushConstantLayout<DirectionalLightPushConstantData>();
-
-		_directionalLightPipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-	}
-
-	{
-		VKPipelineLayoutInfo info;
-		info.addDescriptorSetLayout(_pointLightDescriptorSetLayout);
-		info.setPushConstantLayout<PointLightPushConstantData>();
-
-		_pointLightPipelineLayout = VKPipelineLayout::create(Engine::getVKContext(), info);
-	}
-}
-
-void c3d::ShadowMapPass::createPipelines()
-{
-	{
-		VKGraphicsPipelineInfo info(
-			_directionalLightPipelineLayout,
-			"shadow mapping/directional light.vert",
-			vk::PrimitiveTopology::eTriangleList,
-			vk::CullModeFlagBits::eBack,
-			vk::FrontFace::eCounterClockwise
-		);
-
-		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
-		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
-
-		info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::DIRECTIONAL_SHADOW_MAP_DEPTH_FORMAT, vk::CompareOp::eLess, true);
-
-		_directionalLightPipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
-	}
-
-	{
-		VKGraphicsPipelineInfo info(
-			_pointLightPipelineLayout,
-			"shadow mapping/point light.vert",
-			vk::PrimitiveTopology::eTriangleList,
-			vk::CullModeFlagBits::eBack,
-			vk::FrontFace::eCounterClockwise
-		);
-
-		info.setFragmentShader("shadow mapping/point light.frag");
-
-		info.getVertexInputLayoutInfo().defineSlot(0, sizeof(PositionVertexData), vk::VertexInputRate::eVertex);
-		info.getVertexInputLayoutInfo().defineAttribute(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PositionVertexData, position));
-
-		info.getPipelineAttachmentInfo().setDepthAttachment(SceneRenderer::POINT_SHADOW_MAP_DEPTH_FORMAT, vk::CompareOp::eLess, true);
-
-		_pointLightPipeline = VKGraphicsPipeline::create(Engine::getVKContext(), info);
-	}
-}
-
-void c3d::ShadowMapPass::renderDirectionalShadowMap(
-	const std::shared_ptr<VKCommandBuffer>& commandBuffer,
+c3d::DirectionalShadowMapInfo c3d::ShadowMapPass::renderDirectionalShadowMap(
+	cgpu::CommandRecorder& commandRecorder,
 	const DirectionalLight::RenderData& light,
 	const std::vector<ModelRenderer::RenderData>& models
 )
 {
-	std::shared_ptr<VKImage> shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
+	cgpu::ScopedDebugRegion debugRegion{commandRecorder, std::format("Directional light ({})", light.name)};
 
-	commandBuffer->imageMemoryBarrier(
-		shadowMap,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-		vk::AccessFlagBits2::eDepthStencilAttachmentRead | vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::ImageLayout::eDepthAttachmentOptimal
-	);
+	cgpu::ImagePtr shadowMap = _shadowMapManager.allocateDirectionalShadowMap(light.shadowMapResolution);
 
-	VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
+	glm::mat4 vMatrix = calcDirectionalShadowMapView(light);
+	auto [pMatrix, worldSize, worldDepth] = calcDirectionalShadowMapProjection(vMatrix, models);
+	glm::mat4 vpMatrix = pMatrix * vMatrix;
 
-	renderingInfo.setDepthAttachment(shadowMap)
-		.setLoadOpClear(1.0f)
-		.setStoreOpStore();
-
-	commandBuffer->beginRendering(renderingInfo);
-
-	commandBuffer->bindPipeline(_directionalLightPipeline);
-
-	VKPipelineViewport viewport;
-	viewport.offset = {0, 0};
-	viewport.size = {light.shadowMapResolution, light.shadowMapResolution};
-	viewport.depthRange = {0.0f, 1.0f};
-	commandBuffer->setViewport(viewport);
-
-	VKPipelineScissor scissor;
-	scissor.offset = {0, 0};
-	scissor.size = {light.shadowMapResolution, light.shadowMapResolution};
-	commandBuffer->setScissor(scissor);
-
-	glm::mat4 view = calcDirectionalShadowMapView(light);
-	auto [projection, worldSize, worldDepth] = calcDirectionalShadowMapProjection(view, models);
-	glm::mat4 viewProjection = projection * view;
-
-	for (const ModelRenderer::RenderData& model : models)
-	{
-		if (!model.contributeShadows)
-		{
-			continue;
-		}
-
-		const std::shared_ptr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-		const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
-
-		commandBuffer->bindVertexBuffer(0, vertexBuffer);
-		commandBuffer->bindIndexBuffer(indexBuffer);
-
-		DirectionalLightPushConstantData pushConstantData{};
-		pushConstantData.mvp = viewProjection * model.transform.getLocalToWorldMatrix();
-		commandBuffer->pushConstants(pushConstantData);
-
-		commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
-	}
-
-	commandBuffer->unbindPipeline();
-
-	commandBuffer->endRendering();
-
-	_directionalShadowMapInfos.push_back(
-		DirectionalShadowMapInfo{
-			.worldSize = worldSize,
-			.worldDepth = worldDepth,
-			.viewProjection = viewProjection,
+	commandRecorder.graphicsPass({
+		.depth_stencil_attachment = {{
 			.image = shadowMap,
-		}
-	);
+			.load_op = vk::AttachmentLoadOp::eClear,
+			.store_op = vk::AttachmentStoreOp::eStore,
+			.clear_depth_value = 1.0f,
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_directionalPreRasterizationShaderState,
+				_directionalFragmentShaderState,
+				_directionalFragmentOutputState
+			);
+
+			for (const ModelRenderer::RenderData& model : models)
+			{
+				if (!model.contributeShadows)
+				{
+					continue;
+				}
+
+				ctx.bindIndexBuffer(model.mesh.getIndexBuffer(), model.mesh.getIndexType());
+
+				using namespace cgpu::shader_types;
+				struct
+				{
+					float4x4 u_mvpMatrix{};
+					PositionVertexData* u_vertexList{};
+				} parameters{};
+
+				parameters.u_mvpMatrix = vpMatrix * model.transform.getLocalToWorldMatrix();
+				parameters.u_vertexList = ctx.getBufferDevicePtr<PositionVertexData>(
+					model.mesh.getPositionVertexBuffer(),
+					cgpu::GraphicsStage::eVertex,
+					cgpu::StorageAccess::eReadonly
+				);
+
+				ctx.drawIndexed(model.mesh.getIndexCount(), 1, 0, 0, 0, parameters);
+			}
+		},
+	});
+
+	return {
+		.worldSize = worldSize,
+		.worldDepth = worldDepth,
+		.vpMatrix = vpMatrix,
+		.image = shadowMap,
+	};
 }
 
-void c3d::ShadowMapPass::renderPointShadowMap(
-	const std::shared_ptr<VKCommandBuffer>& commandBuffer,
+c3d::PointShadowMapInfo c3d::ShadowMapPass::renderPointShadowMap(
+	cgpu::CommandRecorder& commandRecorder,
 	const PointLight::RenderData& light,
-	const std::vector<ModelRenderer::RenderData>& models,
-	int uniformIndex
+	const std::vector<ModelRenderer::RenderData>& models
 )
 {
-	std::shared_ptr<VKImage> shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
+	cgpu::ScopedDebugRegion debugRegion{commandRecorder, std::format("Point light ({})", light.name)};
 
-	commandBuffer->imageMemoryBarrier(
-		shadowMap,
-		vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-		vk::AccessFlagBits2::eDepthStencilAttachmentRead | vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-		vk::ImageLayout::eDepthAttachmentOptimal
-	);
+	cgpu::ImagePtr shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
 
 	std::array<glm::mat4, 6> views = calcPointShadowMapView(light);
 
 	for (int i = 0; i < 6; i++)
 	{
-		VKRenderingInfo renderingInfo({light.shadowMapResolution, light.shadowMapResolution});
+		commandRecorder.graphicsPass({
+			.depth_stencil_attachment = {{
+				.image = shadowMap,
+				.first_layer = i,
+				.load_op = vk::AttachmentLoadOp::eClear,
+				.store_op = vk::AttachmentStoreOp::eStore,
+				.clear_depth_value = 1.0f,
+			}},
+			.callback = [&](cgpu::GraphicsPassContext& ctx) {
+				ctx.bindPipelineStates(
+					_vertexInputState,
+					_pointPreRasterizationShaderState,
+					_pointFragmentShaderState,
+					_pointFragmentOutputState
+				);
 
-		renderingInfo
-			.setDepthAttachment(
-				shadowMap,
-				vk::ImageViewType::e2D,
-				{i, i},
-				{0, 0},
-				shadowMap->getInfo().getFormat()
-			)
-			.setLoadOpClear(std::numeric_limits<float>::max())
-			.setStoreOpStore();
+				glm::mat4 vpMatrix = POINT_SHADOW_MAP_PROJECTION * views[i];
+				for (const ModelRenderer::RenderData& model : models)
+				{
+					if (!model.contributeShadows)
+					{
+						continue;
+					}
 
-		commandBuffer->beginRendering(renderingInfo);
+					ctx.bindIndexBuffer(model.mesh.getIndexBuffer(), model.mesh.getIndexType());
 
-		commandBuffer->bindPipeline(_pointLightPipeline);
+					using namespace cgpu::shader_types;
+					struct
+					{
+						float4x4 u_mvpMatrix;
+						float4x4 u_mMatrix;
+						PositionVertexData* u_vertexList;
+						float3 u_lightPos;
+						float u_invMaxDistance;
+					} parameters{};
 
-		VKPipelineViewport viewport;
-		viewport.offset = {0, 0};
-		viewport.size = {light.shadowMapResolution, light.shadowMapResolution};
-		viewport.depthRange = {0.0f, 1.0f};
-		commandBuffer->setViewport(viewport);
+					parameters.u_mvpMatrix = vpMatrix * model.transform.getLocalToWorldMatrix();
+					parameters.u_mMatrix = model.transform.getLocalToWorldMatrix();
+					parameters.u_vertexList = ctx.getBufferDevicePtr<PositionVertexData>(
+						model.mesh.getPositionVertexBuffer(),
+						cgpu::GraphicsStage::eVertex,
+						cgpu::StorageAccess::eReadonly
+					);
+					parameters.u_lightPos = light.transform.getWorldPosition();
+					parameters.u_invMaxDistance = 1.0f / POINT_SHADOW_MAP_FAR;
 
-		VKPipelineScissor scissor;
-		scissor.offset = {0, 0};
-		scissor.size = {light.shadowMapResolution, light.shadowMapResolution};
-		commandBuffer->setScissor(scissor);
-
-		int uniformOffset = uniformIndex * 6 + i;
-
-		PointLightUniforms* pointLightUniformBufferPtr = _pointLightUniformBuffer->getHostPointer() + uniformOffset;
-		pointLightUniformBufferPtr->viewProjection = POINT_SHADOW_MAP_PROJECTION * views[i];
-		pointLightUniformBufferPtr->lightPos = light.transform.getWorldPosition();
-		pointLightUniformBufferPtr->maxDistance = POINT_SHADOW_MAP_FAR;
-
-		commandBuffer->pushDescriptor(0, 0, _pointLightUniformBuffer.getCurrent()->getBuffer(), uniformOffset, 1);
-
-		for (const ModelRenderer::RenderData& model : models)
-		{
-			if (!model.contributeShadows)
-			{
-				continue;
-			}
-
-			const std::shared_ptr<VKBuffer<PositionVertexData>>& vertexBuffer = model.mesh.getPositionVertexBuffer();
-			const std::shared_ptr<VKBuffer<uint32_t>>& indexBuffer = model.mesh.getIndexBuffer();
-
-			commandBuffer->bindVertexBuffer(0, vertexBuffer);
-			commandBuffer->bindIndexBuffer(indexBuffer);
-
-			PointLightPushConstantData pushConstantData{};
-			pushConstantData.model = model.transform.getLocalToWorldMatrix();
-			commandBuffer->pushConstants(pushConstantData);
-
-			commandBuffer->drawIndexed(indexBuffer->getInfo().getSize(), 0, 0);
-		}
-
-		commandBuffer->unbindPipeline();
-
-		commandBuffer->endRendering();
+					ctx.drawIndexed(model.mesh.getIndexCount(), 1, 0, 0, 0, parameters);
+				}
+			},
+		});
 	}
 
-	_pointShadowMapInfos.push_back(
-		PointShadowMapInfo{
-			.image = shadowMap,
-		}
-	);
+	return {
+		.image = shadowMap,
+	};
 }

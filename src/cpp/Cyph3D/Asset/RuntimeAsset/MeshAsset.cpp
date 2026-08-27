@@ -2,13 +2,13 @@
 
 #include <Cyph3D/Asset/AssetManager.h>
 #include <Cyph3D/Engine.h>
-#include <Cyph3D/VKObject/AccelerationStructure/VKAccelerationStructure.h>
-#include <Cyph3D/VKObject/AccelerationStructure/VKBottomLevelAccelerationStructureBuildInfo.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/Query/VKAccelerationStructureCompactedSizeQuery.h>
-#include <Cyph3D/VKObject/Queue/VKQueue.h>
 
+#include <CyphGPU/BLAS.hpp>
+#include <CyphGPU/Buffer.hpp>
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/CommandRecorder.hpp>
+#include <CyphGPU/Device.hpp>
+#include <CyphGPU/DeviceSession.hpp>
 #include <spdlog/spdlog.h>
 
 c3d::MeshAsset* c3d::MeshAsset::_defaultMesh = nullptr;
@@ -22,28 +22,39 @@ c3d::MeshAsset::MeshAsset(AssetManager& manager, const MeshAssetSignature& signa
 
 c3d::MeshAsset::~MeshAsset() = default;
 
-const std::shared_ptr<c3d::VKBuffer<c3d::PositionVertexData>>& c3d::MeshAsset::getPositionVertexBuffer() const
+const cgpu::BufferPtr& c3d::MeshAsset::getPositionVertexBuffer() const
 {
 	checkLoaded();
 	return _positionVertexBuffer;
 }
 
-const std::shared_ptr<c3d::VKBuffer<c3d::MaterialVertexData>>& c3d::MeshAsset::getMaterialVertexBuffer() const
+const cgpu::BufferPtr& c3d::MeshAsset::getMaterialVertexBuffer() const
 {
 	checkLoaded();
 	return _materialVertexBuffer;
 }
 
-const std::shared_ptr<c3d::VKBuffer<uint32_t>>& c3d::MeshAsset::getIndexBuffer() const
+const cgpu::BufferPtr& c3d::MeshAsset::getIndexBuffer() const
 {
 	checkLoaded();
 	return _indexBuffer;
 }
 
-const std::shared_ptr<c3d::VKAccelerationStructure>& c3d::MeshAsset::getAccelerationStructure() const
+uint32_t c3d::MeshAsset::getIndexCount() const
 {
 	checkLoaded();
-	return _accelerationStructure;
+	return _indexBuffer->getDesc().size / sizeof(uint32_t);
+}
+
+vk::IndexType c3d::MeshAsset::getIndexType() const
+{
+	return vk::IndexType::eUint32;
+}
+
+const cgpu::BLASPtr& c3d::MeshAsset::getBLAS() const
+{
+	checkLoaded();
+	return _blas;
 }
 
 const glm::vec3& c3d::MeshAsset::getBoundingBoxMin() const
@@ -76,249 +87,137 @@ c3d::MeshAsset* c3d::MeshAsset::getMissingMesh()
 
 void c3d::MeshAsset::load_async()
 {
+	spdlog::info("Loading mesh [{}]...", _signature.path);
+
 	MeshData meshData = _manager.getAssetProcessor().readMeshData(_signature.path);
 
-	spdlog::info("Uploading mesh [{}]...", _signature.path);
+	bool hasRayTracing = static_cast<bool>(Engine::getDeviceSession()->getDevice()->getCapabilities() & cgpu::Device::Capability::eRayTracing);
 
 	{
-		vk::BufferUsageFlags positionVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
-		vk::DeviceAddress positionVertexBufferAlignment = 1;
-		if (Engine::getVKContext().isRayTracingSupported())
+		vk::BufferUsageFlags2 usages;
+		if (hasRayTracing)
 		{
-			positionVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
-			positionVertexBufferAlignment = sizeof(float);
+			usages |= vk::BufferUsageFlagBits2::eAccelerationStructureBuildInputReadOnlyKHR;
 		}
-		VKBufferInfo positionVertexBufferInfo(meshData.positionVertices.size(), positionVertexBufferUsage);
-		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-		positionVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-		positionVertexBufferInfo.setRequiredAlignment(positionVertexBufferAlignment);
-		positionVertexBufferInfo.setName(std::format("{}.PositionVertexBuffer", _signature.path));
 
-		_positionVertexBuffer = VKBuffer<PositionVertexData>::create(Engine::getVKContext(), positionVertexBufferInfo);
+		_positionVertexBuffer = cgpu::Buffer::create(
+			Engine::getDeviceSession(),
+			{
+				.name = std::format("{}.PositionVertexBuffer", _signature.path),
+				.size = meshData.positionVertices.size() * sizeof(PositionVertexData),
+				.usages = usages,
+				.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+				.min_alignment = alignof(PositionVertexData),
+			}
+		);
 
-		std::ranges::copy(meshData.positionVertices, _positionVertexBuffer->getHostPointer());
+		std::ranges::copy(meshData.positionVertices, _positionVertexBuffer->getHostPtr<PositionVertexData>());
 	}
 
 	{
-		vk::BufferUsageFlags materialVertexBufferUsage = vk::BufferUsageFlagBits::eVertexBuffer;
-		if (Engine::getVKContext().isRayTracingSupported())
-		{
-			materialVertexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress;
-		}
-		VKBufferInfo materialVertexBufferInfo(meshData.materialVertices.size(), materialVertexBufferUsage);
-		materialVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		materialVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-		materialVertexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-		materialVertexBufferInfo.setName(std::format("{}.MaterialVertexBuffer", _signature.path));
+		_materialVertexBuffer = cgpu::Buffer::create(
+			Engine::getDeviceSession(),
+			{
+				.name = std::format("{}.MaterialVertexData", _signature.path),
+				.size = meshData.materialVertices.size() * sizeof(MaterialVertexData),
+				.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+				.min_alignment = alignof(MaterialVertexData),
+			}
+		);
 
-		_materialVertexBuffer = VKBuffer<MaterialVertexData>::create(Engine::getVKContext(), materialVertexBufferInfo);
-
-		std::ranges::copy(meshData.materialVertices, _materialVertexBuffer->getHostPointer());
+		std::ranges::copy(meshData.materialVertices, _materialVertexBuffer->getHostPtr<MaterialVertexData>());
 	}
 
 	{
-		vk::BufferUsageFlags indexBufferUsage = vk::BufferUsageFlagBits::eIndexBuffer;
-		vk::DeviceAddress indexBufferAlignment = 1;
-		if (Engine::getVKContext().isRayTracingSupported())
+		vk::BufferUsageFlags2 usages = vk::BufferUsageFlagBits2::eIndexBuffer;
+		if (hasRayTracing)
 		{
-			indexBufferUsage |= vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
-			indexBufferAlignment = sizeof(uint32_t);
+			usages |= vk::BufferUsageFlagBits2::eAccelerationStructureBuildInputReadOnlyKHR;
 		}
-		VKBufferInfo indexBufferInfo(meshData.indices.size(), indexBufferUsage);
-		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-		indexBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-		indexBufferInfo.setRequiredAlignment(indexBufferAlignment);
-		indexBufferInfo.setName(std::format("{}.IndexBuffer", _signature.path));
 
-		_indexBuffer = VKBuffer<uint32_t>::create(Engine::getVKContext(), indexBufferInfo);
+		_indexBuffer = cgpu::Buffer::create(
+			Engine::getDeviceSession(),
+			{
+				.name = std::format("{}.IndexBuffer", _signature.path),
+				.size = meshData.indices.size() * sizeof(uint32_t),
+				.usages = usages,
+				.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+				.min_alignment = alignof(uint32_t),
+			}
+		);
 
-		std::ranges::copy(meshData.indices, _indexBuffer->getHostPointer());
+		std::ranges::copy(meshData.indices, _indexBuffer->getHostPtr<uint32_t>());
 	}
 
-	if (Engine::getVKContext().isRayTracingSupported())
+	if (hasRayTracing)
 	{
-		// Create temporary acceleration structure
-
-		VKBottomLevelAccelerationStructureBuildInfo buildInfo{
-			.vertexBuffer = _positionVertexBuffer,
-			.vertexFormat = vk::Format::eR32G32B32Sfloat,
-			.vertexStride = sizeof(PositionVertexData),
-			.indexBuffer = _indexBuffer,
-			.indexType = vk::IndexType::eUint32
+		cgpu::BLAS::ASInfo blasInfo{
+			.vertex_buffer = {
+				.count = static_cast<uint32_t>(meshData.positionVertices.size()),
+				.format = vk::Format::eR32G32B32Sfloat,
+				.stride = sizeof(PositionVertexData),
+			},
+			.index_buffer = {{
+				.count = static_cast<uint32_t>(meshData.indices.size()),
+				.type = vk::IndexType::eUint32,
+			}},
+			.opaque = true,
 		};
 
-		vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = VKAccelerationStructure::getBottomLevelBuildSizesInfo(Engine::getVKContext(), buildInfo);
+		auto sizes = cgpu::BLAS::calcSizes(Engine::getDeviceSession(), blasInfo);
 
-		std::shared_ptr<VKAccelerationStructure> temporaryAccelerationStructure = VKAccelerationStructure::create(
-			Engine::getVKContext(),
-			vk::AccelerationStructureTypeKHR::eBottomLevel,
-			buildSizesInfo.accelerationStructureSize
+		cgpu::BufferPtr blas_buffer = cgpu::Buffer::create(
+			Engine::getDeviceSession(),
+			{
+				.name = std::format("{}.BLASBuffer", _signature.path),
+				.size = sizes.accelerationStructureSize,
+				.usages = vk::BufferUsageFlagBits2::eAccelerationStructureStorageKHR,
+				.min_alignment = 256,
+			}
 		);
 
-		// Create scratch buffer
-
-		VKBufferInfo scratchBufferInfo(buildSizesInfo.buildScratchSize, vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eStorageBuffer);
-		scratchBufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-		scratchBufferInfo.setRequiredAlignment(Engine::getVKContext().getAccelerationStructureProperties().minAccelerationStructureScratchOffsetAlignment);
-
-		std::shared_ptr<VKBuffer<std::byte>> scratchBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), scratchBufferInfo);
-
-		// Build temporary acceleration structure and query compact size
-
-		assetComputeCommandBuffer->begin();
-
-		assetComputeCommandBuffer->bufferMemoryBarrier(
-			temporaryAccelerationStructure->getBackingBuffer(),
-			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
-			vk::AccessFlagBits2::eAccelerationStructureWriteKHR
+		_blas = cgpu::BLAS::create(
+			Engine::getDeviceSession(),
+			{
+				.name = std::format("{}.BLAS", _signature.path),
+				.as_info = blasInfo,
+				.buffer = blas_buffer,
+				.sizes = sizes,
+			}
 		);
 
-		assetComputeCommandBuffer->bufferMemoryBarrier(
-			scratchBuffer,
-			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
-			vk::AccessFlagBits2::eAccelerationStructureReadKHR | vk::AccessFlagBits2::eAccelerationStructureWriteKHR
-		);
+		std::optional<cgpu::CommandRecorder::BLASParams::ScratchBuffer> blas_scratch_buffer;
+		if (_blas->getDesc().sizes.buildScratchSize > 0)
+		{
+			blas_scratch_buffer = {{
+				.buffer = cgpu::Buffer::create(
+					Engine::getDeviceSession(),
+					{
+						.name = "BLAS (build scratch memory)",
+						.size = _blas->getDesc().sizes.buildScratchSize,
+						.usages = vk::BufferUsageFlagBits2::eStorageBuffer,
+						.min_alignment = Engine::getDeviceSession()->getDevice()->getProperties<vk::PhysicalDeviceAccelerationStructurePropertiesKHR>().minAccelerationStructureScratchOffsetAlignment,
+					}
+				),
+			}};
+		}
 
-		assetComputeCommandBuffer->bufferMemoryBarrier(
-			_positionVertexBuffer,
-			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
-			vk::AccessFlagBits2::eAccelerationStructureReadKHR
-		);
+		auto commandRecorder = assetCommandContext->createRecorder(Engine::getDeviceSession()->getAsyncComputeQueue());
 
-		assetComputeCommandBuffer->bufferMemoryBarrier(
-			_indexBuffer,
-			vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
-			vk::AccessFlagBits2::eAccelerationStructureReadKHR
-		);
+		commandRecorder.buildBLAS({
+			.blas = _blas,
+			.vertex_buffer = {{
+				.buffer = _positionVertexBuffer,
+			}},
+			.index_buffer = {{
+				.buffer = _indexBuffer,
+			}},
+			.scratch_buffer = blas_scratch_buffer,
+		});
 
-		assetComputeCommandBuffer->buildBottomLevelAccelerationStructure(temporaryAccelerationStructure, scratchBuffer, buildInfo);
+		commandRecorder.submit().waitFinished();
 
-		assetComputeCommandBuffer->bufferMemoryBarrier(
-			temporaryAccelerationStructure->getBackingBuffer(),
-			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
-			vk::AccessFlagBits2::eAccelerationStructureReadKHR
-		);
-
-		assetComputeCommandBuffer->releaseBufferOwnership(
-			_positionVertexBuffer,
-			Engine::getVKContext().getMainQueue()
-		);
-
-		assetComputeCommandBuffer->releaseBufferOwnership(
-			_indexBuffer,
-			Engine::getVKContext().getMainQueue()
-		);
-
-		std::shared_ptr<VKAccelerationStructureCompactedSizeQuery> compactedSizeQuery = VKAccelerationStructureCompactedSizeQuery::create(Engine::getVKContext());
-		assetComputeCommandBuffer->queryAccelerationStructureCompactedSize(temporaryAccelerationStructure, compactedSizeQuery);
-
-		assetComputeCommandBuffer->end();
-
-		Engine::getVKContext().getComputeQueue().submit(assetComputeCommandBuffer, {}, {});
-
-		assetComputeCommandBuffer->waitExecution();
-		assetComputeCommandBuffer->reset();
-
-		// Create temporary acceleration structure
-
-		vk::DeviceSize compactedSize = compactedSizeQuery->getCompactedSize();
-
-		_accelerationStructure = VKAccelerationStructure::create(
-			Engine::getVKContext(),
-			vk::AccelerationStructureTypeKHR::eBottomLevel,
-			compactedSize
-		);
-
-		// Compact acceleration structure
-
-		assetComputeCommandBuffer->begin();
-
-		assetComputeCommandBuffer->bufferMemoryBarrier(
-			_accelerationStructure->getBackingBuffer(),
-			vk::PipelineStageFlagBits2::eAccelerationStructureCopyKHR,
-			vk::AccessFlagBits2::eAccelerationStructureWriteKHR
-		);
-
-		assetComputeCommandBuffer->compactAccelerationStructure(temporaryAccelerationStructure, _accelerationStructure);
-
-		assetComputeCommandBuffer->releaseBufferOwnership(
-			_accelerationStructure->getBackingBuffer(),
-			Engine::getVKContext().getMainQueue()
-		);
-
-		assetComputeCommandBuffer->end();
-
-		Engine::getVKContext().getComputeQueue().submit(assetComputeCommandBuffer, {}, {});
-
-		assetComputeCommandBuffer->waitExecution();
-		assetComputeCommandBuffer->reset();
-
-		assetGraphicsCommandBuffer->begin();
-
-		assetGraphicsCommandBuffer->acquireBufferOwnership(
-			_positionVertexBuffer,
-			Engine::getVKContext().getComputeQueue(),
-			vk::PipelineStageFlagBits2::eVertexAttributeInput,
-			vk::AccessFlagBits2::eVertexAttributeRead
-		);
-
-		assetGraphicsCommandBuffer->acquireBufferOwnership(
-			_indexBuffer,
-			Engine::getVKContext().getComputeQueue(),
-			vk::PipelineStageFlagBits2::eIndexInput | vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eIndexRead | vk::AccessFlagBits2::eShaderStorageRead
-		);
-
-		assetGraphicsCommandBuffer->acquireBufferOwnership(
-			_accelerationStructure->getBackingBuffer(),
-			Engine::getVKContext().getComputeQueue(),
-			vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eAccelerationStructureReadKHR
-		);
-
-		assetGraphicsCommandBuffer->bufferMemoryBarrier(
-			_materialVertexBuffer,
-			vk::PipelineStageFlagBits2::eVertexAttributeInput | vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-			vk::AccessFlagBits2::eVertexAttributeRead | vk::AccessFlagBits2::eShaderStorageRead
-		);
-
-		assetGraphicsCommandBuffer->end();
-
-		Engine::getVKContext().getMainQueue().submit(assetGraphicsCommandBuffer, {}, {});
-
-		assetGraphicsCommandBuffer->waitExecution();
-		assetGraphicsCommandBuffer->reset();
-	}
-	else
-	{
-		assetGraphicsCommandBuffer->begin();
-
-		assetGraphicsCommandBuffer->bufferMemoryBarrier(
-			_positionVertexBuffer,
-			vk::PipelineStageFlagBits2::eVertexAttributeInput,
-			vk::AccessFlagBits2::eVertexAttributeRead
-		);
-
-		assetGraphicsCommandBuffer->bufferMemoryBarrier(
-			_materialVertexBuffer,
-			vk::PipelineStageFlagBits2::eVertexAttributeInput,
-			vk::AccessFlagBits2::eVertexAttributeRead
-		);
-
-		assetGraphicsCommandBuffer->bufferMemoryBarrier(
-			_indexBuffer,
-			vk::PipelineStageFlagBits2::eIndexInput,
-			vk::AccessFlagBits2::eIndexRead
-		);
-
-		assetGraphicsCommandBuffer->end();
-
-		Engine::getVKContext().getMainQueue().submit(assetGraphicsCommandBuffer, {}, {});
-
-		assetGraphicsCommandBuffer->waitExecution();
-		assetGraphicsCommandBuffer->reset();
+		assetCommandContext->finish();
 	}
 
 	_boundingBoxMin = meshData.boundingBoxMin;

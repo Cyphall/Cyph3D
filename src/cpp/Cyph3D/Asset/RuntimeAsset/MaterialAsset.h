@@ -4,6 +4,7 @@
 #include <Cyph3D/HashBuilder.h>
 #include <Cyph3D/UI/IInspectable.h>
 
+#include <CyphGPU/fwd.hpp>
 #include <glm/glm.hpp>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
@@ -13,7 +14,6 @@
 namespace c3d
 {
 class TextureAsset;
-class VKImage;
 
 struct MaterialAssetSignature
 {
@@ -32,22 +32,22 @@ public:
 	void onDrawUi() override;
 
 	void setAlbedoTexture(std::optional<std::string_view> path);
-	int32_t getAlbedoTextureBindlessIndex() const;
+	std::optional<cgpu::ImagePtr> getAlbedoImage() const;
 
 	void setNormalTexture(std::optional<std::string_view> path);
-	int32_t getNormalTextureBindlessIndex() const;
+	std::optional<cgpu::ImagePtr> getNormalImage() const;
 
 	void setRoughnessTexture(std::optional<std::string_view> path);
-	int32_t getRoughnessTextureBindlessIndex() const;
+	std::optional<cgpu::ImagePtr> getRoughnessImage() const;
 
 	void setMetalnessTexture(std::optional<std::string_view> path);
-	int32_t getMetalnessTextureBindlessIndex() const;
+	std::optional<cgpu::ImagePtr> getMetalnessImage() const;
 
 	void setDisplacementTexture(std::optional<std::string_view> path);
-	int32_t getDisplacementTextureBindlessIndex() const;
+	std::optional<cgpu::ImagePtr> getDisplacementImage() const;
 
 	void setEmissiveTexture(std::optional<std::string_view> path);
-	int32_t getEmissiveTextureBindlessIndex() const;
+	std::optional<cgpu::ImagePtr> getEmissiveImage() const;
 
 	const glm::vec3& getAlbedoValue() const;
 	void setAlbedoValue(const glm::vec3& value);

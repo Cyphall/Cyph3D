@@ -1,9 +1,9 @@
 #include "AssetManager.h"
 
 #include <Cyph3D/Engine.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/Sampler/VKSampler.h>
-#include <Cyph3D/VKObject/VKContext.h>
+
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/Sampler.hpp>
 
 namespace
 {
@@ -11,16 +11,12 @@ void threadInit()
 {
 	BS::this_thread::set_os_thread_priority(BS::os_thread_priority::below_normal);
 
-	c3d::assetGraphicsCommandBuffer = c3d::VKCommandBuffer::create(c3d::Engine::getVKContext(), c3d::Engine::getVKContext().getMainQueue());
-	c3d::assetComputeCommandBuffer = c3d::VKCommandBuffer::create(c3d::Engine::getVKContext(), c3d::Engine::getVKContext().getComputeQueue());
-	c3d::assetTransferCommandBuffer = c3d::VKCommandBuffer::create(c3d::Engine::getVKContext(), c3d::Engine::getVKContext().getTransferQueue());
+	c3d::assetCommandContext = std::make_unique<cgpu::CommandContext>(c3d::Engine::getDeviceSession());
 }
 
 void threadShutdown()
 {
-	c3d::assetGraphicsCommandBuffer.reset();
-	c3d::assetComputeCommandBuffer.reset();
-	c3d::assetTransferCommandBuffer.reset();
+	c3d::assetCommandContext.reset();
 }
 }
 
@@ -29,57 +25,36 @@ c3d::AssetManager::AssetManager():
 {
 	_threadPool.set_cleanup_func(threadShutdown);
 
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eLinear;
-		createInfo.minFilter = vk::Filter::eLinear;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-		createInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
-		createInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
-		createInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = true;
-		createInfo.maxAnisotropy = 16;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-		createInfo.unnormalizedCoordinates = false;
+	_textureSampler = cgpu::Sampler::create(
+		Engine::getDeviceSession(),
+		{
+			.min_filter = vk::Filter::eLinear,
+			.mag_filter = vk::Filter::eLinear,
+			.mipmap_mode = vk::SamplerMipmapMode::eLinear,
+			.anisotropy = 16.0f,
+		}
+	);
 
-		_textureSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
-
-	{
-		vk::SamplerCreateInfo createInfo;
-		createInfo.flags = {};
-		createInfo.magFilter = vk::Filter::eLinear;
-		createInfo.minFilter = vk::Filter::eLinear;
-		createInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-		createInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
-		createInfo.mipLodBias = 0.0f;
-		createInfo.anisotropyEnable = true;
-		createInfo.maxAnisotropy = 16;
-		createInfo.compareEnable = false;
-		createInfo.compareOp = vk::CompareOp::eNever;
-		createInfo.minLod = -1000.0f;
-		createInfo.maxLod = 1000.0f;
-		createInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
-		createInfo.unnormalizedCoordinates = false;
-
-		_cubemapSampler = VKSampler::create(Engine::getVKContext(), createInfo);
-	}
+	_cubemapSampler = cgpu::Sampler::create(
+		Engine::getDeviceSession(),
+		{
+			.min_filter = vk::Filter::eLinear,
+			.mag_filter = vk::Filter::eLinear,
+			.mipmap_mode = vk::SamplerMipmapMode::eLinear,
+			.wrapping_u = vk::SamplerAddressMode::eClampToEdge,
+			.wrapping_v = vk::SamplerAddressMode::eClampToEdge,
+			.wrapping_w = vk::SamplerAddressMode::eClampToEdge,
+			.anisotropy = 16.0f,
+		}
+	);
 }
 
-const std::shared_ptr<c3d::VKSampler>& c3d::AssetManager::getTextureSampler()
+const cgpu::SamplerPtr& c3d::AssetManager::getTextureSampler()
 {
 	return _textureSampler;
 }
 
-const std::shared_ptr<c3d::VKSampler>& c3d::AssetManager::getCubemapSampler()
+const cgpu::SamplerPtr& c3d::AssetManager::getCubemapSampler()
 {
 	return _cubemapSampler;
 }
@@ -87,11 +62,6 @@ const std::shared_ptr<c3d::VKSampler>& c3d::AssetManager::getCubemapSampler()
 c3d::AssetProcessor& c3d::AssetManager::getAssetProcessor()
 {
 	return _assetProcessor;
-}
-
-c3d::BindlessTextureManager& c3d::AssetManager::getBindlessTextureManager()
-{
-	return _bindlessTextureManager;
 }
 
 c3d::TextureAsset* c3d::AssetManager::loadTexture(std::string_view path, ImageType type)
@@ -183,9 +153,4 @@ c3d::SkyboxAsset* c3d::AssetManager::loadSkybox(std::string_view path)
 	}
 
 	return it->second.get();
-}
-
-void c3d::AssetManager::onNewFrame()
-{
-	_bindlessTextureManager.onNewFrame();
 }

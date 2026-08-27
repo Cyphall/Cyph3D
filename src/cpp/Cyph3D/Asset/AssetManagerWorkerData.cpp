@@ -1,5 +1,5 @@
 #include "AssetManagerWorkerData.h"
 
-thread_local std::shared_ptr<c3d::VKCommandBuffer> c3d::assetGraphicsCommandBuffer;
-thread_local std::shared_ptr<c3d::VKCommandBuffer> c3d::assetComputeCommandBuffer;
-thread_local std::shared_ptr<c3d::VKCommandBuffer> c3d::assetTransferCommandBuffer;
+#include <CyphGPU/CommandContext.hpp>
+
+thread_local std::unique_ptr<cgpu::CommandContext> c3d::assetCommandContext;

@@ -2,133 +2,96 @@
 
 #include <Cyph3D/Asset/AssetManager.h>
 #include <Cyph3D/Engine.h>
-#include <Cyph3D/VKObject/Buffer/VKBuffer.h>
-#include <Cyph3D/VKObject/CommandBuffer/VKCommandBuffer.h>
-#include <Cyph3D/VKObject/Image/VKImage.h>
-#include <Cyph3D/VKObject/Queue/VKQueue.h>
 
+#include <CyphGPU/Buffer.hpp>
+#include <CyphGPU/CommandContext.hpp>
+#include <CyphGPU/CommandRecorder.hpp>
+#include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/Image.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
+
+const cgpu::ImagePtr& c3d::TextureAsset::getImage() const
+{
+	checkLoaded();
+	return _image;
+}
 
 c3d::TextureAsset::TextureAsset(AssetManager& manager, const TextureAssetSignature& signature):
 	GPUAsset(manager, signature)
 {
-	_bindlessIndex = _manager.getBindlessTextureManager().acquireIndex();
 	_manager.addThreadPoolTask(&TextureAsset::load_async, this);
-}
-
-c3d::TextureAsset::~TextureAsset()
-{
-	_manager.getBindlessTextureManager().releaseIndex(_bindlessIndex);
-}
-
-const uint32_t& c3d::TextureAsset::getBindlessIndex() const
-{
-	checkLoaded();
-	return _bindlessIndex;
 }
 
 void c3d::TextureAsset::load_async()
 {
+	spdlog::info("Loading texture [{} ({})]...", _signature.path, magic_enum::enum_name(_signature.type));
+
 	ImageData imageData = _manager.getAssetProcessor().readImageData(_signature.path, _signature.type);
 
-	spdlog::info("Uploading texture [{} ({})]...", _signature.path, magic_enum::enum_name(_signature.type));
-
-	// create texture
-	VKImageInfo imageInfo(
-		imageData.format,
-		imageData.size,
-		1,
-		imageData.levels.size(),
-		vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst
+	// create image
+	_image = cgpu::Image::create(
+		Engine::getDeviceSession(),
+		{
+			.name = _signature.path,
+			.format = imageData.format,
+			.extent = {imageData.extent, 1},
+			.usages =
+				vk::ImageUsageFlagBits::eTransferDst |
+				vk::ImageUsageFlagBits::eSampled,
+			.levels = static_cast<uint32_t>(imageData.levels.size()),
+		}
 	);
-	imageInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	imageInfo.setName(_signature.path);
-
-	_image = VKImage::create(Engine::getVKContext(), imageInfo);
 
 	// create staging buffer
-	VKBufferInfo bufferInfo(_image->getLayerByteSize(), vk::BufferUsageFlagBits::eTransferSrc);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eDeviceLocal);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostVisible);
-	bufferInfo.addRequiredMemoryProperty(vk::MemoryPropertyFlagBits::eHostCoherent);
-
-	std::shared_ptr<VKBuffer<std::byte>> stagingBuffer = VKBuffer<std::byte>::create(Engine::getVKContext(), bufferInfo);
+	cgpu::BufferPtr stagingBuffer = cgpu::Buffer::create(
+		Engine::getDeviceSession(),
+		{
+			.name = std::format("{} (staging buffer)", _image->getDesc().name),
+			.size = _image->calcByteSize({0, _image->getDesc().levels}, 1),
+			.usages = vk::BufferUsageFlagBits2::eTransferSrc,
+			.memory_type = cgpu::MemoryType::eCPUUncached,
+		}
+	);
 
 	// copy texture data to staging buffer
-	std::byte* ptr = stagingBuffer->getHostPointer();
-	for (uint32_t i = 0; i < imageData.levels.size(); i++)
+	std::byte* ptr = stagingBuffer->getHostPtr();
+	for (uint32_t level = 0; level < _image->getDesc().levels; level++)
 	{
-		if (_image->getLevelByteSize(i) != imageData.levels[i].size())
-		{
-			throw;
-		}
-
-		std::copy_n(imageData.levels[i].data(), imageData.levels[i].size(), ptr);
-		ptr += imageData.levels[i].size();
+		std::copy_n(imageData.levels[level].data(), imageData.levels[level].size(), ptr);
+		ptr += imageData.levels[level].size();
 	}
 
 	// upload staging buffer to texture
-	assetTransferCommandBuffer->begin();
+	auto commandRecorder = assetCommandContext->createRecorder(Engine::getDeviceSession()->getAsyncTransferQueue());
 
-	assetTransferCommandBuffer->bufferMemoryBarrier(
-		stagingBuffer,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferRead
-	);
-
-	assetTransferCommandBuffer->imageMemoryBarrier(
-		_image,
-		vk::PipelineStageFlagBits2::eCopy,
-		vk::AccessFlagBits2::eTransferWrite,
-		vk::ImageLayout::eTransferDstOptimal
-	);
-
+	std::vector<cgpu::CommandRecorder::CopyBufferToImageParams::Range> ranges;
 	vk::DeviceSize bufferOffset = 0;
-	for (uint32_t i = 0; i < _image->getInfo().getLevels(); i++)
+	for (uint32_t level = 0; level < _image->getDesc().levels; level++)
 	{
-		assetTransferCommandBuffer->copyBufferToImage(stagingBuffer, bufferOffset, _image, 0, i);
-		bufferOffset += _image->getLevelByteSize(i);
+		size_t size = _image->calcByteSize({level, 1}, 1);
+
+		ranges.push_back({
+			.src = {{
+				.byte_range = {{bufferOffset, size}},
+			}},
+			.dst = {{
+				.level = level,
+			}},
+		});
+
+		bufferOffset += size;
 	}
 
-	assetTransferCommandBuffer->releaseImageOwnership(
-		_image,
-		Engine::getVKContext().getMainQueue(),
-		vk::ImageLayout::eReadOnlyOptimal
-	);
+	commandRecorder.copyBufferToImage({
+		.src_buffer = stagingBuffer,
+		.dst_image = _image,
+		.ranges = ranges,
+	});
 
-	assetTransferCommandBuffer->end();
+	commandRecorder.submit().waitFinished();
 
-	Engine::getVKContext().getTransferQueue().submit(assetTransferCommandBuffer, {}, {});
-
-	assetTransferCommandBuffer->waitExecution();
-	assetTransferCommandBuffer->reset();
-
-	assetGraphicsCommandBuffer->begin();
-
-	vk::PipelineStageFlags2 nextUsageStages = vk::PipelineStageFlagBits2::eFragmentShader;
-	if (Engine::getVKContext().isRayTracingSupported())
-	{
-		nextUsageStages |= vk::PipelineStageFlagBits2::eRayTracingShaderKHR;
-	}
-
-	assetGraphicsCommandBuffer->acquireImageOwnership(
-		_image,
-		Engine::getVKContext().getTransferQueue(),
-		nextUsageStages,
-		vk::AccessFlagBits2::eShaderSampledRead,
-		vk::ImageLayout::eReadOnlyOptimal
-	);
-
-	assetGraphicsCommandBuffer->end();
-
-	Engine::getVKContext().getMainQueue().submit(assetGraphicsCommandBuffer, {}, {});
-
-	assetGraphicsCommandBuffer->waitExecution();
-	assetGraphicsCommandBuffer->reset();
-
-	// set texture to bindless descriptor set
-	_manager.getBindlessTextureManager().setTexture(_bindlessIndex, _image, _manager.getTextureSampler());
+	assetCommandContext->finish();
 
 	_loaded = true;
 	spdlog::info("Texture [{} ({})] uploaded succesfully", _signature.path, magic_enum::enum_name(_signature.type));

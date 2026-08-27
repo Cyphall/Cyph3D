@@ -12,7 +12,6 @@ namespace c3d
 {
 class CubemapAsset;
 class TextureAsset;
-class VKImage;
 
 struct SkyboxAssetSignature
 {
