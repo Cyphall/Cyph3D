@@ -32,7 +32,7 @@ c3d::NormalizationPassOutput c3d::NormalizationPass::onRender(cgpu::CommandRecor
 			parameters.u_accumulatedSamples = input.accumulatedSamples;
 			parameters.u_size = _size;
 
-			ctx.dispatch(_computeShaderState, {cgpu::alignUp(_size, glm::uvec2{8u}) / 8u, 1}, parameters);
+			ctx.dispatch(_computeShaderState, {_size, 1}, {8, 8, 1}, parameters);
 		},
 	});
 

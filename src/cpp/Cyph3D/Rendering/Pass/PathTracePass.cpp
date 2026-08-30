@@ -149,7 +149,7 @@ c3d::PathTracePassOutput c3d::PathTracePass::onRender(cgpu::CommandRecorder& com
 			parameters.u_sampleCount = input.sampleCount;
 			parameters.u_resetAccumulation = _accumulatedSamples == 0;
 
-			ctx.dispatch(_computeShaderState, {cgpu::alignUp(_size, glm::uvec2{8u}) / 8u, 1}, parameters);
+			ctx.dispatch(_computeShaderState, {_size, 1}, {8, 8, 1}, parameters);
 		},
 	});
 

@@ -32,7 +32,7 @@ c3d::ExposurePassOutput c3d::ExposurePass::onRender(cgpu::CommandRecorder& comma
 			parameters.u_dstImage = ctx.getStorageImageDescriptor(_outputImage, cgpu::StorageAccess::eWriteonly);
 			parameters.u_exposure = input.camera.getExposure();
 
-			ctx.dispatch(_computeShaderState, {cgpu::alignUp(_size, glm::uvec2{8u}) / 8u, 1}, parameters);
+			ctx.dispatch(_computeShaderState, {_size, 1}, {8, 8, 1}, parameters);
 		},
 	});
 

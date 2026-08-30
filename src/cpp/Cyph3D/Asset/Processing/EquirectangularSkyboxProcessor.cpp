@@ -388,7 +388,7 @@ cgpu::ImagePtr c3d::EquirectangularSkyboxProcessor::generateCubemap(vk::Format f
 					parameters.u_invSizeF = glm::vec2{1.0f} / glm::vec2{parameters.u_size.get()};
 					parameters.u_srgb = cgpu::getLinearEquivalent(format) != format;
 
-					ctx.dispatch(_cubemapComputeShader, {cgpu::alignUp(parameters.u_size.get(), glm::uvec2{8u}) / 8u, 1}, parameters);
+					ctx.dispatch(_cubemapComputeShader, {parameters.u_size.get(), 1}, {8, 8, 1}, parameters);
 				}
 			},
 		});
