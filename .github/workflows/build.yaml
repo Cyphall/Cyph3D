@@ -38,6 +38,7 @@ jobs:
         run: cmake --build --preset Windows-MSVC-Release
 
   build-windows-clang-cl:
+    if: false #TODO: re-enable once https://github.com/microsoft/vcpkg/pull/51151 regression is fixed
     runs-on: windows-2025-vs2026
 
     steps:
