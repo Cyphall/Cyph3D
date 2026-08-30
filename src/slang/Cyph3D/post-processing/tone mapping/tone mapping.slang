@@ -2,18 +2,9 @@
 
 cbuffer Parameters
 {
-	Texture2D::Handle u_image;
-};
-
-struct FIn
-{
-	float4 rasterPosition : SV_Position;
-	float2 texCoord;
-};
-
-struct FOut
-{
-	float4 color : SV_Target0;
+	uint2 u_size;
+	Texture2D::Handle u_srcImage;
+	WTexture2D::Handle u_dstImage;
 };
 
 // https://iolite-engine.com/blog_posts/minimal_agx_implementation
@@ -73,16 +64,18 @@ float3 agx(float3 val)
 	return val;
 }
 
-[[shader("fragment")]]
-FOut main(FIn input)
+[[shader("compute")]]
+[[numthreads(8, 8, 1)]]
+void main(uint2 tid : SV_DispatchThreadID)
 {
-	float3 color = u_image.Load(uint3(uint2(input.rasterPosition.xy), 0)).rgb;
+	if (any(tid >= u_size))
+		return;
+
+	float3 color = u_srcImage.Load(uint3(tid, 0)).rgb;
 
 	color = agx(color);
 
 	color = linearToSrgb(color);
 
-	FOut output;
-	output.color = float4(clamp(color, float3(0.0), float3(1.0)), 1);
-	return output;
+	u_dstImage.Store(tid, float4(color, 1.0));
 }

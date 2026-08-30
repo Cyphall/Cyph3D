@@ -22,14 +22,11 @@ public:
 	explicit ToneMappingPass(glm::uvec2 size);
 
 private:
-	cgpu::VertexInputStatePtr _vertexInputState;
-	cgpu::PreRasterizationShaderStatePtr _preRasterizationShaderState;
-	cgpu::FragmentShaderStatePtr _fragmentShaderState;
-	cgpu::FragmentOutputStatePtr _fragmentOutputState;
+	cgpu::ComputeShaderStatePtr _computeShaderState;
 
 	cgpu::ImagePtr _outputImage;
 
-	void createPipelineStates();
+	void createPipelineState();
 	void createImage();
 
 	ToneMappingPassOutput onRender(cgpu::CommandRecorder& commandRecorder, ToneMappingPassInput& input) override;
