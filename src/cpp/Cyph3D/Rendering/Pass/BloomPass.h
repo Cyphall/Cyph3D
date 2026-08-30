@@ -24,25 +24,17 @@ public:
 private:
 	// common
 
-	cgpu::ImagePtr _workImage;
-	cgpu::ImagePtr _outputImage;
+	std::vector<cgpu::ImagePtr> _workImages;
 
 	cgpu::SamplerPtr _downsampleSampler;
 	cgpu::SamplerPtr _upsampleSampler;
-	cgpu::SamplerPtr _composeSampler;
 
-	cgpu::VertexInputStatePtr _vertexInputState;
-	cgpu::PreRasterizationShaderStatePtr _preRasterizationShaderState;
-	cgpu::FragmentShaderStatePtr _downsampleFragmentShaderState;
-	cgpu::FragmentShaderStatePtr _upsampleFragmentShaderState;
-	cgpu::FragmentShaderStatePtr _composeFragmentShaderState;
-	cgpu::FragmentOutputStatePtr _downsampleComposeFragmentOutputState;
-	cgpu::FragmentOutputStatePtr _upsampleFragmentOutputState;
+	cgpu::ComputeShaderStatePtr _downsampleShaderState;
+	cgpu::ComputeShaderStatePtr _upsampleShaderState;
 
 
-	void downsampleAndBlur(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel);
-	void upsampleAndBlur(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel);
-	void compose(cgpu::CommandRecorder& commandRecorder, const cgpu::ImagePtr& input);
+	void downsample(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel);
+	void upsample(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel);
 
 	void createPipelineStates();
 	void createImages();

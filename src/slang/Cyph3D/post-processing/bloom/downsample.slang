@@ -1,44 +1,39 @@
 cbuffer Parameters
 {
-	Texture2D::Handle u_image;
+	uint2 u_size;
+	Texture2D::Handle u_srcImage;
 	SamplerState::Handle u_sampler;
+	WTexture2D::Handle u_dstImage;
 	float2 u_srcPixelSize;
 };
 
-struct FIn
+[[shader("compute")]]
+[[numthreads(8, 8, 1)]]
+void main(uint2 tid : SV_DispatchThreadID)
 {
-	float4 rasterPosition : SV_Position;
-	float2 texCoord;
-};
+	if (any(tid >= u_size))
+		return;
 
-struct FOut
-{
-	float4 color : SV_Target0;
-};
+	float2 texCoord = (tid + 0.5) / u_size;
 
-[[shader("fragment")]]
-FOut main(FIn input)
-{
-	float3 result = 0.0;
+	float3 blurredLight = 0.0;
 
 	// high weight samples
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(-1, -1) * u_srcPixelSize, 0).rgb * (0.5 * 0.25 * 1);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(+1, -1) * u_srcPixelSize, 0).rgb * (0.5 * 0.25 * 1);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(-1, +1) * u_srcPixelSize, 0).rgb * (0.5 * 0.25 * 1);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(+1, +1) * u_srcPixelSize, 0).rgb * (0.5 * 0.25 * 1);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(-1, -1) * u_srcPixelSize, 0).rgb * (0.5 * 0.25 * 1);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(+1, -1) * u_srcPixelSize, 0).rgb * (0.5 * 0.25 * 1);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(-1, +1) * u_srcPixelSize, 0).rgb * (0.5 * 0.25 * 1);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(+1, +1) * u_srcPixelSize, 0).rgb * (0.5 * 0.25 * 1);
 
 	// low weight samples
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(-2, -2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 1);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2( 0, -2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 2);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(+2, -2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 1);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(-2,  0) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 2);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2( 0,  0) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 4);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(+2,  0) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 2);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(-2, +2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 1);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2( 0, +2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 2);
-	result += u_image.SampleLevel(u_sampler, input.texCoord + float2(+2, +2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 1);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(-2, -2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 1);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2( 0, -2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 2);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(+2, -2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 1);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(-2,  0) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 2);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2( 0,  0) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 4);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(+2,  0) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 2);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(-2, +2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 1);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2( 0, +2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 2);
+	blurredLight += u_srcImage.SampleLevel(u_sampler, texCoord + float2(+2, +2) * u_srcPixelSize, 0).rgb * (0.125 * 0.25 * 1);
 
-	FOut output;
-	output.color = float4(result, 1);
-	return output;
+	u_dstImage.Store(tid, float4(blurredLight, 1.0));
 }

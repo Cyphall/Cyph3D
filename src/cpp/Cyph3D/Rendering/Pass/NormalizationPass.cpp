@@ -66,8 +66,7 @@ void c3d::NormalizationPass::createImage()
 			.extent = {_size, 1},
 			.usages =
 				vk::ImageUsageFlagBits::eStorage |
-				vk::ImageUsageFlagBits::eSampled |
-				vk::ImageUsageFlagBits::eTransferSrc,
+				vk::ImageUsageFlagBits::eSampled,
 		}
 	);
 }

@@ -1,15 +1,11 @@
 #include "BloomPass.h"
 
 #include <Cyph3D/Engine.h>
-#include <Cyph3D/Helper/FileHelper.h>
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
 
-#include <CyphGPU/FragmentOutputState.hpp>
-#include <CyphGPU/FragmentShaderState.hpp>
-#include <CyphGPU/GraphicsPassContext.hpp>
-#include <CyphGPU/PreRasterizationShaderState.hpp>
+#include <CyphGPU/ComputePassContext.hpp>
+#include <CyphGPU/ComputeShaderState.hpp>
 #include <CyphGPU/Sampler.hpp>
-#include <CyphGPU/VertexInputState.hpp>
 
 namespace
 {
@@ -27,48 +23,29 @@ c3d::BloomPass::BloomPass(glm::uvec2 size):
 
 c3d::BloomPassOutput c3d::BloomPass::onRender(cgpu::CommandRecorder& commandRecorder, BloomPassInput& input)
 {
-	// copy inputImageView image level 0 to work image level 0
-	{
-		cgpu::ScopedDebugRegion debugRegion{commandRecorder, "copyImageBaseLevel"};
-		commandRecorder.copyImageToImage({
-			.src_image = input.lightImage,
-			.dst_image = _workImage,
-			.ranges = {{
-				{
-					.dst = {{
-						.level = 0,
-					}},
-				},
-			}},
-		});
-	}
+	_workImages[0] = input.lightImage;
 
-	// downsample work image
-	for (size_t i = 0; i < _workImage->getDesc().levels - 1; i++)
+	for (size_t i = 0; i < _workImages.size() - 1; i++)
 	{
 		uint32_t srcLevel = i + 0;
 		uint32_t dstLevel = i + 1;
-		cgpu::ScopedDebugRegion debugRegion{commandRecorder, std::format("downsampleAndBlur({}->{})", srcLevel, dstLevel)};
-		downsampleAndBlur(commandRecorder, srcLevel, dstLevel);
+		cgpu::ScopedDebugRegion debugRegion{commandRecorder, std::format("downsample({}->{})", srcLevel, dstLevel)};
+		downsample(commandRecorder, srcLevel, dstLevel);
 	}
 
 	// upsample and blur work image
-	for (size_t i = 0; i < _workImage->getDesc().levels - 1; i++)
+	for (size_t i = 0; i < _workImages.size() - 1; i++)
 	{
-		uint32_t srcLevel = _workImage->getDesc().levels - 1 - i;
-		uint32_t dstLevel = _workImage->getDesc().levels - 2 - i;
-		cgpu::ScopedDebugRegion debugRegion{commandRecorder, std::format("upsampleAndBlur({}->{})", srcLevel, dstLevel)};
-		upsampleAndBlur(commandRecorder, srcLevel, dstLevel);
+		uint32_t srcLevel = _workImages.size() - 1 - i;
+		uint32_t dstLevel = _workImages.size() - 2 - i;
+		cgpu::ScopedDebugRegion debugRegion{commandRecorder, std::format("upsample({}->{})", srcLevel, dstLevel)};
+		upsample(commandRecorder, srcLevel, dstLevel);
 	}
 
-	// compose inputImageView image level 0 and work image level 0 to outputImageView image level 0
-	{
-		cgpu::ScopedDebugRegion debugRegion{commandRecorder, "compose"};
-		compose(commandRecorder, input.lightImage);
-	}
+	_workImages[0] = nullptr;
 
 	return {
-		.lightImage = _outputImage,
+		.lightImage = input.lightImage,
 	};
 }
 
@@ -77,229 +54,94 @@ void c3d::BloomPass::onResize()
 	createImages();
 }
 
-void c3d::BloomPass::downsampleAndBlur(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel)
+void c3d::BloomPass::downsample(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel)
 {
-	commandRecorder.graphicsPass({
-		.color_attachments = {{
-			{
-				.image = _workImage,
-				.level = dstLevel,
-				.load_op = vk::AttachmentLoadOp::eDontCare,
-				.store_op = vk::AttachmentStoreOp::eStore,
-			},
-		}},
-		.callback = [&](cgpu::GraphicsPassContext& ctx) {
-			ctx.bindPipelineStates(
-				_vertexInputState,
-				_preRasterizationShaderState,
-				_downsampleFragmentShaderState,
-				_downsampleComposeFragmentOutputState
-			);
-
+	commandRecorder.computePass({
+		.callback = [&](cgpu::ComputePassContext& ctx) {
 			using namespace cgpu::shader_types;
 			struct
 			{
-				Texture2D<>::Handle u_image;
+				uint2 u_size;
+				Texture2D<>::Handle u_srcImage;
 				SamplerState::Handle u_sampler;
+				WTexture2D<>::Handle u_dstImage;
 				float2 u_srcPixelSize;
 			} parameters{};
 
-			parameters.u_image = ctx.getSampledImageDescriptor(
-				_workImage,
-				cgpu::GraphicsStage::eFragment,
-				{.levels = {{srcLevel, 1}}}
-			);
+			parameters.u_size = glm::uvec2{_workImages[dstLevel]->getDesc().extent};
+			parameters.u_srcImage = ctx.getSampledImageDescriptor(_workImages[srcLevel]);
 			parameters.u_sampler = _downsampleSampler->getDescriptor();
-			parameters.u_srcPixelSize = glm::vec2{1.0f} / glm::vec2{_workImage->calcLevelExtent(srcLevel)};
+			parameters.u_dstImage = ctx.getStorageImageDescriptor(_workImages[dstLevel], cgpu::StorageAccess::eWriteonly);
+			parameters.u_srcPixelSize = glm::vec2{1.0f} / glm::vec2{_workImages[srcLevel]->getDesc().extent};
 
-			ctx.draw(3, 1, 0, 0, parameters);
+			ctx.dispatch(_downsampleShaderState, {parameters.u_size.get(), 1}, {8, 8, 1}, parameters);
 		},
 	});
 }
 
-void c3d::BloomPass::upsampleAndBlur(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel)
+void c3d::BloomPass::upsample(cgpu::CommandRecorder& commandRecorder, uint32_t srcLevel, uint32_t dstLevel)
 {
-	commandRecorder.graphicsPass({
-		.color_attachments = {{
-			{
-				.image = _workImage,
-				.level = dstLevel,
-				.load_op = vk::AttachmentLoadOp::eLoad,
-				.store_op = vk::AttachmentStoreOp::eStore,
-			},
-		}},
-		.callback = [&](cgpu::GraphicsPassContext& ctx) {
-			ctx.bindPipelineStates(
-				_vertexInputState,
-				_preRasterizationShaderState,
-				_upsampleFragmentShaderState,
-				_upsampleFragmentOutputState
-			);
-
+	commandRecorder.computePass({
+		.callback = [&](cgpu::ComputePassContext& ctx) {
 			using namespace cgpu::shader_types;
 			struct
 			{
-				Texture2D<>::Handle u_image;
+				uint2 u_size;
+				Texture2D<>::Handle u_srcImage;
 				SamplerState::Handle u_sampler;
+				RWTexture2D<>::Handle u_dstImage;
 				float2 u_srcPixelSize;
-				float u_bloomRadius;
+				float u_weight;
 			} parameters{};
 
-			parameters.u_image = ctx.getSampledImageDescriptor(
-				_workImage,
-				cgpu::GraphicsStage::eFragment,
-				{.levels = {{srcLevel, 1}}}
-			);
+			parameters.u_size = glm::uvec2{_workImages[dstLevel]->getDesc().extent};
+			parameters.u_srcImage = ctx.getSampledImageDescriptor(_workImages[srcLevel]);
 			parameters.u_sampler = _upsampleSampler->getDescriptor();
-			parameters.u_srcPixelSize = glm::vec2{1.0f} / glm::vec2{_workImage->calcLevelExtent(srcLevel)};
-			parameters.u_bloomRadius = glm::clamp(BLOOM_RADIUS, 0.0f, 1.0f);
+			parameters.u_dstImage = ctx.getStorageImageDescriptor(_workImages[dstLevel], cgpu::StorageAccess::eReadWrite);
+			parameters.u_srcPixelSize = glm::vec2{1.0f} / glm::vec2{_workImages[srcLevel]->getDesc().extent};
+			parameters.u_weight = dstLevel == 0 ? BLOOM_STRENGTH : BLOOM_RADIUS;
 
-			ctx.draw(3, 1, 0, 0, parameters);
-		},
-	});
-}
-
-void c3d::BloomPass::compose(cgpu::CommandRecorder& commandRecorder, const cgpu::ImagePtr& input)
-{
-	commandRecorder.graphicsPass({
-		.color_attachments = {{
-			{
-				.image = _outputImage,
-				.load_op = vk::AttachmentLoadOp::eDontCare,
-				.store_op = vk::AttachmentStoreOp::eStore,
-			},
-		}},
-		.callback = [&](cgpu::GraphicsPassContext& ctx) {
-			ctx.bindPipelineStates(
-				_vertexInputState,
-				_preRasterizationShaderState,
-				_composeFragmentShaderState,
-				_downsampleComposeFragmentOutputState
-			);
-
-			using namespace cgpu::shader_types;
-			struct
-			{
-				Texture2D<>::Handle u_srcAImage;
-				Texture2D<>::Handle u_srcBImage;
-				SamplerState::Handle u_sampler;
-				float u_factor;
-			} parameters{};
-
-			parameters.u_srcAImage = ctx.getSampledImageDescriptor(
-				input,
-				cgpu::GraphicsStage::eFragment
-			);
-			parameters.u_srcBImage = ctx.getSampledImageDescriptor(
-				_workImage,
-				cgpu::GraphicsStage::eFragment,
-				{.levels = {{0, 1}}}
-			);
-			parameters.u_sampler = _composeSampler->getDescriptor();
-			parameters.u_factor = glm::clamp(BLOOM_STRENGTH, 0.0f, 1.0f);
-
-			ctx.draw(3, 1, 0, 0, parameters);
+			ctx.dispatch(_upsampleShaderState, {parameters.u_size.get(), 1}, {8, 8, 1}, parameters);
 		},
 	});
 }
 
 void c3d::BloomPass::createPipelineStates()
 {
-	_vertexInputState = cgpu::VertexInputState::create(
-		Engine::getDeviceSession(),
-		{}
-	);
-
-	_preRasterizationShaderState = cgpu::PreRasterizationShaderState::create(
+	_downsampleShaderState = cgpu::ComputeShaderState::create(
 		Engine::getDeviceSession(),
 		{
-			.vertex_shader = {.source = "Cyph3D/fullscreen quad.slang"},
+			.compute_shader = {.source = "Cyph3D/post-processing/bloom/downsample.slang"},
 		}
 	);
 
-	_downsampleFragmentShaderState = cgpu::FragmentShaderState::create(
+	_upsampleShaderState = cgpu::ComputeShaderState::create(
 		Engine::getDeviceSession(),
 		{
-			.fragment_shader = {{.source = "Cyph3D/post-processing/bloom/downsample.slang"}},
-		}
-	);
-
-	_upsampleFragmentShaderState = cgpu::FragmentShaderState::create(
-		Engine::getDeviceSession(),
-		{
-			.fragment_shader = {{.source = "Cyph3D/post-processing/bloom/upsample.slang"}},
-		}
-	);
-
-	_composeFragmentShaderState = cgpu::FragmentShaderState::create(
-		Engine::getDeviceSession(),
-		{
-			.fragment_shader = {{.source = "Cyph3D/post-processing/bloom/compose.slang"}},
-		}
-	);
-
-	_downsampleComposeFragmentOutputState = cgpu::FragmentOutputState::create(
-		Engine::getDeviceSession(),
-		{
-			.color_attachments = {
-				{
-					.format = SceneRenderer::HDR_COLOR_FORMAT,
-				},
-			},
-		}
-	);
-
-	_upsampleFragmentOutputState = cgpu::FragmentOutputState::create(
-		Engine::getDeviceSession(),
-		{
-			.color_attachments = {
-				{
-					.format = SceneRenderer::HDR_COLOR_FORMAT,
-					.blend = {{
-						.color = {
-							.src_factor = vk::BlendFactor::eSrcAlpha,
-							.dst_factor = vk::BlendFactor::eOneMinusSrcAlpha,
-							.op = vk::BlendOp::eAdd,
-						},
-						.alpha = {
-							.src_factor = vk::BlendFactor::eOne,
-							.dst_factor = vk::BlendFactor::eOneMinusSrcAlpha,
-							.op = vk::BlendOp::eAdd,
-						},
-					}},
-				},
-			},
+			.compute_shader = {.source = "Cyph3D/post-processing/bloom/upsample.slang"},
 		}
 	);
 }
 
 void c3d::BloomPass::createImages()
 {
-	_workImage = cgpu::Image::create(
-		Engine::getDeviceSession(),
-		{
-			.name = "Bloom work image",
-			.format = SceneRenderer::HDR_COLOR_FORMAT,
-			.extent = {_size, 1},
-			.usages =
-				vk::ImageUsageFlagBits::eColorAttachment |
-				vk::ImageUsageFlagBits::eSampled |
-				vk::ImageUsageFlagBits::eTransferDst,
-			.levels = cgpu::calcImageMaxLevelCount({_size, 1}),
-		}
-	);
-
-	_outputImage = cgpu::Image::create(
-		Engine::getDeviceSession(),
-		{
-			.name = "Bloom output image",
-			.format = SceneRenderer::HDR_COLOR_FORMAT,
-			.extent = {_size, 1},
-			.usages =
-				vk::ImageUsageFlagBits::eColorAttachment |
-				vk::ImageUsageFlagBits::eSampled,
-		}
-	);
+	// _workImages[0] will be the input/output image
+	uint32_t levelCount = cgpu::calcImageMaxLevelCount({_size, 1});
+	_workImages.resize(levelCount);
+	for (uint32_t level = 1; level < levelCount; level++)
+	{
+		_workImages[level] = cgpu::Image::create(
+			Engine::getDeviceSession(),
+			{
+				.name = std::format("Bloom work image level {}", level),
+				.format = SceneRenderer::HDR_COLOR_FORMAT,
+				.extent = cgpu::calcImageLevelExtent({_size, 1}, level),
+				.usages =
+					vk::ImageUsageFlagBits::eSampled |
+					vk::ImageUsageFlagBits::eStorage,
+			}
+		);
+	}
 }
 
 void c3d::BloomPass::createSamplers()
@@ -323,15 +165,6 @@ void c3d::BloomPass::createSamplers()
 			.wrapping_u = vk::SamplerAddressMode::eClampToEdge,
 			.wrapping_v = vk::SamplerAddressMode::eClampToEdge,
 			.wrapping_w = vk::SamplerAddressMode::eClampToEdge,
-		}
-	);
-
-	_composeSampler = cgpu::Sampler::create(
-		Engine::getDeviceSession(),
-		{
-			.wrapping_u = vk::SamplerAddressMode::eClampToBorder,
-			.wrapping_v = vk::SamplerAddressMode::eClampToBorder,
-			.wrapping_w = vk::SamplerAddressMode::eClampToBorder,
 		}
 	);
 }

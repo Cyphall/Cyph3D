@@ -199,12 +199,10 @@ target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 )
 
 cgpu_target_shader_pipelines(Cyph3D shaders "src/slang"
-	"src/slang/Cyph3D/fullscreen quad.slang"
 	"src/slang/Cyph3D/asset processing/gen cubemap.slang"
 	"src/slang/Cyph3D/lighting/lighting.slang"
 	"src/slang/Cyph3D/object picker/object picker.slang"
 	"src/slang/Cyph3D/path tracing/trace.slang"
-	"src/slang/Cyph3D/post-processing/bloom/compose.slang"
 	"src/slang/Cyph3D/post-processing/bloom/downsample.slang"
 	"src/slang/Cyph3D/post-processing/bloom/upsample.slang"
 	"src/slang/Cyph3D/post-processing/exposure/exposure.slang"
