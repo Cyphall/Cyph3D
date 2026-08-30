@@ -33,7 +33,7 @@ protected:
 	glm::uvec2 _size;
 
 	virtual TOutput onRender(cgpu::CommandRecorder& commandRecorder, TInput& input) = 0;
-	virtual void onResize() = 0;
+	virtual void onResize() {};
 
 private:
 	const char* _name;

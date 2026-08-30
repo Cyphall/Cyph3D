@@ -147,7 +147,9 @@ void c3d::SkyboxPass::createImages()
 			.extent = {_size, 1},
 			.usages =
 				vk::ImageUsageFlagBits::eTransferDst |
-				vk::ImageUsageFlagBits::eSampled,
+				vk::ImageUsageFlagBits::eSampled |
+				vk::ImageUsageFlagBits::eStorage |
+				vk::ImageUsageFlagBits::eTransferSrc,
 		}
 	);
 }

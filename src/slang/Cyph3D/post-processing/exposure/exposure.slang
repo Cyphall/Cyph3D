@@ -1,8 +1,7 @@
 cbuffer Parameters
 {
 	uint2 u_size;
-	Texture2D::Handle u_srcImage;
-	WTexture2D::Handle u_dstImage;
+	RWTexture2D::Handle u_image;
 	float u_exposure;
 };
 
@@ -13,9 +12,9 @@ void main(uint2 tid : SV_DispatchThreadID)
 	if (any(tid >= u_size))
 		return;
 
-	float3 color = u_srcImage.Load(uint3(tid, 0)).rgb;
+	float3 color = u_image.Load(tid).rgb;
 
 	color *= pow(2.0, u_exposure);
 
-	u_dstImage.Store(tid, float4(color, 1.0));
+	u_image.Store(tid, float4(color, 1.0));
 }

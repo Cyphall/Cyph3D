@@ -25,12 +25,8 @@ public:
 private:
 	cgpu::ComputeShaderStatePtr _computeShaderState;
 
-	cgpu::ImagePtr _outputImage;
-
 	void createPipelineState();
-	void createImage();
 
 	ExposurePassOutput onRender(cgpu::CommandRecorder& commandRecorder, ExposurePassInput& input) override;
-	void onResize() override;
 };
 }
