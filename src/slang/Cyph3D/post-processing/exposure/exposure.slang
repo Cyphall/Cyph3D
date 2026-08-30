@@ -1,28 +1,21 @@
 cbuffer Parameters
 {
-	Texture2D::Handle u_image;
+	uint2 u_size;
+	Texture2D::Handle u_srcImage;
+	WTexture2D::Handle u_dstImage;
 	float u_exposure;
 };
 
-struct FIn
+[[shader("compute")]]
+[[numthreads(8, 8, 1)]]
+void main(uint2 tid : SV_DispatchThreadID)
 {
-	float4 rasterPosition : SV_Position;
-	float2 texCoord;
-};
+	if (any(tid >= u_size))
+		return;
 
-struct FOut
-{
-	float4 color : SV_Target0;
-};
+	float3 color = u_srcImage.Load(uint3(tid, 0)).rgb;
 
-[[shader("fragment")]]
-FOut main(FIn input)
-{
-	float3 color = u_image.Load(uint3(uint2(input.rasterPosition.xy), 0)).rgb;
+	color *= pow(2.0, u_exposure);
 
-	color *= pow(2, u_exposure);
-
-	FOut output;
-	output.color = float4(color, 1);
-	return output;
+	u_dstImage.Store(tid, float4(color, 1.0));
 }
