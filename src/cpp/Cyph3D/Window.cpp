@@ -2,6 +2,7 @@
 
 #include <Cyph3D/Engine.h>
 
+#include <backends/imgui_impl_glfw.h>
 #include <CyphGPU/Device.hpp>
 #include <CyphGPU/DeviceSession.hpp>
 #include <CyphGPU/Surface.hpp>
@@ -88,9 +89,7 @@ glm::uvec2 c3d::Window::getSurfaceSize()
 
 float c3d::Window::getPixelScale() const
 {
-	float pixelScale;
-	glfwGetWindowContentScale(_glfwWindow, nullptr, &pixelScale);
-	return pixelScale;
+	return ImGui_ImplGlfw_GetContentScaleForWindow(_glfwWindow);
 }
 
 glm::vec2 c3d::Window::getCursorPos() const
