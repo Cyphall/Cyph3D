@@ -102,7 +102,6 @@ target_sources(Cyph3D PRIVATE
 	"src/cpp/Cyph3D/Rendering/Pass/NormalizationPass.cpp"
 	"src/cpp/Cyph3D/Rendering/Pass/PathTracePass.cpp"
 	"src/cpp/Cyph3D/Rendering/Pass/ShadowMapPass.cpp"
-	"src/cpp/Cyph3D/Rendering/Pass/SkyboxPass.cpp"
 	"src/cpp/Cyph3D/Rendering/Pass/ToneMappingPass.cpp"
 	"src/cpp/Cyph3D/Rendering/Pass/ZPrepass.cpp"
 	"src/cpp/Cyph3D/Rendering/RenderRegistry.cpp"
@@ -172,7 +171,6 @@ target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 	"src/cpp/Cyph3D/Rendering/Pass/PathTracePass.h"
 	"src/cpp/Cyph3D/Rendering/Pass/RenderPass.h"
 	"src/cpp/Cyph3D/Rendering/Pass/ShadowMapPass.h"
-	"src/cpp/Cyph3D/Rendering/Pass/SkyboxPass.h"
 	"src/cpp/Cyph3D/Rendering/Pass/ToneMappingPass.h"
 	"src/cpp/Cyph3D/Rendering/Pass/ZPrepass.h"
 	"src/cpp/Cyph3D/Rendering/RenderRegistry.h"
@@ -200,7 +198,8 @@ target_sources(Cyph3D PRIVATE FILE_SET HEADERS BASE_DIRS "src/cpp" FILES
 
 cgpu_target_shader_pipelines(Cyph3D shaders "src/slang"
 	"src/slang/Cyph3D/asset processing/gen cubemap.slang"
-	"src/slang/Cyph3D/lighting/lighting.slang"
+	"src/slang/Cyph3D/lighting/object.slang"
+	"src/slang/Cyph3D/lighting/skybox.slang"
 	"src/slang/Cyph3D/object picker/object picker.slang"
 	"src/slang/Cyph3D/path tracing/trace.slang"
 	"src/slang/Cyph3D/post-processing/bloom/downsample.slang"
@@ -210,7 +209,6 @@ cgpu_target_shader_pipelines(Cyph3D shaders "src/slang"
 	"src/slang/Cyph3D/post-processing/tone mapping/tone mapping.slang"
 	"src/slang/Cyph3D/shadow mapping/directional light.slang"
 	"src/slang/Cyph3D/shadow mapping/point light.slang"
-	"src/slang/Cyph3D/skybox/skybox.slang"
 	"src/slang/Cyph3D/z-prepass/z-prepass.slang"
 )
 

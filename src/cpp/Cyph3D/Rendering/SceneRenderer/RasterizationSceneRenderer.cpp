@@ -7,7 +7,6 @@ c3d::RasterizationSceneRenderer::RasterizationSceneRenderer(glm::uvec2 size):
 	_zPrepass(size),
 	_shadowMapPass(size),
 	_lightingPass(size),
-	_skyboxPass(size),
 	_exposurePass(size),
 	_bloomPass(size),
 	_toneMappingPass(size)
@@ -48,20 +47,10 @@ cgpu::ImagePtr c3d::RasterizationSceneRenderer::onRender(cgpu::CommandRecorder& 
 
 	LightingPassOutput lightingPassOutput = _lightingPass.render(commandRecorder, lightingPassInput);
 
-	// Skybox pass
-
-	SkyboxPassInput skyboxPassInput{
-		.camera = camera,
-		.multisampledLightImage = lightingPassOutput.multisampledLightImage,
-		.multisampledDepthImage = zPrepassOutput.multisampledDepthImage
-	};
-
-	SkyboxPassOutput skyboxPassOutput = _skyboxPass.render(commandRecorder, skyboxPassInput);
-
 	// Exposure pass
 
 	ExposurePassInput exposurePassInput{
-		.lightImage = skyboxPassOutput.lightImage,
+		.lightImage = lightingPassOutput.lightImage,
 		.camera = camera
 	};
 
@@ -91,7 +80,6 @@ void c3d::RasterizationSceneRenderer::onResize()
 	_zPrepass.resize(_size);
 	_shadowMapPass.resize(_size);
 	_lightingPass.resize(_size);
-	_skyboxPass.resize(_size);
 	_exposurePass.resize(_size);
 	_bloomPass.resize(_size);
 	_toneMappingPass.resize(_size);

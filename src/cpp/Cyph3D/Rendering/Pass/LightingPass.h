@@ -20,7 +20,7 @@ struct LightingPassInput
 
 struct LightingPassOutput
 {
-	const cgpu::ImagePtr& multisampledLightImage;
+	const cgpu::ImagePtr& lightImage;
 };
 
 class LightingPass : public RenderPass<LightingPassInput, LightingPassOutput>
@@ -30,13 +30,19 @@ public:
 
 private:
 	cgpu::ImagePtr _multisampledLightImage;
+	cgpu::ImagePtr _lightImage;
 
 	cgpu::SamplerPtr _directionalLightSampler;
 	cgpu::SamplerPtr _pointLightSampler;
 
 	cgpu::VertexInputStatePtr _vertexInputState;
-	cgpu::PreRasterizationShaderStatePtr _preRasterizationShaderState;
-	cgpu::FragmentShaderStatePtr _fragmentShaderState;
+
+	cgpu::PreRasterizationShaderStatePtr _objectPreRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _objectFragmentShaderState;
+
+	cgpu::PreRasterizationShaderStatePtr _skyboxPreRasterizationShaderState;
+	cgpu::FragmentShaderStatePtr _skyboxFragmentShaderState;
+
 	cgpu::FragmentOutputStatePtr _fragmentOutputState;
 
 	uint32_t _frameIndex = 0;
