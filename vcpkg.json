@@ -1,51 +1,51 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "dependencies": [
-    "glm",
-    "nlohmann-json",
-    "assimp",
-    "stb",
-    "magic-enum",
-    "freetype",
-    "sqlitecpp",
-    "crossguid",
-    "bshoshany-thread-pool",
-    "nativefiledialog-extended",
-    "cmakerc",
-    "ispc",
-    "half",
-    "palsigslot",
-    "imgui",
-    "imguizmo",
-    "ispc-texcomp",
-    "spdlog",
-    {
-      "name": "cyphgpu",
-      "features": [
-        "imgui-backend"
-      ]
-    },
-    {
-      "name": "glfw3",
-      "features": [
-        {
-          "name": "wayland",
-          "platform": "linux"
-        }
-      ]
-    }
-  ],
-  "features": {
-    "tracy": {
-      "description": "Enable Tracy integration",
-      "dependencies": [
-        {
-          "name": "cyphgpu",
-          "features": [
-            "tracy"
-          ]
-        }
-      ]
-    }
-  }
+	"$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+	"dependencies": [
+		"glm",
+		"nlohmann-json",
+		"assimp",
+		"stb",
+		"magic-enum",
+		"freetype",
+		"sqlitecpp",
+		"crossguid",
+		"bshoshany-thread-pool",
+		"nativefiledialog-extended",
+		"cmakerc",
+		"ispc",
+		"half",
+		"palsigslot",
+		"imgui",
+		"imguizmo",
+		"ispc-texcomp",
+		"spdlog",
+		{
+			"name": "cyphgpu",
+			"features": [
+				"imgui-backend"
+			]
+		},
+		{
+			"name": "glfw3",
+			"features": [
+				{
+					"name": "wayland",
+					"platform": "linux"
+				}
+			]
+		}
+	],
+	"features": {
+		"tracy": {
+			"description": "Enable Tracy integration",
+			"dependencies": [
+				{
+					"name": "cyphgpu",
+					"features": [
+						"tracy"
+					]
+				}
+			]
+		}
+	}
 }

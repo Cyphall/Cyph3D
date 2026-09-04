@@ -1,321 +1,321 @@
 ﻿{
-  "version": 3,
-  "configurePresets": [
-    {
-      "name": "base",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "installDir": "${sourceDir}/install/${presetName}",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
-      }
-    },
-    {
-      "name": "Windows-MSVC-base",
-      "inherits": "base",
-      "hidden": true,
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-msvc",
-        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/msvc.cmake"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
-      "name": "Windows-ClangCL-base",
-      "inherits": "base",
-      "hidden": true,
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-clang-cl",
-        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang-cl.cmake"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
-      "name": "Linux-Clang-base",
-      "inherits": "base",
-      "hidden": true,
-      "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux-clang",
-        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang.cmake"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
-    },
-    {
-      "name": "Linux-GCC-base",
-      "inherits": "base",
-      "hidden": true,
-      "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux-gcc",
-        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/gcc.cmake"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
-    },
-    {
-      "name": "macOS-Clang-base",
-      "inherits": "base",
-      "hidden": true,
-      "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "arm64-macos-clang",
-        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang.cmake"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      }
-    },
-    {
-      "name": "Windows-MSVC-Debug",
-      "inherits": "Windows-MSVC-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "Windows-MSVC-RelWithDebInfo",
-      "inherits": "Windows-MSVC-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "Windows-MSVC-Release",
-      "inherits": "Windows-MSVC-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "Windows-MSVC-Profile",
-      "inherits": "Windows-MSVC-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "VCPKG_MANIFEST_FEATURES": "tracy"
-      }
-    },
-    {
-      "name": "Windows-ClangCL-Debug",
-      "inherits": "Windows-ClangCL-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "Windows-ClangCL-RelWithDebInfo",
-      "inherits": "Windows-ClangCL-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "Windows-ClangCL-Release",
-      "inherits": "Windows-ClangCL-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "Windows-ClangCL-Profile",
-      "inherits": "Windows-ClangCL-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "VCPKG_MANIFEST_FEATURES": "tracy"
-      }
-    },
-    {
-      "name": "Linux-Clang-Debug",
-      "inherits": "Linux-Clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "Linux-Clang-RelWithDebInfo",
-      "inherits": "Linux-Clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "Linux-Clang-Release",
-      "inherits": "Linux-Clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "Linux-Clang-Profile",
-      "inherits": "Linux-Clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "VCPKG_MANIFEST_FEATURES": "tracy"
-      }
-    },
-    {
-      "name": "Linux-GCC-Debug",
-      "inherits": "Linux-GCC-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "Linux-GCC-RelWithDebInfo",
-      "inherits": "Linux-GCC-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "Linux-GCC-Release",
-      "inherits": "Linux-GCC-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "Linux-GCC-Profile",
-      "inherits": "Linux-GCC-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "VCPKG_MANIFEST_FEATURES": "tracy"
-      }
-    },
-    {
-      "name": "macOS-Clang-Debug",
-      "inherits": "macOS-Clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "macOS-Clang-RelWithDebInfo",
-      "inherits": "macOS-Clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "macOS-Clang-Release",
-      "inherits": "macOS-Clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "macOS-Clang-Profile",
-      "inherits": "macOS-Clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "VCPKG_MANIFEST_FEATURES": "tracy"
-      }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "Windows-MSVC-Debug",
-      "configurePreset": "Windows-MSVC-Debug"
-    },
-    {
-      "name": "Windows-MSVC-RelWithDebInfo",
-      "configurePreset": "Windows-MSVC-RelWithDebInfo"
-    },
-    {
-      "name": "Windows-MSVC-Release",
-      "configurePreset": "Windows-MSVC-Release"
-    },
-    {
-      "name": "Windows-MSVC-Profile",
-      "configurePreset": "Windows-MSVC-Profile"
-    },
-    {
-      "name": "Windows-ClangCL-Debug",
-      "configurePreset": "Windows-ClangCL-Debug"
-    },
-    {
-      "name": "Windows-ClangCL-RelWithDebInfo",
-      "configurePreset": "Windows-ClangCL-RelWithDebInfo"
-    },
-    {
-      "name": "Windows-ClangCL-Release",
-      "configurePreset": "Windows-ClangCL-Release"
-    },
-    {
-      "name": "Windows-ClangCL-Profile",
-      "configurePreset": "Windows-ClangCL-Profile"
-    },
-    {
-      "name": "Linux-Clang-Debug",
-      "configurePreset": "Linux-Clang-Debug"
-    },
-    {
-      "name": "Linux-Clang-RelWithDebInfo",
-      "configurePreset": "Linux-Clang-RelWithDebInfo"
-    },
-    {
-      "name": "Linux-Clang-Release",
-      "configurePreset": "Linux-Clang-Release"
-    },
-    {
-      "name": "Linux-Clang-Profile",
-      "configurePreset": "Linux-Clang-Profile"
-    },
-    {
-      "name": "Linux-GCC-Debug",
-      "configurePreset": "Linux-GCC-Debug"
-    },
-    {
-      "name": "Linux-GCC-RelWithDebInfo",
-      "configurePreset": "Linux-GCC-RelWithDebInfo"
-    },
-    {
-      "name": "Linux-GCC-Release",
-      "configurePreset": "Linux-GCC-Release"
-    },
-    {
-      "name": "Linux-GCC-Profile",
-      "configurePreset": "Linux-GCC-Profile"
-    },
-    {
-      "name": "macOS-Clang-Debug",
-      "configurePreset": "macOS-Clang-Debug"
-    },
-    {
-      "name": "macOS-Clang-RelWithDebInfo",
-      "configurePreset": "macOS-Clang-RelWithDebInfo"
-    },
-    {
-      "name": "macOS-Clang-Release",
-      "configurePreset": "macOS-Clang-Release"
-    },
-    {
-      "name": "macOS-Clang-Profile",
-      "configurePreset": "macOS-Clang-Profile"
-    }
-  ]
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "base",
+			"hidden": true,
+			"binaryDir": "${sourceDir}/build/${presetName}",
+			"installDir": "${sourceDir}/install/${presetName}",
+			"generator": "Ninja",
+			"cacheVariables": {
+				"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+				"VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
+			}
+		},
+		{
+			"name": "Windows-MSVC-base",
+			"inherits": "base",
+			"hidden": true,
+			"architecture": {
+				"value": "x64",
+				"strategy": "external"
+			},
+			"cacheVariables": {
+				"VCPKG_TARGET_TRIPLET": "x64-windows-msvc",
+				"VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/msvc.cmake"
+			},
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Windows"
+			}
+		},
+		{
+			"name": "Windows-ClangCL-base",
+			"inherits": "base",
+			"hidden": true,
+			"architecture": {
+				"value": "x64",
+				"strategy": "external"
+			},
+			"cacheVariables": {
+				"VCPKG_TARGET_TRIPLET": "x64-windows-clang-cl",
+				"VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang-cl.cmake"
+			},
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Windows"
+			}
+		},
+		{
+			"name": "Linux-Clang-base",
+			"inherits": "base",
+			"hidden": true,
+			"cacheVariables": {
+				"VCPKG_TARGET_TRIPLET": "x64-linux-clang",
+				"VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang.cmake"
+			},
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Linux"
+			}
+		},
+		{
+			"name": "Linux-GCC-base",
+			"inherits": "base",
+			"hidden": true,
+			"cacheVariables": {
+				"VCPKG_TARGET_TRIPLET": "x64-linux-gcc",
+				"VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/gcc.cmake"
+			},
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Linux"
+			}
+		},
+		{
+			"name": "macOS-Clang-base",
+			"inherits": "base",
+			"hidden": true,
+			"cacheVariables": {
+				"VCPKG_TARGET_TRIPLET": "arm64-macos-clang",
+				"VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang.cmake"
+			},
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Darwin"
+			}
+		},
+		{
+			"name": "Windows-MSVC-Debug",
+			"inherits": "Windows-MSVC-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "Windows-MSVC-RelWithDebInfo",
+			"inherits": "Windows-MSVC-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
+			}
+		},
+		{
+			"name": "Windows-MSVC-Release",
+			"inherits": "Windows-MSVC-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "Windows-MSVC-Profile",
+			"inherits": "Windows-MSVC-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
+				"VCPKG_MANIFEST_FEATURES": "tracy"
+			}
+		},
+		{
+			"name": "Windows-ClangCL-Debug",
+			"inherits": "Windows-ClangCL-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "Windows-ClangCL-RelWithDebInfo",
+			"inherits": "Windows-ClangCL-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
+			}
+		},
+		{
+			"name": "Windows-ClangCL-Release",
+			"inherits": "Windows-ClangCL-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "Windows-ClangCL-Profile",
+			"inherits": "Windows-ClangCL-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
+				"VCPKG_MANIFEST_FEATURES": "tracy"
+			}
+		},
+		{
+			"name": "Linux-Clang-Debug",
+			"inherits": "Linux-Clang-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "Linux-Clang-RelWithDebInfo",
+			"inherits": "Linux-Clang-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
+			}
+		},
+		{
+			"name": "Linux-Clang-Release",
+			"inherits": "Linux-Clang-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "Linux-Clang-Profile",
+			"inherits": "Linux-Clang-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
+				"VCPKG_MANIFEST_FEATURES": "tracy"
+			}
+		},
+		{
+			"name": "Linux-GCC-Debug",
+			"inherits": "Linux-GCC-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "Linux-GCC-RelWithDebInfo",
+			"inherits": "Linux-GCC-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
+			}
+		},
+		{
+			"name": "Linux-GCC-Release",
+			"inherits": "Linux-GCC-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "Linux-GCC-Profile",
+			"inherits": "Linux-GCC-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
+				"VCPKG_MANIFEST_FEATURES": "tracy"
+			}
+		},
+		{
+			"name": "macOS-Clang-Debug",
+			"inherits": "macOS-Clang-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "macOS-Clang-RelWithDebInfo",
+			"inherits": "macOS-Clang-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
+			}
+		},
+		{
+			"name": "macOS-Clang-Release",
+			"inherits": "macOS-Clang-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "macOS-Clang-Profile",
+			"inherits": "macOS-Clang-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
+				"VCPKG_MANIFEST_FEATURES": "tracy"
+			}
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "Windows-MSVC-Debug",
+			"configurePreset": "Windows-MSVC-Debug"
+		},
+		{
+			"name": "Windows-MSVC-RelWithDebInfo",
+			"configurePreset": "Windows-MSVC-RelWithDebInfo"
+		},
+		{
+			"name": "Windows-MSVC-Release",
+			"configurePreset": "Windows-MSVC-Release"
+		},
+		{
+			"name": "Windows-MSVC-Profile",
+			"configurePreset": "Windows-MSVC-Profile"
+		},
+		{
+			"name": "Windows-ClangCL-Debug",
+			"configurePreset": "Windows-ClangCL-Debug"
+		},
+		{
+			"name": "Windows-ClangCL-RelWithDebInfo",
+			"configurePreset": "Windows-ClangCL-RelWithDebInfo"
+		},
+		{
+			"name": "Windows-ClangCL-Release",
+			"configurePreset": "Windows-ClangCL-Release"
+		},
+		{
+			"name": "Windows-ClangCL-Profile",
+			"configurePreset": "Windows-ClangCL-Profile"
+		},
+		{
+			"name": "Linux-Clang-Debug",
+			"configurePreset": "Linux-Clang-Debug"
+		},
+		{
+			"name": "Linux-Clang-RelWithDebInfo",
+			"configurePreset": "Linux-Clang-RelWithDebInfo"
+		},
+		{
+			"name": "Linux-Clang-Release",
+			"configurePreset": "Linux-Clang-Release"
+		},
+		{
+			"name": "Linux-Clang-Profile",
+			"configurePreset": "Linux-Clang-Profile"
+		},
+		{
+			"name": "Linux-GCC-Debug",
+			"configurePreset": "Linux-GCC-Debug"
+		},
+		{
+			"name": "Linux-GCC-RelWithDebInfo",
+			"configurePreset": "Linux-GCC-RelWithDebInfo"
+		},
+		{
+			"name": "Linux-GCC-Release",
+			"configurePreset": "Linux-GCC-Release"
+		},
+		{
+			"name": "Linux-GCC-Profile",
+			"configurePreset": "Linux-GCC-Profile"
+		},
+		{
+			"name": "macOS-Clang-Debug",
+			"configurePreset": "macOS-Clang-Debug"
+		},
+		{
+			"name": "macOS-Clang-RelWithDebInfo",
+			"configurePreset": "macOS-Clang-RelWithDebInfo"
+		},
+		{
+			"name": "macOS-Clang-Release",
+			"configurePreset": "macOS-Clang-Release"
+		},
+		{
+			"name": "macOS-Clang-Profile",
+			"configurePreset": "macOS-Clang-Profile"
+		}
+	]
 }
