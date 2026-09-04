@@ -11,8 +11,6 @@
 #include <Cyph3D/Window.h>
 
 #include <chrono>
-#include <CyphGPU/CommandContext.hpp>
-#include <CyphGPU/CommandRecorder.hpp>
 #include <CyphGPU/Device.hpp>
 #include <CyphGPU/DeviceSession.hpp>
 #include <CyphGPU/ImGuiBackend.hpp>
@@ -20,29 +18,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 #include <magic_enum/magic_enum.hpp>
-#include <spdlog/spdlog.h>
-#include <stb_image_write.h>
-
-enum class RenderToFileStatus
-{
-	eRendering,
-	eRenderFinished,
-	eSaveFinished
-};
-
-struct c3d::UIViewport::RenderToFileData
-{
-	uint32_t renderedSamples = 0;
-	uint32_t totalSamples = 0;
-	std::unique_ptr<PathTracingSceneRenderer> renderer;
-	Camera camera;
-	RenderRegistry registry;
-	std::filesystem::path outputFile;
-	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
-	std::chrono::time_point<std::chrono::high_resolution_clock> lastBatchTime;
-	cgpu::ImagePtr lastRenderedTexture;
-	RenderToFileStatus status = RenderToFileStatus::eRendering;
-};
 
 std::unique_ptr<c3d::SceneRenderer> c3d::UIViewport::_sceneRenderer;
 c3d::UIViewport::RendererType c3d::UIViewport::_sceneRendererType = UIViewport::RendererType::Rasterization;
@@ -67,8 +42,6 @@ c3d::RenderRegistry c3d::UIViewport::_renderRegistry;
 
 std::unique_ptr<c3d::ObjectPicker> c3d::UIViewport::_objectPicker;
 
-std::unique_ptr<c3d::UIViewport::RenderToFileData> c3d::UIViewport::_renderToFileData;
-bool c3d::UIViewport::_showRenderToFilePopup = false;
 cgpu::ImagePtr c3d::UIViewport::_lastViewportImage;
 
 void c3d::UIViewport::show(cgpu::CommandRecorder& commandRecorder)
@@ -84,17 +57,6 @@ void c3d::UIViewport::show(cgpu::CommandRecorder& commandRecorder)
 	if (open)
 	{
 		drawHeader();
-
-		if (_showRenderToFilePopup)
-		{
-			ImGui::OpenPopup("Rendering status");
-			_showRenderToFilePopup = false;
-		}
-
-		if (_renderToFileData)
-		{
-			drawRenderToFilePopup();
-		}
 
 		Window& window = Engine::getWindow();
 
@@ -154,93 +116,7 @@ void c3d::UIViewport::show(cgpu::CommandRecorder& commandRecorder)
 				pathTracingSceneRenderer->setSampleCountPerRender(UIMisc::viewportSampleCount());
 			}
 
-			if (_renderToFileData && _renderToFileData->status == RenderToFileStatus::eRendering)
-			{
-				uint32_t remainingSamples = _renderToFileData->totalSamples - _renderToFileData->renderedSamples;
-				uint32_t thisBatchSamples = std::min(remainingSamples, 16u);
-
-				_renderToFileData->renderer->setSampleCountPerRender(thisBatchSamples);
-				_renderToFileData->renderer->setAccumulationOnlyMode(thisBatchSamples != remainingSamples);
-
-				cgpu::CommandContext commandContext{Engine::getDeviceSession()};
-
-				auto commandRecorder = commandContext.createRecorder(Engine::getDeviceSession()->getMainQueue());
-				_renderToFileData->lastRenderedTexture = _renderToFileData->renderer->render(commandRecorder, _renderToFileData->camera, _renderToFileData->registry, false, false);
-				commandRecorder.submit().waitFinished();
-
-				commandContext.finish();
-
-				_renderToFileData->renderedSamples += thisBatchSamples;
-
-				_renderToFileData->lastBatchTime = std::chrono::high_resolution_clock::now();
-
-				if (_renderToFileData->renderedSamples == _renderToFileData->totalSamples)
-				{
-					_renderToFileData->status = RenderToFileStatus::eRenderFinished;
-				}
-			}
-
-			if (_renderToFileData && _renderToFileData->status == RenderToFileStatus::eRenderFinished)
-			{
-				if (_renderToFileData->lastRenderedTexture)
-				{
-					cgpu::ImagePtr conversionImage = cgpu::Image::create(
-						Engine::getDeviceSession(),
-						{
-							.name = "Render-to-file conversion image",
-							.format = vk::Format::eR8G8B8A8Unorm,
-							.extent = _renderToFileData->lastRenderedTexture->getDesc().extent,
-							.usages =
-								vk::ImageUsageFlagBits::eTransferDst |
-								vk::ImageUsageFlagBits::eTransferSrc,
-						}
-					);
-
-					cgpu::BufferPtr stagingBuffer = cgpu::Buffer::create(
-						Engine::getDeviceSession(),
-						{
-							.name = "Render-to-file staging buffer",
-							.size = conversionImage->calcByteSize({0, 1}, 1),
-							.usages = vk::BufferUsageFlagBits2::eTransferDst,
-							.memory_type = cgpu::MemoryType::eCPUCached,
-						}
-					);
-
-					cgpu::CommandContext commandContext{Engine::getDeviceSession()};
-
-					auto commandRecorder = commandContext.createRecorder(Engine::getDeviceSession()->getMainQueue());
-					commandRecorder.blit({
-						.src_image = _renderToFileData->lastRenderedTexture,
-						.dst_image = conversionImage,
-					});
-					commandRecorder.copyImageToBuffer({
-						.src_image = conversionImage,
-						.dst_buffer = stagingBuffer,
-					});
-					commandRecorder.submit().waitFinished();
-
-					commandContext.finish();
-
-					glm::ivec2 textureSize = _renderToFileData->lastRenderedTexture->getDesc().extent;
-
-					if (_renderToFileData->outputFile.extension() == ".png")
-					{
-						stbi_write_png(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPtr(), textureSize.x * 4);
-					}
-					else if (_renderToFileData->outputFile.extension() == ".jpg")
-					{
-						stbi_write_jpg(_renderToFileData->outputFile.generic_string().c_str(), textureSize.x, textureSize.y, 4, stagingBuffer->getHostPtr(), 95);
-					}
-				}
-				else
-				{
-					spdlog::error("Could not save render to file, no rendered image has been created yet");
-				}
-
-				_renderToFileData->status = RenderToFileStatus::eSaveFinished;
-			}
-
-			if (!_renderToFileData)
+			if (!UIMisc::isRenderToFileInProgress())
 			{
 				uint64_t currentSceneChangeVersion = Scene::getChangeVersion();
 				bool sceneChanged = currentSceneChangeVersion != _sceneChangeVersion;
@@ -263,10 +139,7 @@ void c3d::UIViewport::show(cgpu::CommandRecorder& commandRecorder)
 				ImVec2(1, 1)
 			);
 
-			if (!_renderToFileData)
-			{
-				drawGizmo(viewportStartGlobal, viewportSize);
-			}
+			drawGizmo(viewportStartGlobal, viewportSize);
 
 			if (window.getMouseButtonState(GLFW_MOUSE_BUTTON_RIGHT) == Window::MouseButtonState::eClicked && ImGui::IsItemHovered())
 			{
@@ -444,71 +317,9 @@ void c3d::UIViewport::drawHeader()
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() - style.ItemSpacing.y);
 }
 
-void c3d::UIViewport::drawRenderToFilePopup()
-{
-	if (ImGui::BeginPopupModal("Rendering status", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::Text(_renderToFileData->status == RenderToFileStatus::eSaveFinished ? "Rendering finished" : "Rendering in progress...");
-		ImGui::ProgressBar(static_cast<float>(_renderToFileData->renderedSamples) / static_cast<float>(_renderToFileData->totalSamples));
-		ImGui::Text("Rendered samples: %u/%u", _renderToFileData->renderedSamples, _renderToFileData->totalSamples);
-
-		auto duration = _renderToFileData->lastBatchTime - _renderToFileData->startTime;
-		auto durationRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(duration);
-		ImGui::Text("%s", std::format("Elapsed time: {:%H:%M:%S}", durationRounded).c_str());
-
-		if (_renderToFileData->status == RenderToFileStatus::eRendering)
-		{
-			if (ImGui::Button("Finish now"))
-			{
-				_renderToFileData->totalSamples = _renderToFileData->renderedSamples + 16;
-			}
-		}
-		else if (_renderToFileData->status == RenderToFileStatus::eSaveFinished)
-		{
-			if (ImGui::Button("Close"))
-			{
-				ImGui::CloseCurrentPopup();
-				_renderToFileData.reset();
-			}
-		}
-
-		ImGui::EndPopup();
-	}
-}
-
 bool c3d::UIViewport::isFullscreen()
 {
 	return _fullscreen;
-}
-
-void c3d::UIViewport::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
-{
-	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave(
-		{{
-			{"PNG Image", "png"},
-			{"JPG Image", "jpg"},
-		}},
-		".",
-		"render"
-	);
-
-	if (!filePath)
-	{
-		return;
-	}
-
-	_showRenderToFilePopup = true;
-
-	_renderToFileData = std::make_unique<UIViewport::RenderToFileData>();
-	_renderToFileData->renderedSamples = 0;
-	_renderToFileData->totalSamples = sampleCount;
-	_renderToFileData->renderer = std::make_unique<PathTracingSceneRenderer>(resolution);
-	_renderToFileData->camera = _camera;
-	_renderToFileData->camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));
-	_renderToFileData->outputFile = filePath.value();
-	_renderToFileData->startTime = std::chrono::high_resolution_clock::now();
-
-	Engine::getScene().onPreRender(_renderToFileData->registry, _renderToFileData->camera);
 }
 
 void c3d::UIViewport::init()
@@ -520,6 +331,4 @@ void c3d::UIViewport::shutdown()
 {
 	_sceneRenderer = {};
 	_objectPicker = {};
-	_renderToFileData = {};
-	_lastViewportImage = {};
 }

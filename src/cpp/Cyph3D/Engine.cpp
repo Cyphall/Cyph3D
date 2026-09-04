@@ -6,6 +6,7 @@
 #include <Cyph3D/Scene/Scene.h>
 #include <Cyph3D/UI/UIHelper.h>
 #include <Cyph3D/UI/Window/UIInspector.h>
+#include <Cyph3D/UI/Window/UIMisc.h>
 #include <Cyph3D/Window.h>
 
 #include <CyphGPU/CommandContext.hpp>
@@ -198,7 +199,10 @@ void c3d::Engine::run()
 
 		UIHelper::onNewFrame();
 
-		_scene->onUpdate();
+		if (!UIMisc::isRenderToFileInProgress())
+		{
+			_scene->onUpdate();
+		}
 
 		_window->ensureValidSwapchain();
 		UIHelper::render(commandContext, *_window->getSwapchain()->tryGetImage());

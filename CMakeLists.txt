@@ -61,7 +61,9 @@ include("cmake/utils/Resources.cmake")
 
 # ---- Executable ----
 
-add_executable(Cyph3D)
+add_executable(Cyph3D
+	src/cpp/Cyph3D/Rendering/OfflineRenderer.cpp
+	src/cpp/Cyph3D/Rendering/OfflineRenderer.h)
 
 target_sources(Cyph3D PRIVATE
 	"src/cpp/Cyph3D/Asset/AssetManager.cpp"

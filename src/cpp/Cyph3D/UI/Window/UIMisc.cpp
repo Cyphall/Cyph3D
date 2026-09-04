@@ -2,7 +2,9 @@
 
 #include <Cyph3D/Asset/RuntimeAsset/SkyboxAsset.h>
 #include <Cyph3D/Engine.h>
+#include <Cyph3D/Helper/FileHelper.h>
 #include <Cyph3D/Helper/ImGuiHelper.h>
+#include <Cyph3D/Rendering/OfflineRenderer.h>
 #include <Cyph3D/Scene/Scene.h>
 #include <Cyph3D/UI/Window/UIViewport.h>
 #include <Cyph3D/Window.h>
@@ -11,6 +13,7 @@
 #include <CyphGPU/DeviceSession.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
+#include <stb_image_write.h>
 
 glm::ivec2 c3d::UIMisc::_resolution = {1920, 1080};
 uint32_t c3d::UIMisc::_renderSampleCount = 1024;
@@ -20,6 +23,7 @@ std::array<float, 512> c3d::UIMisc::_frametimes{};
 uint32_t c3d::UIMisc::_lastFrametimeIndex = 0;
 float c3d::UIMisc::_overlayFrametime = 0.0f;
 float c3d::UIMisc::_timeUntilOverlayUpdate = 0.0f;
+std::optional<c3d::UIMisc::RenderToFileData> c3d::UIMisc::_renderToFileData{};
 
 void c3d::UIMisc::show()
 {
@@ -82,7 +86,38 @@ void c3d::UIMisc::show()
 
 			if (ImGui::Button("Render to file"))
 			{
-				UIViewport::renderToFile(_resolution, _renderSampleCount);
+				renderToFile(_resolution, _renderSampleCount);
+			}
+
+			if (ImGui::BeginPopupModal("Rendering status", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				auto& state = _renderToFileData->state;
+
+				ImGui::TextUnformatted(state.finished ? "Rendering finished" : "Rendering in progress...");
+				ImGui::ProgressBar(static_cast<float>(state.renderedSamples) / static_cast<float>(state.totalSamples));
+				ImGui::TextUnformatted(std::format("Rendered samples: {}/{}", state.renderedSamples.load(), state.totalSamples.load()).c_str());
+
+				auto duration = state.lastTraceTime.load() - state.startTime;
+				auto durationRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(duration);
+				ImGui::Text("%s", std::format("Elapsed time: {:%H:%M:%S}", durationRounded).c_str());
+
+				if (state.finished)
+				{
+					if (ImGui::Button("Close"))
+					{
+						ImGui::CloseCurrentPopup();
+						_renderToFileData = std::nullopt;
+					}
+				}
+				else
+				{
+					if (ImGui::Button("Finish now"))
+					{
+						state.forceFinish = true;
+					}
+				}
+
+				ImGui::EndPopup();
 			}
 		}
 	}
@@ -98,6 +133,11 @@ bool c3d::UIMisc::isSimulationEnabled()
 int c3d::UIMisc::viewportSampleCount()
 {
 	return _viewportSampleCount;
+}
+
+bool c3d::UIMisc::isRenderToFileInProgress()
+{
+	return _renderToFileData.has_value();
 }
 
 void c3d::UIMisc::displayFrametime()
@@ -125,4 +165,125 @@ void c3d::UIMisc::displayFrametime()
 		1000.0f / 30.0f,
 		{0, (ImGui::GetFontSize() + style.FramePadding.y * 2.0f) * 3.0f}
 	);
+}
+
+void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
+{
+	std::optional<std::filesystem::path> filePath = FileHelper::fileDialogSave(
+		{{
+			{"PNG Image", "png"},
+			{"JPG Image", "jpg"},
+		}},
+		".",
+		"Render"
+	);
+
+	if (!filePath)
+	{
+		return;
+	}
+
+	_renderToFileData.emplace();
+	_renderToFileData->state.totalSamples = sampleCount;
+	_renderToFileData->state.camera = UIViewport::getCamera();
+	_renderToFileData->state.camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));
+	_renderToFileData->state.outputFile = *filePath;
+	_renderToFileData->state.startTime = std::chrono::high_resolution_clock::now();
+
+	Engine::getScene().onPreRender(_renderToFileData->state.registry, _renderToFileData->state.camera);
+
+	_renderToFileData->thread = std::jthread{
+		[](glm::uvec2 resolution, RenderToFileState* state) {
+			cgpu::CommandContext cmdCtx{Engine::getDeviceSession()};
+			OfflineRenderer renderer{resolution, state->camera, state->registry};
+
+			std::optional<cgpu::CommandRecorder::SubmitHandle> previousSubmit;
+			std::optional<cgpu::CommandRecorder::SubmitHandle> currentSubmit;
+			while (state->renderedSamples < state->totalSamples)
+			{
+				if (currentSubmit)
+				{
+					currentSubmit->waitFinished();
+				}
+
+				uint32_t samples = std::min(state->totalSamples - state->renderedSamples, 64u);
+
+				{
+					cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncComputeQueue());
+					renderer.traceRays(cmdRec, samples);
+					currentSubmit = cmdRec.submit();
+					std::swap(currentSubmit, previousSubmit);
+				}
+
+				cmdCtx.finish();
+
+				state->renderedSamples += samples;
+				state->lastTraceTime = std::chrono::high_resolution_clock::now();
+
+				if (state->forceFinish)
+				{
+					state->totalSamples = state->renderedSamples.load();
+					break;
+				}
+			}
+
+			cgpu::BufferPtr stagingBuffer;
+			{
+				cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncGraphicsQueue());
+
+				cgpu::ImagePtr renderImage = renderer.finalize(cmdRec);
+
+				cgpu::ImagePtr conversionImage = cgpu::Image::create(
+					Engine::getDeviceSession(),
+					{
+						.name = "Render-to-file conversion image",
+						.format = vk::Format::eR8G8B8A8Unorm,
+						.extent = {resolution, 1},
+						.usages =
+							vk::ImageUsageFlagBits::eTransferDst |
+							vk::ImageUsageFlagBits::eTransferSrc,
+					}
+				);
+
+				cmdRec.blit({
+					.src_image = renderImage,
+					.dst_image = conversionImage,
+				});
+
+				stagingBuffer = cgpu::Buffer::create(
+					Engine::getDeviceSession(),
+					{
+						.name = "Render-to-file staging buffer",
+						.size = conversionImage->calcByteSize({0, 1}, 1),
+						.usages = vk::BufferUsageFlagBits2::eTransferDst,
+						.memory_type = cgpu::MemoryType::eCPUCached,
+					}
+				);
+
+				cmdRec.copyImageToBuffer({
+					.src_image = conversionImage,
+					.dst_buffer = stagingBuffer,
+				});
+
+				cmdRec.submit().waitFinished();
+			}
+
+			cmdCtx.finish();
+
+			if (state->outputFile.extension() == ".png")
+			{
+				stbi_write_png(state->outputFile.generic_string().c_str(), resolution.x, resolution.y, 4, stagingBuffer->getHostPtr(), resolution.x * 4);
+			}
+			else if (state->outputFile.extension() == ".jpg")
+			{
+				stbi_write_jpg(state->outputFile.generic_string().c_str(), resolution.x, resolution.y, 4, stagingBuffer->getHostPtr(), 95);
+			}
+
+			state->finished = true;
+		},
+		resolution,
+		&_renderToFileData->state
+	};
+
+	ImGui::OpenPopup("Rendering status");
 }

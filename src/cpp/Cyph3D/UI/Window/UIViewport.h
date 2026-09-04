@@ -22,8 +22,6 @@ public:
 
 	static bool isFullscreen();
 
-	static void renderToFile(glm::uvec2 resolution, uint32_t sampleCount);
-
 	static void init();
 	static void shutdown();
 
@@ -33,8 +31,6 @@ private:
 		Rasterization,
 		PathTracing
 	};
-
-	struct RenderToFileData;
 
 	static std::unique_ptr<SceneRenderer> _sceneRenderer;
 	static RendererType _sceneRendererType;
@@ -59,12 +55,9 @@ private:
 
 	static std::unique_ptr<ObjectPicker> _objectPicker;
 
-	static std::unique_ptr<RenderToFileData> _renderToFileData;
-	static bool _showRenderToFilePopup;
 	static cgpu::ImagePtr _lastViewportImage;
 
 	static void drawGizmo(glm::vec2 viewportStart, glm::vec2 viewportSize);
 	static void drawHeader();
-	static void drawRenderToFilePopup();
 };
 }
