@@ -150,6 +150,15 @@ void c3d::UIMisc::show()
 	ImGui::End();
 }
 
+void c3d::UIMisc::shutdown()
+{
+	if (_renderToFileData)
+	{
+		_renderToFileData->thread.request_stop();
+		_renderToFileData->thread.join();
+	}
+}
+
 bool c3d::UIMisc::isSimulationEnabled()
 {
 	return _simulationEnabled;
@@ -219,7 +228,7 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	Engine::getScene().onPreRender(_renderToFileData->state.registry, _renderToFileData->state.camera);
 
 	_renderToFileData->thread = std::jthread{
-		[](RenderToFileState* state) {
+		[](std::stop_token stopToken, RenderToFileState* state) {
 			cgpu::CommandContext cmdCtx{Engine::getDeviceSession()};
 			OfflineRenderer renderer{state->extent, state->camera, state->registry};
 
@@ -260,6 +269,11 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 				}
 
 				std::swap(currentSubmit, previousSubmit);
+
+				if (stopToken.stop_requested())
+				{
+					return;
+				}
 			}
 
 			cgpu::BufferPtr stagingBuffer;

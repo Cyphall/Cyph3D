@@ -87,6 +87,7 @@ void c3d::UIHelper::render(cgpu::CommandContext& commandContext, const cgpu::Ima
 
 void c3d::UIHelper::shutdown()
 {
+	UIMisc::shutdown();
 	UIViewport::shutdown();
 	ImGui_ImplCyphGPU_Shutdown();
 	ImGui_ImplGlfw_Shutdown();

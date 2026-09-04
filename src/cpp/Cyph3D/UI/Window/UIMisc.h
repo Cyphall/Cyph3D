@@ -15,6 +15,7 @@ class UIMisc
 {
 public:
 	static void show();
+	static void shutdown();
 
 	static bool isSimulationEnabled();
 	static int viewportSampleCount();
