@@ -11,7 +11,9 @@
 
 #include <CyphGPU/Device.hpp>
 #include <CyphGPU/DeviceSession.hpp>
+#include <CyphGPU/ImGuiBackend.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/component_wise.hpp>
 #include <imgui.h>
 #include <stb_image_write.h>
 
@@ -89,7 +91,8 @@ void c3d::UIMisc::show()
 				renderToFile(_resolution, _renderSampleCount);
 			}
 
-			if (ImGui::BeginPopupModal("Rendering status", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			ImGui::SetNextWindowPos(glm::vec2{ImGui::GetMainViewport()->WorkSize} / 2.0f, ImGuiCond_Appearing, {0.5f, 0.5f});
+			if (ImGui::BeginPopupModal("Rendering status", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
 			{
 				auto& state = _renderToFileData->state;
 
@@ -100,6 +103,28 @@ void c3d::UIMisc::show()
 				auto duration = state.lastTraceTime.load() - state.startTime;
 				auto durationRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(duration);
 				ImGui::Text("%s", std::format("Elapsed time: {:%H:%M:%S}", durationRounded).c_str());
+
+				glm::vec2 targetPreviewExtent = glm::vec2{640.0f, 360.0f} * Engine::getWindow().getPixelScale();
+				glm::vec2 previewExtent = _renderToFileData->state.extent;
+				previewExtent /= glm::compMax(previewExtent / targetPreviewExtent);
+				if (state.previewImage.load())
+				{
+					ImGui::Image(
+						ImGui_ImplCyphGPU_ToTextureID(state.previewImage.load()),
+						previewExtent,
+						ImVec2(0, 0),
+						ImVec2(1, 1)
+					);
+				}
+				else
+				{
+					ImGui::GetWindowDrawList()->AddRectFilled(
+						ImGui::GetCursorScreenPos(),
+						glm::vec2{ImGui::GetCursorScreenPos()} + previewExtent,
+						IM_COL32(0, 0, 0, 255)
+					);
+					ImGui::Dummy(previewExtent);
+				}
 
 				if (state.finished)
 				{
@@ -185,6 +210,7 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 
 	_renderToFileData.emplace();
 	_renderToFileData->state.totalSamples = sampleCount;
+	_renderToFileData->state.extent = resolution;
 	_renderToFileData->state.camera = UIViewport::getCamera();
 	_renderToFileData->state.camera.setAspectRatio(static_cast<float>(resolution.x) / static_cast<float>(resolution.y));
 	_renderToFileData->state.outputFile = *filePath;
@@ -193,9 +219,9 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 	Engine::getScene().onPreRender(_renderToFileData->state.registry, _renderToFileData->state.camera);
 
 	_renderToFileData->thread = std::jthread{
-		[](glm::uvec2 resolution, RenderToFileState* state) {
+		[](RenderToFileState* state) {
 			cgpu::CommandContext cmdCtx{Engine::getDeviceSession()};
-			OfflineRenderer renderer{resolution, state->camera, state->registry};
+			OfflineRenderer renderer{state->extent, state->camera, state->registry};
 
 			std::optional<cgpu::CommandRecorder::SubmitHandle> previousSubmit;
 			std::optional<cgpu::CommandRecorder::SubmitHandle> currentSubmit;
@@ -212,7 +238,6 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 					cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncComputeQueue());
 					renderer.traceRays(cmdRec, samples);
 					currentSubmit = cmdRec.submit();
-					std::swap(currentSubmit, previousSubmit);
 				}
 
 				cmdCtx.finish();
@@ -220,25 +245,35 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 				state->renderedSamples += samples;
 				state->lastTraceTime = std::chrono::high_resolution_clock::now();
 
+				if (state->renderedSamples % 1024 == 0)
+				{
+					currentSubmit->waitFinished();
+					cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncGraphicsQueue());
+					state->previewImage = renderer.postProcess(cmdRec);
+					cmdRec.submit();
+				}
+
 				if (state->forceFinish)
 				{
 					state->totalSamples = state->renderedSamples.load();
 					break;
 				}
+
+				std::swap(currentSubmit, previousSubmit);
 			}
 
 			cgpu::BufferPtr stagingBuffer;
 			{
 				cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncGraphicsQueue());
 
-				cgpu::ImagePtr renderImage = renderer.finalize(cmdRec);
+				cgpu::ImagePtr renderImage = renderer.postProcess(cmdRec);
 
 				cgpu::ImagePtr conversionImage = cgpu::Image::create(
 					Engine::getDeviceSession(),
 					{
 						.name = "Render-to-file conversion image",
 						.format = vk::Format::eR8G8B8A8Unorm,
-						.extent = {resolution, 1},
+						.extent = {state->extent, 1},
 						.usages =
 							vk::ImageUsageFlagBits::eTransferDst |
 							vk::ImageUsageFlagBits::eTransferSrc,
@@ -272,16 +307,15 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 
 			if (state->outputFile.extension() == ".png")
 			{
-				stbi_write_png(state->outputFile.generic_string().c_str(), resolution.x, resolution.y, 4, stagingBuffer->getHostPtr(), resolution.x * 4);
+				stbi_write_png(state->outputFile.generic_string().c_str(), state->extent.x, state->extent.y, 4, stagingBuffer->getHostPtr(), state->extent.x * 4);
 			}
 			else if (state->outputFile.extension() == ".jpg")
 			{
-				stbi_write_jpg(state->outputFile.generic_string().c_str(), resolution.x, resolution.y, 4, stagingBuffer->getHostPtr(), 95);
+				stbi_write_jpg(state->outputFile.generic_string().c_str(), state->extent.x, state->extent.y, 4, stagingBuffer->getHostPtr(), 95);
 			}
 
 			state->finished = true;
 		},
-		resolution,
 		&_renderToFileData->state
 	};
 

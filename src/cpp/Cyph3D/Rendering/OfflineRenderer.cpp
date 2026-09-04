@@ -32,7 +32,7 @@ void c3d::OfflineRenderer::traceRays(cgpu::CommandRecorder& cmdRec, uint32_t ray
 	_firstTrace = false;
 }
 
-cgpu::ImagePtr c3d::OfflineRenderer::finalize(cgpu::CommandRecorder& cmdRec)
+cgpu::ImagePtr c3d::OfflineRenderer::postProcess(cgpu::CommandRecorder& cmdRec)
 {
 	// Normalization pass
 

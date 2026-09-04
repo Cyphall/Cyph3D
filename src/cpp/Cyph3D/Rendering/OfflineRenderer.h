@@ -7,6 +7,8 @@
 #include <Cyph3D/Rendering/Pass/ToneMappingPass.h>
 #include <Cyph3D/Rendering/SceneRenderer/SceneRenderer.h>
 
+#include <glm/glm.hpp>
+
 namespace c3d
 {
 class OfflineRenderer
@@ -16,7 +18,7 @@ public:
 
 	void traceRays(cgpu::CommandRecorder& cmdRec, uint32_t rayCount);
 
-	cgpu::ImagePtr finalize(cgpu::CommandRecorder& cmdRec);
+	cgpu::ImagePtr postProcess(cgpu::CommandRecorder& cmdRec);
 
 private:
 	Camera* _camera;
