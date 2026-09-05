@@ -14,7 +14,7 @@ void writeProcessedMesh(const std::filesystem::path& path, const c3d::MeshData& 
 	std::filesystem::create_directories(path.parent_path());
 	std::ofstream file = c3d::FileHelper::openFileForWriting(path);
 
-	uint8_t version = 5;
+	uint8_t version = 6;
 	c3d::FileHelper::write(file, &version);
 
 	c3d::FileHelper::write(file, meshData.positionVertices);
@@ -33,7 +33,7 @@ bool readProcessedMesh(const std::filesystem::path& path, c3d::MeshData& meshDat
 	uint8_t version;
 	c3d::FileHelper::read(file, &version);
 
-	if (version != 5)
+	if (version != 6)
 	{
 		return false;
 	}
@@ -75,7 +75,8 @@ c3d::MeshData processMesh(const std::filesystem::path& input, const std::filesys
 		glm::vec2 texCoord = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
 		glm::vec3 normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
 		glm::vec3 tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z};
-		glm::vec3 bitangent = {mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z};
+		// Assimp tangents are inverted relative to texCoord.y for some reason
+		glm::vec3 bitangent = {-mesh->mBitangents[i].x, -mesh->mBitangents[i].y, -mesh->mBitangents[i].z};
 		glm::vec4 tangentWithSign = {tangent, glm::sign(glm::dot(glm::cross(normal, tangent), bitangent))};
 
 		meshData.positionVertices[i].position = position;
