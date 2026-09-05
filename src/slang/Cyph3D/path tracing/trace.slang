@@ -145,7 +145,7 @@ float3 offsetRay(const float3 p, const float3 n)
 	);
 }
 
-void handleHit(uint2 tid, RayQuery query, inout uint randomOffset, inout RayDesc ray, inout float3 light, inout float3 throughput)
+void handleHit(uint2 tid, RayQuery query, bool bounce, inout uint randomOffset, inout RayDesc ray, inout float3 light, inout float3 throughput)
 {
 	GPUInstance instance = u_instanceBuffer[query.CommittedInstanceIndex()];
 
@@ -205,60 +205,63 @@ void handleHit(uint2 tid, RayQuery query, inout uint randomOffset, inout RayDesc
 	light += throughput * (albedo * emissive);
 
 
-	ray.Origin = offsetRay(pos, geometryNormal);
-
-	float4 rand = getRandom(uint4(tid, u_batchIndex, randomOffset++));
-	float3 localMicrofacetNormal;
-	if (roughness > 0.0)
+	if (bounce)
 	{
-		float3 localRayDir = mul(worldToTangent, ray.Direction);
-		float alpha = roughness * roughness;
-		float2 alpha2D = float2(alpha, alpha);
-		localMicrofacetNormal = sampleGGXVNDF(-localRayDir, alpha2D, rand.xy);
-	}
-	else
-	{
-		localMicrofacetNormal = float3(0.0, 0.0, 1.0);
-	}
+		ray.Origin = offsetRay(pos, geometryNormal);
 
-	float3 microfacetNormal = normalize(mul(tangentToWorld, localMicrofacetNormal));
+		float4 rand = getRandom(uint4(tid, u_batchIndex, randomOffset++));
+		float3 localMicrofacetNormal;
+		if (roughness > 0.0)
+		{
+			float3 localRayDir = mul(worldToTangent, ray.Direction);
+			float alpha = roughness * roughness;
+			float2 alpha2D = float2(alpha, alpha);
+			localMicrofacetNormal = sampleGGXVNDF(-localRayDir, alpha2D, rand.xy);
+		}
+		else
+		{
+			localMicrofacetNormal = float3(0.0, 0.0, 1.0);
+		}
 
-	float NdotL = max(dot(microfacetNormal, -ray.Direction), 0.0);
+		float3 microfacetNormal = normalize(mul(tangentToWorld, localMicrofacetNormal));
 
-	float3 dielectricDiffuseWeight = float3(0);
-	float3 dielectricSpecularWeight = float3(0);
-	if (metalness < 1.0) dielectricBRDF(NdotL, dielectricDiffuseWeight, dielectricSpecularWeight);
+		float NdotL = max(dot(microfacetNormal, -ray.Direction), 0.0);
 
-	float3 conductorDiffuseWeight = float3(0);
-	float3 conductorSpecularWeight = float3(0);
-	if (metalness > 0.0) conductorBRDF(albedo, NdotL, conductorDiffuseWeight, conductorSpecularWeight);
+		float3 dielectricDiffuseWeight = float3(0);
+		float3 dielectricSpecularWeight = float3(0);
+		if (metalness < 1.0) dielectricBRDF(NdotL, dielectricDiffuseWeight, dielectricSpecularWeight);
 
-	if (metalness == 1.0)
-	{
-		// next bounce is specular
+		float3 conductorDiffuseWeight = float3(0);
+		float3 conductorSpecularWeight = float3(0);
+		if (metalness > 0.0) conductorBRDF(albedo, NdotL, conductorDiffuseWeight, conductorSpecularWeight);
 
-		ray.Direction = reflect(ray.Direction, microfacetNormal);
-		throughput *= conductorSpecularWeight;
-	}
-	else if (rand.z > 0.5)
-	{
-		// next bounce is specular
+		if (metalness == 1.0)
+		{
+			// next bounce is specular
 
-		ray.Direction = reflect(ray.Direction, microfacetNormal);
+			ray.Direction = reflect(ray.Direction, microfacetNormal);
+			throughput *= conductorSpecularWeight;
+		}
+		else if (rand.z > 0.5)
+		{
+			// next bounce is specular
 
-		float3 dielectric = dielectricSpecularWeight;
-		float3 conductor  = conductorSpecularWeight;
-		throughput *= lerp(dielectric, conductor, metalness) * 2.0;
-	}
-	else
-	{
-		// next bounce is diffuse
+			ray.Direction = reflect(ray.Direction, microfacetNormal);
 
-		ray.Direction = mul(tangentToWorld, calcRandomHemisphereDirectionCosWeighted(getRandom(uint4(tid, u_batchIndex, randomOffset++)).xy));
+			float3 dielectric = dielectricSpecularWeight;
+			float3 conductor  = conductorSpecularWeight;
+			throughput *= lerp(dielectric, conductor, metalness) * 2.0;
+		}
+		else
+		{
+			// next bounce is diffuse
 
-		float3 dielectric = albedo * dielectricDiffuseWeight;
-		float3 conductor  = albedo * conductorDiffuseWeight;
-		throughput *= lerp(dielectric, conductor, metalness) * 2.0;
+			ray.Direction = mul(tangentToWorld, calcRandomHemisphereDirectionCosWeighted(getRandom(uint4(tid, u_batchIndex, randomOffset++)).xy));
+
+			float3 dielectric = albedo * dielectricDiffuseWeight;
+			float3 conductor  = albedo * conductorDiffuseWeight;
+			throughput *= lerp(dielectric, conductor, metalness) * 2.0;
+		}
 	}
 }
 
@@ -324,7 +327,7 @@ void main(uint3 threadID : SV_DispatchThreadID)
 			
 			if (query.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
 			{
-				handleHit(tid, query, randomOffset, ray, light, throughput);
+				handleHit(tid, query, d < MAX_DEPTH - 1, randomOffset, ray, light, throughput);
 			}
 			else
 			{
