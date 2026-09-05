@@ -346,9 +346,15 @@ float G_SmithGGX(float NdotV, float NdotL, float alpha)
 }
 
 // Fresnel Function
+float pow5(float x)
+{
+	float x2 = x * x;
+	return x2 * x2 * x;
+}
+
 float3 F_Schlick(float HdotV, float3 F0, float3 F90)
 {
-	return F0 + (F90 - F0) * pow(1.0 - HdotV, 5.0);
+	return lerp(F0, F90, pow5(1.0 - HdotV));
 }
 
 float3 calculateLighting(float3 radiance, float3 lightDir, float3 viewDir, float3 albedo, float3 normal, float roughness, float metalness)

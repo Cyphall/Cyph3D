@@ -64,9 +64,15 @@ float3 calcRandomHemisphereDirectionCosWeighted(float2 rand)
 	);
 }
 
+float pow5(float x)
+{
+	float x2 = x * x;
+	return x2 * x2 * x;
+}
+
 float3 fresnelSchlick(float cosTheta, float3 F0)
 {
-	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+	return lerp(F0, 1.0, pow5(1.0 - cosTheta));
 }
 
 float3 sampleGGXVNDF(float3 Ve, float2 alpha2D, float2 rand)
