@@ -93,7 +93,7 @@ uint32_t rankDevice(const cgpu::DevicePtr& device)
 
 	if (device->getCapabilities() & cgpu::Device::Capability::eRayTracing)
 	{
-		score += 1000;
+		score += 50;
 	}
 
 	return score;
