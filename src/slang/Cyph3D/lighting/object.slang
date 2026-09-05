@@ -108,7 +108,7 @@ V2F main(VIn input)
 
 float getDepth(float2 texCoord)
 {
-	return uint2(u_displacementImage).x > 0 ? 1.0 - u_displacementImage.Sample(u_materialSampler, texCoord) : 0.0;
+	return 1.0 - u_displacementImage.Sample(u_materialSampler, texCoord);
 }
 
 uint2 getExtent<T:ITexelElement>(Texture2D<T>::Handle image)
@@ -120,6 +120,9 @@ uint2 getExtent<T:ITexelElement>(Texture2D<T>::Handle image)
 
 float2 POM(float2 texCoord, float3 viewDir)
 {
+	if (uint2(u_displacementImage).x == 0)
+		return texCoord;
+
 	const int linearSamples = 8;
 	const int binarySamples = 6;
 
