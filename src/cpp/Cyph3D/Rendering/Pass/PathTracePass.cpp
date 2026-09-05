@@ -60,6 +60,17 @@ c3d::PathTracePassOutput c3d::PathTracePass::onRender(cgpu::CommandRecorder& com
 	if (input.sceneChanged)
 	{
 		recreateTLAS(commandRecorder, input);
+
+		// Workaround: Sync is broken on Nvidia driver 616.56, presumably
+		// when VkDependencyInfo::memoryBarrierCount, bufferMemoryBarrierCount and
+		// imageMemoryBarrierCount are all 0 and the only barriers are specified
+		// in VkMemoryRangeBarriersInfoKHR::memoryRangeBarrierCount
+		commandRecorder.debugBarrier({
+			.src_stages = vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+			.src_accesses = vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
+			.dst_stages = vk::PipelineStageFlagBits2::eComputeShader,
+			.dst_accesses = vk::AccessFlagBits2::eAccelerationStructureReadKHR,
+		});
 	}
 
 	commandRecorder.computePass({
