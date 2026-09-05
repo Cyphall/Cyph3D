@@ -134,6 +134,7 @@ jobs:
         run: cmake --build --preset Linux-GCC-Release
 
   build-macos-clang:
+    if: false #TODO: re-enable once https://github.com/llvm/llvm-project/pull/194215 is available on macOS CI
     runs-on: macos-26
 
     steps:
