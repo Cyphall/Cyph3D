@@ -241,6 +241,14 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 					currentSubmit->waitFinished();
 				}
 
+				if (previousSubmit && state->renderedSamples % 1024 == 0)
+				{
+					previousSubmit->waitFinished();
+					cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncGraphicsQueue());
+					state->previewImage = renderer.postProcess(cmdRec);
+					cmdRec.submit();
+				}
+
 				uint32_t samples = std::min(state->totalSamples - state->renderedSamples, 64u);
 
 				{
@@ -254,26 +262,18 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 				state->renderedSamples += samples;
 				state->lastTraceTime = std::chrono::high_resolution_clock::now();
 
-				if (state->renderedSamples % 1024 == 0)
-				{
-					currentSubmit->waitFinished();
-					cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncGraphicsQueue());
-					state->previewImage = renderer.postProcess(cmdRec);
-					cmdRec.submit();
-				}
-
 				if (state->forceFinish)
 				{
 					state->totalSamples = state->renderedSamples.load();
 					break;
 				}
 
-				std::swap(currentSubmit, previousSubmit);
-
 				if (stopToken.stop_requested())
 				{
 					return;
 				}
+
+				std::swap(currentSubmit, previousSubmit);
 			}
 
 			cgpu::BufferPtr stagingBuffer;
@@ -315,6 +315,8 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 				});
 
 				cmdRec.submit().waitFinished();
+
+				state->previewImage = renderImage;
 			}
 
 			cmdCtx.finish();
