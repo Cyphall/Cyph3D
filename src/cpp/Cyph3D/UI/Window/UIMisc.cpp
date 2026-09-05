@@ -244,7 +244,7 @@ void c3d::UIMisc::renderToFile(glm::uvec2 resolution, uint32_t sampleCount)
 				if (previousSubmit && state->renderedSamples % 1024 == 0)
 				{
 					previousSubmit->waitFinished();
-					cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncGraphicsQueue());
+					cgpu::CommandRecorder cmdRec = cmdCtx.createRecorder(Engine::getDeviceSession()->getAsyncComputeQueue());
 					state->previewImage = renderer.postProcess(cmdRec);
 					cmdRec.submit();
 				}
