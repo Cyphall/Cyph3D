@@ -300,6 +300,9 @@ void main(uint3 threadID : SV_DispatchThreadID)
 
 		for (uint d = 0; d < MAX_DEPTH; d++)
 		{
+			if (all(throughput == 0.0))
+				break;
+
 			RayQuery query;
 
 			query.TraceRayInline(
