@@ -68,13 +68,8 @@ void c3d::UIViewport::show(cgpu::CommandRecorder& commandRecorder)
 		}
 
 		// all of this need to be calculated before calling ImGui::Image()
-		glm::ivec2 viewportStartLocal = glm::vec2(ImGui::GetCursorPos());
-		glm::ivec2 viewportEndLocal = glm::vec2(ImGui::GetContentRegionAvail());
-
-		glm::uvec2 viewportSize = glm::max(viewportEndLocal - viewportStartLocal, glm::ivec2(0));
-
-		glm::ivec2 viewportStartGlobal = glm::vec2(ImGui::GetCursorScreenPos());
-		glm::ivec2 viewportEndGlobal = viewportStartGlobal + glm::ivec2(viewportSize);
+		glm::ivec2 viewportStartGlobal = glm::vec2{ImGui::GetCursorScreenPos()};
+		glm::uvec2 viewportSize = glm::vec2{ImGui::GetContentRegionAvail()};
 
 		if (viewportSize.x > 0 && viewportSize.y > 0)
 		{
