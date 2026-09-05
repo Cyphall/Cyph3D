@@ -162,34 +162,28 @@ void handleHit(uint2 tid, RayQuery query, inout uint randomOffset, inout RayDesc
 	MaterialVertexData mv2 = instance.materialVertexBuffer[indices.y];
 	MaterialVertexData mv3 = instance.materialVertexBuffer[indices.z];
 
-	float3 position1 = mul(query.CommittedObjectToWorld3x4(), float4(pv1.pos, 1.0));
-	float3 position2 = mul(query.CommittedObjectToWorld3x4(), float4(pv2.pos, 1.0));
-	float3 position3 = mul(query.CommittedObjectToWorld3x4(), float4(pv3.pos, 1.0));
-
-	float3 normal1 = normalize(mul(instance.normalMatrix, mv1.normal));
-	float3 normal2 = normalize(mul(instance.normalMatrix, mv2.normal));
-	float3 normal3 = normalize(mul(instance.normalMatrix, mv3.normal));
-
-	float3 tangent1 = normalize(mul(instance.normalMatrix, mv1.tangent.xyz));
-	float3 tangent2 = normalize(mul(instance.normalMatrix, mv2.tangent.xyz));
-	float3 tangent3 = normalize(mul(instance.normalMatrix, mv3.tangent.xyz));
-
-	float3 bitangent1 = cross(normal1, tangent1) * mv1.tangent.w;
-	float3 bitangent2 = cross(normal2, tangent2) * mv2.tangent.w;
-	float3 bitangent3 = cross(normal3, tangent3) * mv3.tangent.w;
-
 	float2 barycentricsXY = query.CommittedRayBarycentrics();
 	float3 barycentrics = float3(1.0 - barycentricsXY.x - barycentricsXY.y, barycentricsXY.x, barycentricsXY.y);
 
-	float3 position = interpolateBarycentrics(position1, position2, position3, barycentrics);
-	float3 normal = normalize(interpolateBarycentrics(normal1, normal2, normal3, barycentrics)) * normalScale;
-	float3 tangent = normalize(interpolateBarycentrics(tangent1, tangent2, tangent3, barycentrics)) * normalScale;
-	float3 bitangent = normalize(interpolateBarycentrics(bitangent1, bitangent2, bitangent3, barycentrics)) * normalScale;
-	float3 geometryNormal = normalize(cross(position3 - position2, position1 - position2));
-
-	geometryNormal = dot(geometryNormal, ray.Direction) < 0.0 ? geometryNormal : -geometryNormal;
+	float3 localPos = interpolateBarycentrics(pv1.pos, pv2.pos, pv3.pos, barycentrics);
+	float3 pos = mul(query.CommittedObjectToWorld3x4(), float4(localPos, 1.0));
 
 	float2 texCoord = interpolateBarycentrics(mv1.texCoord, mv2.texCoord, mv3.texCoord, barycentrics);
+
+	float3 localNormal = interpolateBarycentrics(mv1.normal, mv2.normal, mv3.normal, barycentrics);
+	float3 normal = normalize(mul(instance.normalMatrix, localNormal));
+
+	float3 localTangent = interpolateBarycentrics(mv1.tangent.xyz, mv2.tangent.xyz, mv3.tangent.xyz, barycentrics);
+	float3 tangent = normalize(mul(instance.normalMatrix, localTangent));
+
+	float3 bitangent = cross(normal, tangent) * mv1.tangent.w;
+
+	normal *= normalScale;
+	tangent *= normalScale;
+	bitangent *= normalScale;
+
+	float3 geometryNormal = normalize(mul(instance.normalMatrix, cross(pv3.pos - pv2.pos, pv1.pos - pv2.pos)));
+	geometryNormal = dot(geometryNormal, ray.Direction) < 0.0 ? geometryNormal : -geometryNormal;
 
 	float3 albedo = uint2(instance.albedoImage).x > 0 ? instance.albedoImage.SampleLevel(u_sampler, texCoord, 0.0) : instance.albedoValue;
 	float roughness = uint2(instance.roughnessImage).x > 0 ? instance.roughnessImage.SampleLevel(u_sampler, texCoord, 0.0) : instance.roughnessValue;
@@ -211,7 +205,7 @@ void handleHit(uint2 tid, RayQuery query, inout uint randomOffset, inout RayDesc
 	light += throughput * (albedo * emissive);
 
 
-	ray.Origin = offsetRay(position, geometryNormal);
+	ray.Origin = offsetRay(pos, geometryNormal);
 
 	float4 rand = getRandom(uint4(tid, u_batchIndex, randomOffset++));
 	float3 localMicrofacetNormal;
