@@ -233,7 +233,14 @@ void handleHit(uint2 tid, RayQuery query, inout uint randomOffset, inout RayDesc
 	float3 conductorSpecularWeight = float3(0);
 	if (metalness > 0.0) conductorBRDF(albedo, NdotL, conductorDiffuseWeight, conductorSpecularWeight);
 
-	if (rand.z > 0.5)
+	if (metalness == 1.0)
+	{
+		// next bounce is specular
+
+		ray.Direction = reflect(ray.Direction, microfacetNormal);
+		throughput *= conductorSpecularWeight;
+	}
+	else if (rand.z > 0.5)
 	{
 		// next bounce is specular
 
