@@ -72,14 +72,14 @@ c3d::MeshData processMesh(const std::filesystem::path& input, const std::filesys
 	for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
 	{
 		glm::vec3 position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
-		glm::vec2 uv = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
+		glm::vec2 texCoord = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
 		glm::vec3 normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
 		glm::vec3 tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z};
 		glm::vec3 bitangent = {mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z};
 		glm::vec4 tangentWithSign = {tangent, glm::sign(glm::dot(glm::cross(normal, tangent), bitangent))};
 
 		meshData.positionVertices[i].position = position;
-		meshData.materialVertices[i].uv = uv;
+		meshData.materialVertices[i].texCoord = texCoord;
 		meshData.materialVertices[i].normal = normal;
 		meshData.materialVertices[i].tangent = tangentWithSign;
 

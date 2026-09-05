@@ -183,7 +183,7 @@ void handleHit(uint2 tid, RayQuery query, inout uint randomOffset, inout RayDesc
 
 	geometryNormal = dot(geometryNormal, ray.Direction) < 0.0 ? geometryNormal : -geometryNormal;
 
-	float2 texCoord = interpolateBarycentrics(mv1.uv, mv2.uv, mv3.uv, barycentrics);
+	float2 texCoord = interpolateBarycentrics(mv1.texCoord, mv2.texCoord, mv3.texCoord, barycentrics);
 
 	float3 albedo = uint2(instance.albedoImage).x > 0 ? instance.albedoImage.SampleLevel(u_sampler, texCoord, 0.0) : instance.albedoValue;
 	float roughness = uint2(instance.roughnessImage).x > 0 ? instance.roughnessImage.SampleLevel(u_sampler, texCoord, 0.0) : instance.roughnessValue;

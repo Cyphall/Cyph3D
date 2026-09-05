@@ -99,7 +99,7 @@ V2F main(VIn input)
 	V2F output;
 	output.rasterPosition = mul(u_mvpMatrix, float4(positionVertex.pos, 1.0));
 	output.pos = mul(u_mMatrix, float4(positionVertex.pos, 1.0)).xyz;
-	output.texCoord = materialVertex.uv;
+	output.texCoord = materialVertex.texCoord;
 	output.normal = normal;
 	output.tangent = tangent;
 	output.bitangent = bitangent;

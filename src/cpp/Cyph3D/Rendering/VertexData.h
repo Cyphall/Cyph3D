@@ -11,7 +11,7 @@ struct PositionVertexData
 
 struct MaterialVertexData
 {
-	glm::vec2 uv;
+	glm::vec2 texCoord;
 	glm::vec3 normal;
 	glm::vec4 tangent;
 };

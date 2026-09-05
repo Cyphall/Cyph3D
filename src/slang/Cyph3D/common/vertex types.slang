@@ -7,7 +7,7 @@ struct PositionVertexData
 
 struct MaterialVertexData
 {
-	float2 uv;
+	float2 texCoord;
 	float3 normal;
 	float4 tangent;
 };
