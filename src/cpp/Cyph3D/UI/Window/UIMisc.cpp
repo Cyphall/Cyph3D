@@ -100,9 +100,14 @@ void c3d::UIMisc::show()
 				ImGui::ProgressBar(static_cast<float>(state.renderedSamples) / static_cast<float>(state.totalSamples));
 				ImGui::TextUnformatted(std::format("Rendered samples: {}/{}", state.renderedSamples.load(), state.totalSamples.load()).c_str());
 
-				auto duration = state.lastTraceTime.load() - state.startTime;
-				auto durationRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(duration);
-				ImGui::Text("%s", std::format("Elapsed time: {:%H:%M:%S}", durationRounded).c_str());
+				auto elapsed = state.lastTraceTime.load() - state.startTime;
+				auto timePerSample = elapsed / std::max(state.renderedSamples.load(), 1u);
+				auto totalExpectedTime = timePerSample * state.totalSamples.load();
+				auto remaining = elapsed < totalExpectedTime ? totalExpectedTime - elapsed : std::chrono::seconds{0};
+
+				auto elapsedRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(elapsed);
+				auto remainingRounded = std::chrono::floor<std::chrono::duration<long long, std::deci>>(remaining);
+				ImGui::Text("%s", std::format("Elapsed: {:%H:%M:%S} - Remaining: {:%H:%M:%S}", elapsedRounded, remainingRounded).c_str());
 
 				glm::vec2 targetPreviewExtent = glm::vec2{640.0f, 360.0f} * Engine::getWindow().getPixelScale();
 				glm::vec2 previewExtent = _renderToFileData->state.extent;
