@@ -1,8 +1,8 @@
 vcpkg_from_github(
 	OUT_SOURCE_PATH SOURCE_PATH
 	REPO Cyphall/CyphGPU
-	REF "634cc19d695717e921a3aa4bea76ff0c2140ffab"
-	SHA512 2f1c1461eab356e41ed3759311285f203ba914f01daf433ca5e93d702272f11c8d8cb4e72f09c8f1229390eb4b57f1889c7e465cb3012b9f42b3a7c250d506e9
+	REF "255d716292a5f10b3f173cd6e7c5ac9cf82c48b1"
+	SHA512 eea31d0eae2ca93de1d81b6d52340c1627f649d4f7f9d974ce52bcc949db934f9f93b56080f807845dc66fcda7396fc4d15a9db91f424048fdb9677e89d714ab
 	HEAD_REF master
 )
 
@@ -21,7 +21,7 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 vcpkg_copy_pdbs()
-vcpkg_cmake_config_fixup(CONFIG_PATH "lib/cmake/CyphGPU")
+vcpkg_cmake_config_fixup(PACKAGE_NAME "CyphGPU" CONFIG_PATH "lib/cmake/CyphGPU")
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")

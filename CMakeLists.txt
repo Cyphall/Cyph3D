@@ -243,7 +243,7 @@ install(DIRECTORY "${PROJECT_SOURCE_DIR}/assets"
 )
 
 # ---- Dependency: Cyphall/CyphGPU ----
-target_link_libraries(Cyph3D PRIVATE CyphGPU)
+target_link_libraries(Cyph3D PRIVATE CyphGPU::CyphGPU)
 # ---- Dependency: ispc/ispc ----
 set(CMAKE_ISPC_COMPILER "${ISPC_EXECUTABLE}")
 # ---- Dependency: nothings/stb ----
