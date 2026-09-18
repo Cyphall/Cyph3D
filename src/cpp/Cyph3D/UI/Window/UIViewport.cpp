@@ -326,4 +326,5 @@ void c3d::UIViewport::shutdown()
 {
 	_sceneRenderer = {};
 	_objectPicker = {};
+	_lastViewportImage = {};
 }
