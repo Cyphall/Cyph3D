@@ -8,7 +8,7 @@ cbuffer Parameters
 
 struct VIn
 {
-	uint vertex_index : SV_VulkanVertexID;
+	uint vertexIndex : SV_VulkanVertexID;
 };
 
 struct VOut
@@ -19,7 +19,7 @@ struct VOut
 [[shader("vertex")]]
 VOut main(VIn input)
 {
-	PositionVertexData vertex = u_vertexList[input.vertex_index];
+	PositionVertexData vertex = u_vertexList[input.vertexIndex];
 
 	VOut output;
 	output.rasterPosition = mul(u_mvpMatrix, float4(vertex.pos, 1.0));

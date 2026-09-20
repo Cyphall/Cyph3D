@@ -7,7 +7,7 @@ cbuffer Parameters
 
 struct VIn
 {
-	uint vertex_index : SV_VulkanVertexID;
+	uint vertexIndex : SV_VulkanVertexID;
 };
 
 struct V2F
@@ -25,7 +25,7 @@ struct FOut
 [[shader("vertex")]]
 V2F main(VIn input)
 {
-	float2 texCoord = float2(input.vertex_index & 2, (input.vertex_index << 1) & 2);
+	float2 texCoord = float2(input.vertexIndex & 2, (input.vertexIndex << 1) & 2);
 
 	V2F output;
 	output.rasterPosition = float4(texCoord * 2.0 - 1.0, 1.0, 1.0);

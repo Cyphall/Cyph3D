@@ -68,7 +68,7 @@ cbuffer Parameters
 
 struct VIn
 {
-	uint vertex_index : SV_VulkanVertexID;
+	uint vertexIndex : SV_VulkanVertexID;
 };
 
 struct V2F
@@ -89,8 +89,8 @@ struct FOut
 [[shader("vertex")]]
 V2F main(VIn input)
 {
-	PositionVertexData positionVertex = u_positionVertexList[input.vertex_index];
-	MaterialVertexData materialVertex = u_materialVertexList[input.vertex_index];
+	PositionVertexData positionVertex = u_positionVertexList[input.vertexIndex];
+	MaterialVertexData materialVertex = u_materialVertexList[input.vertexIndex];
 
 	float3 normal = normalize(mul(u_normalMatrix, materialVertex.normal));
 	float3 tangent = normalize(mul(u_normalMatrix, materialVertex.tangent.xyz));
