@@ -2,7 +2,7 @@
 
 cbuffer Parameters
 {
-	float4x4 u_mvpMatrix;
+	float4x4 u_mvpMatrices[6];
 	float4x4 u_mMatrix;
 	PositionVertexData* u_vertexList;
 	float3 u_lightPos;
@@ -12,6 +12,7 @@ cbuffer Parameters
 struct VIn
 {
 	uint vertexIndex : SV_VulkanVertexID;
+	uint viewIndex : SV_ViewID;
 };
 
 struct V2F
@@ -31,7 +32,7 @@ V2F main(VIn input)
 	PositionVertexData vertex = u_vertexList[input.vertexIndex];
 
 	V2F output;
-	output.rasterPosition = mul(u_mvpMatrix, float4(vertex.pos, 1.0));
+	output.rasterPosition = mul(u_mvpMatrices[input.viewIndex], float4(vertex.pos, 1.0));
 	output.pos = mul(u_mMatrix, float4(vertex.pos, 1.0)).xyz;
 	return output;
 }

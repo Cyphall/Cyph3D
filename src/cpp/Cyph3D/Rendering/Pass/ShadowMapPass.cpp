@@ -181,6 +181,7 @@ void c3d::ShadowMapPass::createPipelineStates()
 		Engine::getDeviceSession(),
 		{
 			.vertex_shader = {.source = "Cyph3D/shadow mapping/point light.slang"},
+			.view_mask = 0b111111,
 		}
 	);
 
@@ -192,6 +193,7 @@ void c3d::ShadowMapPass::createPipelineStates()
 				.test_pass_condition = vk::CompareOp::eLess,
 				.write_enabled = true,
 			}},
+			.view_mask = 0b111111,
 		}
 	);
 
@@ -280,61 +282,66 @@ c3d::PointShadowMapInfo c3d::ShadowMapPass::renderPointShadowMap(
 
 	cgpu::ImagePtr shadowMap = _shadowMapManager.allocatePointShadowMap(light.shadowMapResolution);
 
-	std::array<glm::mat4, 6> views = calcPointShadowMapView(light);
+	std::array<glm::mat4, 6> vMatrices = calcPointShadowMapView(light);
 
-	for (uint32_t i = 0; i < 6; i++)
-	{
-		commandRecorder.graphicsPass({
-			.depth_stencil_attachment = {{
-				.image = shadowMap,
-				.first_layer = i,
-				.load_op = vk::AttachmentLoadOp::eClear,
-				.store_op = vk::AttachmentStoreOp::eStore,
-				.clear_depth_value = 1.0f,
-			}},
-			.callback = [&](cgpu::GraphicsPassContext& ctx) {
-				ctx.bindPipelineStates(
-					_vertexInputState,
-					_pointPreRasterizationShaderState,
-					_pointFragmentShaderState,
-					_pointFragmentOutputState
-				);
+	commandRecorder.graphicsPass({
+		.layer_mode = cgpu::CommandRecorder::GraphicsPassParams::MultiviewMask{0b111111},
+		.depth_stencil_attachment = {{
+			.image = shadowMap,
+			.load_op = vk::AttachmentLoadOp::eClear,
+			.store_op = vk::AttachmentStoreOp::eStore,
+			.clear_depth_value = 1.0f,
+		}},
+		.callback = [&](cgpu::GraphicsPassContext& ctx) {
+			ctx.bindPipelineStates(
+				_vertexInputState,
+				_pointPreRasterizationShaderState,
+				_pointFragmentShaderState,
+				_pointFragmentOutputState
+			);
 
-				glm::mat4 vpMatrix = POINT_SHADOW_MAP_PROJECTION * views[i];
-				for (const ModelRenderer::RenderData& model : models)
+			std::array<glm::mat4, 6> vpMatrices{};
+			for (int i = 0; i < 6; i++)
+			{
+				vpMatrices[i] = POINT_SHADOW_MAP_PROJECTION * vMatrices[i];
+			}
+
+			for (const ModelRenderer::RenderData& model : models)
+			{
+				if (!model.contributeShadows)
 				{
-					if (!model.contributeShadows)
-					{
-						continue;
-					}
-
-					ctx.bindIndexBuffer(model.mesh.getIndexBuffer(), model.mesh.getIndexType());
-
-					using namespace cgpu::shader_types;
-					struct
-					{
-						float4x4 u_mvpMatrix;
-						float4x4 u_mMatrix;
-						PositionVertexData* u_vertexList;
-						float3 u_lightPos;
-						float u_invMaxDistance;
-					} parameters{};
-
-					parameters.u_mvpMatrix = vpMatrix * model.transform.getLocalToWorldMatrix();
-					parameters.u_mMatrix = model.transform.getLocalToWorldMatrix();
-					parameters.u_vertexList = ctx.getBufferDevicePtr<PositionVertexData>(
-						model.mesh.getPositionVertexBuffer(),
-						cgpu::GraphicsStage::eVertex,
-						cgpu::StorageAccess::eReadonly
-					);
-					parameters.u_lightPos = light.transform.getWorldPosition();
-					parameters.u_invMaxDistance = 1.0f / POINT_SHADOW_MAP_FAR;
-
-					ctx.drawIndexed(model.mesh.getIndexCount(), 1, 0, 0, 0, parameters);
+					continue;
 				}
-			},
-		});
-	}
+
+				ctx.bindIndexBuffer(model.mesh.getIndexBuffer(), model.mesh.getIndexType());
+
+				using namespace cgpu::shader_types;
+				struct
+				{
+					std::array<float4x4, 6> u_vpMatrices;
+					float4x4 u_mMatrix;
+					PositionVertexData* u_vertexList;
+					float3 u_lightPos;
+					float u_invMaxDistance;
+				} parameters{};
+
+				for (int i = 0; i < 6; i++)
+				{
+					parameters.u_vpMatrices[i] = vpMatrices[i] * model.transform.getLocalToWorldMatrix();
+				}
+				parameters.u_mMatrix = model.transform.getLocalToWorldMatrix();
+				parameters.u_vertexList = ctx.getBufferDevicePtr<PositionVertexData>(
+					model.mesh.getPositionVertexBuffer(),
+					cgpu::GraphicsStage::eVertex,
+					cgpu::StorageAccess::eReadonly
+				);
+				parameters.u_lightPos = light.transform.getWorldPosition();
+				parameters.u_invMaxDistance = 1.0f / POINT_SHADOW_MAP_FAR;
+
+				ctx.drawIndexed(model.mesh.getIndexCount(), 1, 0, 0, 0, parameters);
+			}
+		},
+	});
 
 	return {
 		.image = shadowMap,
