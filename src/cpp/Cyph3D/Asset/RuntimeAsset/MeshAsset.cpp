@@ -166,7 +166,7 @@ void c3d::MeshAsset::load_async()
 
 		auto sizes = cgpu::BLAS::calcSizes(Engine::getDeviceSession(), blasInfo);
 
-		cgpu::BufferPtr blas_buffer = cgpu::Buffer::create(
+		cgpu::BufferPtr blasBuffer = cgpu::Buffer::create(
 			Engine::getDeviceSession(),
 			{
 				.name = std::format("{}.BLASBuffer", _signature.path),
@@ -181,15 +181,15 @@ void c3d::MeshAsset::load_async()
 			{
 				.name = std::format("{}.BLAS", _signature.path),
 				.as_info = blasInfo,
-				.buffer = blas_buffer,
+				.buffer = blasBuffer,
 				.sizes = sizes,
 			}
 		);
 
-		std::optional<cgpu::CommandRecorder::BLASParams::ScratchBuffer> blas_scratch_buffer;
+		std::optional<cgpu::CommandRecorder::BLASParams::ScratchBuffer> blasScratchBuffer;
 		if (_blas->getDesc().sizes.buildScratchSize > 0)
 		{
-			blas_scratch_buffer = {{
+			blasScratchBuffer = {{
 				.buffer = cgpu::Buffer::create(
 					Engine::getDeviceSession(),
 					{
@@ -206,13 +206,13 @@ void c3d::MeshAsset::load_async()
 
 		commandRecorder.buildBLAS({
 			.blas = _blas,
-			.vertex_buffer = {{
+			.vertex_buffer = {
 				.buffer = _positionVertexBuffer,
-			}},
+			},
 			.index_buffer = {{
 				.buffer = _indexBuffer,
 			}},
-			.scratch_buffer = blas_scratch_buffer,
+			.scratch_buffer = blasScratchBuffer,
 		});
 
 		commandRecorder.submit().waitFinished();

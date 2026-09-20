@@ -152,12 +152,12 @@ void c3d::CubemapAsset::load_async()
 		size_t size = _image->calcByteSize({level, 1}, 6);
 
 		ranges.push_back({
-			.src = {{
+			.src = {
 				.byte_range = {{bufferOffset, size}},
-			}},
-			.dst = {{
+			},
+			.dst = {
 				.level = level,
-			}},
+			},
 		});
 
 		bufferOffset += size;

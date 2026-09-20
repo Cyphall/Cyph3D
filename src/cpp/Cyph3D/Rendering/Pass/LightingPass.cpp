@@ -58,7 +58,7 @@ c3d::LightingPass::LightingPass(glm::uvec2 size):
 c3d::LightingPassOutput c3d::LightingPass::onRender(cgpu::CommandRecorder& commandRecorder, LightingPassInput& input)
 {
 	commandRecorder.graphicsPass({
-		.color_attachments = {{
+		.color_attachments = {
 			{
 				.image = _multisampledLightImage,
 				.load_op = vk::AttachmentLoadOp::eClear,
@@ -68,7 +68,7 @@ c3d::LightingPassOutput c3d::LightingPass::onRender(cgpu::CommandRecorder& comma
 					.image = _lightImage,
 				}},
 			},
-		}},
+		},
 		.depth_stencil_attachment = {{
 			.image = input.multisampledDepthImage,
 			.load_op = vk::AttachmentLoadOp::eLoad,

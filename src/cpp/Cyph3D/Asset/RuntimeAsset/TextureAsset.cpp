@@ -72,12 +72,12 @@ void c3d::TextureAsset::load_async()
 		size_t size = _image->calcByteSize({level, 1}, 1);
 
 		ranges.push_back({
-			.src = {{
+			.src = {
 				.byte_range = {{bufferOffset, size}},
-			}},
-			.dst = {{
+			},
+			.dst = {
 				.level = level,
-			}},
+			},
 		});
 
 		bufferOffset += size;

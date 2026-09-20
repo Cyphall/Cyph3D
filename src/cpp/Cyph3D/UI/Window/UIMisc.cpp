@@ -9,6 +9,7 @@
 #include <Cyph3D/UI/Window/UIViewport.h>
 #include <Cyph3D/Window.h>
 
+#include <CyphGPU/Buffer.hpp>
 #include <CyphGPU/Device.hpp>
 #include <CyphGPU/DeviceSession.hpp>
 #include <CyphGPU/ImGuiBackend.hpp>

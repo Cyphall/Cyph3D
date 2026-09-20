@@ -42,14 +42,14 @@ c3d::Entity* c3d::ObjectPicker::getPickedEntity(const Camera& camera, const Rend
 	auto commandRecorder = _commandContext.createRecorder(Engine::getDeviceSession()->getMainQueue());
 
 	commandRecorder.graphicsPass({
-		.color_attachments = {{
+		.color_attachments = {
 			{
 				.image = _objectIndexImage,
 				.load_op = vk::AttachmentLoadOp::eClear,
 				.store_op = vk::AttachmentStoreOp::eStore,
 				.clear_color_value = glm::ivec4{-1, 0, 0, 0},
 			},
-		}},
+		},
 		.depth_stencil_attachment = {{
 			.image = _depthImage,
 			.load_op = vk::AttachmentLoadOp::eClear,
@@ -108,12 +108,12 @@ c3d::Entity* c3d::ObjectPicker::getPickedEntity(const Camera& camera, const Rend
 		.dst_buffer = stagingBuffer,
 		.ranges = {{
 			{
-				.src = {{
+				.src = {
 					.pixels = {{
 						.offset = {clickPos, 0},
 						.size = {1, 1, 1},
 					}},
-				}},
+				},
 			},
 		}},
 	});

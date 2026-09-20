@@ -170,13 +170,13 @@ void c3d::PathTracePass::onResize()
 
 void c3d::PathTracePass::recreateTLAS(cgpu::CommandRecorder& commandRecorder, const PathTracePassInput& input)
 {
-	cgpu::TLAS::ASInfo tlasInfo{
+	cgpu::TLAS::ASInfo info{
 		.instance_count = static_cast<uint32_t>(input.registry.getModelRenderRequests().size()),
 	};
 
-	auto sizes = cgpu::TLAS::calcSizes(Engine::getDeviceSession(), tlasInfo);
+	auto sizes = cgpu::TLAS::calcSizes(Engine::getDeviceSession(), info);
 
-	cgpu::BufferPtr tlas_buffer = cgpu::Buffer::create(
+	cgpu::BufferPtr buffer = cgpu::Buffer::create(
 		Engine::getDeviceSession(),
 		{
 			.name = "TLAS buffer",
@@ -190,44 +190,48 @@ void c3d::PathTracePass::recreateTLAS(cgpu::CommandRecorder& commandRecorder, co
 		Engine::getDeviceSession(),
 		{
 			.name = "TLAS",
-			.as_info = tlasInfo,
-			.buffer = tlas_buffer,
+			.as_info = info,
+			.buffer = buffer,
 			.sizes = sizes,
 		}
 	);
 
-	std::optional<cgpu::CommandRecorder::TLASParams::InstanceInfo> tlas_instance_info;
+	std::vector<cgpu::CommandRecorder::TLASParams::Instance> instances;
+	std::optional<cgpu::CommandRecorder::TLASParams::InstanceInfo> instanceInfo;
 	if (!input.registry.getModelRenderRequests().empty())
 	{
-		tlas_instance_info = {{
-			.data = {{}},
-			.buffer = cgpu::Buffer::create(
-				Engine::getDeviceSession(),
-				{
-					.name = "TLAS (build instance memory)",
-					.size = input.registry.getModelRenderRequests().size() * sizeof(vk::AccelerationStructureInstanceKHR),
-					.usages = vk::BufferUsageFlagBits2::eAccelerationStructureBuildInputReadOnlyKHR,
-					.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
-					.min_alignment = 16,
-				}
-			),
-		}};
-
+		instances.reserve(input.registry.getModelRenderRequests().size());
 		for (int i = 0; i < input.registry.getModelRenderRequests().size(); i++)
 		{
 			const ModelRenderer::RenderData& model = input.registry.getModelRenderRequests()[i];
 
-			tlas_instance_info->data->push_back({
+			instances.push_back({
 				.blas = model.mesh.getBLAS(),
 				.local_to_world = model.transform.getLocalToWorldMatrix(),
 			});
 		}
+
+		instanceInfo = {{
+			.data = instances,
+			.buffer = {
+				.buffer = cgpu::Buffer::create(
+					Engine::getDeviceSession(),
+					{
+						.name = "TLAS (build instance memory)",
+						.size = input.registry.getModelRenderRequests().size() * sizeof(vk::AccelerationStructureInstanceKHR),
+						.usages = vk::BufferUsageFlagBits2::eAccelerationStructureBuildInputReadOnlyKHR,
+						.memory_type = cgpu::MemoryType::eCPUVisibleGPU,
+						.min_alignment = 16,
+					}
+				)
+			},
+		}};
 	}
 
-	std::optional<cgpu::CommandRecorder::TLASParams::ScratchBuffer> tlas_scratch_buffer;
+	std::optional<cgpu::CommandRecorder::TLASParams::ScratchBuffer> scratchBuffer;
 	if (_tlas->getDesc().sizes.buildScratchSize > 0)
 	{
-		tlas_scratch_buffer = {{
+		scratchBuffer = {{
 			.buffer = cgpu::Buffer::create(
 				Engine::getDeviceSession(),
 				{
@@ -242,8 +246,8 @@ void c3d::PathTracePass::recreateTLAS(cgpu::CommandRecorder& commandRecorder, co
 
 	commandRecorder.buildTLAS({
 		.tlas = _tlas,
-		.instance_info = tlas_instance_info,
-		.scratch_buffer = tlas_scratch_buffer,
+		.instance_info = instanceInfo,
+		.scratch_buffer = scratchBuffer,
 	});
 }
 

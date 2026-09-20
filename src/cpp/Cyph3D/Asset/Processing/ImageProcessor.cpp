@@ -317,7 +317,7 @@ c3d::ImageData c3d::ImageProcessor::genMipmaps(vk::Format format, glm::uvec2 ext
 			.dst_image = image,
 			.ranges = {{
 				{
-					.src = {{.byte_range = {{0, image->calcByteSize({0, 1}, 1)}}}},
+					.src = {.byte_range = {{0, image->calcByteSize({0, 1}, 1)}}},
 				},
 			}},
 		});
@@ -337,8 +337,8 @@ c3d::ImageData c3d::ImageProcessor::genMipmaps(vk::Format format, glm::uvec2 ext
 				.filter = vk::Filter::eLinear,
 				.ranges = {{
 					{
-						.src = {{.level = i - 1}},
-						.dst = {{.level = i - 0}},
+						.src = {.level = i - 1},
+						.dst = {.level = i - 0},
 					},
 				}},
 			});
@@ -358,12 +358,12 @@ c3d::ImageData c3d::ImageProcessor::genMipmaps(vk::Format format, glm::uvec2 ext
 			size_t size = image->calcByteSize({level, 1}, 1);
 
 			ranges.push_back({
-				.src = {{
+				.src = {
 					.level = level,
-				}},
-				.dst = {{
+				},
+				.dst = {
 					.byte_range = {{bufferOffset, size}},
-				}},
+				},
 			});
 
 			bufferOffset += size;

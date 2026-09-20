@@ -185,12 +185,12 @@ c3d::EquirectangularSkyboxData downloadCubemapImage(const cgpu::ImagePtr& cubema
 			size_t size = cubemapImage->calcByteSize({level, 1}, 6);
 
 			ranges.push_back({
-				.src = {{
+				.src = {
 					.level = level,
-				}},
-				.dst = {{
+				},
+				.dst = {
 					.byte_range = {{bufferOffset, size}},
-				}},
+				},
 			});
 
 			bufferOffset += size;
@@ -413,8 +413,8 @@ void c3d::EquirectangularSkyboxProcessor::generateMipmaps(const cgpu::ImagePtr& 
 				.filter = vk::Filter::eLinear,
 				.ranges = {{
 					{
-						.src = {{.level = i - 1}},
-						.dst = {{.level = i - 0}},
+						.src = {.level = i - 1},
+						.dst = {.level = i - 0},
 					},
 				}},
 			});

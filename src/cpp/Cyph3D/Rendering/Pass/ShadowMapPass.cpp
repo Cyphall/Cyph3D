@@ -282,7 +282,7 @@ c3d::PointShadowMapInfo c3d::ShadowMapPass::renderPointShadowMap(
 
 	std::array<glm::mat4, 6> views = calcPointShadowMapView(light);
 
-	for (int i = 0; i < 6; i++)
+	for (uint32_t i = 0; i < 6; i++)
 	{
 		commandRecorder.graphicsPass({
 			.depth_stencil_attachment = {{
