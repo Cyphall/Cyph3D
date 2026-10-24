@@ -112,6 +112,8 @@ void c3d::MeshAsset::load_async()
 		);
 
 		std::ranges::copy(meshData.positionVertices, _positionVertexBuffer->getHostPtr<PositionVertexData>());
+
+		_positionVertexBuffer->makeImmutable();
 	}
 
 	{
@@ -126,6 +128,8 @@ void c3d::MeshAsset::load_async()
 		);
 
 		std::ranges::copy(meshData.materialVertices, _materialVertexBuffer->getHostPtr<MaterialVertexData>());
+
+		_materialVertexBuffer->makeImmutable();
 	}
 
 	{
@@ -147,6 +151,8 @@ void c3d::MeshAsset::load_async()
 		);
 
 		std::ranges::copy(meshData.indices, _indexBuffer->getHostPtr<uint32_t>());
+
+		_indexBuffer->makeImmutable();
 	}
 
 	if (hasRayTracing)
@@ -214,6 +220,8 @@ void c3d::MeshAsset::load_async()
 			}},
 			.scratch_buffer = blasScratchBuffer,
 		});
+
+		commandRecorder.makeImmutableAfterSubmit(blasBuffer);
 
 		commandRecorder.submit().waitFinished();
 

@@ -89,6 +89,8 @@ void c3d::TextureAsset::load_async()
 		.ranges = ranges,
 	});
 
+	commandRecorder.makeImmutableAfterSubmit(_image);
+
 	commandRecorder.submit().waitFinished();
 
 	assetCommandContext->finish();

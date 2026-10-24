@@ -169,6 +169,8 @@ void c3d::CubemapAsset::load_async()
 		.ranges = ranges,
 	});
 
+	commandRecorder.makeImmutableAfterSubmit(_image);
+
 	commandRecorder.submit().waitFinished();
 
 	assetCommandContext->finish();
